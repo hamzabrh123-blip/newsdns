@@ -1,0 +1,45 @@
+<!-- 📂 templates/mynews/sidebar.html -->
+<aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
+
+  <!-- 🔍 Search -->
+  <h5 class="mb-3 text-primary fw-bold">🔍 खोजें</h5>
+  <form method="get" action="/">
+    <div class="input-group mb-4">
+      <input name="q" class="form-control" placeholder="Search news..." value="{{ request.GET.q }}">
+      <button class="btn btn-primary">Go</button>
+    </div>
+  </form>
+
+  <!-- 📂 Categories -->
+  <h5 class="text-primary fw-bold mb-3">📂 श्रेणियाँ</h5>
+  <ul class="list-unstyled mb-4">
+    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Breaking</a></li>
+    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Politics</a></li>
+    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Local</a></li>
+  </ul>
+
+  <!-- ⭐ Important News -->
+  <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
+  {% for it in important|slice:":3" %}
+    <div class="mb-2 small border-bottom pb-2">
+      <a href="{% url 'news_detail' it.id %}" class="text-dark text-decoration-none">
+        {{ it.title|truncatechars:60 }}
+      </a>
+    </div>
+  {% empty %}
+    <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
+  {% endfor %}
+</aside>
+
+<!-- ✅ Optional Styling -->
+<style>
+.sidebar {
+  position: sticky;
+  top: 80px; /* navbar ke niche */
+}
+@media (max-width: 991px) {
+  .sidebar {
+    margin-top: 2rem;
+  }
+}
+</style>

@@ -1,0 +1,99 @@
+{% extends 'mynews/base.html' %}
+{% block title %}{{ news.title }} | UP News{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    
+    <!-- 📰 Main Content -->
+    <div class="col-lg-8">
+      <article class="bg-white shadow-lg rounded-3 p-4">
+        <!-- 📰 News Title -->
+        <h1 class="mb-3 text-center fw-bold text-primary">{{ news.title }}</h1>
+
+        <!-- 🖼️ Main Image -->
+        {% if news.image %}
+        <div class="text-center mb-4">
+          <img src="{{ news.image.url }}" class="img-fluid rounded-4 shadow-sm news-image" alt="{{ news.title }}">
+        </div>
+        {% endif %}
+
+        <!-- 📜 News Body -->
+        <div class="news-content fs-5 lh-lg">
+          {{ news.content|safe }}
+        </div>
+
+        <!-- ▶️ YouTube Video -->
+        {% if news.youtube_url %}
+        <div class="ratio ratio-16x9 my-4">
+          <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+
+        <!-- 🕓 Date & Category -->
+        <p class="text-muted mt-4 text-end small">
+          🗓️ {{ news.date|date:"d M Y, h:i A" }} |
+          📍 {{ news.district|default:"District Unavailable" }}
+        </p>
+      </article>
+
+      <!-- 💬 Comments Section -->
+      <section class="mt-5">
+        <h3 class="fw-bold mb-3">💬 टिप्पणियाँ</h3>
+
+        <div class="comments-list">
+          {% for comment in comments %}
+          <div class="p-3 mb-3 border rounded-3 bg-light shadow-sm">
+            <strong>{{ comment.name }}</strong>
+            <span class="text-muted small">({{ comment.date|date:"d M Y, h:i A" }})</span>
+            <p class="mt-2">{{ comment.comment }}</p>
+          </div>
+          {% empty %}
+          <p class="text-muted">कोई टिप्पणी नहीं है — पहला कमेंट आप करें!</p>
+          {% endfor %}
+        </div>
+
+        <!-- ✍️ Add Comment -->
+        <h4 class="fw-bold mt-4 mb-3">✍️ नई टिप्पणी जोड़ें</h4>
+        <form method="POST" class="p-4 bg-white shadow rounded-3">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">नाम</label>
+            <input type="text" name="name" class="form-control" placeholder="अपना नाम लिखें" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ईमेल (वैकल्पिक)</label>
+            <input type="email" name="email" class="form-control" placeholder="example@gmail.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">टिप्पणी</label>
+            <textarea name="comment" class="form-control" rows="3" placeholder="अपनी टिप्पणी लिखें..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">टिप्पणी भेजें</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- 📂 Sidebar -->
+    <div class="col-lg-4">
+      {% include 'mynews/sidebar.html' %}
+    </div>
+  </div>
+</div>
+
+<!-- 🧩 Image Fix CSS -->
+<style>
+.news-image {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+  overflow: hidden;
+  display: block;
+  margin: 0 auto;
+}
+article {
+  overflow: hidden;
+}
+</style>
+{% endblock %}

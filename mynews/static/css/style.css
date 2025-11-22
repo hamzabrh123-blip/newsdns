@@ -1,0 +1,39 @@
+body { font-family: Arial; margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Poppins', sans-serif;}
+.navbar {background: linear-gradient(90deg, #007bff, #6610f2);}
+h2, h3 { color: #212529;}
+header { background: #c2185b; color: #fff; padding: 10px; text-align: center; }
+nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+nav a:hover { text-decoration: underline; }
+
+.container { display: flex; flex-wrap: wrap; }
+.sidebar { flex: 1; background: #fff; padding: 15px; min-width: 200px; }
+main { flex: 3; padding: 20px; }
+
+.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+.news-card { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 2px 5px #ccc; }
+.news-card img { width: 100%; border-radius: 10px; }
+
+footer { background: #222; color: white; text-align: center; padding: 10px; margin-top: 20px; }
+
+@media (max-width: 768px) {
+  .container { flex-direction: column; }
+  nav { display: flex; flex-wrap: wrap; justify-content: center; }
+}
+aside {
+  position: sticky;
+  top: 80px;
+}
+
+.news-image {
+  max-width: 100%;
+   max-height: 400px;
+  height: auto;
+  object-fit: cover;  /* proportion maintain karta hai */
+  border-radius: 10px;
+  overflow: hidden;
+  display: block;
+  margin: 0 auto;
+
+article {
+  overflow: hidden; /* 👈 इमेज को बाहर निकलने से रोकता है */
+}

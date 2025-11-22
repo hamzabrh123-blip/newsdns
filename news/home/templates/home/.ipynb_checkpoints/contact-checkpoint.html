@@ -1,0 +1,22 @@
+{% extends "home/base.html" %}
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<h1>📞 Contact Page</h1>
+<p>Aap humse yahan sampark kar sakte ho!</p>
+
+{% if success %}
+    <h3 style="color: green;">Dhanyavaad, {{ name }}! Aapka sandesh mil gaya 🌸</h3>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label>Naam:</label><br>
+    <input type="text" name="name" placeholder="Apna naam likhiye" required><br><br>
+
+    <label>Sandesh:</label><br>
+    <textarea name="message" placeholder="Apna message likhiye" required></textarea><br><br>
+
+    <button type="submit">Bhejo</button>
+</form>
+{% endblock %}
