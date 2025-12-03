@@ -25,6 +25,8 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Whitenoise media support
+WHITENOISE_ROOT = MEDIA_ROOT
 WHITENOISE_USE_FINDERS = True
 
 # Render auto-domain
