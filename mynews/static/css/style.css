@@ -83,15 +83,13 @@ aside {
   max-width: 100%;
   max-height: 400px;
   height: auto;
-  object-fit: cover;  /* proportion maintain karta hai */
+  object-fit: cover;
   border-radius: 10px;
   overflow: hidden;
   display: block;
   margin: 0 auto;
 }
 
-
-/* prevent image overflow */
 article {
   overflow: hidden;
 }
