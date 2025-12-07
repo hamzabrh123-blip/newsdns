@@ -1,14 +1,12 @@
-# आपकी requirements.txt फ़ाइल में अंतिम आवश्यक सुधार:
-
 Django==5.2.7
 gunicorn
 psycopg2-binary
 dj-database-url==3.0.1
 whitenoise==6.11.0
 
-# Cloudinary Packages (Fix: Use the latest available stable version)
+# Cloudinary Packages
 cloudinary==1.44.1
-django-cloudinary-storage==0.3.0  <--- यह वर्ज़न सही है!
+django-cloudinary-storage==0.3.0
 
 # CKEditor Packages
 django-ckeditor==6.7.3
