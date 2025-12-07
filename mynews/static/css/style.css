@@ -37,3 +37,15 @@ aside {
 article {
   overflow: hidden; /* 👈 इमेज को बाहर निकलने से रोकता है */
 }
+  /* Mobile Responsive Heading Fix */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 22px;
+  }
+  h2 {
+    font-size: 18px;
+  }
+  h3 {
+    font-size: 16px;
+  }
+}
