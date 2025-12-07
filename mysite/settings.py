@@ -28,12 +28,6 @@ if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
-
-# ---------------- MEDIA (Cloudinary का काम है) ----------------
-MEDIA_URL = '/media/'   # बस इतना ही चाहिए
-
-
 # ---------------- APPS ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
