@@ -4,19 +4,21 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECRET KEY
+# ---------------- SECURITY/SECRET KEY ----------------
+# हमेशा Environment Variable से लें।
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez'
 )
 
-DEBUG = os.environ.get('DEBUG_VALUE', 'True') == 'True'
+# DEBUG को सही Boolean value में बदलना
+DEBUG = os.environ.get('DEBUG_VALUE', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
-    "mysite-1-kg2r.onrender.com",
+    "halchal.onrender.com",
 ]
 
 # Render auto host
@@ -24,10 +26,6 @@ if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
 
 
-# ---------------- STATIC ----------------
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 # ---------------- APPS ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -35,9 +33,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    
+    # Static files के लिए आवश्यक
     'django.contrib.staticfiles',
 
-    # Cloudinary
+    # Cloudinary और Storage के लिए
     'cloudinary',
     'cloudinary_storage',
 
@@ -50,21 +50,11 @@ INSTALLED_APPS = [
 ]
 
 
-# ---------------- CLOUDINARY SETTINGS ----------------
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '468226887694915'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE'),
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 
-    # Whitenoise for static files
+    # Whitenoise को यहां रखना आवश्यक है
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -77,7 +67,6 @@ MIDDLEWARE = [
 
 
 ROOT_URLCONF = 'mysite.urls'
-
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
@@ -101,6 +90,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 
 # ---------------- DATABASE ----------------
+# NOTE: Production में Hardcoded credentials को Environment Variables से बदलें।
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get(
@@ -121,26 +111,49 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# ---------------- GENERAL SETTINGS ----------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# ---------------- STATIC FILES ----------------
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Whitenoise के लिए storage backend
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# ---------------- CLOUDINARY AND MEDIA SETTINGS (Images Will Not Be Deleted) ----------------
+
+# Cloudinary credentials को सीधे Environment Variables से लिया जाना चाहिए।
+# Note: अगर आप इन्हें ENV variables में सेट करते हैं, तो ये डिफ़ॉल्ट मान हट जाने चाहिए।
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
+
+# यह सेटिंग सुनिश्चित करती है कि सभी यूज़र मीडिया (इमेज) सीधे Cloudinary पर सेव हों।
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+# ---------------- CKEDITOR SETTINGS ----------------
+CKEDITOR_UPLOAD_PATH = "uploads/" 
+CKEDITOR_ALLOW_NONIMAGE_FILES = False
+CKEDITOR_IMAGE_BACKEND = 'cloudinary'
+
+# JQuery URL
+CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js'
+
+
 # ---------------- EMAIL ----------------
+# NOTE: Production में EMAIL_HOST_PASSWORD भी Environment Variable से लिया जाना चाहिए।
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "hamzabrh@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
-
-
-# ---------------- CKEDITOR ----------------
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_ALLOW_NONIMAGE_FILES = False
-CKEDITOR_IMAGE_BACKEND = 'cloudinary'
-
-CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js'
