@@ -79,14 +79,19 @@ aside {
   top: 80px;
 }
 
-/* FIXED: bracket missing issue */
 .news-image {
-  width: 100%;
-  height: auto;            /* Image natural size maintain करेगी */
-  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  height: auto;
+  object-fit: cover;  /* proportion maintain karta hai */
   border-radius: 10px;
-  object-fit: contain;     /* cover की जगह contain – image कटेगी नहीं */
+  overflow: hidden;
+  display: block;
   margin: 0 auto;
+}
+
+article {
+  overflow: hidden; /* 👈 इमेज को बाहर निकलने से रोकता है */
 }
 
 
