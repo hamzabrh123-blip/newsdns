@@ -90,10 +90,6 @@ aside {
   margin: 0 auto;
 }
 
-article {
-  overflow: hidden; /* 👈 इमेज को बाहर निकलने से रोकता है */
-}
-
 
 /* prevent image overflow */
 article {
