@@ -157,3 +157,27 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "hamzabrh@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
+
+# settings.py
+
+# ... (बाकी सब वही रहेगा)
+
+# ---------------- CLOUDINARY SETTINGS ----------------
+# सुनिश्चित करें कि ये तीनों variables सीधे os.environ से लिए गए हैं 
+# (या तो Render से या लोकल .env से)
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
+
+
+# CLOUDINARY_STORAGE डिक्शनरी को इस प्रकार परिभाषित करें (यह 100% सुनिश्चित करता है)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
+}
+
+# यह सेटिंग सबसे महत्वपूर्ण है और इसे बिल्कुल न बदलें।
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' 
+
+# ...
