@@ -81,15 +81,14 @@ aside {
 
 /* FIXED: bracket missing issue */
 .news-image {
-  max-width: 100%;
-  max-height: 400px;
-  height: auto;
-  object-fit: cover;
-  border-radius: 10px;
-  overflow: hidden;
+  width: 100%;
+  height: auto;            /* Image natural size maintain करेगी */
   display: block;
+  border-radius: 10px;
+  object-fit: contain;     /* cover की जगह contain – image कटेगी नहीं */
   margin: 0 auto;
 }
+
 
 /* prevent image overflow */
 article {
