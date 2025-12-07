@@ -4,9 +4,8 @@ psycopg2-binary
 dj-database-url==3.0.1
 whitenoise==6.11.0
 
-# Cloudinary Packages (Updated to compatible versions)
-# cloudinary==2.11.0 # या नवीनतम वर्ज़न
-cloudinary
+cloudinary==2.11.0 # या नवीनतम वर्ज़न
+
 django-cloudinary-storage==0.5.0
 
 # CKEditor Packages
@@ -14,3 +13,4 @@ django-ckeditor==6.7.3
 django-js-asset==3.1.2
 
 Pillow
+
