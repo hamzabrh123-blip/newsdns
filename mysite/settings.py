@@ -15,7 +15,7 @@ ALLOWED_HOSTS = [
     "mysite-1-kg2r.onrender.com",
 ]
 
-# ---------------- STATIC & MEDIA ----------------
+# ---------------- STATIC ----------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -23,10 +23,11 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# ---------------- MEDIA (local fallback) ----------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Whitenoise media support
+# Whitenoise
 WHITENOISE_ROOT = MEDIA_ROOT
 WHITENOISE_USE_FINDERS = True
 
@@ -43,11 +44,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Cloudinary
+    'cloudinary',
+    'cloudinary_storage',
+
+    # Your App
     'mynews',
 
+    # CKEditor
     'ckeditor',
     'ckeditor_uploader',
 ]
+
+# ---------------- CLOUDINARY SETTINGS ----------------
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dvoqsrkkq',
+    'API_KEY': '468226887694915',
+    'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',  # ← your real secret
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
@@ -64,6 +80,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'mysite.urls'
 
+# ---------------- TEMPLATES ----------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
