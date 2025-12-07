@@ -5,6 +5,8 @@ class District(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
 class News(models.Model):
+    image = models.ImageField(upload_to='news_image') 
+class News(models.Model):
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
