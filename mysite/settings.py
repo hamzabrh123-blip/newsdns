@@ -4,14 +4,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------- SECURITY/SECRET KEY ----------------
-# हमेशा Environment Variable से लें।
+# ---------------- SECRET KEY ----------------
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez'
 )
 
-# DEBUG को सही Boolean value में बदलना
 DEBUG = os.environ.get('DEBUG_VALUE', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [
@@ -21,30 +19,24 @@ ALLOWED_HOSTS = [
     "halchal.onrender.com",
 ]
 
-# Render auto host
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
 
 
-# ---------------- APPS ----------------
+# ---------------- INSTALLED APPS ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    
-    # Static files के लिए आवश्यक
     'django.contrib.staticfiles',
 
-    # Cloudinary और Storage के लिए
     'cloudinary',
     'cloudinary_storage',
 
-    # Your App
     'mynews',
 
-    # CKEditor
     'ckeditor',
     'ckeditor_uploader',
 ]
@@ -53,8 +45,6 @@ INSTALLED_APPS = [
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # Whitenoise को यहां रखना आवश्यक है
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,6 +57,7 @@ MIDDLEWARE = [
 
 
 ROOT_URLCONF = 'mysite.urls'
+
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
@@ -90,7 +81,6 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 
 # ---------------- DATABASE ----------------
-# NOTE: Production में Hardcoded credentials को Environment Variables से बदलें।
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get(
@@ -121,36 +111,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ---------------- STATIC FILES ----------------
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Whitenoise के लिए storage backend
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-# ---------------- CLOUDINARY AND MEDIA SETTINGS (Images Will Not Be Deleted) ----------------
-
-# Cloudinary credentials को सीधे Environment Variables से लिया जाना चाहिए।
-# Note: अगर आप इन्हें ENV variables में सेट करते हैं, तो ये डिफ़ॉल्ट मान हट जाने चाहिए।
+# ---------------- CLOUDINARY SETTINGS ----------------
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
 
-# यह सेटिंग सुनिश्चित करती है कि सभी यूज़र मीडिया (इमेज) सीधे Cloudinary पर सेव हों।
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
+}
+
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 # ---------------- CKEDITOR SETTINGS ----------------
-CKEDITOR_UPLOAD_PATH = "uploads/" 
+CKEDITOR_UPLOAD_PATH = ""     # ← यह सबसे जरूरी बदलाव था
 CKEDITOR_ALLOW_NONIMAGE_FILES = False
-CKEDITOR_IMAGE_BACKEND = 'cloudinary'
+CKEDITOR_IMAGE_BACKEND = "cloudinary"
 
-# JQuery URL
-CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js'
+CKEDITOR_JQUERY_URL = "//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 
 
 # ---------------- EMAIL ----------------
-# NOTE: Production में EMAIL_HOST_PASSWORD भी Environment Variable से लिया जाना चाहिए।
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -158,26 +147,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "hamzabrh@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 
-# settings.py
-
-# ... (बाकी सब वही रहेगा)
-
-# ---------------- CLOUDINARY SETTINGS ----------------
-# सुनिश्चित करें कि ये तीनों variables सीधे os.environ से लिए गए हैं 
-# (या तो Render से या लोकल .env से)
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
-
-
-# CLOUDINARY_STORAGE डिक्शनरी को इस प्रकार परिभाषित करें (यह 100% सुनिश्चित करता है)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
-    'API_KEY': CLOUDINARY_API_KEY,
-    'API_SECRET': CLOUDINARY_API_SECRET,
-}
-
-# यह सेटिंग सबसे महत्वपूर्ण है और इसे बिल्कुल न बदलें।
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' 
-
-# ...
