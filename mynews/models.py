@@ -28,7 +28,7 @@ class News(models.Model):
     content = RichTextUploadingField(blank=True)
 
     #media file 
-    image = models.ImageField(upload_to='news_image/', blank=True, null=True)
+    image = models.ImageField()
     youtube_url = models.URLField(blank=True, null=True)
 
     is_important = models.BooleanField(default=False)

@@ -118,6 +118,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ---------------- CLOUDINARY SETTINGS ----------------
+
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
@@ -129,7 +130,6 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 
 # ---------------- CKEDITOR SETTINGS ----------------
 CKEDITOR_UPLOAD_PATH = ""     # ← यह सबसे जरूरी बदलाव था
