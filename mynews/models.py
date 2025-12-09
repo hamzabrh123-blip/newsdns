@@ -33,7 +33,7 @@ class News(models.Model):
     content = RichTextUploadingField(blank=True)
 
     # Cloudinary ImageField
-    image = models.ImageField(blank=True, null=True)   # ← सबसे ज़रूरी FIX
+    image = models.ImageField()
 
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)

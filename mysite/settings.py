@@ -1,5 +1,6 @@
 import os
 import dj_database_url
+from django.conf import settings
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -118,25 +119,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ---------------- CLOUDINARY SETTINGS ----------------
-
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '468226887694915')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE')
-
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dvoqsrkkq',
-    'API_KEY': 468226887694915,
+    'API_KEY': 'lyCSdVyGFQ2pyvTp4hxD6UqzWmI',
     'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# ---------------- CKEDITOR SETTINGS ----------------
-CKEDITOR_UPLOAD_PATH = ""     # ← यह सबसे जरूरी बदलाव था
-CKEDITOR_ALLOW_NONIMAGE_FILES = False
-CKEDITOR_IMAGE_BACKEND = "cloudinary"
-
-CKEDITOR_JQUERY_URL = "//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 
 
 # ---------------- EMAIL ----------------
@@ -147,3 +136,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "hamzabrh@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
