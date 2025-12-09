@@ -1,17 +1,15 @@
 import os
+<<<<<<< HEAD
 import dj_database_url
 from django.conf import settings
+=======
+>>>>>>> ec3b971c40da411d06394248c1eeb26f2666148c
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------- SECRET KEY ----------------
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez'
-)
-
-DEBUG = os.environ.get('DEBUG_VALUE', 'True').lower() == 'true'
+SECRET_KEY = "django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez"
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -20,11 +18,6 @@ ALLOWED_HOSTS = [
     "halchal.onrender.com",
 ]
 
-if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
-    ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
-
-
-# ---------------- INSTALLED APPS ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,16 +26,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'cloudinary',
-    'cloudinary_storage',
-
+    # your apps
     'mynews',
 
+    # rich text editor
     'ckeditor',
     'ckeditor_uploader',
+
+    # cloudinary
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 
+<<<<<<< HEAD
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -140,3 +137,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
+=======
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dvoqsrkkq',
+    'API_KEY': '468226887694915',
+    'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',
+}
+>>>>>>> ec3b971c40da411d06394248c1eeb26f2666148c

@@ -10,7 +10,12 @@ class District(models.Model):
 
 
 class News(models.Model):
+<<<<<<< HEAD
 
+=======
+    image = models.ImageField(upload_to='news_image/') 
+class News(models.Model):
+>>>>>>> ec3b971c40da411d06394248c1eeb26f2666148c
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
