@@ -73,19 +73,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
-
-# ---------------- DATABASE ----------------
+#-------- Database ---------
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a/brhnewsdb"
-        ),
-        conn_max_age=600
+    "default": dj_database_url.config(
+        default="postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb",
+        conn_max_age=600,
+        ssl_require=True
     )
 }
-
-
 # ---------------- PASSWORD VALIDATION ----------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

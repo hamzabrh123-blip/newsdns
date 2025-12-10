@@ -10,12 +10,6 @@ class District(models.Model):
 
 
 class News(models.Model):
-<<<<<<< HEAD
-
-=======
-    image = models.ImageField(upload_to='news_image/') 
-class News(models.Model):
->>>>>>> ec3b971c40da411d06394248c1eeb26f2666148c
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
@@ -34,11 +28,9 @@ class News(models.Model):
     district = models.CharField(max_length=50, choices=DISTRICT_CHOICES, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
 
-    # CKEditor formatted content
     content = RichTextUploadingField(blank=True)
 
-    # Cloudinary ImageField
-    image = models.ImageField()
+    image = models.ImageField(upload_to="news_images/", blank=True, null=True)
 
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
