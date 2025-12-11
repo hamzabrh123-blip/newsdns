@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 from ckeditor_uploader.fields import RichTextUploadingField
 
 
@@ -30,7 +31,7 @@ class News(models.Model):
 
     content = RichTextUploadingField(blank=True)
 
-    image = models.ImageField(upload_to="news_images/", blank=True, null=True)
+    image = CloudinaryField("Image")
 
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
