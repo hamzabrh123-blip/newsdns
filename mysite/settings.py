@@ -1,6 +1,5 @@
 import os
 import dj_database_url
-from django.conf import settings
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -75,8 +74,12 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 #-------- Database ---------
 DATABASES = {
+    
     "default": dj_database_url.config(
-        default="postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb",
+        default=os.environ.get(
+            "DATABASE_URL",
+            "postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb"
+        ), 
         conn_max_age=600,
         ssl_require=True
     )
@@ -109,7 +112,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # ---------------- CLOUDINARY SETTINGS ----------------
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dvoqsrkkq',
-    'API_KEY': 'lyCSdVyGFQ2pyvTp4hxD6UqzWmI',
+    'API_KEY': '468226887694915',
     'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',
 }
 
@@ -124,7 +127,5 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "hamzabrh@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
