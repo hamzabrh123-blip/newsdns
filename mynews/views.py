@@ -145,9 +145,9 @@ def create_admin(request):
         email="hamzareal@gmail.com",
         password="Hamza@5555"
     )
-def home(request):
+def visit_counter(request):
     visits = cache.get('visits', 0)
     visits += 1
     cache.set('visits', visits, None)
-    return render(request, 'home.html', {'visits': visits})
+    return render(request, 'sidebar.html', {'visits': visits})
     return HttpResponse("Admin Created Successfully!")
