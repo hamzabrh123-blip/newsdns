@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from .models import News, Comment
-
+from django.core.cache import cache
 from django.contrib import messages
 from django.core.mail import send_mail
 from .models import AdminOTP
@@ -145,4 +145,9 @@ def create_admin(request):
         email="hamzareal@gmail.com",
         password="Hamza@5555"
     )
+def home(request):
+    visits = cache.get('visits', 0)
+    visits += 1
+    cache.set('visits', visits, None)
+    return render(request, 'home.html', {'visits': visits})
     return HttpResponse("Admin Created Successfully!")
