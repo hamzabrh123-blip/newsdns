@@ -2,20 +2,51 @@
 
 import cloudinary.models
 from django.db import migrations, models
+from django.utils.text import slugify
 
+
+def set_unique_slugs(apps, schema_editor):
+    
+    News = apps.get_model('mynews', 'News')
+    
+    
+    queryset = News.objects.filter(slug__isnull=True) | News.objects.filter(slug='')
+
+    for news_item in queryset.iterator():
+        
+        
+        base_title = news_item.title if news_item.title else "default-news"
+        base_slug = slugify(base_title)
+        
+        new_slug = f"{base_slug}-{news_item.pk}"
+
+        news_item.slug = new_slug
+        news_item.save(update_fields=['slug'])
+# -----------------------------
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mynews', '0019_auto_20251214_2332'),
+       
+        ('mynews', '0014_alter_news_image'), 
     ]
 
     operations = [
         migrations.AddField(
             model_name='news',
             name='slug',
+            field=models.SlugField(blank=True, max_length=255, null=True),
+        ),
+
+        migrations.RunPython(set_unique_slugs, migrations.RunPython.noop),
+
+        migrations.AlterField(
+            model_name='news',
+            name='slug',
             field=models.SlugField(blank=True, max_length=255, unique=True),
         ),
+        
+        
         migrations.AlterField(
             model_name='news',
             name='image',
