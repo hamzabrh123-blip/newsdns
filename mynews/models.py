@@ -41,11 +41,7 @@ class News(models.Model):
     )
     date = models.DateTimeField(auto_now_add=True)
 
-    slug = models.SlugField(
-        max_length=255,
-        unique=True,
-        blank=True
-    )
+    slug = models.SlugField(max_length=250, unique=True, blank=True, null=True)
 
     content = RichTextUploadingField(blank=True)
     image = CloudinaryField("Image")
