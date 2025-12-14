@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
 from ckeditor_uploader.fields import RichTextUploadingField
 
@@ -42,25 +41,10 @@ class News(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
     slug = models.SlugField(max_length=250, unique=True, blank=True, null=True)
-
     content = RichTextUploadingField(blank=True)
     image = CloudinaryField("Image")
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            base_slug = slugify(self.title)[:200]
-            slug = base_slug
-            counter = 1
-
-            while News.objects.filter(slug=slug).exclude(id=self.id).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-
-            self.slug = slug
-
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
