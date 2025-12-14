@@ -40,7 +40,7 @@ class News(models.Model):
     )
     date = models.DateTimeField(auto_now_add=True)
 
-    slug = models.SlugField(max_length=250, unique=True, blank=True, null=True)
+    slug = models.SlugField(max_length=250, blank=True, null=True)
     content = RichTextUploadingField(blank=True)
     image = CloudinaryField("Image")
     youtube_url = models.URLField(blank=True, null=True)
