@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         
-        ('mynews', '0018_alter_news_slug'), 
+        ('mynews', '0014_alter_news_image'), 
     ]
 
     operations = [
