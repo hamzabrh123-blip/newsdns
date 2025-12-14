@@ -151,3 +151,10 @@ def visit_counter(request):
     cache.set('visits', visits, None)
     return render(request, 'sidebar.html', {'visits': visits})
     return HttpResponse("Admin Created Successfully!")
+
+from django.http import HttpResponse
+
+def ads_txt(request):
+    content = """google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"""
+    return HttpResponse(content, content_type="text/plain")
+
