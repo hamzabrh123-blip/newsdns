@@ -155,6 +155,6 @@ def visit_counter(request):
 from django.http import HttpResponse
 
 def ads_txt(request):
-    content = """google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"""
+    content = """google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"""
     return HttpResponse(content, content_type="text/plain")
 
