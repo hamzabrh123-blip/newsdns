@@ -8,4 +8,7 @@ urlpatterns = [
     path('district/<str:district>/', views.district_news, name='district_news'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
+
+    # ✅ ads.txt (IMPORTANT – root level)
+    path('ads.txt', views.ads_txt, name='ads_txt'),
 ]
