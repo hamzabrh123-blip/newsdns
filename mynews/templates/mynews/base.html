@@ -2,31 +2,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% block title %}UP News Portal{% endblock %}</title>
+    <!-- ✅ Title Block -->
+    <title>{% block title %}UP News – Latest District & Breaking News{% endblock %}</title>
 
+    <!-- ✅ SEO Meta Tags -->
+    <meta name="description" content="{% block description %}UP News brings latest district, state, national and international news in Hindi.{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}up news, bahraich news, up district news, uttar pradesh local news, 
+        bahraich news today, bahraich breaking news, bahraich hindi news, bahraich crime news, bahraich district news, 
+        sitapur news today, sitapur breaking news, sitapur hindi samachar, sitapur news, gonda news, gonda hindi news, 
+        gonda district news, balrampur news today, balrampur breaking news, shravasti news today, shravasti district news, 
+        barabanki news today, barabanki breaking news, lucknow news today, lucknow breaking news, lucknow hindi news, 
+        lakhimpur kheri news today, kheri district news, sant kabir nagar news today, basti news today, basti breaking news, 
+        dumariyagunj news today, tulsipur news today, national news in hindi, international news in hindi, world news hindi{% endblock %}">
 
-<meta name="description" content="{% block description %}UP News brings latest district, state, national and international news in Hindi.{% endblock %}">
-
-<meta name="keywords" content="{% block keywords %}up news, bahraich news, up district news, uttar pradesh local news, 
-    bahraich news today, bahraich breaking news, bahraich hindi news, bahraich crime news, bahraich district news, 
-    sitapur news today, sitapur breaking news, sitapur hindi samachar, sitapur news, gonda news, gonda hindi news, 
-    gonda district news, balrampur news today, balrampur breaking news, shravasti news today, shravasti district news, 
-    barabanki news today, barabanki breaking news, lucknow news today, lucknow breaking news, lucknow hindi news, 
-    lakhimpur kheri news today, kheri district news, sant kabir nagar news today, basti news today, basti breaking news, 
-    dumariyagunj news today, tulsipur news today, national news in hindi, international news in hindi, world news hindi
- {% endblock %}">
-    
+    <!-- ✅ Google Verification & Adsense -->
     <meta name="google-site-verification" content="Tc2m2shF0Hs1ax-O0rtP3g0PG1TkJ-XF1XN-fEqrICo" />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
-     crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
+
+    <!-- ✅ Charset & Viewport -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- ✅ Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- 🌈 Custom Global Styles -->
+    <!-- 🌈 Custom Styles -->
     <style>
         body {
             background-color: #f8f9fa;
@@ -34,7 +35,8 @@
         }
         .main-wrapper {
             min-height: 100vh;
-            
+            display: flex;
+            flex-direction: column;
         }
         main {
             flex: 1;
@@ -53,24 +55,23 @@
 <body>
 
     <div class="main-wrapper">
-        <!-- ✅ Navbar Include -->
+        <!-- ✅ Navbar -->
         {% include 'mynews/navbar.html' %}
 
         <!-- ✅ Main Content -->
         <main class="container my-4">
             {% block content %}{% endblock %}
         </main>
-<footer>
-            <small>© 2025 UP News Portal | All rights reserved. Visitors my site: {{ visits }} </small>
+
+        <!-- ✅ Footer -->
+        <footer>
+            <small>© 2025 UP News Portal | All rights reserved. Visitors on site: {{ visits }}</small>
         </footer>
     </div>
 
-    <!-- ✅ Bootstrap JS Bundle (Popper + Dropdown Support) -->
+    <!-- ✅ Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     {% block extra_scripts %}{% endblock %}
-
-
 </body>
 </html>
- 
