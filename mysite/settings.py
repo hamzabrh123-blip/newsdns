@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'cloudinary_storage',
 ]
 
-
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,9 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'mysite.urls'
-
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
@@ -69,21 +66,20 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
-#-------- Database ---------
+# -------- Database ---------
 DATABASES = {
-    
     "default": dj_database_url.config(
         default=os.environ.get(
             "DATABASE_URL",
             "postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb"
-        ), 
+        ),
         conn_max_age=600,
         ssl_require=True
     )
 }
+
 # ---------------- PASSWORD VALIDATION ----------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -92,14 +88,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 # ---------------- GENERAL SETTINGS ----------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # ---------------- STATIC FILES ----------------
 STATIC_URL = '/static/'
@@ -108,8 +102,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
-# ---------------- CLOUDINARY SETTINGS ----------------
+# ------------ CLOUDINARY SETTINGS ------------
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dvoqsrkkq',
     'API_KEY': '468226887694915',
@@ -118,13 +111,12 @@ CLOUDINARY_STORAGE = {
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "hamzabrh@gmail.com"
+EMAIL_HOST_USER = "hamzabrh123@gmail.com"
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
