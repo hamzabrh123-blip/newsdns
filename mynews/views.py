@@ -101,10 +101,13 @@ def national_news(request):
 
 # 📰 News Detail View
 def news_detail(request, slug, code):
-    try:
-        news_id = decode_id(code)
-    except:
-        raise Http404("Invalid news")
+    news_id = decode_id(code)
+
+    news = get_object_or_404(
+        News,
+        id=news_id,
+        slug=slugify(news.title)
+    )
 
     comments = Comment.objects.filter(news=news).order_by('-date')
 
@@ -121,10 +124,9 @@ def news_detail(request, slug, code):
                 comment=comment_text
             )
 
-            # ✅ FIXED redirect
             return redirect(
                 'news_detail',
-                slug=slugify(news.title),
+                slug=news.slug,
                 code=encode_id(news.id)
             )
 
