@@ -1,5 +1,5 @@
+import base64
 from django.utils.text import slugify
-from .utils import decode_id
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from .models import News, Comment, AdminOTP
@@ -13,6 +13,21 @@ from django.http import Http404
 
 ADMIN_EMAIL = "hamzabrh@gmail.com"
 
+def encode_id(news_id):
+    raw = f"news:{news_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+
+
+def decode_id(code):
+    try:
+        padded = code + "=" * (-len(code) % 4)
+        decoded = base64.urlsafe_b64decode(padded).decode()
+        prefix, news_id = decoded.split(":")
+        if prefix != "news":
+            raise ValueError
+        return int(news_id)
+    except Exception:
+        raise Http404("Invalid news")
 # Step 1 → Send OTP
 def admin_login(request):
     if request.method == "POST":
@@ -91,7 +106,6 @@ def news_detail(request, slug, code):
     except:
         raise Http404("Invalid news")
 
-    news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
     if request.method == 'POST':
