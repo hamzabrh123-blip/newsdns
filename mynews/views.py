@@ -83,7 +83,7 @@ def national_news(request):
     return render(request, "mynews/national_news.html", {"news_list": news_list})
 
 # 📰 News Detail View
-def news_detail(request, news_id):
+def news_detail(request, slug, news_id):
     news = get_object_or_404(News, pk=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
