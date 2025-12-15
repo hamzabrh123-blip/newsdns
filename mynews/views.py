@@ -1,3 +1,5 @@
+from django.utils.text import slugify
+from .utils import decode_id
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from .models import News, Comment, AdminOTP
@@ -7,7 +9,7 @@ from django.core.mail import send_mail
 import random
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import Http404
 
 ADMIN_EMAIL = "hamzabrh@gmail.com"
 
@@ -83,8 +85,13 @@ def national_news(request):
     return render(request, "mynews/national_news.html", {"news_list": news_list})
 
 # 📰 News Detail View
-def news_detail(request, slug, news_id):
-    news = get_object_or_404(News, pk=news_id)
+def news_detail(request, slug, code):
+    try:
+        news_id = decode_id(code)
+    except:
+        raise Http404("Invalid news")
+
+    news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
     if request.method == 'POST':
@@ -93,10 +100,24 @@ def news_detail(request, slug, news_id):
         comment_text = request.POST.get('comment')
 
         if name and comment_text:
-            Comment.objects.create(news=news, name=name, email=email, comment=comment_text)
-            return redirect('news_detail', news_id=news.id)
+            Comment.objects.create(
+                news=news,
+                name=name,
+                email=email,
+                comment=comment_text
+            )
 
-    return render(request, 'mynews/news_detail.html', {'news': news, 'comments': comments})
+            # ✅ FIXED redirect
+            return redirect(
+                'news_detail',
+                slug=slugify(news.title),
+                code=encode_id(news.id)
+            )
+
+    return render(request, 'mynews/news_detail.html', {
+        'news': news,
+        'comments': comments
+    })
 
 # 🗺️ District-wise News Page
 def district_news(request, district):
