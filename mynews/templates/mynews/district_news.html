@@ -23,11 +23,14 @@
                   <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
                   <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
-                  <a href="#"
-                       class="btn btn-outline-primary btn-sm news-link"
-                       data-id="{{ item.id }}">
-                         Read more
+                  
+                 <a href="javascript:void(0)"
+                     class="btn btn-outline-primary btn-sm news-link"
+                     data-id="{{ n.id }}"
+                     data-title="{{ n.title }}">
+                       Read more
                   </a>
+                  
                   </div>
               </div>
             </div>
