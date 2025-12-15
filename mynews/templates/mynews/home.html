@@ -17,11 +17,12 @@
                 <h5 class="card-title">{{ n.title|truncatechars:60 }}</h5>
                 <p class="card-text text-muted small">{{ n.date|date:"M d, Y" }}</p>
                 <p class="card-text">{{ n.content|truncatechars_html:120|safe }}</p>
-               <a href="#"
-                 class="btn btn-outline-primary btn-sm news-link"
-                 data-id="{{ n.id }}">
-                 Read more
-                </a>
+                              <a href="javascript:void(0)"
+                     class="btn btn-outline-primary btn-sm news-link"
+                     data-id="{{ n.id }}"
+                     data-title="{{ n.title }}">
+                       Read more
+                  </a>
               </div>
             </div>
           </div>
