@@ -67,6 +67,7 @@
     {% block extra_scripts %}{% endblock %}
 <script>
 function slugify(text) {
+    if (!text) return "";
     return text.toLowerCase()
         .trim()
         .replace(/[^\w\s-]/g, '')
@@ -79,12 +80,24 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", function (e) {
             e.preventDefault();
 
-            // 🔥 card ke andar se title uthao
-            const card = this.closest(".card");
-            const title = card.querySelector(".card-title")?.innerText || "news";
-
-            const slug = slugify(title);
             const id = this.dataset.id;
+
+            // 🔎 card ke andar title dhundho
+            const card = this.closest(".card");
+            let title = "";
+
+            if (card) {
+                const titleEl = card.querySelector(".card-title, h5, h4, h3");
+                if (titleEl) {
+                    title = titleEl.innerText;
+                }
+            }
+
+            // 🛟 FALLBACK (VERY IMPORTANT)
+            let slug = slugify(title);
+            if (!slug) {
+                slug = "news";   // fallback slug
+            }
 
             window.location.href = `/news/${slug}-${id}/`;
         });
