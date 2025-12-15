@@ -24,9 +24,12 @@
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
   {% for it in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
-      <a href="{% url 'news_detail' it.id %}" class="text-dark text-decoration-none">
-        {{ it.title|truncatechars:60 }}
-      </a>
+     <a href="#"
+       class="text-dark text-decoration-none news-link"
+       data-id="{{ it.id }}"
+       data-title="{{ it.title }}">
+       {{ it.title|truncatechars:60 }}
+    </a>
     </div>
   {% empty %}
     <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
