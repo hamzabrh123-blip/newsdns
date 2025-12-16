@@ -1,3 +1,4 @@
+{% load encode_tags %}
 {% extends 'mynews/base.html' %}
 {% block title %}{{ district }} News | UP News{% endblock %}
 
@@ -24,7 +25,6 @@
                   <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
                   
-                {% load encode_tags %}
                     <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
                               Read more
                     </a>
