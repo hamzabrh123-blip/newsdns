@@ -13,10 +13,6 @@ from django.http import Http404
 
 ADMIN_EMAIL = "hamzabrh@gmail.com"
 
-def encode_id(news_id):
-    raw = f"news:{news_id}"
-    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
-
 
 def decode_id(code):
     try:
@@ -109,9 +105,9 @@ def news_detail(request, slug, code):
     news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
-    return render(request, 'mynews/news_detail.html', {
-        'news': news,
-        'comments': comments
+    return render(request, "mynews/news_detail.html", {
+        "news": news,
+        "comments": comments
     })
 # 🗺️ District-wise News Page
 def district_news(request, district):
