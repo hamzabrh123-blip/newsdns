@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const slug = slugify(title);
       const code = encodeId(id);
 
-      window.location.href = `/news/${slug}-${code}/`;
+      window.location.href = `/news/${slug}/${encodedId}/`;
     });
   });
 });
