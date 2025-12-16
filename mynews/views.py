@@ -109,24 +109,6 @@ def news_detail(request, slug, code):
     news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        comment_text = request.POST.get('comment')
-
-        if name and comment_text:
-            Comment.objects.create(
-                news=news,
-                name=name,
-                email=email,
-                comment=comment_text
-            )
-            return redirect(
-                'news_detail',
-                slug=slugify(news.title),
-                code=encode_id(news.id)
-            )
-
     return render(request, 'mynews/news_detail.html', {
         'news': news,
         'comments': comments
