@@ -101,14 +101,12 @@ def national_news(request):
 
 # 📰 News Detail View
 def news_detail(request, slug, code):
-    news_id = decode_id(code)
+    try:
+        news_id = decode_id(code)
+    except:
+        raise Http404("Invalid news")
 
-    news = get_object_or_404(
-        News,
-        id=news_id,
-        slug=slugify(news.title)
-    )
-
+    news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by('-date')
 
     if request.method == 'POST':
@@ -123,10 +121,9 @@ def news_detail(request, slug, code):
                 email=email,
                 comment=comment_text
             )
-
             return redirect(
                 'news_detail',
-                slug=news.slug,
+                slug=slugify(news.title),
                 code=encode_id(news.id)
             )
 
@@ -134,7 +131,6 @@ def news_detail(request, slug, code):
         'news': news,
         'comments': comments
     })
-
 # 🗺️ District-wise News Page
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by('-date')
