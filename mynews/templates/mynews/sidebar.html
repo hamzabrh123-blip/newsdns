@@ -26,8 +26,8 @@
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
   {% for it in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
-<a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
-    Read more
+<a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
+   class="btn btn-outline-primary btn-sm">
        {{ it.title|truncatechars:60 }}
     </a>
     </div>
