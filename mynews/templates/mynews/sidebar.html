@@ -1,3 +1,5 @@
+{% load encode_tags %}
+
 <!-- 📂 templates/mynews/sidebar.html -->
 <aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
 
@@ -24,7 +26,6 @@
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
   {% for it in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
-                     {% load encode_tags %}
 <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
     Read more
        {{ it.title|truncatechars:60 }}
