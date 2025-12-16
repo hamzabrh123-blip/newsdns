@@ -1,4 +1,5 @@
 import base64
+import random
 from django.utils.text import slugify
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
@@ -6,7 +7,6 @@ from .models import News, Comment, AdminOTP
 from django.core.cache import cache
 from django.contrib import messages
 from django.core.mail import send_mail
-import random
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.models import User
 from django.http import Http404
