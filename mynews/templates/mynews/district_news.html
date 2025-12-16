@@ -25,9 +25,10 @@
                   <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
                   
-                    <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
-                              Read more
-                    </a>
+                   <a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
+   class="btn btn-outline-primary btn-sm">
+   Read more
+</a>
                   </div>
               </div>
             </div>
