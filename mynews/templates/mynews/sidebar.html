@@ -22,7 +22,6 @@
     <li><a href="#" class="text-decoration-none text-dark d-block py-1">Local</a></li>
   </ul>
 
-  <!-- ⭐ Important News -->
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
   {% for it in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
@@ -34,6 +33,16 @@
   {% empty %}
     <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
   {% endfor %}
+
+{% for item in important|slice:":3" %}
+  <div class="mb-2 small border-bottom pb-2">
+  {% if item.slug %}
+<a href="{% url 'news_detail' slug=item.slug %}">{{ item.title|truncatechars:60 }}</a>
+{% endif %}
+  </div>
+{% empty %}
+  <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
+{% endfor %}
 </aside>
 
 <!-- ✅ Optional Styling -->

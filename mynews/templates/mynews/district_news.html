@@ -29,7 +29,11 @@
    class="btn btn-outline-primary btn-sm">
    Read more
 </a>
-                  </div>
+                  {% if item.slug %}
+                    <a href="{% url 'news_detail' slug=item.slug %}">आगे पढ़ें</a>
+                {% else %}
+                    <span class="text-muted">Link not available</span>
+                {% endif %}                  </div>
               </div>
             </div>
           {% endfor %}

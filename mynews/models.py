@@ -1,6 +1,8 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
 from ckeditor_uploader.fields import RichTextUploadingField
+from django.utils.text import slugify
+
 
 
 class District(models.Model):
@@ -26,6 +28,7 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
+    
     category = models.CharField(
         max_length=100,
         choices=CATEGORY_CHOICES,
@@ -44,6 +47,12 @@ class News(models.Model):
     image = CloudinaryField("Image")
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=350, unique=True, blank=True, null=True, allow_unicode=True)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title, allow_unicode=True)
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return self.title

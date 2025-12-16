@@ -1,0 +1,53 @@
+{% extends "mynews/base.html" %}
+{% block content %}
+
+<h3>Add News</h3>
+
+<form method="post">
+  {% csrf_token %}
+
+  <label>Title</label>
+  <input type="text" id="title" name="title" class="form-control">
+
+  <label class="mt-2">News Link</label>
+  <div class="input-group">
+    <span class="input-group-text">/news/</span>
+    <input type="text" id="slug" name="slug" class="form-control">
+  </div>
+
+  <label class="mt-2">Content</label>
+  <textarea name="content" class="form-control"></textarea>
+
+  <button class="btn btn-primary mt-3">Publish</button>
+</form>
+
+<!-- 🔽 JavaScript yahin rakho -->
+<script>
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u0900-\u097F\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}
+
+const titleInput = document.getElementById("title");
+const slugInput  = document.getElementById("slug");
+
+let userEdited = false;
+
+slugInput.addEventListener("input", () => {
+  userEdited = true;
+});
+
+titleInput.addEventListener("input", () => {
+  if (!userEdited) {
+    slugInput.value = slugify(titleInput.value);
+  }
+});
+</script>
+
+{% endblock %}

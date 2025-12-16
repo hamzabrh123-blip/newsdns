@@ -7,9 +7,14 @@ from django.core.mail import send_mail
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
+<<<<<<< HEAD
 
 from .models import News, Comment, AdminOTP
 from .utils import decode_id   # ✅ ONLY THIS
+=======
+from .models import News, Comment, AdminOTP
+from .utils import decode_id
+>>>>>>> eb7583f (Initial commit: fixed slug and template errors)
 
 ADMIN_EMAIL = "hamzabrh@gmail.com"
 
@@ -96,6 +101,7 @@ def national_news(request):
     })
 
 
+<<<<<<< HEAD
 # ================= NEWS DETAIL =================
 def news_detail(request, slug, code):
     try:
@@ -112,6 +118,15 @@ def news_detail(request, slug, code):
     })
 
 
+=======
+# ================= NEWS DETAIL (सुधारित) =================
+from django.shortcuts import render, get_object_or_404
+from .models import News
+
+def news_detail(request, slug):
+    news = get_object_or_404(News, slug=slug)
+    return render(request, "mynews/news_detail.html", {"news": news})
+>>>>>>> eb7583f (Initial commit: fixed slug and template errors)
 # ================= DISTRICT =================
 def district_news(request, district):
     news_list = News.objects.filter(
@@ -132,7 +147,11 @@ def contact(request):
     return render(request, "mynews/contact.html")
 
 
+<<<<<<< HEAD
 # ================= CREATE ADMIN =================
+=======
+# ================= CREATE ADMIN (सुरक्षा जोखिम!) =================
+>>>>>>> eb7583f (Initial commit: fixed slug and template errors)
 def create_admin(request):
     User = get_user_model()
 
@@ -153,3 +172,17 @@ def ads_txt(request):
         "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0",
         content_type="text/plain"
     )
+<<<<<<< HEAD
+=======
+
+def add_news(request):
+    if request.method == "POST":
+        News.objects.create(
+            title=request.POST["title"],
+            slug=request.POST["slug"],
+            content=request.POST["content"]
+        )
+        return redirect("home")
+
+    return render(request, "mynews/add_news.html")
+>>>>>>> eb7583f (Initial commit: fixed slug and template errors)
