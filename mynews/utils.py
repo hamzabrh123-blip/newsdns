@@ -1,6 +1,7 @@
+# mynews/utils.py
 import base64
 
-SECRET = "uphalchal"   # koi bhi fixed string
+SECRET = "uphalchal"
 
 def encode_id(num):
     raw = f"{num}:{SECRET}"
