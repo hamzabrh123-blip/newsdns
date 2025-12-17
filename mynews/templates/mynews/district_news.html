@@ -28,11 +28,9 @@
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
 
                   <!-- ✅ Correct single link -->
-                 {% if item.slug %}
-  <a href="{% url 'news_detail' slug=item.slug code=item.id|encode_news_id %}">आगे पढ़ें</a>
-{% else %}
-  <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">आगे पढ़ें</a>
-{% endif %}
+               <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
+    आगे पढ़ें
+</a>
                 </div>
               </div>
             </div>
