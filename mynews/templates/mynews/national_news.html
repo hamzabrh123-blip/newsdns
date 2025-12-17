@@ -21,23 +21,28 @@
 
             <div class="card-body">
               <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
-              <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
-              <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
+              <p class="card-text text-muted small">
+                {{ item.date|date:"M d, Y" }}
+              </p>
+              <p class="card-text">
+                {{ item.content|truncatechars_html:120|safe }}
+              </p>
 
-              <!-- ✅ Correct Link with code -->
-             {% if item.slug %}
-    <a href="{% url 'news_detail'
-        slug=item.slug
-        code=item.id|encode_news_id %}"
-       class="btn btn-outline-primary btn-sm">
-       आगे पढ़ें
-    </a>
-  {% else %}
+              {% if item.slug %}
+                <a href="{% url 'news_detail'
+                    slug=item.slug
+                    code=item.id|encode_news_id %}"
+                   class="btn btn-outline-primary btn-sm">
+                   आगे पढ़ें
+                </a>
+              {% else %}
+                <span class="text-muted">Link unavailable</span>
+              {% endif %}
+
             </div>
-
           </div>
         </div>
-        
+        {% empty %}
           <p>No news available.</p>
         {% endfor %}
 
