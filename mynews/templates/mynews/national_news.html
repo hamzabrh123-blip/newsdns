@@ -8,17 +8,17 @@
     <!-- 📰 Main News Section -->
     <div class="col-lg-8 col-md-8">
       <div class="row">
-        {% for n in news_list %}
+        {% for item in news_list %}
           <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
-              {% if n.image %}
-                <img src="{{ n.image.url }}" class="card-img-top" alt="{{ n.title }}">
+              {% if item.image %}
+                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
               {% endif %}
               <div class="card-body">
-                <h5 class="card-title">{{ n.title|truncatechars:60 }}</h5>
-                <p class="card-text text-muted small">{{ n.date|date:"M d, Y" }}</p>
-                <p class="card-text">{{ n.content|truncatechars_html:120|safe }}</p>
-<a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
+                <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
+                <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
+                <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
+<a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}"
    class="btn btn-outline-primary btn-sm">
    Read more
 </a>
