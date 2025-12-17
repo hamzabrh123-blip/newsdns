@@ -21,7 +21,7 @@
                 <h5 class="card-title">{{ n.title|truncatechars:60 }}</h5>
                 <p class="card-text text-muted small">{{ n.date|date:"M d, Y" }}</p>
                 <p class="card-text">{{ n.content|truncatechars_html:120|safe }}</p>
-<a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
+<a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}"
    class="btn btn-outline-primary btn-sm">
    Read more
 </a>
