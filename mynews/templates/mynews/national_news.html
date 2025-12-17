@@ -15,28 +15,25 @@
 
             {% if item.image %}
               <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
+            {% else %}
+              <img src="/static/default.jpg" class="card-img-top" alt="No image available">
             {% endif %}
 
             <div class="card-body">
-              <h5 class="card-title">
-                {{ item.title|truncatechars:60 }}
-              </h5>
+              <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
+              <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
+              <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
 
-              <p class="card-text text-muted small">
-                {{ item.date|date:"M d, Y" }}
-              </p>
-
-              <p class="card-text">
-                {{ item.content|truncatechars_html:120|safe }}
-              </p>
-
-              <!-- ✅ ONE CORRECT LINK -->
-              <a href="{% url 'news_detail'
-                          slug=item.title|slugify
-                          code=item.id|encode_news_id %}"
-                 class="btn btn-outline-primary btn-sm">
-                 आगे पढ़ें
-              </a>
+              <!-- ✅ Correct Link -->
+              {% if item.slug %}
+                <a href="{% url 'news_detail' slug=item.slug %}" class="btn btn-outline-primary btn-sm">
+                  आगे पढ़ें
+                </a>
+              {% else %}
+                <a href="{% url 'news_detail' slug=item.title|slugify %}" class="btn btn-outline-primary btn-sm">
+                  आगे पढ़ें
+                </a>
+              {% endif %}
             </div>
 
           </div>
