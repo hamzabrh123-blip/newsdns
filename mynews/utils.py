@@ -1,30 +1,26 @@
 # mynews/utils.py
 import base64
-<<<<<<< HEAD
 
 SECRET = "uphalchal"
+
 
 def encode_id(news_id: int) -> str:
     raw = f"news:{news_id}:{SECRET}"
-    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+    encoded = base64.urlsafe_b64encode(raw.encode()).decode()
+    return encoded.rstrip("=")
+
 
 def decode_id(code: str) -> int:
-=======
-SECRET = "uphalchal"
-def decode_id(code: str) -> int:  
->>>>>>> eb7583f (Initial commit: fixed slug and template errors)
     try:
         padded = code + "=" * (-len(code) % 4)
         decoded = base64.urlsafe_b64decode(padded.encode()).decode()
+
         prefix, news_id, secret = decoded.split(":")
+
         if prefix != "news" or secret != SECRET:
             raise ValueError
+
         return int(news_id)
-<<<<<<< HEAD
+
     except Exception:
         raise ValueError("Invalid code")
-=======
-        
-    except Exception:
-        raise ValueError("Invalid code")
->>>>>>> eb7583f (Initial commit: fixed slug and template errors)
