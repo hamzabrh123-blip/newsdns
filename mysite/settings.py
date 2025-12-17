@@ -12,6 +12,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     ".onrender.com",
     "halchal.onrender.com",
+    'halchal.up.railway.app',
     "halchal2-j2dg.onrender.com",
 ]
 
