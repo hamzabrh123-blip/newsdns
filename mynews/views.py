@@ -9,10 +9,8 @@ from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
 
 from .models import News, Comment, AdminOTP
-from .utils import decode_id   # ✅ ONLY THIS
+from .utils import decode_id  # ONLY THIS
 
-from .models import News, Comment, AdminOTP
-from .utils import decode_id
 ADMIN_EMAIL = "hamzabrh@gmail.com"
 
 
@@ -46,7 +44,6 @@ def admin_verify(request):
     if request.method == "POST":
         entered = request.POST.get("otp")
         email = request.session.get("admin_email")
-
         data = AdminOTP.objects.filter(email=email).last()
 
         if data and data.otp == entered:
@@ -99,13 +96,19 @@ def national_news(request):
 
 
 # ================= NEWS DETAIL =================
-def news_detail(request, slug, code):
-    try:
-        news_id = decode_id(code)
-    except Exception:
-        raise Http404("Invalid news")
+def news_detail(request, slug, code=None):
+    """
+    ✅ Fix for TypeError: slug + optional code
+    """
+    if code:
+        try:
+            news_id = decode_id(code)
+        except Exception:
+            raise Http404("Invalid news code")
+        news = get_object_or_404(News, id=news_id)
+    else:
+        news = get_object_or_404(News, slug=slug)
 
-    news = get_object_or_404(News, id=news_id)
     comments = Comment.objects.filter(news=news).order_by("-date")
 
     return render(request, "mynews/news_detail.html", {
@@ -114,13 +117,6 @@ def news_detail(request, slug, code):
     })
 
 
-# ================= NEWS DETAIL (सुधारित) =================
-from django.shortcuts import render, get_object_or_404
-from .models import News
-
-def news_detail(request, slug):
-    news = get_object_or_404(News, slug=slug)
-    return render(request, "mynews/news_detail.html", {"news": news})
 # ================= DISTRICT =================
 def district_news(request, district):
     news_list = News.objects.filter(
@@ -137,9 +133,12 @@ def district_news(request, district):
 def about(request):
     return render(request, "mynews/about.html")
 
+
 def contact(request):
     return render(request, "mynews/contact.html")
-# ================= CREATE ADMIN (सुरक्षा जोखिम!) =================
+
+
+# ================= CREATE ADMIN =================
 def create_admin(request):
     User = get_user_model()
 
@@ -160,6 +159,9 @@ def ads_txt(request):
         "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0",
         content_type="text/plain"
     )
+
+
+# ================= ADD NEWS =================
 def add_news(request):
     if request.method == "POST":
         News.objects.create(
