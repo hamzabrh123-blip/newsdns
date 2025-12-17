@@ -28,8 +28,9 @@
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
 
                   <!-- ✅ Correct single link -->
-               <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}">
-    आगे पढ़ें
+               <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
+   class="btn btn-outline-primary btn-sm">
+   आगे पढ़ें
 </a>
                 </div>
               </div>
