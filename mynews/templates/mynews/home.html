@@ -30,3 +30,36 @@
                 <p class="card-text">
                   {{ item.content|truncatechars_html:120|safe }}
                 </p>
+
+                {% if item.slug %}
+                  <a href="{% url 'news_detail'
+                                slug=item.slug
+                                code=item.id|encode_news_id %}"
+                     class="btn btn-outline-primary btn-sm">
+                     Read more
+                  </a>
+                {% else %}
+                  <span class="text-muted small">Link not available</span>
+                {% endif %}
+
+              </div>
+            </div>
+          </div>
+
+        {% empty %}
+          <p>No news available.</p>
+
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- 📚 Sidebar -->
+    <div class="col-lg-4 col-md-4">
+      {% include 'mynews/sidebar.html' %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
