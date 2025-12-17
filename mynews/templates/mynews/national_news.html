@@ -25,15 +25,11 @@
               <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
 
               <!-- ✅ Correct Link -->
-              {% if item.slug %}
-                <a href="{% url 'news_detail' slug=item.slug %}" class="btn btn-outline-primary btn-sm">
-                  आगे पढ़ें
-                </a>
-              {% else %}
+             
                 <a href="{% url 'news_detail' slug=item.title|slugify %}" class="btn btn-outline-primary btn-sm">
                   आगे पढ़ें
                 </a>
-              {% endif %}
+             
             </div>
 
           </div>
