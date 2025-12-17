@@ -15,6 +15,9 @@ ALLOWED_HOSTS = [
     'halchal.up.railway.app',
     "halchal2-j2dg.onrender.com",
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://halchal.up.railway.app","http://halchal.up.railway.app",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
