@@ -4,8 +4,10 @@
 <aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
 
   <!-- 🔍 Search -->
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
-     crossorigin="anonymous"></script>
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
+    crossorigin="anonymous"></script>
+
   <h5 class="mb-3 text-primary fw-bold">🔍 खोजें</h5>
   <form method="get" action="/">
     <div class="input-group mb-4">
@@ -22,34 +24,35 @@
     <li><a href="#" class="text-decoration-none text-dark d-block py-1">Local</a></li>
   </ul>
 
+  <!-- ⭐ Important News -->
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
-  {% for it in important|slice:":3" %}
+
+  {% for item in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
-<a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
-   class="btn btn-outline-primary btn-sm">
-       {{ it.title|truncatechars:60 }}
-    </a>
+
+      {% if item.slug %}
+        <a href="{% url 'news_detail'
+                      slug=item.slug
+                      code=item.id|encode_news_id %}"
+           class="text-decoration-none text-dark">
+          {{ item.title|truncatechars:60 }}
+        </a>
+      {% else %}
+        <span class="text-muted">{{ item.title|truncatechars:60 }}</span>
+      {% endif %}
+
     </div>
   {% empty %}
     <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
   {% endfor %}
 
-{% for item in important|slice:":3" %}
-  <div class="mb-2 small border-bottom pb-2">
-  {% if item.slug %}
-<a href="{% url 'news_detail' slug=item.slug %}">{{ item.title|truncatechars:60 }}</a>
-{% endif %}
-  </div>
-{% empty %}
-  <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
-{% endfor %}
 </aside>
 
 <!-- ✅ Optional Styling -->
 <style>
 .sidebar {
   position: sticky;
-  top: 80px; /* navbar ke niche */
+  top: 80px;
 }
 @media (max-width: 991px) {
   .sidebar {
