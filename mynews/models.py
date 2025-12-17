@@ -47,10 +47,10 @@ class News(models.Model):
     image = CloudinaryField("Image")
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
-    slug = models.SlugField(max_length=350, unique=True, blank=True, null=True, allow_unicode=True)
+    slug = models.SlugField(max_length=350, blank=True )
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = slugify(item.title)
         super().save(*args, **kwargs)
 
 
