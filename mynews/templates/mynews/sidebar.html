@@ -30,14 +30,10 @@
   {% for item in important|slice:":3" %}
     <div class="mb-2 small border-bottom pb-2">
 
-      {% if item.slug %}
+    
        <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}">
           {{ item.title|truncatechars:60 }}
         </a>
-      {% else %}
-        <span class="text-muted">{{ item.title|truncatechars:60 }}</span>
-      {% endif %}
-
     </div>
   {% empty %}
     <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
