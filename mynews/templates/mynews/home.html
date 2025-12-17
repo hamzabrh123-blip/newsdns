@@ -8,6 +8,7 @@
     <!-- 📰 Main News Section -->
     <div class="col-lg-8 col-md-8">
       <div class="row">
+
         {% for item in news_list %}
           <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
@@ -18,13 +19,6 @@
 
               <div class="card-body">
 
-                <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
-                <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
-                <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
-<a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}"
-   class="btn btn-outline-primary btn-sm">
-   Read more
-</a>
                 <h5 class="card-title">
                   {{ item.title|truncatechars:60 }}
                 </h5>
@@ -36,27 +30,3 @@
                 <p class="card-text">
                   {{ item.content|truncatechars_html:120|safe }}
                 </p>
-
-                {% if item.slug %}
-                    <a href="{% url 'news_detail' slug=item.slug %}">आगे पढ़ें</a>
-                {% else %}
-                    <span class="text-muted">Link not available</span>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        {% empty %}
-          <p>No news available.</p>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- 📚 Sidebar -->
-    <div class="col-lg-4 col-md-4">
-      {% include 'mynews/sidebar.html' %}
-    </div>
-
-  </div>
-</div>
-
-{% endblock %}
