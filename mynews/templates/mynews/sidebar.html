@@ -31,10 +31,7 @@
     <div class="mb-2 small border-bottom pb-2">
 
       {% if item.slug %}
-        <a href="{% url 'news_detail'
-                      slug=item.slug
-                      code=item.id|encode_news_id %}"
-           class="text-decoration-none text-dark">
+       <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}">
           {{ item.title|truncatechars:60 }}
         </a>
       {% else %}
