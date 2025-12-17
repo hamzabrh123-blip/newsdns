@@ -1,5 +1,6 @@
-{% load encode_tags %}
 {% extends 'mynews/base.html' %}
+{% load encode_tags %}
+
 {% block title %}{{ district }} News | UP News{% endblock %}
 
 {% block content %}
@@ -20,20 +21,18 @@
                   <img src="/static/default.jpg" class="card-img-top img-fluid rounded-top"
                        style="height: 150px; object-fit: cover;" alt="No image">
                 {% endif %}
+
                 <div class="card-body">
                   <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
                   <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
                   <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
-                  
-                   <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}"
-   class="btn btn-outline-primary btn-sm">
-   Read more
-</a>
-                  {% if item.slug %}
-                    <a href="{% url 'news_detail' slug=item.slug %}">आगे पढ़ें</a>
-                {% else %}
-                    <span class="text-muted">Link not available</span>
-                {% endif %}                  </div>
+
+                  <!-- ✅ Correct single link -->
+                  <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}"
+                     class="btn btn-outline-primary btn-sm">
+                     आगे पढ़ें
+                  </a>
+                </div>
               </div>
             </div>
           {% endfor %}
