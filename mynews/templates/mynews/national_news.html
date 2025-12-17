@@ -29,12 +29,10 @@
               </p>
 
               {% if item.slug %}
-                <a href="{% url 'news_detail'
-                    slug=item.slug
-                    code=item.id|encode_news_id %}"
-                   class="btn btn-outline-primary btn-sm">
-                   आगे पढ़ें
-                </a>
+               <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
+   class="btn btn-outline-primary btn-sm">
+   आगे पढ़ें
+</a>
               {% else %}
                 <span class="text-muted">Link unavailable</span>
               {% endif %}
