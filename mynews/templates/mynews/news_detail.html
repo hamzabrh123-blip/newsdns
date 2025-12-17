@@ -4,7 +4,8 @@
 {% block content %}
 <div class="container my-5">
   <div class="row">
-    
+
+    <!-- Main Article -->
     <div class="col-lg-8">
       <article class="bg-white shadow-lg rounded-3 p-4">
         <h2 class="mb-3 text-center fw-bold text-primary">{{ news.title }}</h2>
@@ -30,41 +31,33 @@
           📍 {{ news.district|default:"District Unavailable" }}
         </p>
 
+        <!-- Share Buttons -->
         <div class="mt-4 pt-3 border-top text-center">
           <h4 class="fw-bold mb-3">🤝 यह खबर साझा करें!</h4>
-          
-          {% comment %}
-          ध्यान दें: 
-          - `window.location.href` वर्तमान समाचार URL देगा।
-          - `news.title` समाचार का शीर्षक देगा।
-          - ये बटन लोकप्रिय सोशल मीडिया प्लेटफॉर्म के लिए हैं। आप इसमें और भी जोड़ सकते हैं।
-          {% endcomment %}
 
           <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-primary me-2 mb-2" title="Facebook पर शेयर करें">
+             target="_blank" rel="noopener noreferrer" class="btn btn-primary me-2 mb-2">
             <i class="fab fa-facebook-f"></i> Facebook
           </a>
 
           <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ news.title|urlencode }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-info text-white me-2 mb-2" title="Twitter पर शेयर करें">
+             target="_blank" rel="noopener noreferrer" class="btn btn-info text-white me-2 mb-2">
             <i class="fab fa-twitter"></i> Twitter
           </a>
-          
+
           <a href="https://api.whatsapp.com/send?text={{ news.title|urlencode }}:%20{{ request.build_absolute_uri }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-success me-2 mb-2" title="WhatsApp पर शेयर करें">
+             target="_blank" rel="noopener noreferrer" class="btn btn-success me-2 mb-2">
             <i class="fab fa-whatsapp"></i> WhatsApp
           </a>
 
           <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" 
-                  class="btn btn-secondary me-2 mb-2" title="लिंक कॉपी करें">
+                  class="btn btn-secondary me-2 mb-2">
             <i class="fas fa-link"></i> लिंक कॉपी करें
           </button>
         </div>
-        </article>
+      </article>
 
+      <!-- Comments Section -->
       <section class="mt-5">
         <h3 class="fw-bold mb-3">💬 टिप्पणियाँ</h3>
 
@@ -100,9 +93,11 @@
       </section>
     </div>
 
+    <!-- Sidebar -->
     <div class="col-lg-4">
       {% include 'mynews/sidebar.html' %}
     </div>
+
   </div>
 </div>
 
@@ -112,9 +107,6 @@
   height: auto;
   object-fit: cover;
   border-radius: 10px;
-  overflow: hidden;
-  display: block;
-  margin: 0 auto;
 }
 article {
   overflow: hidden;
@@ -122,16 +114,12 @@ article {
 </style>
 
 <script>
-  function copyToClipboard(text) {
-    // एक अस्थायी टेक्स्टएरिया एलिमेंट बनाएं
+function copyToClipboard(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
-    // इसे दृश्यमान क्षेत्र से बाहर रखें
     textarea.style.position = 'fixed';
     textarea.style.left = '-9999px';
     document.body.appendChild(textarea);
-    
-    // टेक्स्ट को चुनें और कॉपी करें
     textarea.select();
     try {
       document.execCommand('copy');
@@ -139,10 +127,7 @@ article {
     } catch (err) {
       console.error('Copy failed:', err);
     }
-    
-    // अस्थायी एलिमेंट को हटा दें
     document.body.removeChild(textarea);
-  }
+}
 </script>
-
 {% endblock %}
