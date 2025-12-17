@@ -24,12 +24,11 @@
               <p class="card-text text-muted small">{{ item.date|date:"M d, Y" }}</p>
               <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
 
-              <!-- ✅ Correct Link -->
-             
-                <a href="{% url 'news_detail' slug=item.title|slugify %}" class="btn btn-outline-primary btn-sm">
-                  आगे पढ़ें
-                </a>
-             
+              <!-- ✅ Correct Link with code -->
+              <a href="{% url 'news_detail' slug=item.title|slugify code=item.id|encode_news_id %}" 
+                 class="btn btn-outline-primary btn-sm">
+                 आगे पढ़ें
+              </a>
             </div>
 
           </div>
