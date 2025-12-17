@@ -18,10 +18,7 @@
               {% endif %}
 
               <div class="card-body">
-
-                <h5 class="card-title">
-                  {{ item.title|truncatechars:60 }}
-                </h5>
+                <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
 
                 <p class="card-text text-muted small">
                   {{ item.date|date:"M d, Y" }}
@@ -31,19 +28,21 @@
                   {{ item.content|truncatechars_html:120|safe }}
                 </p>
 
-               <!-- ✅ Correct single link -->
-               <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
-   class="btn btn-outline-primary btn-sm">
-   आगे पढ़ें
-</a>
-                </div>
+                <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
+                   class="btn btn-outline-primary btn-sm">
+                  आगे पढ़ें
+                </a>
               </div>
+
             </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p>No news available.</p>
-      {% endif %}
+          </div>
+
+        {% empty %}
+          <p>No news available.</p>
+
+        {% endfor %}
+
+      </div>
     </div>
 
     <!-- 📚 Sidebar -->
