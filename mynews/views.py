@@ -96,7 +96,9 @@ def home(request):
 
 # ================= NATIONAL =================
 def national_news(request):
-    news_qs = News.objects.filter(category="National").order_by("-date")
+    news_qs = News.objects.filter(
+        category__iexact="national"   # ✅ case-insensitive
+    ).order_by("-date")
 
     paginator = Paginator(news_qs, 10)
     page_number = request.GET.get("page")
@@ -133,7 +135,7 @@ def news_detail(request, slug, code=None):
 # ================= DISTRICT =================
 def district_news(request, district):
     news_qs = News.objects.filter(
-        district__iexact=district
+        district__name__iexact=district   # ✅ ForeignKey correct filter
     ).order_by("-date")
 
     paginator = Paginator(news_qs, 10)
