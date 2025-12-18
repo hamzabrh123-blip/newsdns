@@ -143,11 +143,10 @@ def district_news(request, district):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "mynews/news_list.html", {
-        "page_obj": page_obj,
-        "page_title": district
-    })
-
+   return render(request, "mynews/district_news.html", {
+    "page_obj": page_obj,
+    "page_title": district
+})
 
 # ================= STATIC =================
 def about(request):
