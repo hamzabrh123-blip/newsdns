@@ -97,15 +97,16 @@ def home(request):
 # ================= NATIONAL =================
 def national_news(request):
     news_qs = News.objects.filter(
-        category__iexact="national"   # ✅ case-insensitive
+        category__iexact="national"
     ).order_by("-date")
 
     paginator = Paginator(news_qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "mynews/national_news.html", {
-        "page_obj": page_obj
+    return render(request, "mynews/news_list.html", {
+        "page_obj": page_obj,
+        "page_title": "National News"
     })
 
 
@@ -135,16 +136,16 @@ def news_detail(request, slug, code=None):
 # ================= DISTRICT =================
 def district_news(request, district):
     news_qs = News.objects.filter(
-        district__name__iexact=district   # ✅ ForeignKey correct filter
+        district__iexact=district
     ).order_by("-date")
 
     paginator = Paginator(news_qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "mynews/district_news.html", {
-        "district": district,
-        "page_obj": page_obj
+    return render(request, "mynews/news_list.html", {
+        "page_obj": page_obj,
+        "page_title": district
     })
 
 
