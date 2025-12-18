@@ -4,7 +4,6 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.utils.text import slugify
 
 
-
 class District(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -28,31 +27,45 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
-    
+
     category = models.CharField(
         max_length=100,
         choices=CATEGORY_CHOICES,
         blank=True,
         null=True
     )
+
     district = models.CharField(
         max_length=50,
         choices=DISTRICT_CHOICES,
         blank=True,
         null=True
     )
+
     date = models.DateTimeField(auto_now_add=True)
 
     content = RichTextUploadingField(blank=True)
-    image = CloudinaryField("Image")
+
+    image = CloudinaryField(
+        "Image",
+        blank=True,
+        null=True
+    )
+
     youtube_url = models.URLField(blank=True, null=True)
+
     is_important = models.BooleanField(default=False)
-    slug = models.SlugField(max_length=350, blank=True )
+
+    slug = models.SlugField(
+        max_length=350,
+        unique=True,
+        blank=True
+    )
+
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(item.title)
+            self.slug = slugify(self.title)   # ✅ FIXED
         super().save(*args, **kwargs)
-
 
     def __str__(self):
         return self.title
