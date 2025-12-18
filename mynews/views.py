@@ -1,4 +1,5 @@
 import random
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.core.cache import cache
@@ -68,20 +69,26 @@ def home(request):
     query = request.GET.get("q")
 
     if query:
-        news_list = News.objects.filter(title__icontains=query)
+        news_qs = News.objects.filter(title__icontains=query)
     else:
-        news_list = News.objects.filter(
+        news_qs = News.objects.filter(
             models.Q(category__iexact="International") |
             models.Q(is_important=True)
-        ).order_by("-date")[:12]
+        )
 
-    important = News.objects.filter(is_important=True)[:5]
+    news_qs = news_qs.order_by("-date")
+
+    paginator = Paginator(news_qs, 10)   # ✅ 10 news per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    important = News.objects.filter(is_important=True).order_by("-date")[:5]
 
     visits = cache.get("visits", 0) + 1
     cache.set("visits", visits, None)
 
     return render(request, "mynews/home.html", {
-        "news_list": news_list,
+        "page_obj": page_obj,
         "important": important,
         "visits": visits
     })
@@ -89,22 +96,28 @@ def home(request):
 
 # ================= NATIONAL =================
 def national_news(request):
-    news_list = News.objects.filter(category="National").order_by("-date")
+    news_qs = News.objects.filter(category="National").order_by("-date")
+
+    paginator = Paginator(news_qs, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mynews/national_news.html", {
-        "news_list": news_list
+        "page_obj": page_obj
     })
 
 
 # ================= NEWS DETAIL =================
 def news_detail(request, slug, code=None):
     """
-    ✅ Fix for TypeError: slug + optional code
+    News detail with optional encoded ID
     """
     if code:
         try:
             news_id = decode_id(code)
         except Exception:
             raise Http404("Invalid news code")
+
         news = get_object_or_404(News, id=news_id)
     else:
         news = get_object_or_404(News, slug=slug)
@@ -119,13 +132,17 @@ def news_detail(request, slug, code=None):
 
 # ================= DISTRICT =================
 def district_news(request, district):
-    news_list = News.objects.filter(
+    news_qs = News.objects.filter(
         district__iexact=district
     ).order_by("-date")
 
+    paginator = Paginator(news_qs, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mynews/district_news.html", {
         "district": district,
-        "news_list": news_list
+        "page_obj": page_obj
     })
 
 
