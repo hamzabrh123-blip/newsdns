@@ -9,7 +9,7 @@
     <div class="col-lg-8 col-md-8">
       <div class="row">
 
-        {% for item in news_list %}
+        {% for item in page_obj %}
           <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
 
@@ -18,7 +18,9 @@
               {% endif %}
 
               <div class="card-body">
-                <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
+                <h5 class="card-title">
+                  {{ item.title|truncatechars:60 }}
+                </h5>
 
                 <p class="card-text text-muted small">
                   {{ item.date|date:"M d, Y" }}
@@ -39,18 +41,10 @@
 
         {% empty %}
           <p>No news available.</p>
-
         {% endfor %}
 
       </div>
-    </div>
 
-    <!-- 📚 Sidebar -->
-    <div class="col-lg-4 col-md-4">
-      {% include 'mynews/sidebar.html' %}
-    </div>
-
-  </div>
-</div>
-
-{% endblock %}
+      <!-- 🔢 PAGINATION -->
+      {% if page_obj.paginator.num_pages > 1 %}
+      <div class="d-flex justify-content-cent
