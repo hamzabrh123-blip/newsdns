@@ -97,16 +97,15 @@ def home(request):
 # ================= NATIONAL =================
 def national_news(request):
     news_qs = News.objects.filter(
-        category__iexact="national"
+        category__iexact="National"
     ).order_by("-date")
 
     paginator = Paginator(news_qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "mynews/national_news.html", {
-        "page_obj": page_obj,
-        "page_title": "National News"
+    return render(request, "mynews/news_list.html", {
+        "page_obj": page_obj
     })
 
 
@@ -143,10 +142,10 @@ def district_news(request, district):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-   return render(request, "mynews/district_news.html", {
-    "page_obj": page_obj,
-    "page_title": district
-})
+    return render(request, "mynews/news_list.html", {
+        "page_obj": page_obj,
+        "district": district
+    })
 
 # ================= STATIC =================
 def about(request):
