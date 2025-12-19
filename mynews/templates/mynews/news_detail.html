@@ -20,20 +20,49 @@
           {{ news.content|safe }}
         </div>
 
-       {% if news.youtube_url %}
+{% if news.youtube_url %}
 <div class="ratio ratio-16x9 my-4">
-  {% if 'watch?v=' in news.youtube_url %}
-    {# साधारण लिंक को एम्बेड लिंक में बदलना #}
-    <iframe 
-  src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://www.youtube.com/watch?v=' }}" 
-  title="YouTube video" 
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-  allowfullscreen>
-</iframe>
-  {% else %}
-    {# अगर लिंक पहले से सही है या छोटा वाला (youtu.be) है #}
-    <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
-  {% endif %}
+  {% with news.youtube_url as url %}
+
+    {% if "youtube.com/embed/" in url %}
+      <!-- Already embed -->
+      <iframe
+        src="{{ url }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+
+    {% elif "watch?v=" in url %}
+      <!-- Normal YouTube link -->
+      <iframe
+        src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/watch?v=' }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+
+    {% elif "youtu.be/" in url %}
+      <!-- Short link -->
+      <iframe
+        src="https://www.youtube.com/embed/{{ url|cut:'https://youtu.be/' }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+
+    {% elif "youtube.com/shorts/" in url %}
+      <!-- Shorts -->
+      <iframe
+        src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/shorts/' }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+
+    {% endif %}
+
+  {% endwith %}
 </div>
 {% endif %}
 
