@@ -20,11 +20,22 @@
           {{ news.content|safe }}
         </div>
 
-        {% if news.youtube_url %}
-        <div class="ratio ratio-16x9 my-4">
-          <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
-        </div>
-        {% endif %}
+       {% if news.youtube_url %}
+<div class="ratio ratio-16x9 my-4">
+  {% if 'watch?v=' in news.youtube_url %}
+    {# साधारण लिंक को एम्बेड लिंक में बदलना #}
+    <iframe 
+      src="{{ news.youtube_url|replace('watch?v=', 'embed/') }}" 
+      title="YouTube video" 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+      allowfullscreen>
+    </iframe>
+  {% else %}
+    {# अगर लिंक पहले से सही है या छोटा वाला (youtu.be) है #}
+    <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
+  {% endif %}
+</div>
+{% endif %}
 
         <p class="text-muted mt-4 text-end small">
           🗓️ {{ news.date|date:"d M Y, h:i A" }} |
