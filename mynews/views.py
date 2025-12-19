@@ -123,7 +123,14 @@ def news_detail(request, slug, code=None):
         news = get_object_or_404(News, id=news_id)
     else:
         news = get_object_or_404(News, slug=slug)
-
+        
+    #====youtube video======
+    
+    if news.youtube_url and 'watch?v=' in news.youtube_url:
+        news.youtube_url = news.youtube_url.replace('watch?v=', 'embed/')
+    elif news.youtube_url and 'youtu.be/' in news.youtube_url:
+        news.youtube_url = news.youtube_url.replace('youtu.be/', 'www.youtube.com/embed/')
+        
     comments = Comment.objects.filter(news=news).order_by("-date")
 
     return render(request, "mynews/news_detail.html", {
