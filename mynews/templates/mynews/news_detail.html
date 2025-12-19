@@ -25,11 +25,11 @@
   {% if 'watch?v=' in news.youtube_url %}
     {# साधारण लिंक को एम्बेड लिंक में बदलना #}
     <iframe 
-      src="{{ news.youtube_url|replace('watch?v=', 'embed/') }}" 
-      title="YouTube video" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen>
-    </iframe>
+  src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://www.youtube.com/watch?v=' }}" 
+  title="YouTube video" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowfullscreen>
+</iframe>
   {% else %}
     {# अगर लिंक पहले से सही है या छोटा वाला (youtu.be) है #}
     <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
