@@ -24,7 +24,8 @@
           >
         {% endif %}
 
-        <a href="{% url 'news_detail' n.slug n.id|encode %}"
+        <a href="{% url 'news_detail' n.slug n.id %}"
+
            class="text-decoration-none text-dark small fw-semibold">
           {{ n.title|truncatechars:50 }}
         </a>
