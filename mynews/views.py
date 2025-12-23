@@ -114,36 +114,57 @@ def news_detail(request, slug, code=None):
     """
     News detail with optional encoded ID
     """
+
+    # 🔹 1. News fetch (slug + encoded id safe)
     if code:
-        try:
-            news_id = decode_id(code)
-        except Exception:
+        news_id = decode_id(code)
+        if not news_id:
             raise Http404("Invalid news code")
 
-        news = get_object_or_404(News, id=news_id)
+        # 🔴 slug + id दोनों match (SEO safe)
+        news = get_object_or_404(News, id=news_id, slug=slug)
     else:
         news = get_object_or_404(News, slug=slug)
 
+    # 🔹 2. Sidebar: पूरी site की latest 5 खबरें (current छोड़कर)
+    sidebar_news = (
+        News.objects
+        .exclude(id=news.id)
+        .order_by('-id')[:5]
+    )
 
+    # ✅ Production-safe debug
+    if settings.DEBUG:
+        print("SIDEBAR COUNT:", len(sidebar_news))
 
-    # 🔥 पूरी site की latest 5 खबरें (current छोड़कर)
-    sidebar_news = News.objects.exclude(id=news.id).order_by('-id')[:5]
-    print("SIDEBAR COUNT:", sidebar_news.count())  # DEBUG
+    # 🔹 3. YouTube embed fix
+    if news.youtube_url:
+        if "watch?v=" in news.youtube_url:
+            news.youtube_url = news.youtube_url.replace(
+                "watch?v=", "embed/"
+            )
+        elif "youtu.be/" in news.youtube_url:
+            news.youtube_url = news.youtube_url.replace(
+                "youtu.be/", "www.youtube.com/embed/"
+            )
 
-    #====youtube video======
-    
-    if news.youtube_url and 'watch?v=' in news.youtube_url:
-        news.youtube_url = news.youtube_url.replace('watch?v=', 'embed/')
-    elif news.youtube_url and 'youtu.be/' in news.youtube_url:
-        news.youtube_url = news.youtube_url.replace('youtu.be/', 'www.youtube.com/embed/')
-        
-    comments = Comment.objects.filter(news=news).order_by("-date")
+    # 🔹 4. Comments
+    comments = (
+        Comment.objects
+        .filter(news=news)
+        .order_by("-date")
+    )
 
-    return render(request, "mynews/news_detail.html", {
-        "news": news,
-        'sidebar_news': sidebar_news,
-        "comments": comments
-    })
+    # 🔹 5. Render
+    return render(
+        request,
+        "mynews/news_detail.html",
+        {
+            "news": news,
+            "sidebar_news": sidebar_news,
+            "comments": comments,
+        }
+    )
 
 
 # ================= DISTRICT =================
