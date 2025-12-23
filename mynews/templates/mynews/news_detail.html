@@ -11,6 +11,16 @@
 <h2 class="news-title">
   {{ news.title }}
 </h2>
+      <style>
+        .news-title {
+  font-size: 24px;      /* size कम */
+  font-weight: 600;     /* normal bold */
+  text-align: left;    /* 🔥 left alignment */
+  color: #111;         /* black / news look */
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+      </style>
         {% if news.image %}
         <div class="text-center mb-4">
           <img src="{{ news.image.url }}" class="img-fluid rounded-4 shadow-sm news-image" alt="{{ news.title }}">
