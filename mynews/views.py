@@ -123,7 +123,12 @@ def news_detail(request, slug, code=None):
         news = get_object_or_404(News, id=news_id)
     else:
         news = get_object_or_404(News, slug=slug)
-        
+
+
+
+    # 🔥 पूरी site की latest 5 खबरें (current छोड़कर)
+    sidebar_news = News.objects.exclude(id=news.id).order_by('-id')[:5]
+
     #====youtube video======
     
     if news.youtube_url and 'watch?v=' in news.youtube_url:
