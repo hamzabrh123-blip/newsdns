@@ -21,6 +21,40 @@
   line-height: 1.35;
   margin-bottom: 10px;
 }
+        /* 📰 News content (Editor override) */
+.news-content {
+  font-size: 16px !important;
+  line-height: 1.7;
+  color: #222;
+}
+
+/* Paragraph fix */
+.news-content p {
+  font-size: 16px !important;
+  margin-bottom: 12px;
+}
+
+/* Headings ko control me rakho */
+.news-content h1 {
+  font-size: 22px !important;
+}
+.news-content h2 {
+  font-size: 20px !important;
+}
+.news-content h3 {
+  font-size: 18px !important;
+}
+.news-content h4,
+.news-content h5,
+.news-content h6 {
+  font-size: 16px !important;
+}
+
+/* Inline font-size override (EDITOR KILLER 😎) */
+.news-content * {
+  font-size: inherit !important;
+}
+
       </style>
         {% if news.image %}
         <div class="text-center mb-4">
