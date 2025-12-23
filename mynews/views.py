@@ -128,6 +128,7 @@ def news_detail(request, slug, code=None):
 
     # 🔥 पूरी site की latest 5 खबरें (current छोड़कर)
     sidebar_news = News.objects.exclude(id=news.id).order_by('-id')[:5]
+    print("SIDEBAR COUNT:", sidebar_news.count())  # DEBUG
 
     #====youtube video======
     
@@ -140,6 +141,7 @@ def news_detail(request, slug, code=None):
 
     return render(request, "mynews/news_detail.html", {
         "news": news,
+        'sidebar_news': sidebar_news,
         "comments": comments
     })
 
