@@ -8,8 +8,9 @@
     <!-- Main Article -->
     <div class="col-lg-8">
       <article class="bg-white shadow-lg rounded-3 p-4">
-        <h2 class="mb-3 text-center fw-bold text-primary">{{ news.title }}</h2>
-
+<h2 class="news-title">
+  {{ news.title }}
+</h2>
         {% if news.image %}
         <div class="text-center mb-4">
           <img src="{{ news.image.url }}" class="img-fluid rounded-4 shadow-sm news-image" alt="{{ news.title }}">
