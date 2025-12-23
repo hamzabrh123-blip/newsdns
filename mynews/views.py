@@ -79,7 +79,7 @@ def home(request):
 
     news_qs = news_qs.order_by("-date")
 
-    paginator = Paginator(news_qs, 10)   # ✅ 10 news per page
+    paginator = Paginator(news_qs, 20)   # ✅ 10 news per page
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -131,7 +131,7 @@ def news_detail(request, slug, code=None):
     sidebar_news = (
         News.objects
         .exclude(id=news.id)
-        .order_by('-id')[:5]
+        .order_by('-id')[:50]
     )
 
     # ✅ Production-safe debug
