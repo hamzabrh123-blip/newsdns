@@ -2,19 +2,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% block title %} UP Halchal News {% endblock %}</title>
-    <meta name="description" content="{% block description %}UP News brings latest district, state, national and international news in Hindi.{% endblock %}">
-    <meta name="keywords" content="{% block keywords %}up news, bahraich news, up district news, uttar pradesh local news, bahraich news today, bahraich breaking news, bahraich hindi news, bahraich crime news, bahraich district news, sitapur news today, sitapur breaking news, sitapur hindi samachar, sitapur news, gonda news, gonda hindi news, gonda district news, balrampur news today, balrampur breaking news, shravasti news today, shravasti district news, barabanki news today, barabanki breaking news, lucknow news today, lucknow breaking news, lucknow hindi news, lakhimpur kheri news today, kheri district news, sant kabir nagar news today, basti news today, basti breaking news, dumariyagunj news today, tulsipur news today, national news in hindi, international news in hindi, world news hindi{% endblock %}">
+    <title>{% block title %}UP Halchal News{% endblock %}</title>
+
+    <meta name="description" content="{% block description %}
+    UP News brings latest district, state, national and international news in Hindi.
+    {% endblock %}">
+
+    <meta name="keywords" content="{% block keywords %}
+    up news, bahraich news, gonda news, sitapur news, lucknow news,
+    national news hindi, international news hindi
+    {% endblock %}">
 
     <!-- ✅ Google Verification & Adsense -->
-    <meta name="google-site-verification" content="Tc2m2shF0Hs1ax-O0rtP3g0PG1TkJ-XF1XN-fEqrICo" />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-    <meta name="google-adsense-account" content="ca-pub-3171847065256414">
+    <meta name="google-site-verification"
+          content="Tc2m2shF0Hs1ax-O0rtP3g0PG1TkJ-XF1XN-fEqrICo" />
+
+    <script async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
+      crossorigin="anonymous"></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
     <style>
         body {
@@ -40,87 +51,28 @@
 
     {% block extra_head %}{% endblock %}
 </head>
+
 <body>
+<div class="main-wrapper">
 
-    <div class="main-wrapper">
-        {% include 'mynews/navbar.html' %}
+    {% include "mynews/navbar.html" %}
 
-        <main class="container my-4">
-            {% block content %}{% endblock %}
-        </main>
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
 
-        <footer>
-            <small>© 2025 UP News Portal | All rights reserved. Visitors on site: {{ visits }}</small>
-        </footer>
-    </div>
+    <footer>
+        <small>
+            © 2025 UP Halchal News |
+            Visitors: {{ visits|default:"-" }}
+        </small>
+    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 
-    {% block extra_scripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    
-<script>
+{% block extra_scripts %}{% endblock %}
 
-function slugify(text) {
-  return text
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[\s\W-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function encodeId(id) {
-  return btoa("news" + id).replace(/=/g, '');
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll(".news-link").forEach(link => {
-    link.addEventListener("click", function () {
-      const id = this.dataset.id;
-      const title = this.dataset.title;
-
-      if (!id || !title) {
-        console.error("Missing data-id or data-title");
-        return;
-      }
-
-      const slug = slugify(title);
-      const code = encodeId(id);
-
-      window.location.href = `/news/${slug}/${encodedId}/`;
-    });
-  });
-function decodeId(code) {
-    try {
-        const padded = code + "=".repeat((4 - code.length % 4) % 4);
-        
-        const decoded = atob(padded); 
-                const parts = decoded.split(":");
-        if (parts[0] === "news" && parts[2] === "uphalchal") {
-            return parseInt(parts[1]);
-        }
-        
-    } catch (e) {
-        console.error("Decoding error:", e);
-        return null;
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".news-link").forEach(link => {
-        link.addEventListener("click", function (e) {
-            e.preventDefault(); 
-            const encodedCode = this.dataset.code; 
-            if (!encodedCode) {
-                console.error("Missing data-code on element:", this);
-                return;
-            }
-            
-            window.location.href = `/news/${encodedCode}/`;
-        });
-    });
-});
-</script>
 </body>
 </html>
