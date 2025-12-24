@@ -1,4 +1,10 @@
 {% extends 'mynews/base.html' %}
+{% load static %}
+{% load encode_tags %}
+
+{% block title %}
+UP Halchal | Latest News
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -16,6 +22,10 @@
                 <img src="{{ item.image.url }}"
                      class="card-img-top"
                      alt="{{ item.title }}">
+              {% else %}
+                <img src="{% static 'default.jpg' %}"
+                     class="card-img-top"
+                     alt="No image">
               {% endif %}
 
               <div class="card-body">
@@ -47,48 +57,50 @@
       </div>
 
       <!-- 🔢 PAGINATION -->
-      {% if page_obj.paginator.num_pages > 1 %}
-      <div class="d-flex justify-content-center mt-4">
-        <nav>
-          <ul class="pagination">
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
 
-            {% if page_obj.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page=1">First</a>
-              </li>
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.previous_page_number }}">
-                  Previous
-                </a>
-              </li>
-            {% endif %}
-
-            <li class="page-item active">
-              <span class="page-link">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-              </span>
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1">First</a>
             </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">First</span></li>
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
 
-            {% if page_obj.has_next %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.next_page_number }}">
-                  Next
-                </a>
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
               </li>
+            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
               <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.paginator.num_pages }}">
-                  Last
-                </a>
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
               </li>
             {% endif %}
+          {% endfor %}
 
-          </ul>
-        </nav>
-      </div>
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            <li class="page-item disabled"><span class="page-link">Last</span></li>
+          {% endif %}
+
+        </ul>
+      </nav>
       {% endif %}
+
     </div>
 
     <!-- 📚 SIDEBAR -->
