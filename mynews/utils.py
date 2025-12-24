@@ -10,17 +10,20 @@ def encode_id(news_id: int) -> str:
     return encoded.rstrip("=")
 
 
-def decode_id(code: str) -> int:
+def decode_id(code):
     try:
-        padded = code + "=" * (-len(code) % 4)
-        decoded = base64.urlsafe_b64decode(padded.encode()).decode()
+        decoded = base64.urlsafe_b64decode(code.encode()).decode()
+        parts = decoded.split(":")
 
-        prefix, news_id, secret = decoded.split(":")
+        if len(parts) != 3:
+            raise ValueError("Invalid code format")
 
-        if prefix != "news" or secret != SECRET:
-            raise ValueError
-
+        prefix, news_id, secret = parts
         return int(news_id)
 
+
     except Exception:
+        # fallback: agar direct ID aa jaye
+        if code.isdigit():
+            return int(code)
         raise ValueError("Invalid code")
