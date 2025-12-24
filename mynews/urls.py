@@ -7,6 +7,7 @@ def news_redirect(request, slug, code):
     return redirect("news_detail", slug=slug, permanent=True)
 
 urlpatterns = [
+    path("robots.txt", robots_txt),
     path("", views.home, name="home"),
     path("national/", views.national_news, name="national_news"),
 
