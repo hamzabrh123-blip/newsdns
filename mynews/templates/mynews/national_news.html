@@ -1,11 +1,11 @@
 {% extends 'mynews/base.html' %}
-{% load encode_tags %}
+{% load static %}
 {% block content %}
 
 <div class="container mt-4">
   <div class="row">
 
-    <!-- 📰 Main News Section -->
+    <!-- 📰 NATIONAL NEWS -->
     <div class="col-lg-8 col-md-8">
       <div class="row">
 
@@ -14,9 +14,13 @@
           <div class="card h-100 shadow-sm">
 
             {% if item.image %}
-              <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
+              <img src="{{ item.image.url }}"
+                   class="card-img-top"
+                   alt="{{ item.title }}">
             {% else %}
-              <img src="/static/default.jpg" class="card-img-top" alt="No image available">
+              <img src="{% static 'default.jpg' %}"
+                   class="card-img-top"
+                   alt="No image">
             {% endif %}
 
             <div class="card-body">
@@ -24,75 +28,65 @@
                 {{ item.title|truncatechars:60 }}
               </h5>
 
-              <p class="card-text text-muted small">
-                {{ item.date|date:"M d, Y" }}
+              <p class="text-muted small">
+                {{ item.date|date:"d M Y" }}
               </p>
 
               <p class="card-text">
                 {{ item.content|truncatechars_html:120|safe }}
               </p>
 
-              <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
+              <!-- ✅ ONLY SLUG -->
+              <a href="{% url 'news_detail' item.slug %}"
                  class="btn btn-outline-primary btn-sm">
-                आगे पढ़ें
+                आगे पढ़ें
               </a>
             </div>
 
           </div>
         </div>
         {% empty %}
-          <p>No news available.</p>
+          <p>कोई राष्ट्रीय खबर उपलब्ध नहीं है।</p>
         {% endfor %}
 
       </div>
 
       <!-- 🔢 PAGINATION -->
       {% if page_obj.paginator.num_pages > 1 %}
-      <div class="d-flex justify-content-center mt-4">
-        <nav>
-          <ul class="pagination">
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
 
-            {% if page_obj.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page=1">First</a>
-              </li>
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.previous_page_number }}">
-                  Previous
-                </a>
-              </li>
-            {% endif %}
-
-            <li class="page-item active">
-              <span class="page-link">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-              </span>
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ page_obj.previous_page_number }}">
+                Previous
+              </a>
             </li>
+          {% endif %}
 
-            {% if page_obj.has_next %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.next_page_number }}">
-                  Next
-                </a>
-              </li>
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.paginator.num_pages }}">
-                  Last
-                </a>
-              </li>
-            {% endif %}
+          <li class="page-item active">
+            <span class="page-link">
+              {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
+          </li>
 
-          </ul>
-        </nav>
-      </div>
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ page_obj.next_page_number }}">
+                Next
+              </a>
+            </li>
+          {% endif %}
+
+        </ul>
+      </nav>
       {% endif %}
 
     </div>
 
-    <!-- 📚 Sidebar -->
+    <!-- 📚 SIDEBAR -->
     <div class="col-lg-4 col-md-4">
       {% include 'mynews/sidebar.html' %}
     </div>
