@@ -45,7 +45,6 @@
                 {{ item.content|truncatechars_html:120|safe }}
               </p>
 
-              <!-- ✅ SLUG ONLY -->
               <a href="{% url 'news_detail' item.slug %}"
                  class="btn btn-outline-primary btn-sm">
                 आगे पढ़ें
@@ -60,46 +59,41 @@
       </div>
 
       <!-- 🔢 PAGINATION -->
-      {% if page_obj.paginator.num_pages > 1 %}
-      <nav class="mt-4">
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
 
           {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.previous_page_number }}">
-                Previous
-              </a>
-            </li>
+          <li class="page-item">
+            <a class="page-link" href="?page=1">First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">First</span></li>
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
           {% endif %}
 
-          <li class="page-item active">
-            <span class="page-link">
-              {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-            </span>
-          </li>
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
 
           {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.next_page_number }}">
-                Next
-              </a>
-            </li>
-          {% endif %}
-
-        </ul>
-      </nav>
-      {% endif %}
-
-    </div>
-
-    <!-- 📚 Sidebar -->
-    <div class="col-lg-4 col-md-4">
-      {% include 'mynews/sidebar.html' %}
-    </div>
-
-  </div>
-</div>
-
-{% endblock %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+          <li class="page-item disabled"><span class="page
