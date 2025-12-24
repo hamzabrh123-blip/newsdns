@@ -171,6 +171,17 @@ def ads_txt(request):
         content_type="text/plain"
     )
 
+# ================= robots.TXT =================
+
+def robots_txt(request):
+    lines = [
+        "User-Agent: *",
+        "Disallow:",
+        "",
+        "Sitemap: https://halchal.up.railway.app/sitemap.xml"
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
 
 # ================= ADD NEWS =================
 def add_news(request):
