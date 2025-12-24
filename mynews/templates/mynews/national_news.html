@@ -3,7 +3,7 @@
 {% load encode_tags %}
 
 {% block title %}
-National News | UP Halchal
+{{ district }} News | UP Halchal
 {% endblock %}
 
 {% block content %}
@@ -11,9 +11,11 @@ National News | UP Halchal
 <div class="container mt-4">
   <div class="row">
 
-    <!-- 📰 NATIONAL NEWS -->
+    <!-- 📰 DISTRICT NEWS -->
     <div class="col-lg-8 col-md-8">
-      <h4 class="mb-3 text-primary fw-bold">राष्ट्रीय खबरें</h4>
+      <h4 class="mb-3 text-primary fw-bold">
+        {{ district }} की खबरें
+      </h4>
 
       <div class="row">
         {% for item in page_obj %}
@@ -31,10 +33,20 @@ National News | UP Halchal
             {% endif %}
 
             <div class="card-body">
-              <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
-              <p class="text-muted small">{{ item.date|date:"d M Y" }}</p>
-              <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
-              <a href="{% url 'news_detail' item.slug %}" class="btn btn-outline-primary btn-sm">
+              <h5 class="card-title">
+                {{ item.title|truncatechars:60 }}
+              </h5>
+
+              <p class="small text-muted">
+                {{ item.date|date:"d M Y" }}
+              </p>
+
+              <p class="card-text">
+                {{ item.content|truncatechars_html:120|safe }}
+              </p>
+
+              <a href="{% url 'news_detail' item.slug %}"
+                 class="btn btn-outline-primary btn-sm">
                 आगे पढ़ें
               </a>
             </div>
@@ -42,7 +54,7 @@ National News | UP Halchal
           </div>
         </div>
         {% empty %}
-          <p class="text-center">कोई राष्ट्रीय खबर उपलब्ध नहीं है।</p>
+          <p>इस जिले की कोई खबर उपलब्ध नहीं है।</p>
         {% endfor %}
       </div>
 
@@ -65,12 +77,10 @@ National News | UP Halchal
               <li class="page-item active">
                 <span class="page-link">{{ num }}</span>
               </li>
-            {% else %}
-              {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-              {% endif %}
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
             {% endif %}
           {% endfor %}
 
@@ -80,6 +90,13 @@ National News | UP Halchal
             </li>
             <li class="page-item">
               <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Next</span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">Last</span>
             </li>
           {% endif %}
 
