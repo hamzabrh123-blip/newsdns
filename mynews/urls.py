@@ -13,6 +13,7 @@ urlpatterns = [
     # ✅ NEW clean SEO URL
     path("<slug:slug>", views.news_detail, name="news_detail"),
     path("robots.txt", robots_txt),
+    path("sitemap.xml", sitemap_xml),
     # 🔁 OLD URL → 301 redirect
     re_path(r'^(?P<slug>[-\w\d\u0900-\u097F]+)$', views.news_detail, name='news_detail'),
 
