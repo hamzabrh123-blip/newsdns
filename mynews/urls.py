@@ -7,11 +7,7 @@ urlpatterns = [
     path("national/", views.national_news, name="national_news"),
 
     # SEO + Secure URL
-    path(
-        "news/<slug:slug>/",
-        views.news_detail,
-        name="news_detail"
-    ),
+    path("news/<slug:slug>/", views.news_detail, name="news_detail"),
 
     # ✅ Add news page
     path("add-news/", views.add_news, name="add_news"),
