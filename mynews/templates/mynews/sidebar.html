@@ -1,39 +1,31 @@
-{% load encode_tags %}
-
 <!-- 📂 templates/mynews/sidebar.html -->
 <aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
 
-  <!-- 🔍 Search -->
+  <!-- 📢 Google Ad -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
     crossorigin="anonymous"></script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
-     crossorigin="anonymous"></script>
-<!-- HALCHAL SIDEBAR -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-3171847065256414"
-     data-ad-slot="8971643398"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-3171847065256414"
+       data-ad-slot="8971643398"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
 
-  <!-- 📂 Categories -->
- 
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
   <!-- ⭐ Important News -->
   <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
 
   {% for item in important|slice:":10" %}
     <div class="mb-2 small border-bottom pb-2">
-
-    
-       <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}">
-          {{ item.title|truncatechars:60 }}
-        </a>
+      <!-- ✅ SLUG ONLY URL -->
+      <a href="{% url 'news_detail' item.slug %}">
+        {{ item.title|truncatechars:60 }}
+      </a>
     </div>
   {% empty %}
     <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
@@ -41,7 +33,7 @@
 
 </aside>
 
-<!-- ✅ Optional Styling -->
+<!-- ✅ Styling -->
 <style>
 .sidebar {
   position: sticky;
