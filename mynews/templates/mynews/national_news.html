@@ -1,7 +1,12 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-{% block content %}
+{% load encode_tags %}
 
+{% block title %}
+National News | UP Halchal
+{% endblock %}
+
+{% block content %}
 <div class="container mt-4">
   <div class="row">
 
@@ -10,88 +15,79 @@
       <div class="row">
 
         {% for item in page_obj %}
-        <div class="col-md-6 mb-4">
-          <div class="card h-100 shadow-sm">
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
 
-            {% if item.image %}
-              <img src="{{ item.image.url }}"
-                   class="card-img-top"
-                   alt="{{ item.title }}">
-            {% else %}
-              <img src="{% static 'default.jpg' %}"
-                   class="card-img-top"
-                   alt="No image">
-            {% endif %}
+              {% if item.image %}
+                <img src="{{ item.image.url }}"
+                     class="card-img-top"
+                     alt="{{ item.title }}">
+              {% else %}
+                <img src="{% static 'default.jpg' %}"
+                     class="card-img-top"
+                     alt="No image">
+              {% endif %}
 
-            <div class="card-body">
-              <h5 class="card-title">
-                {{ item.title|truncatechars:60 }}
-              </h5>
+              <div class="card-body">
+                <h5 class="card-title">
+                  {{ item.title|truncatechars:60 }}
+                </h5>
 
-              <p class="text-muted small">
-                {{ item.date|date:"d M Y" }}
-              </p>
+                <p class="card-text text-muted small">
+                  {{ item.date|date:"d M Y" }}
+                </p>
 
-              <p class="card-text">
-                {{ item.content|truncatechars_html:120|safe }}
-              </p>
+                <p class="card-text">
+                  {{ item.content|truncatechars_html:120|safe }}
+                </p>
 
-              <!-- ✅ ONLY SLUG -->
-              <a href="{% url 'news_detail' item.slug %}"
-                 class="btn btn-outline-primary btn-sm">
-                आगे पढ़ें
-              </a>
+                <!-- ✅ SLUG ONLY URL -->
+                <a href="{% url 'news_detail' item.slug %}"
+                   class="btn btn-outline-primary btn-sm">
+                  आगे पढ़ें
+                </a>
+              </div>
+
             </div>
-
           </div>
-        </div>
         {% empty %}
-          <p>कोई राष्ट्रीय खबर उपलब्ध नहीं है।</p>
+          <p class="text-center">कोई राष्ट्रीय खबर उपलब्ध नहीं है।</p>
         {% endfor %}
 
       </div>
 
       <!-- 🔢 PAGINATION -->
-      {% if page_obj.paginator.num_pages > 1 %}
-      <nav class="mt-4">
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
 
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.previous_page_number }}">
-                Previous
-              </a>
+              <a class="page-link" href="?page=1">First</a>
             </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">First</span></li>
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
           {% endif %}
 
-          <li class="page-item active">
-            <span class="page-link">
-              {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-            </span>
-          </li>
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
 
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.next_page_number }}">
-                Next
-              </a>
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
             </li>
-          {% endif %}
-
-        </ul>
-      </nav>
-      {% endif %}
-
-    </div>
-
-    <!-- 📚 SIDEBAR -->
-    <div class="col-lg-4 col-md-4">
-      {% include 'mynews/sidebar.html' %}
-    </div>
-
-  </div>
-</div>
-
-{% endblock %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_p
