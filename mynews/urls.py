@@ -13,10 +13,7 @@ urlpatterns = [
     path("news/<slug:slug>/", views.news_detail, name="news_detail"),
 
     # 🔁 OLD URL → 301 redirect
-    re_path(
-        r'^news/(?P<slug>[-\w\d\u0900-\u097F]+)/(?P<code>[^/]+)/$',
-        news_redirect
-    ),
+    re_path(r'^news/(?P<slug>[-\w\d\u0900-\u097F]+)/$', views.news_detail, name='news_detail'),
 
     path("add-news/", views.add_news, name="add_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
