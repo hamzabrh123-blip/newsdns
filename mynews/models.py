@@ -60,3 +60,38 @@ class News(models.Model):
     slug = models.SlugField(
         max_length=350,
         unique=True,
+        blank=True
+    )
+
+    # ✅ FIXED SLUG (Hindi + English supported)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(force_str(self.title), allow_unicode=True)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class Comment(models.Model):
+    news = models.ForeignKey(
+        News,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    name = models.CharField(max_length=120)
+    email = models.EmailField(blank=True, null=True)
+    comment = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} on {self.news.title}"
+
+
+class AdminOTP(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.otp}"
