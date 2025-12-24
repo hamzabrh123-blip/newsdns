@@ -6,12 +6,12 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 
 from .models import News, Comment, AdminOTP
 
 ADMIN_EMAIL = "hamzabrh@gmail.com"
-
 
 # ================= ADMIN LOGIN =================
 def admin_login(request):
@@ -68,20 +68,24 @@ def home(request):
     query = request.GET.get("q")
 
     if query:
-        news_list = News.objects.filter(title__icontains=query)
+        news_list = News.objects.filter(title__icontains=query).order_by("-date")
     else:
         news_list = News.objects.filter(
             models.Q(category__iexact="International") |
             models.Q(is_important=True)
-        ).order_by("-date")[:12]
+        ).order_by("-date")
 
-    important = News.objects.filter(is_important=True)[:5]
+    paginator = Paginator(news_list, 12)  # 12 news per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    important = News.objects.filter(is_important=True).order_by("-date")[:5]
 
     visits = cache.get("visits", 0) + 1
     cache.set("visits", visits, None)
 
     return render(request, "mynews/home.html", {
-        "page_obj": news_list,
+        "page_obj": page_obj,
         "important": important,
         "visits": visits
     })
@@ -90,8 +94,12 @@ def home(request):
 # ================= NATIONAL =================
 def national_news(request):
     news_list = News.objects.filter(category="National").order_by("-date")
+    paginator = Paginator(news_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mynews/national_news.html", {
-        "page_obj": news_list
+        "page_obj": page_obj
     })
 
 
@@ -122,9 +130,13 @@ def news_detail(request, slug):
 # ================= DISTRICT =================
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
+    paginator = Paginator(news_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mynews/district_news.html", {
         "district": district,
-        "page_obj": news_list
+        "page_obj": page_obj
     })
 
 
