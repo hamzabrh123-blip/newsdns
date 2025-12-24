@@ -75,7 +75,7 @@ def home(request):
             models.Q(is_important=True)
         ).order_by("-date")
 
-    paginator = Paginator(news_list, 12)  # 12 news per page
+    paginator = Paginator(news_list, 12)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -106,14 +106,9 @@ def national_news(request):
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
-
-    # Sidebar latest news
     sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:10]
-
-    # Comments
     comments = Comment.objects.filter(news=news).order_by("-date")
 
-    # YouTube embed fix
     if news.youtube_url:
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
@@ -140,28 +135,13 @@ def district_news(request, district):
     })
 
 
-# ================= STATIC PAGES =================
+# ================= STATIC =================
 def about(request):
     return render(request, "mynews/about.html")
 
 
 def contact(request):
     return render(request, "mynews/contact.html")
-
-
-# ================= CREATE ADMIN =================
-def create_admin(request):
-    User = get_user_model()
-
-    if User.objects.filter(username="hamzareal").exists():
-        return HttpResponse("Admin already exists")
-
-    User.objects.create_superuser(
-        username="hamzareal",
-        email="hamzareal@gmail.com",
-        password="Hamza@5555"
-    )
-    return HttpResponse("Admin Created Successfully!")
 
 
 # ================= ADS.TXT =================
@@ -171,26 +151,34 @@ def ads_txt(request):
         content_type="text/plain"
     )
 
-# ================= robots.TXT =================
 
+# ================= ROBOTS.TXT =================
 def robots_txt(request):
-    lines = [
-        "User-Agent: *",
-        "Disallow:",
-        "",
-        "Sitemap: https://halchal.up.railway.app/sitemap.xml"
-    ]
-    return HttpResponse("\n".join(lines), content_type="text/plain")
+    return HttpResponse(
+        "User-Agent: *\nDisallow:\n\nSitemap: https://halchal.up.railway.app/sitemap.xml",
+        content_type="text/plain"
+    )
 
 
-# ================= ADD NEWS =================
-def add_news(request):
-    if request.method == "POST":
-        News.objects.create(
-            title=request.POST["title"],
-            slug=request.POST["slug"],
-            content=request.POST["content"]
-        )
-        return redirect("home")
+# ================= SITEMAP.XML (🔥 NEW) =================
+def sitemap_xml(request):
+    base_url = "https://halchal.up.railway.app"
 
-    return render(request, "mynews/add_news.html")
+    urls = [f"{base_url}/"]
+
+    for news in News.objects.all():
+        urls.append(f"{base_url}/{news.slug}")
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+
+    for url in urls:
+        xml += f"""
+        <url>
+            <loc>{url}</loc>
+        </url>
+        """
+
+    xml += "</urlset>"
+
+    return HttpResponse(xml, content_type="application/xml")
