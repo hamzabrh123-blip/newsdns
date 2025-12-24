@@ -1,5 +1,6 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
+{% load encode_tags %}
 
 {% block title %}
 {{ district }} News | UP Halchal
@@ -81,3 +82,24 @@
           {% if page_obj.has_next %}
             <li class="page-item">
               <a class="page-link"
+                 href="?page={{ page_obj.next_page_number }}">
+                Next
+              </a>
+            </li>
+          {% endif %}
+
+        </ul>
+      </nav>
+      {% endif %}
+
+    </div>
+
+    <!-- 📚 Sidebar -->
+    <div class="col-lg-4 col-md-4">
+      {% include 'mynews/sidebar.html' %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
