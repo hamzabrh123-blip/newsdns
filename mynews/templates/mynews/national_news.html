@@ -7,58 +7,48 @@ National News | UP Halchal
 {% endblock %}
 
 {% block content %}
+
 <div class="container mt-4">
   <div class="row">
 
     <!-- 📰 NATIONAL NEWS -->
     <div class="col-lg-8 col-md-8">
+      <h4 class="mb-3 text-primary fw-bold">राष्ट्रीय खबरें</h4>
+
       <div class="row">
-
         {% for item in page_obj %}
-          <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm">
+        <div class="col-md-6 mb-4">
+          <div class="card h-100 shadow-sm">
 
-              {% if item.image %}
-                <img src="{{ item.image.url }}"
-                     class="card-img-top"
-                     alt="{{ item.title }}">
-              {% else %}
-                <img src="{% static 'default.jpg' %}"
-                     class="card-img-top"
-                     alt="No image">
-              {% endif %}
+            {% if item.image %}
+              <img src="{{ item.image.url }}"
+                   class="card-img-top"
+                   alt="{{ item.title }}">
+            {% else %}
+              <img src="{% static 'default.jpg' %}"
+                   class="card-img-top"
+                   alt="No image">
+            {% endif %}
 
-              <div class="card-body">
-                <h5 class="card-title">
-                  {{ item.title|truncatechars:60 }}
-                </h5>
-
-                <p class="card-text text-muted small">
-                  {{ item.date|date:"d M Y" }}
-                </p>
-
-                <p class="card-text">
-                  {{ item.content|truncatechars_html:120|safe }}
-                </p>
-
-                <!-- ✅ SLUG ONLY URL -->
-                <a href="{% url 'news_detail' item.slug %}"
-                   class="btn btn-outline-primary btn-sm">
-                  आगे पढ़ें
-                </a>
-              </div>
-
+            <div class="card-body">
+              <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
+              <p class="text-muted small">{{ item.date|date:"d M Y" }}</p>
+              <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
+              <a href="{% url 'news_detail' item.slug %}" class="btn btn-outline-primary btn-sm">
+                आगे पढ़ें
+              </a>
             </div>
+
           </div>
+        </div>
         {% empty %}
           <p class="text-center">कोई राष्ट्रीय खबर उपलब्ध नहीं है।</p>
         {% endfor %}
-
       </div>
 
       <!-- 🔢 PAGINATION -->
-      {% if page_obj.has_other_pages %}
-      <nav aria-label="Page navigation" class="mt-4">
+      {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mt-4">
         <ul class="pagination justify-content-center">
 
           {% if page_obj.has_previous %}
@@ -68,9 +58,6 @@ National News | UP Halchal
             <li class="page-item">
               <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
             </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">First</span></li>
-            <li class="page-item disabled"><span class="page-link">Previous</span></li>
           {% endif %}
 
           {% for num in page_obj.paginator.page_range %}
@@ -78,10 +65,12 @@ National News | UP Halchal
               <li class="page-item active">
                 <span class="page-link">{{ num }}</span>
               </li>
-            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-              </li>
+            {% else %}
+              {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
             {% endif %}
           {% endfor %}
 
@@ -90,4 +79,22 @@ National News | UP Halchal
               <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
             </li>
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.paginator.num_p
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+          {% endif %}
+
+        </ul>
+      </nav>
+      {% endif %}
+
+    </div>
+
+    <!-- 📚 SIDEBAR -->
+    <div class="col-lg-4 col-md-4">
+      {% include 'mynews/sidebar.html' %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
