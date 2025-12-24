@@ -111,20 +111,7 @@ def national_news(request):
 
 
 # ================= NEWS DETAIL =================
-def news_detail(request, slug, code=None):
-    """
-    News detail with optional encoded ID
-    """
-
-    # 🔹 1. News fetch (slug + encoded id safe)
-    if code:
-        news_id = decode_id(code)
-        if not news_id:
-            raise Http404("Invalid news code")
-
-        # 🔴 slug + id दोनों match (SEO safe)
-        news = get_object_or_404(News, id=news_id, slug=slug)
-    else:
+def news_detail(request, slug ):
         news = get_object_or_404(News, slug=slug)
 
     # 🔹 2. Sidebar: पूरी site की latest 5 खबरें (current छोड़कर)
