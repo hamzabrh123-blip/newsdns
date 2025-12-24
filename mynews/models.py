@@ -2,6 +2,7 @@ from django.db import models
 from cloudinary.models import CloudinaryField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.utils.text import slugify
+from django.utils.encoding import force_str
 
 
 class District(models.Model):
@@ -59,37 +60,3 @@ class News(models.Model):
     slug = models.SlugField(
         max_length=350,
         unique=True,
-        blank=True
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)  
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-class Comment(models.Model):
-    news = models.ForeignKey(
-        News,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    name = models.CharField(max_length=120)
-    email = models.EmailField(blank=True, null=True)
-    comment = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.name} on {self.news.title}"
-
-
-class AdminOTP(models.Model):
-    email = models.EmailField()
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.email} - {self.otp}"
