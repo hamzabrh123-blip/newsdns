@@ -1,4 +1,3 @@
-{% load encode_tags %}
 <div class="card">
   <div class="card-header fw-bold">
     संबंधित खबरें
@@ -24,8 +23,8 @@
           >
         {% endif %}
 
-        <a href="{% url 'news_detail' n.slug n.id %}"
-
+        <!-- ✅ ONLY SLUG -->
+        <a href="{% url 'news_detail' n.slug %}"
            class="text-decoration-none text-dark small fw-semibold">
           {{ n.title|truncatechars:100 }}
         </a>
