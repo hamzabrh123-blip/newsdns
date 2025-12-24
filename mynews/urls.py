@@ -8,7 +8,7 @@ urlpatterns = [
 
     # SEO + Secure URL
     path(
-        "news/<slug:slug>-<str:code>/",
+        "news/<slug:slug>/",
         views.news_detail,
         name="news_detail"
     ),
