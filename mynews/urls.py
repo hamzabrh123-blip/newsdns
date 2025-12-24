@@ -10,10 +10,10 @@ urlpatterns = [
     path("national/", views.national_news, name="national_news"),
 
     # ✅ NEW clean SEO URL
-    path("news/<slug:slug>/", views.news_detail, name="news_detail"),
+    path("<slug:slug>", views.news_detail, name="news_detail"),
 
     # 🔁 OLD URL → 301 redirect
-    re_path(r'^news/(?P<slug>[-\w\d\u0900-\u097F]+)/$', views.news_detail, name='news_detail'),
+    re_path(r'^(?P<slug>[-\w\d\u0900-\u097F]+)$', views.news_detail, name='news_detail'),
 
     path("add-news/", views.add_news, name="add_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
