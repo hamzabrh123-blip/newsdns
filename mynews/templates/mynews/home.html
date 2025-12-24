@@ -30,7 +30,7 @@
                   {{ item.content|truncatechars_html:120|safe }}
                 </p>
 
-                <a href="{% url 'news_detail' item.slug item.id|encode_news_id %}"
+                <a href="{% url 'news_detail' news.slug %}"
                    class="btn btn-outline-primary btn-sm">
                   आगे पढ़ें
                 </a>
