@@ -7,13 +7,12 @@ def news_redirect(request, slug, code):
     return redirect("news_detail", slug=slug, permanent=True)
 
 urlpatterns = [
-    path("robots.txt", robots_txt),
     path("", views.home, name="home"),
     path("national/", views.national_news, name="national_news"),
 
     # ✅ NEW clean SEO URL
     path("<slug:slug>", views.news_detail, name="news_detail"),
-
+    path("robots.txt", robots_txt),
     # 🔁 OLD URL → 301 redirect
     re_path(r'^(?P<slug>[-\w\d\u0900-\u097F]+)$', views.news_detail, name='news_detail'),
 
