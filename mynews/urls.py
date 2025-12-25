@@ -1,10 +1,6 @@
-from django.urls import path, re_path
-from django.shortcuts import redirect
+from django.urls import path
 from . import views
-from .views import robots_txt, sitemap_xml   # ✅ IMPORTANT IMPORT
-
-def news_redirect(request, slug, code):
-    return redirect("news_detail", slug=slug, permanent=True)
+from .views import robots_txt, sitemap_xml
 
 urlpatterns = [
     # ===== CORE PAGES =====
@@ -13,13 +9,12 @@ urlpatterns = [
     path("district/<str:district>/", views.district_news, name="district_news"),
     path("about/", views.about, name="about"),
     path("contact/", views.contact, name="contact"),
-    path("add-news/", views.add_news, name="add_news"),
 
-    # ===== SEO / SYSTEM FILES (ALWAYS ABOVE SLUG) =====
+    # ===== SEO / SYSTEM FILES =====
     path("robots.txt", robots_txt),
     path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
 
-    # ===== NEWS DETAIL (LAST) =====
+    # ===== NEWS DETAIL (ALWAYS LAST) =====
     path("<slug:slug>/", views.news_detail, name="news_detail"),
 ]
