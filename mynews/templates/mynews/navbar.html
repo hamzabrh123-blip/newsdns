@@ -59,22 +59,6 @@
           </ul>
         </li>
 
-        <!-- About -->
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'about' %}active{% endif %}"
-             href="{% url 'about' %}">
-            हमारे बारे में
-          </a>
-        </li>
-
-        <!-- Contact -->
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'contact' %}active{% endif %}"
-             href="{% url 'contact' %}">
-            संपर्क
-          </a>
-        </li>
-
       </ul>
     </div>
   </div>
