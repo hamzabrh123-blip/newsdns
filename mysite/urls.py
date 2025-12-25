@@ -6,7 +6,7 @@ from mynews import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('mynews.urls')),  # Main app urls
+    path('', include('mynews.urls')),  # Main app URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
 
     # Custom admin paths
