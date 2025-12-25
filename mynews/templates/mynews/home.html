@@ -17,15 +17,11 @@ UP Halchal | Latest News
           <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
 
-              {% if item.image %}
-                <img src="{{ item.image.url }}"
-                     class="card-img-top"
-                     alt="{{ item.title }}">
-              {% else %}
-                <img src="{% static 'default.jpg' %}"
-                     class="card-img-top"
-                     alt="No image">
-              {% endif %}
+           {% if item.image.url %}
+  <img src="{{ item.image.url }}"
+       class="card-img-top"
+       alt="{{ item.title }}">
+{% endif %}
 
               <div class="card-body">
                 <h5 class="card-title">
