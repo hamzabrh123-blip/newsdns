@@ -1,20 +1,16 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 from django.db import models
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
 from .models import News, Comment
 
-
 # ================= HOME =================
 def home(request):
     query = request.GET.get("q")
-
     try:
         if query:
-            news_list = News.objects.filter(
-                title__icontains=query
-            ).order_by("-date")
+            news_list = News.objects.filter(title__icontains=query).order_by("-date")
         else:
             news_list = News.objects.filter(
                 models.Q(category__iexact="International") |
@@ -32,10 +28,7 @@ def home(request):
     except Exception:
         important = []
 
-    return render(request, "mynews/home.html", {
-        "page_obj": page_obj,
-        "important": important,
-    })
+    return render(request, "mynews/home.html", {"page_obj": page_obj, "important": important})
 
 
 # ================= NATIONAL =================
@@ -44,16 +37,12 @@ def national_news(request):
     paginator = Paginator(news_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
-
-    return render(request, "mynews/national_news.html", {
-        "page_obj": page_obj
-    })
+    return render(request, "mynews/national_news.html", {"page_obj": page_obj})
 
 
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
-
     sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:10]
     comments = Comment.objects.filter(news=news).order_by("-date")
 
@@ -61,9 +50,7 @@ def news_detail(request, slug):
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
         elif "youtu.be/" in news.youtube_url:
-            news.youtube_url = news.youtube_url.replace(
-                "youtu.be/", "www.youtube.com/embed/"
-            )
+            news.youtube_url = news.youtube_url.replace("youtu.be/", "www.youtube.com/embed/")
 
     return render(request, "mynews/news_detail.html", {
         "news": news,
@@ -74,24 +61,16 @@ def news_detail(request, slug):
 
 # ================= DISTRICT =================
 def district_news(request, district):
-    news_list = News.objects.filter(
-        district__iexact=district
-    ).order_by("-date")
-
+    news_list = News.objects.filter(district__iexact=district).order_by("-date")
     paginator = Paginator(news_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
-
-    return render(request, "mynews/district_news.html", {
-        "district": district,
-        "page_obj": page_obj
-    })
+    return render(request, "mynews/district_news.html", {"district": district, "page_obj": page_obj})
 
 
 # ================= STATIC PAGES =================
 def about(request):
     return render(request, "mynews/about.html")
-
 
 def contact(request):
     return render(request, "mynews/contact.html")
@@ -125,10 +104,8 @@ def sitemap_xml(request):
 
     xml = '<?xml version="1.0" encoding="UTF-8"?>'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-
     for url in urls:
         xml += f"<url><loc>{url}</loc></url>"
-
     xml += "</urlset>"
 
     return HttpResponse(xml, content_type="application/xml")
