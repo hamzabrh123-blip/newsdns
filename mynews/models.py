@@ -60,13 +60,23 @@ class News(models.Model):
     slug = models.SlugField(
         max_length=350,
         unique=True,
-        blank=True
+        blank=True,
+        allow_unicode=True   # ✅ Hindi slug support
     )
 
-    # ✅ FIXED SLUG (Hindi + English supported)
+    # ✅ AUTO SAFE SLUG (Hindi + English + Duplicate Safe)
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(force_str(self.title), allow_unicode=True)
+            base_slug = slugify(force_str(self.title), allow_unicode=True)
+            slug = base_slug
+            counter = 1
+
+            while News.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            self.slug = slug
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -86,12 +96,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.name} on {self.news.title}"
-
-
-class AdminOTP(models.Model):
-    email = models.EmailField()
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.email} - {self.otp}"
