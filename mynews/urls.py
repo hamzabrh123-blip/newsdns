@@ -16,5 +16,5 @@ urlpatterns = [
     path("ads.txt", views.ads_txt, name="ads_txt"),
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
-    path("<slug:slug>/", views.news_detail, name="news_detail"),
+    path("<path:slug>/", views.news_detail, name="news_detail"),
 ]
