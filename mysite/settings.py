@@ -80,11 +80,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
+# Make sure DATABASE_URL is set in environment
+# Example format: postgres://username:password@host:port/dbname
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get(
             "DATABASE_URL",
-            "postgresql://username:password@host:port/dbname"
+            "postgres://username:password@host:5432/dbname"
         ),
         conn_max_age=600,
         ssl_require=True
@@ -132,3 +134,18 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 # ---------------- CKEDITOR ----------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# ---------------- LOGGING (Optional) ----------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
