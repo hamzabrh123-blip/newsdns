@@ -2,56 +2,77 @@
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm"
      style="background: linear-gradient(90deg, #004aad, #8a00d4);">
   <div class="container">
+
     <!-- 🔹 Brand -->
     <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-      📰 UP News Portal
+      📰 UP हलचल
     </a>
 
-    <!-- 🔹 Toggler for mobile -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarNav" aria-controls="navbarNav"
-            aria-expanded="false" aria-label="Toggle navigation">
+    <!-- 🔹 Mobile Toggle -->
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- 🔹 Navbar Links -->
+    <!-- 🔹 Links -->
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
 
         <!-- Home -->
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-             href="{% url 'home' %}">Home</a>
+          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">
+            होम
+          </a>
         </li>
-        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'national_news' %}active{% endif %}" href="{% url 'national_news' %}">National</a></li>
-        <!-- Districts Dropdown -->
+
+        <!-- National -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'national_news' %}active{% endif %}"
+             href="{% url 'national_news' %}">
+            राष्ट्रीय
+          </a>
+        </li>
+
+        <!-- District Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle"
-             href="#" id="districtDropdown"
-             role="button" data-bs-toggle="dropdown"
+             href="#"
+             id="districtDropdown"
+             role="button"
+             data-bs-toggle="dropdown"
              aria-expanded="false">
-            Districts
+            जिले
           </a>
 
-          <ul class="dropdown-menu" aria-labelledby="districtDropdown">
-            <li><a class="dropdown-item" href="{% url 'district_news' 'Lucknow' %}">Lucknow</a></li>
-            <li><a class="dropdown-item" href="{% url 'district_news' 'Bahraich' %}">Bahraich</a></li>
-            <li><a class="dropdown-item" href="{% url 'district_news' 'Gonda' %}">Gonda</a></li>
-            <li><a class="dropdown-item" href="{% url 'district_news' 'Shravasti-Balrampur' %}">Shravasti-Balrampur</a></li>
-            <li><a class="dropdown-item" href="{% url 'district_news' 'Sitapur-Barabanki' %}">Sitapur-Barabanki</a></li>
+          <ul class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="districtDropdown">
+            <li><a class="dropdown-item" href="{% url 'district_news' 'Lucknow' %}">लखनऊ</a></li>
+            <li><a class="dropdown-item" href="{% url 'district_news' 'Bahraich' %}">बहराइच</a></li>
+            <li><a class="dropdown-item" href="{% url 'district_news' 'Gonda' %}">गोंडा</a></li>
+            <li><a class="dropdown-item" href="{% url 'district_news' 'Shravasti-Balrampur' %}">श्रावस्ती / बलरामपुर</a></li>
+            <li><a class="dropdown-item" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर / बाराबंकी</a></li>
           </ul>
         </li>
 
         <!-- About -->
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
-             href="{% url 'about' %}">हमारे बारे में</a>
+          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'about' %}active{% endif %}"
+             href="{% url 'about' %}">
+            हमारे बारे में
+          </a>
         </li>
 
         <!-- Contact -->
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}"
-             href="{% url 'contact' %}">संपर्क</a>
+          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'contact' %}active{% endif %}"
+             href="{% url 'contact' %}">
+            संपर्क
+          </a>
         </li>
 
       </ul>
