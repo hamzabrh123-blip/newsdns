@@ -1,10 +1,12 @@
+# mysite/settings.py
 import os
 import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez"
+# ---------------- SECURITY ----------------
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-key")
 DEBUG = True
 
 ALLOWED_HOSTS = [
@@ -15,10 +17,13 @@ ALLOWED_HOSTS = [
     'halchal.up.railway.app',
     "halchal2-j2dg.onrender.com",
 ]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://halchal.up.railway.app","http://halchal.up.railway.app",
+    "https://halchal.up.railway.app",
+    "http://halchal.up.railway.app",
 ]
 
+# ---------------- INSTALLED APPS ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,14 +32,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # your apps
+    # custom apps
     'mynews',
 
-    # rich text editor
+    # CKEditor
     'ckeditor',
     'ckeditor_uploader',
 
-    # cloudinary
+    # Cloudinary
     'cloudinary',
     'cloudinary_storage',
 ]
@@ -67,7 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'mynews.context_processors.important_news',
-                "mynews.context_processors.site_visits",
+                'mynews.context_processors.site_visits',
             ],
         },
     },
@@ -75,7 +80,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
-# -------- Database ---------
+# ---------------- DATABASE ----------------
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get(
@@ -95,9 +100,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ---------------- GENERAL SETTINGS ----------------
+# ---------------- GENERAL ----------------
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -106,25 +111,27 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ------------ CLOUDINARY SETTINGS ------------
+# ---------------- MEDIA / CLOUDINARY ----------------
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dvoqsrkkq',
-    'API_KEY': '468226887694915',
-    'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_NAME', 'dvoqsrkkq'),
+    'API_KEY': os.environ.get('CLOUDINARY_KEY', '468226887694915'),
+    'API_SECRET': os.environ.get('CLOUDINARY_SECRET', '1j2X6nWy-0xZqdbr6e9puCVC8VE'),
 }
-
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# ---------------- CKEDITOR ----------------
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "hamzabrh123@gmail.com"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "hamzabrh123@gmail.com")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
 
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
+# ---------------- OTHER ----------------
+# Visitors cache context processor
