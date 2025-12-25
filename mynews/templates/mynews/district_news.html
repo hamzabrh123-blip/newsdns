@@ -1,17 +1,14 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-{% load encode_tags %}
 
 {% block title %}
 {{ district }} News | UP Halchal
 {% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
   <div class="row">
 
-    <!-- 📰 DISTRICT NEWS -->
     <div class="col-lg-8 col-md-8">
       <h4 class="mb-3 text-primary fw-bold">
         {{ district }} की खबरें
@@ -31,8 +28,13 @@
             <div class="card-body">
               <h5 class="card-title">{{ item.title|truncatechars:60 }}</h5>
               <p class="small text-muted">{{ item.date|date:"d M Y" }}</p>
-              <p class="card-text">{{ item.content|truncatechars_html:120|safe }}</p>
-              <a href="{% url 'news_detail' item.slug %}" class="btn btn-outline-primary btn-sm">आगे पढ़ें</a>
+              <p class="card-text">
+                {{ item.content|truncatechars_html:120|safe }}
+              </p>
+              <a href="{% url 'news_detail' item.slug %}"
+                 class="btn btn-outline-primary btn-sm">
+                आगे पढ़ें
+              </a>
             </div>
 
           </div>
@@ -42,11 +44,9 @@
         {% endfor %}
       </div>
 
-      <!-- 🔢 PAGINATION -->
       {% if page_obj.paginator.num_pages > 1 %}
       <nav class="mt-4">
         <ul class="pagination justify-content-center">
-
           {% if page_obj.has_previous %}
             <li class="page-item">
               <a class="page-link" href="?page=1">First</a>
@@ -77,23 +77,17 @@
             <li class="page-item">
               <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
             </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Next</span></li>
-            <li class="page-item disabled"><span class="page-link">Last</span></li>
           {% endif %}
-
         </ul>
       </nav>
       {% endif %}
 
     </div>
 
-    <!-- 📚 SIDEBAR -->
     <div class="col-lg-4 col-md-4">
       {% include 'mynews/sidebar.html' %}
     </div>
 
   </div>
 </div>
-
 {% endblock %}
