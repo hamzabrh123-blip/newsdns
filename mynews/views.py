@@ -1,94 +1,40 @@
-import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
-from django.core.cache import cache
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.contrib.auth import login, get_user_model
-from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
-from .models import News, Comment, AdminOTP
-
-ADMIN_EMAIL = "hamzabrh@gmail.com"
-
-
-# ================= ADMIN LOGIN =================
-def admin_login(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-
-        if email != ADMIN_EMAIL:
-            messages.error(request, "You are not authorized!")
-            return redirect("admin_login")
-
-        otp = str(random.randint(100000, 999999))
-        AdminOTP.objects.create(email=email, otp=otp)
-
-        send_mail(
-            "Admin Login OTP",
-            f"Your OTP is: {otp}",
-            ADMIN_EMAIL,
-            [email],
-            fail_silently=False,
-        )
-
-        request.session["admin_email"] = email
-        return redirect("admin_verify")
-
-    return render(request, "admin_login.html")
-
-
-def admin_verify(request):
-    if request.method == "POST":
-        entered = request.POST.get("otp")
-        email = request.session.get("admin_email")
-
-        data = AdminOTP.objects.filter(email=email).last()
-
-        if data and data.otp == entered:
-            user, _ = User.objects.get_or_create(
-                username="otpadmin",
-                defaults={
-                    "email": email,
-                    "is_staff": True,
-                    "is_superuser": True,
-                }
-            )
-            login(request, user)
-            return redirect("/admin/")
-
-        messages.error(request, "Invalid OTP!")
-
-    return render(request, "admin_verify.html")
+from .models import News, Comment
 
 
 # ================= HOME =================
 def home(request):
     query = request.GET.get("q")
 
-    if query:
-        news_list = News.objects.filter(title__icontains=query).order_by("-date")
-    else:
-        news_list = News.objects.filter(
-            models.Q(category__iexact="International") |
-            models.Q(is_important=True)
-        ).order_by("-date")
+    try:
+        if query:
+            news_list = News.objects.filter(
+                title__icontains=query
+            ).order_by("-date")
+        else:
+            news_list = News.objects.filter(
+                models.Q(category__iexact="International") |
+                models.Q(is_important=True)
+            ).order_by("-date")
+    except Exception:
+        news_list = News.objects.none()
 
     paginator = Paginator(news_list, 12)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    important = News.objects.filter(is_important=True).order_by("-date")[:5]
-
-    visits = cache.get("visits", 0) + 1
-    cache.set("visits", visits, None)
+    try:
+        important = News.objects.filter(is_important=True).order_by("-date")[:5]
+    except Exception:
+        important = []
 
     return render(request, "mynews/home.html", {
         "page_obj": page_obj,
         "important": important,
-        "visits": visits
     })
 
 
@@ -128,7 +74,10 @@ def news_detail(request, slug):
 
 # ================= DISTRICT =================
 def district_news(request, district):
-    news_list = News.objects.filter(district__iexact=district).order_by("-date")
+    news_list = News.objects.filter(
+        district__iexact=district
+    ).order_by("-date")
+
     paginator = Paginator(news_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -171,7 +120,6 @@ def sitemap_xml(request):
     base_url = "https://halchal.up.railway.app"
     urls = [f"{base_url}/"]
 
-    # ✅ SAFE: only valid slugs
     for news in News.objects.exclude(slug__isnull=True).exclude(slug=""):
         urls.append(f"{base_url}/{news.slug}")
 
