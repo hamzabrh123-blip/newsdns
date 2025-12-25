@@ -7,8 +7,6 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("national/", views.national_news, name="national_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
-    path("about/", views.about, name="about"),
-    path("contact/", views.contact, name="contact"),
 
     # ===== SEO / SYSTEM FILES =====
     path("robots.txt", robots_txt),
@@ -17,4 +15,11 @@ urlpatterns = [
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
     path("<path:slug>/", views.news_detail, name="news_detail"),
+
+    
+    # ===== adseence important page=====
+    path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+    path("about-us/", views.about_us, name="about_us"),
+    path("contact-us/", views.contact_us, name="contact_us"),
+    path("disclaimer/", views.disclaimer, name="disclaimer"),
 ]
