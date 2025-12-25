@@ -13,13 +13,12 @@ urlpatterns = [
     path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
 
-    # ===== NEWS DETAIL (ALWAYS LAST) =====
-    path("<path:slug>/", views.news_detail, name="news_detail"),
-
-    
     # ===== adseence important page=====
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("about-us/", views.about_us, name="about_us"),
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
+
+    # ===== NEWS DETAIL (ALWAYS LAST) =====
+    path("<path:slug>/", views.news_detail, name="news_detail"),
 ]
