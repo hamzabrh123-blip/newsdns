@@ -83,11 +83,8 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Make sure DATABASE_URL is set in environment
 # Example format: postgres://username:password@host:port/dbname
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgres://username:password@host:5432/dbname"
-        ),
+   "default": dj_database_url.parse(
+        "postgres://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb",
         conn_max_age=600,
         ssl_require=True
     )
