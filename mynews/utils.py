@@ -7,23 +7,30 @@ SECRET = "uphalchal"
 def encode_id(news_id: int) -> str:
     raw = f"news:{news_id}:{SECRET}"
     encoded = base64.urlsafe_b64encode(raw.encode()).decode()
-    return encoded.rstrip("=")
+    return encoded.rstrip("=")   # SEO clean
 
 
-def decode_id(code):
+def decode_id(code: str) -> int:
     try:
-        decoded = base64.urlsafe_b64decode(code.encode()).decode()
+        # ✅ padding fix (VERY IMPORTANT)
+        padding = "=" * (-len(code) % 4)
+        decoded = base64.urlsafe_b64decode(code + padding).decode()
+
         parts = decoded.split(":")
 
         if len(parts) != 3:
             raise ValueError("Invalid code format")
 
         prefix, news_id, secret = parts
+
+        if prefix != "news" or secret != SECRET:
+            raise ValueError("Invalid secret")
+
         return int(news_id)
 
-
     except Exception:
-        # fallback: agar direct ID aa jaye
+        # ✅ fallback: agar direct ID aa jaye
         if code.isdigit():
             return int(code)
+
         raise ValueError("Invalid code")
