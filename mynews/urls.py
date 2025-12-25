@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import robots_txt, sitemap_xml  # ✅ ये रह गया है, adsense और SEO के लिए जरूरी
+from .views import robots_txt, sitemap_xml
 
 urlpatterns = [
     # ===== CORE PAGES =====
@@ -11,8 +11,8 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
 
     # ===== SEO / SYSTEM FILES =====
-    path("robots.txt", robots_txt, name="robots_txt"),
-    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
+    path("robots.txt", robots_txt),
+    path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
