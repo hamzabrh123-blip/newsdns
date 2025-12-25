@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404
+from django.core.mail import send_mail
 from django.db import models
 from django.core.paginator import Paginator
 from django.http import HttpResponse
-
 from .models import News, Comment
+from django.conf import settings
+
 
 # ================= HOME =================
 def home(request):
@@ -69,12 +71,31 @@ def district_news(request, district):
 
 
 # ================= STATIC PAGES =================
-def about(request):
-    return render(request, "mynews/about.html")
+def privacy_policy(request):
+    return render(request, "mynews/privacy_policy.html")
 
-def contact(request):
-    return render(request, "mynews/contact.html")
+def about_us(request):
+    return render(request, "mynews/about_us.html")
+    
+def disclaimer(request):
+    return render(request, "mynews/disclaimer.html")
 
+def contact_us(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        message = request.POST.get("message")
+    # Send email to admin
+        send_mail(
+            subject=f"Contact Form: {name}",
+            message=f"From: {name} <{email}>\n\n{message}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[settings.EMAIL_HOST_USER],
+        )
+
+        return render(request, "mynews/contact_us.html", {"success": True})
+
+    return render(request, "mynews/contact_us.html")
 
 # ================= ADS.TXT =================
 def ads_txt(request):
