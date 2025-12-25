@@ -61,12 +61,13 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <small>
-            © 2025 UP Halchal News |
-            Visitors: {{ visits|default:"-" }}
-        </small>
-    </footer>
+   <footer class="bg-light text-center mt-5 p-3">
+    <a href="{% url 'about_us' %}">About Us</a> |
+    <a href="{% url 'contact_us' %}">Contact Us</a> |
+    <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
+    <a href="{% url 'disclaimer' %}">Disclaimer</a>
+    <p class="mt-2">&copy; 2025 UP Halchal</p>
+</footer>
 
 </div>
 
