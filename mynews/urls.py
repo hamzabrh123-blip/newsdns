@@ -12,7 +12,7 @@ urlpatterns = [
     path("robots.txt", robots_txt),
     path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
-
+    path("google21a82f00fad0f9b3.html", google_verify),
     # ===== adseence important page=====
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("about-us/", views.about_us, name="about_us"),
