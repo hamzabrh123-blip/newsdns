@@ -81,7 +81,7 @@
 
     {% elif "watch?v=" in url %}
       <iframe
-        src="https://www.youtube-nocookie.com/embed/{{ url|split:'v='|last|split:'&'|first }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|cut:'https://www.youtube.com/watch?v=' }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         referrerpolicy="strict-origin-when-cross-origin"
@@ -90,7 +90,7 @@
 
     {% elif "youtu.be/" in url %}
       <iframe
-        src="https://www.youtube-nocookie.com/embed/{{ url|split:'/'|last }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|cut:'https://youtu.be/' }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         referrerpolicy="strict-origin-when-cross-origin"
@@ -99,7 +99,7 @@
 
     {% elif "youtube.com/shorts/" in url %}
       <iframe
-        src="https://www.youtube-nocookie.com/embed/{{ url|split:'/shorts/'|last }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|cut:'https://www.youtube.com/shorts/' }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         referrerpolicy="strict-origin-when-cross-origin"
