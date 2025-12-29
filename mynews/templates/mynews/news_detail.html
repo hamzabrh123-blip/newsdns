@@ -71,38 +71,38 @@
   {% with news.youtube_url as url %}
 
     {% if "youtube.com/embed/" in url %}
-      <!-- Already embed -->
       <iframe
         src="{{ url }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"
         allowfullscreen>
       </iframe>
 
     {% elif "watch?v=" in url %}
-      <!-- Normal YouTube link -->
       <iframe
-        src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/watch?v=' }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|split:'v='|last|split:'&'|first }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"
         allowfullscreen>
       </iframe>
 
     {% elif "youtu.be/" in url %}
-      <!-- Short link -->
       <iframe
-        src="https://www.youtube.com/embed/{{ url|cut:'https://youtu.be/' }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|split:'/'|last }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"
         allowfullscreen>
       </iframe>
 
     {% elif "youtube.com/shorts/" in url %}
-      <!-- Shorts -->
       <iframe
-        src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/shorts/' }}"
+        src="https://www.youtube-nocookie.com/embed/{{ url|split:'/shorts/'|last }}"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"
         allowfullscreen>
       </iframe>
 
@@ -111,7 +111,7 @@
   {% endwith %}
 </div>
 {% endif %}
-
+        
         <p class="text-muted mt-4 text-end small">
           🗓️ {{ news.date|date:"d M Y, h:i A" }} |
           📍 {{ news.district|default:"District Unavailable" }}
