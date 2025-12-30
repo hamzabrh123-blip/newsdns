@@ -34,10 +34,8 @@
 
 <!-- Twitter Card Meta Tags -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="यहाँ अपनी News Heading डालें" />
-<meta name="twitter:description" content="यहाँ अपनी news का short description डालें" />
-<meta name="twitter:image" content="https://res.cloudinary.com/your_cloud/image/upload/c_fill,w_1200,h_630,q_auto,f_auto/news/abcd.jpg" />
-<meta name="twitter:site" content="@yourtwitterhandle" />
+<meta name="twitter:title" content="{{ news.title }}" />
+<meta name="twitter:image" content="{{ news.image.url }}" />
     <style>
         body {
             background-color: #f8f9fa;
