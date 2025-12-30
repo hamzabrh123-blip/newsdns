@@ -23,28 +23,22 @@
 
 <meta name="description" content="{{ news.short_description|truncatechars:160 }}">
 
-<!-- OPEN GRAPH (FACEBOOK / WHATSAPP / TELEGRAM) -->
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="Halchal News">
-<meta property="og:title" content="{{ news.title }}">
-<meta property="og:description" content="{{ news.short_description|truncatechars:160 }}">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<!-- Open Graph Meta Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="यहाँ अपनी News Heading डालें" />
+<meta property="og:description" content="यहाँ अपनी news का short description डालें" />
+<meta property="og:url" content="https://yourwebsite.com/news/your-news-slug" />
+<meta property="og:image" content="https://res.cloudinary.com/your_cloud/image/upload/c_fill,w_1200,h_630,q_auto,f_auto/news/abcd.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:site_name" content="Halchal News" />
 
-<!-- MAIN NEWS IMAGE (CLOUDINARY) -->
-<meta property="og:image" content="{{ news.image.url }}">
-<meta property="og:image:secure_url" content="{{ news.image.url }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-
-<!-- FALLBACK LOGO (GITHUB RAW IMAGE) -->
-<meta property="og:image" content="https://raw.githubusercontent.com/USERNAME/REPO/main/logo.png">
-
-<!-- TWITTER CARD -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:description" content="{{ news.short_description|truncatechars:160 }}">
-<meta name="twitter:image" content="{{ news.image.url }}">
-<meta name="twitter:site" content="@halchalnews">
+<!-- Twitter Card Meta Tags -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="यहाँ अपनी News Heading डालें" />
+<meta name="twitter:description" content="यहाँ अपनी news का short description डालें" />
+<meta name="twitter:image" content="https://res.cloudinary.com/your_cloud/image/upload/c_fill,w_1200,h_630,q_auto,f_auto/news/abcd.jpg" />
+<meta name="twitter:site" content="@yourtwitterhandle" />
     <style>
         body {
             background-color: #f8f9fa;
