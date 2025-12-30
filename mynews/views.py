@@ -8,6 +8,7 @@ from django.conf import settings
 
 
 # ================= HOME =================
+
 def home(request):
     query = request.GET.get("q")
     try:
@@ -31,7 +32,6 @@ def home(request):
         important = []
 
     return render(request, "mynews/home.html", {"page_obj": page_obj, "important": important})
-
 
 # ================= NATIONAL =================
 def national_news(request):
