@@ -4,13 +4,16 @@
   <div class="container">
 
     <!-- 🔹 Brand -->
-    <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-      <img src="https://halchal.up.railway.app/mynews/templates/mynews/logo.png"
-         alt="Halchal News | Uttar Pradesh Latest News"
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'home' %}">
+    <img src="{% static 'images/logo.png' %}"
+         alt="UP Halchal News | Uttar Pradesh Latest News"
          width="60"
-         height="60" style = "background-color:white; border:1px solid black; border-radius:50%;"
-         loading="eager"> UP हलचल
-    </a>
+         height="60"
+         class="me-2"
+         style="background-color:white; border:1px solid black; border-radius:50%;"
+         loading="eager">
+    <span>UP हलचल</span>
+</a>
 
     <!-- 🔹 Mobile Toggle -->
     <button class="navbar-toggler" type="button"
