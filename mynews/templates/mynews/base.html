@@ -25,10 +25,9 @@
 
 <!-- Open Graph Meta Tags -->
 <meta property="og:type" content="article" />
-<meta property="og:title" content="यहाँ अपनी News Heading डालें" />
-<meta property="og:description" content="यहाँ अपनी news का short description डालें" />
-<meta property="og:url" content="https://yourwebsite.com/news/your-news-slug" />
-<meta property="og:image" content="https://res.cloudinary.com/your_cloud/image/upload/c_fill,w_1200,h_630,q_auto,f_auto/news/abcd.jpg" />
+<meta property="og:title" content="{{ news.title }}" />
+<meta property="og:image" content="{{ news.image.url }}" />
+ 
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:site_name" content="Halchal News" />
