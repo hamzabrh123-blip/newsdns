@@ -45,7 +45,7 @@ def national_news(request):
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
-    sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:10]
+    sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:30]
     comments = Comment.objects.filter(news=news).order_by("-date")
 
     if news.youtube_url:
