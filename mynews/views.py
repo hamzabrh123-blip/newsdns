@@ -26,7 +26,7 @@ def home(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-       try:
+    try:
         important = News.objects.filter(is_important=True).order_by("-date")[:5]
     except Exception:
         important = []
