@@ -25,12 +25,10 @@ def home(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    try:
-        important = News.objects.filter(is_important=True).order_by("-date")[:5]
-    except Exception:
-        important = []
+       sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:30]
 
-    return render(request, "mynews/home.html", {"page_obj": page_obj, "important": important})
+
+    return render(request, "mynews/home.html", {"page_obj": page_obj,  "sidebar_news": sidebar_news})
 
 
 # ================= NATIONAL =================
