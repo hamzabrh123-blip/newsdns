@@ -50,7 +50,7 @@ def national_news(request):
     
     context = {
         "page_obj": page_obj,
-        "district": "भारत (National)", # Heading ke liye
+        "district": "भारत", # Heading ke liye
         # Sidebar data wahi rahega jo home par hai
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
