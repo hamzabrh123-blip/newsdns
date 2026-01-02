@@ -21,26 +21,25 @@ def home(request):
     except Exception:
         news_list = News.objects.none()
 
-    paginator = Paginator(news_list, 12)
+    # Yahan humne 12 ki jagah 20 news kar di hain
+    paginator = Paginator(news_list, 20) 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    try:
-        important = News.objects.filter(is_important=True).order_by("-date")[:5]
-        bharat_sidebar = News.objects.filter(category="National").order_by("-date")[:3]
-        duniya_sidebar = News.objects.filter(category="International").order_by("-date")[:3]
-        
-        # UP page ki jagah hum wo news le rahe hain jisme koi District mention ho
-        district_sidebar = News.objects.exclude(district__isnull=True).exclude(district="").order_by("-date")[:3]
-    except Exception:
-        important = bharat_sidebar = duniya_sidebar = district_sidebar = []
+    # Sidebar ke liye Zile-war data (Bahraich, Lucknow etc.)
+    # Aap apne main districts ke naam yahan likh sakte hain
+    bahraich_news = News.objects.filter(district__iexact="Bahraich").order_by("-date")[:3]
+    lucknow_news = News.objects.filter(district__iexact="Lucknow").order_by("-date")[:3]
+    shravasti_news = News.objects.filter(district__iexact="Shravasti").order_by("-date")[:3]
 
     context = {
-        "page_obj": page_obj, 
-        "important": important,
-        "bharat_sidebar": bharat_sidebar,
-        "duniya_sidebar": duniya_sidebar,
-        "district_sidebar": district_sidebar # Naya variable
+        "page_obj": page_obj,
+        "bahraich_sidebar": bahraich_news,
+        "lucknow_sidebar": lucknow_news,
+        "shravasti_sidebar": shravasti_news,
+        # Purana data bhi rakhte hain
+        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
+        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
     }
     return render(request, "mynews/home.html", context)
 
