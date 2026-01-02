@@ -33,7 +33,7 @@
         top: 10px;
         left: 10px;
         z-index: 10;
-        background: rgba(211, 47, 47, 0.9); /* Reddish theme */
+        background: rgba(211, 47, 47, 0.9);
         color: white;
         padding: 4px 12px;
         border-radius: 20px;
@@ -48,6 +48,12 @@
     .read-more-btn:hover {
         background-color: #d32f2f !important;
         color: white !important;
+    }
+    /* Sticky Sidebar fix */
+    .sticky-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 80px;
     }
 </style>
 
@@ -107,22 +113,20 @@
             </div>
 
             {% if page_obj.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
+            <nav class="mt-4">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-danger" href="?page=1">First</a></li>
+                        <li class="page-item"><a class="page-link text-danger" href="?page=1">First</a></li>
                     {% endif %}
-
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
                             <li class="page-item active"><span class="page-link bg-danger border-danger">{{ num }}</span></li>
                         {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-                            <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-dark" href="?page={{ num }}">{{ num }}</a></li>
+                            <li class="page-item"><a class="page-link text-dark" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
-
                     {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-danger" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                        <li class="page-item"><a class="page-link text-danger" href="?page={{ page_obj.next_page_number }}">Next</a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -130,67 +134,8 @@
         </div>
 
         <div class="col-lg-4 col-md-4">
-            <div class="sticky-top" style="top: 20px;">
-                <div class="card mb-4 border-0 shadow-sm bg-light">
-                    <div class="card-body p-2 text-center">
-                        <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
-                        <div style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-                             <script async="async" src="https://pl28377031.effectivegatecpm.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
-                             <div id="container-33a48d4c698419feff59591694dee533"></div>
-                        </div>
-                    </div>
-                </div>
-                
-               {% for item in page_obj %}
-<div class="col-12 mb-3">
-    <a href="{% url 'news_detail' item.slug %}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm border-0 list-view-card">
-            <div class="row no-gutters align-items-center">
-                
-                <div class="col-4 col-md-3">
-                    {% if item.image %}
-                        <img src="{{ item.image.url }}" class="card-img" alt="{{ item.title }}" 
-                             style="height: 110px; object-fit: cover; border-radius: 8px 0 0 8px;">
-                    {% else %}
-                        <img src="{% static 'images/default-news.jpg' %}" class="card-img" 
-                             style="height: 110px; object-fit: cover; border-radius: 8px 0 0 8px;">
-                    {% endif %}
-                </div>
-
-                <div class="col-8 col-md-9">
-                    <div class="card-body py-2 px-3">
-                        <span class="badge badge-light text-danger mb-1" style="font-size: 0.7rem;">
-                            {% if item.category %}{{ item.category }}{% else %}Breaking{% endif %}
-                        </span>
-                        
-                        <h6 class="card-title mb-1 font-weight-bold" style="line-height: 1.3; font-size: 1.05rem;">
-                            {{ item.title|truncatechars:85 }}
-                        </h6>
-                        
-                        <p class="card-text text-muted small mb-0">
-                            <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M" }} | 
-                            <i class="fas fa-map-marker-alt"></i> {% if item.district %}{{ item.district }}{% else %}UP{% endif %}
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </a>
-</div>
-{% endfor %}
-
-<style>
-    .list-view-card {
-        transition: transform 0.2s;
-        border-radius: 8px;
-    }
-    .list-view-card:hover {
-        transform: scale(1.01);
-        background-color: #fdfdfd;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-    }
-</style>
+            <div class="sticky-sidebar">
+                {% include "mynews/sidebar.html" %}
             </div>
         </div>
 
