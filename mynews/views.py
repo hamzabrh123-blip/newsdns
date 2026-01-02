@@ -15,24 +15,21 @@ def home(request):
     if query:
         news_list = news_list.filter(title__icontains=query)
 
-    # 20 News Cards ke liye
+    # 20 news cards ke liye
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    # Model ke DISTRICT_CHOICES ke hisab se filter
+    # Sidebar data (Bharat, Duniya aur saare Districts)
     context = {
         "page_obj": page_obj,
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
-        
-        # Inka naam wahi hona chahiye jo model ke DISTRICT_CHOICES mein hai
-        "lucknow_sidebar": News.objects.filter(district="Lucknow").order_by("-date")[:3],
-        "sitapur_barabanki_sidebar": News.objects.filter(district="Sitapur-Barabanki").order_by("-date")[:3],
-        "shravasti_balrampur_sidebar": News.objects.filter(district="Shravasti-Balrampur").order_by("-date")[:3],
-        "bahraich_sidebar": News.objects.filter(district="Bahraich").order_by("-date")[:3],
-        "gonda_sidebar": News.objects.filter(district="Gonda").order_by("-date")[:3],
+        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
+        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
+        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
+        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
+        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
-    
     return render(request, "mynews/home.html", context)
 # ================= End HOME =================
 
