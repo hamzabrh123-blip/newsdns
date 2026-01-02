@@ -6,9 +6,8 @@ from django.http import HttpResponse
 from .models import News, Comment
 from django.conf import settings
 
-
-# Helper function jo har page ke sidebar mein data bhejega
-def get_sidebar_data():
+# ✅ SABSE PEHLE YEH FUNCTION HONA CHAHIYE (Common Sidebar Data)
+def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
@@ -22,10 +21,10 @@ def get_sidebar_data():
 # ================= HOME =================
 def home(request):
     query = request.GET.get("q")
-    
     if query:
         news_list = News.objects.filter(title__icontains=query).order_by("-date")
     else:
+        # Home par sirf National, International aur Important news dikhegi
         news_list = News.objects.filter(
             models.Q(category__in=['National', 'International']) | 
             models.Q(is_important=True)
@@ -35,25 +34,24 @@ def home(request):
     page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {"page_obj": page_obj}
-    context.update(get_common_sidebar_data()) # Sidebar data joda
+    # Yahan call ho raha hai, ab error nahi aayega
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
 # ================= NATIONAL NEWS =================
-# 1. National Page
 def national_news(request):
-    # Model ki choice 'National' se match karega
     news_list = News.objects.filter(category="National").order_by("-date")
     paginator = Paginator(news_list, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page_obj,
-        "district": "भारत (National)", 
+        "district": "भारत (National)",
     }
-    context.update(get_sidebar_data())
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
+
 # ================= INTERNATIONAL NEWS =================
-# 2. International Page
 def international_news(request):
     news_list = News.objects.filter(category="International").order_by("-date")
     paginator = Paginator(news_list, 20)
@@ -63,23 +61,9 @@ def international_news(request):
         "page_obj": page_obj,
         "district": "दुनिया (International)",
     }
-    context.update(get_sidebar_data())
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-    
-# ================= DISTRICT =================
-# 3. District News (Lucknow, Bahraich etc.)
-def district_news(request, district):
-    news_list = News.objects.filter(district__iexact=district).order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
 
-    context = {
-        "page_obj": page_obj,
-        "district": district,
-    }
-    context.update(get_sidebar_data())
-    return render(request, "mynews/district_news.html", context)
-    
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
@@ -98,6 +82,18 @@ def news_detail(request, slug):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
 
+# ================= DISTRICT =================
+def district_news(request, district):
+    news_list = News.objects.filter(district__iexact=district).order_by("-date")
+    paginator = Paginator(news_list, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "district": district, 
+        "page_obj": page_obj
+    }
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/district_news.html", context)
 
 # ================= STATIC PAGES =================
 def privacy_policy(request):
@@ -123,32 +119,19 @@ def contact_us(request):
         return render(request, "mynews/contact_us.html", {"success": True})
     return render(request, "mynews/contact_us.html")
 
-# ================= ADS.TXT =================
+# ================= SEO & ADS =================
 def ads_txt(request):
-    return HttpResponse(
-        "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0",
-        content_type="text/plain"
-    )
+    return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
 
-# ================= ROBOTS.TXT =================
 def robots_txt(request):
-    return HttpResponse(
-        "User-Agent: *\n"
-        "Disallow:\n\n"
-        "Sitemap: https://halchal.up.railway.app/sitemap.xml",
-        content_type="text/plain"
-    )
+    return HttpResponse("User-Agent: *\nDisallow:\n\nSitemap: https://halchal.up.railway.app/sitemap.xml", content_type="text/plain")
 
-# ================= SITEMAP.XML =================
 def sitemap_xml(request):
     base_url = "https://halchal.up.railway.app"
     urls = [f"{base_url}/"]
-
     for news in News.objects.exclude(slug__isnull=True).exclude(slug=""):
         urls.append(f"{base_url}/{news.slug}")
-
-    xml = '<?xml version="1.0" encoding="UTF-8"?>'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     for url in urls:
         xml += f"<url><loc>{url}</loc></url>"
     xml += "</urlset>"
