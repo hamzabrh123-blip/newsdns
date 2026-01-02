@@ -37,6 +37,21 @@
 <meta name="twitter:title" content="{{ news.title }}" />
 <meta name="twitter:image" content="{{ news.image.url }}" />
     <style>
+     /* Navbar ko sabse upar rakhne ke liye */
+.navbar {
+    position: relative;
+    z-index: 9999 !important; /* Isse menu hamesha ads ke upar rahega */
+}
+
+/* Dropdown menu ki priority badhane ke liye */
+.dropdown-menu {
+    z-index: 10000 !important;
+}
+
+/* News cards ko thoda peeche rakhne ke liye (agar zaroorat pade) */
+.news-card, .card {
+    z-index: 1;
+}
         body {
             background-color: #f8f9fa;
             font-family: "Segoe UI", sans-serif;
