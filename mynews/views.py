@@ -15,6 +15,7 @@ def home(request):
         if query:
             news_list = News.objects.filter(title__icontains=query).order_by("-date")
         else:
+            # Home page main feed logic
             news_list = News.objects.filter(
                 models.Q(category__iexact="International") |
                 models.Q(is_important=True)
@@ -26,12 +27,30 @@ def home(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # Sidebar Data Fetching Logic (3-3 Latest News)
     try:
         important = News.objects.filter(is_important=True).order_by("-date")[:5]
+        
+        # In variables ko sidebar.html use karega
+        bharat_sidebar = News.objects.filter(category="National").order_by("-date")[:3]
+        duniya_sidebar = News.objects.filter(category="International").order_by("-date")[:3]
+        up_sidebar = News.objects.filter(category="Uttar Pradesh").order_by("-date")[:3]
+        
     except Exception:
         important = []
+        bharat_sidebar = []
+        duniya_sidebar = []
+        up_sidebar = []
 
-    return render(request, "mynews/home.html", {"page_obj": page_obj, "important": important})
+    context = {
+        "page_obj": page_obj, 
+        "important": important,
+        "bharat_sidebar": bharat_sidebar,
+        "duniya_sidebar": duniya_sidebar,
+        "up_sidebar": up_sidebar
+    }
+
+    return render(request, "mynews/home.html", context)
 
 # ================= NATIONAL =================
 def national_news(request):
