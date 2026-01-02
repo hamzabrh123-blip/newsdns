@@ -4,6 +4,53 @@
 {% block title %} UP Halchal | Latest News {% endblock %}
 
 {% block content %}
+<style>
+    /* Card Hover and Image Effects */
+    .news-card {
+        transition: all 0.3s ease;
+        border-radius: 12px !important;
+        overflow: hidden;
+    }
+    .news-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+    }
+    .img-container {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+    .card-img-top {
+        transition: transform 0.5s ease;
+        height: 100%;
+        object-fit: cover;
+    }
+    .news-card:hover .card-img-top {
+        transform: scale(1.1);
+    }
+    .category-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: rgba(211, 47, 47, 0.9); /* Reddish theme */
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    .read-more-btn {
+        border-radius: 0 0 12px 12px !important;
+        transition: all 0.3s;
+        border-top: 1px solid #eee;
+    }
+    .read-more-btn:hover {
+        background-color: #d32f2f !important;
+        color: white !important;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="row">
 
@@ -11,50 +58,50 @@
             <div class="row">
                 {% for item in page_obj %}
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
+                    <div class="card h-100 shadow-sm border-0 news-card">
                         
-                        {% if item.image %}
-                            <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}" style="height: 200px; object-fit: cover;">
-                        {% else %}
-                            <img src="{% static 'images/default-news.jpg' %}" class="card-img-top" alt="No Image Available" style="height: 200px; object-fit: cover;">
-                        {% endif %}
-
-                        <div class="card-body">
-                            {% if item.category %}
-                                <span class="badge badge-primary mb-2">{{ item.category }}</span>
+                        <div class="img-container">
+                            <span class="category-badge">
+                                {% if item.category %}{{ item.category }}{% else %}ताज़ा खबर{% endif %}
+                            </span>
+                            {% if item.image %}
+                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
+                            {% else %}
+                                <img src="{% static 'images/default-news.jpg' %}" class="card-img-top" alt="No Image">
                             {% endif %}
+                        </div>
 
-                            <h5 class="card-title font-weight-bold">
-                                {{ item.title|truncatechars:65 }}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title font-weight-bold" style="height: 2.8em; overflow: hidden; line-height: 1.4;">
+                                <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none">
+                                    {{ item.title|truncatechars:65 }}
+                                </a>
                             </h5>
 
                             <p class="card-text text-muted small mb-2">
-                                <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M Y" }} | {% if item.district %}
-        {{ item.district }}
-    {% elif item.category == "National" %}
-        भारत
-    {% elif item.category == "International" %}
-        दुनिया
-    {% else %}
-        उत्तर प्रदेश
-    {% endif %}
-
-                                
+                                <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M Y" }} | 
+                                <span class="text-danger">
+                                    <i class="fas fa-map-marker-alt"></i> 
+                                    {% if item.district %}{{ item.district }}{% elif item.category == "National" %}भारत{% elif item.category == "International" %}दुनिया{% else %}उत्तर प्रदेश{% endif %}
+                                </span>
                             </p>
 
-                            <div class="card-text small text-secondary mb-3">
-                                {{ item.content|striptags|truncatechars:100 }}
+                            <div class="card-text small text-secondary mb-3" style="height: 3.2em; overflow: hidden;">
+                                {{ item.content|striptags|truncatechars:95 }}
                             </div>
 
-                            <a href="{% url 'news_detail' item.slug %}" class="btn btn-outline-primary btn-sm btn-block">
-                                आगे पढ़ें
+                            <a href="{% url 'news_detail' item.slug %}" class="btn btn-outline-danger btn-sm btn-block mt-auto read-more-btn">
+                                आगे पढ़ें <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info text-center">कोई खबर उपलब्ध नहीं है।</div>
+                <div class="col-12 text-center">
+                    <div class="alert alert-info py-5">
+                        <i class="fas fa-newspaper fa-3x mb-3 d-block text-muted"></i>
+                        अभी कोई खबर उपलब्ध नहीं है।
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -63,21 +110,19 @@
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-danger" href="?page=1">First</a></li>
                     {% endif %}
 
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            <li class="page-item active"><span class="page-link bg-danger border-danger">{{ num }}</span></li>
                         {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                            <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-dark" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                        <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 text-danger" href="?page={{ page_obj.next_page_number }}">Next</a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -86,11 +131,13 @@
 
         <div class="col-lg-4 col-md-4">
             <div class="sticky-top" style="top: 20px;">
-                <div class="card mb-4 border-0 shadow-sm">
+                <div class="card mb-4 border-0 shadow-sm bg-light">
                     <div class="card-body p-2 text-center">
-                        <small class="text-muted d-block mb-2">Advertisement</small>
-                        <script async="async" data-cfasync="false" src="https://pl28377031.effectivegatecpm.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
-                        <div id="container-33a48d4c698419feff59591694dee533"></div>
+                        <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
+                        <div style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                             <script async="async" src="https://pl28377031.effectivegatecpm.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
+                             <div id="container-33a48d4c698419feff59591694dee533"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -100,4 +147,6 @@
 
     </div>
 </div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
