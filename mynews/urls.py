@@ -1,4 +1,5 @@
 from django.urls import path
+from django.urls import path, re_path
 from . import views
 from .views import robots_txt, sitemap_xml
 
@@ -21,4 +22,5 @@ urlpatterns = [
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
     path("<slug:slug>/", views.news_detail, name="news_detail"),
+    re_path(r'^(?P<slug>.+)/$', views.news_detail, name='news_detail'),
 ]
