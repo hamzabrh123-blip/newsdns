@@ -2,101 +2,145 @@
 {% load static %}
 
 {% block title %}
-{{ district }} News | UP Halchal
+{{ district }} की ताज़ा खबरें | UP Halchal
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
   <div class="row">
 
-    <!-- 📰 NEWS LIST -->
     <div class="col-lg-8 col-md-8">
-      <h4 class="mb-3 text-primary fw-bold">
-        {{ district }} की खबरें
-      </h4>
+      
+      <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+        <h3 class="fw-bold text-dark mb-0">
+          <span style="border-left: 5px solid #d32f2f; padding-left: 15px;">📍 {{ district }}</span>
+        </h3>
+        <span class="badge bg-danger">LIVE UPDATE</span>
+      </div>
 
       <div class="row">
         {% for item in page_obj %}
         <div class="col-md-6 mb-4">
-          <div class="card h-100 shadow-sm">
+          <div class="card h-100 border-0 shadow-sm news-card">
+            
+            <div class="position-relative overflow-hidden rounded-top">
+              {% if item.image %}
+                <img src="{{ item.image.url }}" class="card-img-top news-image" alt="{{ item.title }}">
+              {% else %}
+                <img src="{% static 'default.jpg' %}" class="card-img-top news-image" alt="No image">
+              {% endif %}
+              <div class="date-badge">{{ item.date|date:"d M" }}</div>
+            </div>
 
-            {% if item.image %}
-              <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
-            {% else %}
-              <img src="{% static 'default.jpg' %}" class="card-img-top" alt="No image">
-            {% endif %}
-
-            <div class="card-body">
-              <h5 class="card-title">
-                {{ item.title|truncatechars:60 }}
+            <div class="card-body p-3">
+              <h5 class="card-title fw-bold" style="line-height: 1.4; height: 3em; overflow: hidden;">
+                <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none hover-red">
+                  {{ item.title|truncatechars:65 }}
+                </a>
               </h5>
 
-              <p class="small text-muted">
-                {{ item.date|date:"d M Y" }}
-              </p>
+              <div class="card-text text-muted small mb-3" style="height: 4.5em; overflow: hidden;">
+                {{ item.content|truncatechars_html:110|safe }}
+              </div>
 
-              <p class="card-text">
-                {{ item.content|truncatechars_html:120|safe }}
-              </p>
-
-              <a href="{% url 'news_detail' item.slug %}"
-                 class="btn btn-outline-primary btn-sm">
-                आगे पढ़ें
-              </a>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <small class="text-muted"><i class="far fa-clock"></i> {{ item.date|timesince }} पहले</small>
+                <a href="{% url 'news_detail' item.slug %}" class="btn btn-sm btn-link text-danger fw-bold text-decoration-none p-0">
+                  पूरा पढ़ें →
+                </a>
+              </div>
             </div>
 
           </div>
         </div>
         {% empty %}
-          <p>कोई खबर उपलब्ध नहीं है।</p>
+        <div class="col-12 text-center py-5">
+          <img src="{% static 'no-news.png' %}" style="width: 100px; opacity: 0.5;">
+          <p class="mt-3 text-muted">क्षमा करें, {{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
+        </div>
         {% endfor %}
       </div>
 
       {% if page_obj.paginator.num_pages > 1 %}
-      <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-
+      <nav class="my-5">
+        <ul class="pagination justify-content-center custom-pagination">
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page=1">First</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i></a>
             </li>
           {% endif %}
 
           {% for num in page_obj.paginator.page_range %}
             {% if num == page_obj.number %}
-              <li class="page-item active">
-                <span class="page-link">{{ num }}</span>
-              </li>
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-              </li>
+              <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
             {% endif %}
           {% endfor %}
 
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
             </li>
           {% endif %}
-
         </ul>
       </nav>
       {% endif %}
 
     </div>
 
-    <!-- 📚 SIDEBAR -->
     <div class="col-lg-4 col-md-4">
       {% include 'mynews/sidebar.html' %}
     </div>
 
   </div>
 </div>
+
+<style>
+  .news-card {
+    transition: transform 0.3s ease, shadow 0.3s ease;
+    border-radius: 12px;
+  }
+  .news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+  .news-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .news-card:hover .news-image {
+    transform: scale(1.1);
+  }
+  .date-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(211, 47, 47, 0.9);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  .hover-red:hover {
+    color: #d32f2f !important;
+  }
+  .custom-pagination .page-link {
+    color: #333;
+    border: none;
+    margin: 0 5px;
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .custom-pagination .page-item.active .page-link {
+    background-color: #d32f2f;
+    color: white;
+  }
+</style>
 {% endblock %}
