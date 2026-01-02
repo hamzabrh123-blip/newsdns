@@ -41,22 +41,28 @@
     </div>
   </div>
 
-  <div class="mb-4">
+ <div class="mb-4">
     <h5 class="text-success fw-bold mb-3 border-bottom pb-2">📍 उत्तर प्रदेश</h5>
     {% for item in district_sidebar %}
       <div class="d-flex mb-3 align-items-center border-bottom pb-2">
         {% if item.image %}
           <img src="{{ item.image.url }}" class="rounded me-2" style="width: 60px; height: 50px; object-fit: cover;">
         {% endif %}
-        <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none small fw-bold" style="line-height: 1.2;">
-          {{ item.title|truncatechars:50 }}
-        </a>
+        <div class="d-flex flex-column">
+            <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none small fw-bold mb-1" style="line-height: 1.2;">
+                {{ item.title|truncatechars:50 }}
+            </a>
+            <span class="badge badge-light text-success align-self-start p-0" style="font-size: 0.7rem;">
+                <i class="fas fa-map-marker-alt"></i> {{ item.district }}
+            </span>
+        </div>
       </div>
     {% endfor %}
-    <div class="text-end">
-      <a href="/category/uttar-pradesh/" class="small text-primary text-decoration-none">सभी यूपी की खबरें <i class="fas fa-arrow-right"></i></a>
+    
+    <div class="text-center bg-light p-1 rounded">
+        <small class="text-muted">ज़िले वार खबरें ऊपर मेनू से चुनें</small>
     </div>
-  </div>
+ </div>
 
 </aside>
 
