@@ -40,7 +40,15 @@ def national_news(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
     return render(request, "mynews/national_news.html", {"page_obj": page_obj})
+    
+# ================= International News =================
 
+def international_news(request):
+    news_list = News.objects.filter(category="International National").order_by("-date")
+    paginator = Paginator(news_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "mynews/international_news.html", {"page_obj": page_obj})
 
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
