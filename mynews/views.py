@@ -85,6 +85,8 @@ def international_news(request):
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
     return render(request, "mynews/district_news.html", context)
+
+
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
