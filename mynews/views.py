@@ -61,6 +61,8 @@ def national_news(request):
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
     return render(request, "mynews/district_news.html", context)
+# ================= End national =================
+# ================= internationl =================
 
 def international_news(request):
     # International category wali news fetch karein
