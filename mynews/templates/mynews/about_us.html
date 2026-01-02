@@ -1,9 +1,87 @@
 {% extends 'mynews/base.html' %}
-{% block title %}About Us{% endblock %}
+{% block title %}About Us | UP Halchal{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>About Us</h1>
-    <p>UP Halchal is a news portal covering latest news from Lucknow, Bahraich, Gonda and surrounding districts...</p>
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 font-weight-bold" style="color: #d32f2f;">About Us</h1>
+        <h3 class="text-muted">हमारे बारे में - UP Halchal</h3>
+        <div class="mx-auto" style="width: 80px; height: 4px; background-color: #d32f2f; border-radius: 2px;"></div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-5 bg-light">
+        <div class="card-body p-4 p-md-5">
+            <p class="lead text-dark" style="line-height: 1.8;">
+                <strong>UP Halchal (halchal.up.railway.app)</strong> में आपका स्वागत है। हम उत्तर प्रदेश के एक उभरते हुए और विश्वसनीय डिजिटल न्यूज़ पोर्टल हैं। हमारा मुख्य उद्देश्य राज्य के हर नागरिक तक सटीक, निष्पक्ष और तेज़ खबरें पहुँचाना है। आज के समय में हम 'सत्य' और 'सटीकता' को अपनी सबसे बड़ी प्राथमिकता मानते हैं।
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-primary"><i class="fas fa-book-open mr-2"></i> हमारी कहानी</h4>
+                    <p class="card-text text-muted">UP Halchal की शुरुआत एक साधारण सोच के साथ हुई थी—उत्तर प्रदेश की स्थानीय खबरों (Local News) को वह पहचान दिलाना, जो अक्सर बड़े मीडिया घरानों की भीड़ में कहीं खो जाती हैं। हमने महसूस किया कि रेलवे की अपडेट्स और जिला स्तर की समस्याएँ अक्सर अनदेखे रह जाते हैं, इसी कमी को दूर करने के लिए हमने इस प्लेटफॉर्म की नींव रखी।</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-success"><i class="fas fa-bullseye mr-2"></i> हमारा मिशन</h4>
+                    <ul class="list-unstyled text-muted">
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> <strong>सत्यता:</strong> हर खबर की पूरी जांच।</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> <strong>स्थानीय आवाज़:</strong> जिला स्तर की ज़मीनी हकीकत।</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> <strong>डिजिटल पहुंच:</strong> गाँव-गाँव की खबरों को जोड़ना।</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-4 mt-4 font-weight-bold">हम क्या कवर करते हैं?</h3>
+    <div class="row text-center">
+        <div class="col-6 col-lg-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <i class="fas fa-train fa-3x text-danger mb-3"></i>
+                <h6>Railway Updates</h6>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <i class="fas fa-map-marker-alt fa-3x text-info mb-3"></i>
+                <h6>District News</h6>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h6>Finance & Nifty</h6>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <i class="fas fa-globe fa-3x text-primary mb-3"></i>
+                <h6>National News</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-dark text-white">
+                <div class="card-body p-4 text-center">
+                    <h4>संपादकीय नीति (Editorial Policy)</h4>
+                    <p>हम <b>Google Publisher Policies</b> का पूरी तरह पालन करते हैं। हम कभी भी भ्रामक जानकारी नहीं फैलाते और 100% ओरिजिनल कंटेंट पब्लिश करते हैं।</p>
+                    <hr class="bg-light">
+                    <p class="mb-0">संपर्क करें: <a href="mailto:your-email@example.com" class="text-warning">your-email@example.com</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
