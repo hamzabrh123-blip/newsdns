@@ -6,6 +6,17 @@ from django.http import HttpResponse
 from .models import News, Comment
 from django.conf import settings
 
+# --- Helper function sidebar data ke liye (taaki code repeat na ho) ---
+def get_common_sidebar_data():
+    return {
+        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
+        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
+        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
+        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
+        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
+        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
+        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
+    }
 
 # ================= HOME =================
 def home(request):
@@ -14,116 +25,74 @@ def home(request):
     if query:
         news_list = News.objects.filter(title__icontains=query).order_by("-date")
     else:
-        # ✅ YAHAN FIX HAI: 
-        # Home par sirf National, International ya Important news dikhegi.
-        # District wali news (Bahraich, Lucknow etc.) home se bahar rahegi.
         news_list = News.objects.filter(
             models.Q(category__in=['National', 'International']) | 
             models.Q(is_important=True)
         ).distinct().order_by("-date")
 
-    # 20 news cards ke liye
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    # Sidebar data (Ye wahi rahega jo pehle tha)
-    context = {
-        "page_obj": page_obj,
-        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
-        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
-        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
-        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
-        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
-        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
-        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
-    }
+    context = {"page_obj": page_obj}
+    context.update(get_common_sidebar_data()) # Sidebar data joda
     return render(request, "mynews/home.html", context)
-# ================= End HOME =================
 
 # ================= NATIONAL NEWS =================
 def national_news(request):
-    # Filter only National category
     news_list = News.objects.filter(category="National").order_by("-date")
-    
-    # 20 cards per page
     paginator = Paginator(news_list, 20)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page_obj,
-        "district": "भारत (National)", # Page Heading
-        # Sidebar data (Sabhi news categories ke liye data bhejna zaroori hai)
-        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
-        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
-        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
-        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
-        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
-        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
-        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
+        "district": "भारत (National)",
     }
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
 # ================= INTERNATIONAL NEWS =================
 def international_news(request):
-    # Filter only International category
     news_list = News.objects.filter(category="International").order_by("-date")
-    
     paginator = Paginator(news_list, 20)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page_obj,
         "district": "दुनिया (International)",
-        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
-        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
-        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
-        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
-        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
-        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
-        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-
 
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
-    
-    # Category wise sidebar data (Har category se 3 latest news)
-    bharat_sidebar = News.objects.filter(category="National").exclude(id=news.id).order_by("-date")[:3]
-    duniya_sidebar = News.objects.filter(category="International").exclude(id=news.id).order_by("-date")[:3]
-    up_sidebar = News.objects.filter(category="Uttar Pradesh").exclude(id=news.id).order_by("-date")[:3]
-    
-    # Purana sidebar logic agar aapko extra news chahiye ho to (optional)
-    sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:10]
-    
     comments = Comment.objects.filter(news=news).order_by("-date")
 
-    # YouTube URL handling
     if news.youtube_url:
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
         elif "youtu.be/" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("youtu.be/", "www.youtube.com/embed/")
 
-    return render(request, "mynews/news_detail.html", {
+    context = {
         "news": news,
-        "sidebar_news": sidebar_news,
-        "bharat_sidebar": bharat_sidebar,
-        "duniya_sidebar": duniya_sidebar,
-        "up_sidebar": up_sidebar,
-        "comments": comments
-    })
+        "comments": comments,
+    }
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/news_detail.html", context)
+
 # ================= DISTRICT =================
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
-    paginator = Paginator(news_list, 10)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(request, "mynews/district_news.html", {"district": district, "page_obj": page_obj})
+    paginator = Paginator(news_list, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
+    context = {
+        "district": district, 
+        "page_obj": page_obj
+    }
+    context.update(get_common_sidebar_data()) # Yahan sidebar data missing tha, ab sahi hai
+    return render(request, "mynews/district_news.html", context)
 
 # ================= STATIC PAGES =================
 def privacy_policy(request):
@@ -140,16 +109,13 @@ def contact_us(request):
         name = request.POST.get("name")
         email = request.POST.get("email")
         message = request.POST.get("message")
-    # Send email to admin
         send_mail(
             subject=f"Contact Form: {name}",
             message=f"From: {name} <{email}>\n\n{message}",
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[settings.EMAIL_HOST_USER],
         )
-
         return render(request, "mynews/contact_us.html", {"success": True})
-
     return render(request, "mynews/contact_us.html")
 
 # ================= ADS.TXT =================
@@ -159,7 +125,6 @@ def ads_txt(request):
         content_type="text/plain"
     )
 
-
 # ================= ROBOTS.TXT =================
 def robots_txt(request):
     return HttpResponse(
@@ -168,7 +133,6 @@ def robots_txt(request):
         "Sitemap: https://halchal.up.railway.app/sitemap.xml",
         content_type="text/plain"
     )
-
 
 # ================= SITEMAP.XML =================
 def sitemap_xml(request):
@@ -183,5 +147,4 @@ def sitemap_xml(request):
     for url in urls:
         xml += f"<url><loc>{url}</loc></url>"
     xml += "</urlset>"
-
     return HttpResponse(xml, content_type="application/xml")
