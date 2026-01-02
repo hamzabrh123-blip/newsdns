@@ -7,57 +7,63 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  {% if lucknow_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-danger">🇮🇳 भारत (National)</h5>
-    {% for item in bharat_sidebar %}
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
+    {% for item in lucknow_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
         <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
-    <div class="text-end mt-2">
-      <a href="{% url 'national_news' %}" class="view-all">सभी भारत की खबरें →</a>
-    </div>
-  </div>
-
-  <div class="mb-4">
-    <h5 class="sidebar-title text-primary">🌍 दुनिया (International)</h5>
-    {% for item in duniya_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end mt-2">
-      <a href="{% url 'international_news' %}" class="view-all">सभी दुनिया की खबरें →</a>
-    </div>
-  </div>
-
-  {% if bahraich_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-success">📍 बहराइच की खबरें</h5>
-    {% for item in bahraich_sidebar %}
-      <div class="sidebar-item">
-        <a href="{% url 'news_detail' item.slug %}" class="fw-bold">{{ item.title|truncatechars:50 }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end mt-2">
-      <a href="/district/bahraich/" class="view-all text-success">बहराइच के और समाचार →</a>
-    </div>
   </div>
   {% endif %}
 
-  {% if lucknow_sidebar %}
+  {% if sitapur_barabanki_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-warning">📍 लखनऊ की खबरें</h5>
-    {% for item in lucknow_sidebar %}
+    <h5 class="sidebar-title text-secondary" style="border-left: 5px solid #6c757d; padding-left: 10px;">📍 सीतापुर - बाराबंकी</h5>
+    {% for item in sitapur_barabanki_sidebar %}
       <div class="sidebar-item">
-        <a href="{% url 'news_detail' item.slug %}" class="fw-bold">{{ item.title|truncatechars:50 }}</a>
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
-    <div class="text-end mt-2">
-      <a href="/district/lucknow/" class="view-all text-warning">लखनऊ के और समाचार →</a>
-    </div>
+  </div>
+  {% endif %}
+
+  {% if shravasti_balrampur_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 श्रावस्ती - बलरामपुर</h5>
+    {% for item in shravasti_balrampur_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if gonda_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍 गोंडा</h5>
+    {% for item in gonda_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if bahraich_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-success" style="border-left: 5px solid #28a745; padding-left: 10px;">📍 बहराइच</h5>
+    {% for item in bahraich_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
   </div>
   {% endif %}
 
@@ -65,11 +71,9 @@
 
 <style>
 .sidebar { position: sticky; top: 80px; }
-.sidebar-title { font-weight: 800; font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
-.sidebar-item { display: flex; align-items: center; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #f8f9fa; }
-.sidebar-img { width: 65px; height: 50px; border-radius: 6px; object-fit: cover; margin-right: 12px; }
-.sidebar-item a { color: #333; text-decoration: none; font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+.sidebar-title { font-weight: 800; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 12px; }
+.sidebar-item { display: flex; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f1f1; }
+.sidebar-img { width: 70px; height: 50px; border-radius: 4px; object-fit: cover; margin-right: 10px; }
+.sidebar-item a { color: #222; text-decoration: none; font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
 .sidebar-item a:hover { color: #d32f2f !important; }
-.view-all { font-size: 0.75rem; font-weight: bold; text-decoration: none; }
-@media (max-width: 991px) { .sidebar { margin-top: 2rem; position: static; } }
 </style>
