@@ -25,26 +25,22 @@ def home(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # Sidebar data with safety checks
     try:
         important = News.objects.filter(is_important=True).order_by("-date")[:5]
-        
-        # In teeno lines se sidebar mein news aayegi
         bharat_sidebar = News.objects.filter(category="National").order_by("-date")[:3]
         duniya_sidebar = News.objects.filter(category="International").order_by("-date")[:3]
-        up_sidebar = News.objects.filter(category="Uttar Pradesh").order_by("-date")[:3]
+        
+        # UP page ki jagah hum wo news le rahe hain jisme koi District mention ho
+        district_sidebar = News.objects.exclude(district__isnull=True).exclude(district="").order_by("-date")[:3]
     except Exception:
-        important = []
-        bharat_sidebar = []
-        duniya_sidebar = []
-        up_sidebar = []
+        important = bharat_sidebar = duniya_sidebar = district_sidebar = []
 
     context = {
         "page_obj": page_obj, 
         "important": important,
         "bharat_sidebar": bharat_sidebar,
         "duniya_sidebar": duniya_sidebar,
-        "up_sidebar": up_sidebar
+        "district_sidebar": district_sidebar # Naya variable
     }
     return render(request, "mynews/home.html", context)
 
