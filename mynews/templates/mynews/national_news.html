@@ -6,57 +6,70 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <div class="container mt-4">
   <div class="row">
 
     <div class="col-lg-8 col-md-8">
       
-      <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
-        <h3 class="fw-bold text-dark mb-0">
-          <span style="border-left: 5px solid #d32f2f; padding-left: 15px;">📍 {{ district }}</span>
-        </h3>
-        <span class="badge bg-danger">LIVE UPDATE</span>
+      <div class="district-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+          <h2 class="fw-bold mb-0 main-title">
+            <i class="fas fa-map-marker-alt text-danger me-2"></i>{{ district }}
+          </h2>
+          <div class="live-pulse">
+            <span class="pulse-dot"></span>
+            <span class="badge bg-danger ms-2">LIVE UPDATE</span>
+          </div>
+        </div>
+        <div class="title-separator"></div>
       </div>
 
       <div class="row">
         {% for item in page_obj %}
         <div class="col-md-6 mb-4">
-          <div class="card h-100 border-0 shadow-sm news-card">
+          <article class="card h-100 border-0 shadow-sm news-card-v2">
             
-            <div class="position-relative overflow-hidden rounded-top">
+            <div class="img-container">
               {% if item.image %}
-                <img src="{{ item.image.url }}" class="card-img-top news-image" alt="{{ item.title }}">
+                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
               {% else %}
-                <img src="{% static 'default.jpg' %}" class="card-img-top news-image" alt="No image">
+                <img src="{% static 'default.jpg' %}" class="card-img-top" alt="No image">
               {% endif %}
-              <div class="date-badge">{{ item.date|date:"d M" }}</div>
+              <div class="date-overlay">
+                <span class="day">{{ item.date|date:"d" }}</span>
+                <span class="month">{{ item.date|date:"M" }}</span>
+              </div>
             </div>
 
-            <div class="card-body p-3">
-              <h5 class="card-title fw-bold" style="line-height: 1.4; height: 3em; overflow: hidden;">
-                <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none hover-red">
+            <div class="card-body">
+              <h5 class="card-title fw-bold mb-3">
+                <a href="{% url 'news_detail' item.slug %}" class="stretched-link text-decoration-none text-dark hover-title">
                   {{ item.title|truncatechars:65 }}
                 </a>
               </h5>
 
-              <div class="card-text text-muted small mb-3" style="height: 4.5em; overflow: hidden;">
-                {{ item.content|truncatechars_html:110|safe }}
+              <div class="card-text text-secondary small mb-3 excerpt">
+                {{ item.content|truncatechars_html:120|safe }}
               </div>
 
-              <div class="d-flex justify-content-between align-items-center mt-auto">
-                <small class="text-muted"><i class="far fa-clock"></i> {{ item.date|timesince }} पहले</small>
-                <a href="{% url 'news_detail' item.slug %}" class="btn btn-sm btn-link text-danger fw-bold text-decoration-none p-0">
-                  पूरा पढ़ें →
-                </a>
+              <div class="card-footer-custom d-flex justify-content-between align-items-center pt-3 border-top">
+                <small class="text-muted">
+                  <i class="far fa-clock me-1"></i>{{ item.date|timesince }} पहले
+                </small>
+                <div class="read-more-link">
+                  आगे पढ़ें <i class="fas fa-arrow-right small ms-1"></i>
+                </div>
               </div>
             </div>
-
-          </div>
+          </article>
         </div>
         {% empty %}
-        <div class="col-12 text-center py-5">
-          <img src="{% static 'no-news.png' %}" style="width: 100px; opacity: 0.5;">
-          <p class="mt-3 text-muted">क्षमा करें, {{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
+        <div class="col-12 text-center py-5 no-news-box">
+          <i class="fas fa-newspaper fa-4x text-light mb-3"></i>
+          <h4 class="text-muted">क्षama करें, {{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</h4>
+          <a href="/" class="btn btn-outline-primary mt-3">होम पेज पर जाएं</a>
         </div>
         {% endfor %}
       </div>
@@ -66,21 +79,25 @@
         <ul class="pagination justify-content-center custom-pagination">
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i></a>
+              <a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-chevron-left"></i>
+              </a>
             </li>
           {% endif %}
 
           {% for num in page_obj.paginator.page_range %}
             {% if num == page_obj.number %}
-              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
             {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-              <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+              <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
             {% endif %}
           {% endfor %}
 
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+              <a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}">
+                <i class="fas fa-chevron-right"></i>
+              </a>
             </li>
           {% endif %}
         </ul>
@@ -90,57 +107,71 @@
     </div>
 
     <div class="col-lg-4 col-md-4">
-      {% include 'mynews/sidebar.html' %}
+      <div class="sticky-sidebar">
+        {% include 'mynews/sidebar.html' %}
+      </div>
     </div>
 
   </div>
 </div>
 
 <style>
-  .news-card {
-    transition: transform 0.3s ease, shadow 0.3s ease;
-    border-radius: 12px;
+  /* Base Styles */
+  .main-title { color: #2c3e50; letter-spacing: -0.5px; }
+  .title-separator { width: 60px; height: 4px; background: #d32f2f; margin-top: 10px; border-radius: 2px; }
+
+  /* Pulse Animation */
+  .live-pulse { display: flex; align-items: center; }
+  .pulse-dot {
+    width: 10px; height: 10px; background: #dc3545; border-radius: 50%;
+    box-shadow: 0 0 0 rgba(220, 53, 69, 0.4);
+    animation: pulse 1.5s infinite;
   }
-  .news-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
   }
-  .news-image {
-    height: 200px;
-    object-fit: cover;
-    transition: transform 0.5s ease;
+
+  /* News Card V2 */
+  .news-card-v2 {
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    position: relative; overflow: hidden;
   }
-  .news-card:hover .news-image {
-    transform: scale(1.1);
+  .news-card-v2:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.12) !important;
   }
-  .date-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(211, 47, 47, 0.9);
-    color: white;
-    padding: 2px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: bold;
+  .img-container { position: relative; overflow: hidden; height: 210px; }
+  .img-container img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s ease;
   }
-  .hover-red:hover {
-    color: #d32f2f !important;
+  .news-card-v2:hover .img-container img { transform: scale(1.1); }
+
+  /* Date Overlay */
+  .date-overlay {
+    position: absolute; top: 15px; left: 15px;
+    background: white; border-radius: 8px; padding: 5px 12px;
+    text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 2;
   }
+  .date-overlay .day { display: block; font-size: 1.2rem; font-weight: 800; color: #d32f2f; line-height: 1; }
+  .date-overlay .month { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; color: #7f8c8d; }
+
+  /* Typography */
+  .hover-title:hover { color: #d32f2f !important; }
+  .excerpt { line-height: 1.6; color: #576574; }
+  .read-more-link { color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
+
+  /* Pagination Styling */
   .custom-pagination .page-link {
-    color: #333;
-    border: none;
-    margin: 0 5px;
-    border-radius: 50% !important;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: none; margin: 0 4px; border-radius: 8px !important;
+    color: #2c3e50; font-weight: 600; padding: 10px 18px;
   }
-  .custom-pagination .page-item.active .page-link {
-    background-color: #d32f2f;
-    color: white;
-  }
+  .custom-pagination .page-item.active .page-link { background-color: #d32f2f; color: white; }
+
+  .sticky-sidebar { position: sticky; top: 100px; }
+  .no-news-box { border: 2px dashed #eee; border-radius: 20px; }
 </style>
 {% endblock %}
