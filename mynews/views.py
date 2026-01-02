@@ -8,14 +8,12 @@ from django.conf import settings
 
 
 # ================= HOME =================
-
 def home(request):
     query = request.GET.get("q")
     try:
         if query:
             news_list = News.objects.filter(title__icontains=query).order_by("-date")
         else:
-            # Home page main feed logic
             news_list = News.objects.filter(
                 models.Q(category__iexact="International") |
                 models.Q(is_important=True)
@@ -27,15 +25,14 @@ def home(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # Sidebar Data Fetching Logic (3-3 Latest News)
+    # Sidebar data with safety checks
     try:
         important = News.objects.filter(is_important=True).order_by("-date")[:5]
         
-        # In variables ko sidebar.html use karega
+        # In teeno lines se sidebar mein news aayegi
         bharat_sidebar = News.objects.filter(category="National").order_by("-date")[:3]
         duniya_sidebar = News.objects.filter(category="International").order_by("-date")[:3]
         up_sidebar = News.objects.filter(category="Uttar Pradesh").order_by("-date")[:3]
-        
     except Exception:
         important = []
         bharat_sidebar = []
@@ -49,8 +46,9 @@ def home(request):
         "duniya_sidebar": duniya_sidebar,
         "up_sidebar": up_sidebar
     }
-
     return render(request, "mynews/home.html", context)
+
+# ================= End HOME =================
 
 # ================= NATIONAL =================
 def national_news(request):
@@ -58,8 +56,18 @@ def national_news(request):
     paginator = Paginator(news_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
-    return render(request, "mynews/national_news.html", {"page_obj": page_obj})
     
+    # Yahan bhi sidebar data pass karna hoga varna National page par sidebar khali dikhega
+    bharat_sidebar = News.objects.filter(category="National").order_by("-date")[:3]
+    duniya_sidebar = News.objects.filter(category="International").order_by("-date")[:3]
+    up_sidebar = News.objects.filter(category="Uttar Pradesh").order_by("-date")[:3]
+    
+    return render(request, "mynews/national_news.html", {
+        "page_obj": page_obj,
+        "bharat_sidebar": bharat_sidebar,
+        "duniya_sidebar": duniya_sidebar,
+        "up_sidebar": up_sidebar
+    })
 # ================= International News =================
 
 def international_news(request):
