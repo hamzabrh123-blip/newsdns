@@ -2,10 +2,14 @@
 
 <div class="news-detail-sidebar">
     <div class="sidebar-card mb-4 app-card text-center p-4 rounded-4 shadow-sm border-0">
+        <div class="icon-circle mb-2">
+            <i class="fab fa-android fa-2x text-white"></i>
+        </div>
         <h5 class="fw-bold text-white mb-2">हलचल न्यूज़ ऐप</h5>
+        <p class="text-white opacity-75 small mb-3">यूपी की हर खबर, सबसे पहले!</p>
         <a href="https://raw.githubusercontent.com/hamzabrh123-blip/newsdns/main/public_html/media/halchal_news.apk" 
            class="btn btn-white w-100 rounded-pill fw-bold text-danger py-2 shadow" download>
-           डाउनलोड ऐप <i class="fas fa-download ms-1"></i>
+           इंस्टॉल करें <i class="fas fa-download ms-1"></i>
         </a>
     </div>
 
@@ -13,13 +17,13 @@
         <h5 class="section-heading mb-3"><span class="text-danger">●</span> देश की बड़ी खबरें</h5>
         <div class="trending-list">
             {% for item in bharat_sidebar %}
-            <div class="trending-item d-flex gap-2 mb-3">
+            <div class="trending-item d-flex gap-2 mb-3 align-items-center">
                 <div class="trending-img-box">
                     <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'default.jpg' %}{% endif %}" alt="{{ item.title }}">
                 </div>
                 <div class="trending-info">
-                    <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none d-block fw-bold" style="font-size: 0.85rem;">
-                        {{ item.title|truncatechars:50 }}
+                    <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none d-block fw-bold small-news-title">
+                        {{ item.title|truncatechars:55 }}
                     </a>
                 </div>
             </div>
@@ -31,45 +35,50 @@
         <h5 class="section-heading mb-3"><span class="text-primary">●</span> दुनिया की हलचल</h5>
         <div class="trending-list">
             {% for item in duniya_sidebar %}
-            <div class="trending-item d-flex gap-2 mb-3">
+            <div class="trending-item d-flex gap-2 mb-3 align-items-center">
                 <div class="trending-img-box border-start border-primary border-3">
                     <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'default.jpg' %}{% endif %}" alt="{{ item.title }}">
                 </div>
                 <div class="trending-info">
-                    <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none d-block fw-bold" style="font-size: 0.85rem;">
-                        {{ item.title|truncatechars:50 }}
+                    <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none d-block fw-bold small-news-title">
+                        {{ item.title|truncatechars:55 }}
                     </a>
                 </div>
             </div>
             {% empty %}
-            <p class="small text-muted text-center">कोई अंतरराष्ट्रीय खबर नहीं है</p>
+            <p class="small text-muted text-center py-3 border rounded bg-light">अभी कोई अंतरराष्ट्रीय खबर नहीं है</p>
             {% endfor %}
         </div>
     </div>
 
     <div class="sidebar-section bg-light p-3 rounded-4 border">
-        <h6 class="fw-bold mb-3"><i class="fas fa-map-marked-alt text-danger me-2"></i>ज़िलावार खबरें</h6>
+        <h6 class="fw-bold mb-3"><i class="fas fa-map-marker-alt text-danger me-2"></i>ज़िला चुनें</h6>
         <div class="district-grid d-flex flex-wrap gap-2">
-            <a href="/district/Lucknow" class="tag-link">लखनऊ</a>
-            <a href="/district/Bahraich" class="tag-link">बहराइच</a>
-            <a href="/district/Gonda" class="tag-link">गोंडा</a>
-            <a href="/district/Sitapur-Barabanki" class="tag-link">सीतापुर</a>
-            <a href="/district/Shravasti-Balrampur" class="tag-link">श्रावस्ती</a>
+            <a href="{% url 'district_news' 'Lucknow' %}" class="tag-link">लखनऊ</a>
+            <a href="{% url 'district_news' 'Bahraich' %}" class="tag-link">बहराइच</a>
+            <a href="{% url 'district_news' 'Gonda' %}" class="tag-link">गोंडा</a>
+            <a href="{% url 'district_news' 'Sitapur-Barabanki' %}" class="tag-link">सीतापुर</a>
+            <a href="{% url 'district_news' 'Shravasti-Balrampur' %}" class="tag-link">श्रावस्ती</a>
         </div>
     </div>
 
     <div class="sidebar-section mt-4 text-center">
-        <p class="text-muted small mb-1" style="font-size: 10px; letter-spacing: 1px;">ADVERTISEMENT</p>
-        <div class="ad-box border bg-white p-2">
+        <p class="text-muted" style="font-size: 10px; letter-spacing: 2px;">ADVERTISEMENT</p>
+        <div class="ad-box border bg-white p-2 rounded shadow-sm">
             <script async="async" data-cfasync="false" src="https://encouragementglutton.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
             <div id="container-33a48d4c698419feff59591694dee533"></div>
         </div>
     </div>
-
 </div>
 
 <style>
-    /* Section Heading Styling */
+    /* Premium Improvements */
+    .news-detail-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 90px; /* Thoda niche rakha hai navbar ke liye */
+    }
+
     .section-heading {
         font-size: 1.1rem;
         font-weight: 800;
@@ -77,72 +86,44 @@
         padding-bottom: 10px;
         position: relative;
     }
-    .section-heading::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 50px;
-        height: 2px;
-        background: #d32f2f;
+
+    .small-news-title {
+        font-size: 0.88rem;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
-    /* App Card Design */
-    .app-card {
-        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-    }
-    .btn-white {
-        background: white;
-        transition: transform 0.3s ease;
-    }
-    .btn-white:hover {
-        transform: scale(1.05);
-        color: #000 !important;
-    }
+    .small-news-title:hover { color: #d32f2f !important; }
 
-    /* Trending List Design */
     .trending-img-box {
-        width: 90px;
-        height: 60px;
-        border-radius: 8px;
+        width: 85px;
+        height: 55px;
+        border-radius: 6px;
         overflow: hidden;
         flex-shrink: 0;
-    }
-    .trending-img-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .small-title {
-        line-height: 1.3;
-        transition: color 0.2s;
-    }
-    .small-title:hover {
-        color: #d32f2f !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    /* Tags Design */
+    .app-card { background: linear-gradient(135deg, #d32f2f 0%, #800000 100%); }
+
     .tag-link {
         background: #fff;
-        color: #444;
+        color: #333;
         padding: 5px 12px;
-        border-radius: 6px;
-        text-decoration: none;
+        border-radius: 20px;
         font-size: 13px;
         font-weight: 600;
-        border: 1px solid #ddd;
-        transition: 0.3s;
-    }
-    .tag-link:hover {
-        background: #d32f2f;
-        color: white;
-        border-color: #d32f2f;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s;
     }
 
-    /* Fixed Sidebar Behavior */
-    .news-detail-sidebar {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 85px;
+    .tag-link:hover {
+        background: #d32f2f;
+        color: #fff;
+        border-color: #d32f2f;
+        transform: translateY(-2px);
     }
 </style>
