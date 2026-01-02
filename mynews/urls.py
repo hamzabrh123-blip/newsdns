@@ -20,5 +20,5 @@ urlpatterns = [
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
-   path("<slug:slug>/", views.news_detail, name="news_detail"),
+    path("<slug:slug>/", views.news_detail, name="news_detail"),
 ]
