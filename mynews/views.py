@@ -10,39 +10,30 @@ from django.conf import settings
 # ================= HOME =================
 def home(request):
     query = request.GET.get("q")
-    try:
-        if query:
-            news_list = News.objects.filter(title__icontains=query).order_by("-date")
-        else:
-            news_list = News.objects.filter(
-                models.Q(category__iexact="International") |
-                models.Q(is_important=True)
-            ).order_by("-date")
-    except Exception:
-        news_list = News.objects.none()
+    news_list = News.objects.all().order_by("-date")
+    
+    if query:
+        news_list = news_list.filter(title__icontains=query)
 
-    # Yahan humne 12 ki jagah 20 news kar di hain
+    # 20 News Cards ke liye
     paginator = Paginator(news_list, 20) 
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
-    # Sidebar ke liye Zile-war data (Bahraich, Lucknow etc.)
-    # Aap apne main districts ke naam yahan likh sakte hain
-    bahraich_news = News.objects.filter(district__iexact="Bahraich").order_by("-date")[:3]
-    lucknow_news = News.objects.filter(district__iexact="Lucknow").order_by("-date")[:3]
-    shravasti_news = News.objects.filter(district__iexact="Shravasti").order_by("-date")[:3]
-
+    # Model ke DISTRICT_CHOICES ke hisab se filter
     context = {
         "page_obj": page_obj,
-        "bahraich_sidebar": bahraich_news,
-        "lucknow_sidebar": lucknow_news,
-        "shravasti_sidebar": shravasti_news,
-        # Purana data bhi rakhte hain
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
+        
+        # Inka naam wahi hona chahiye jo model ke DISTRICT_CHOICES mein hai
+        "lucknow_sidebar": News.objects.filter(district="Lucknow").order_by("-date")[:3],
+        "sitapur_barabanki_sidebar": News.objects.filter(district="Sitapur-Barabanki").order_by("-date")[:3],
+        "shravasti_balrampur_sidebar": News.objects.filter(district="Shravasti-Balrampur").order_by("-date")[:3],
+        "bahraich_sidebar": News.objects.filter(district="Bahraich").order_by("-date")[:3],
+        "gonda_sidebar": News.objects.filter(district="Gonda").order_by("-date")[:3],
     }
+    
     return render(request, "mynews/home.html", context)
-
 # ================= End HOME =================
 
 # ================= NATIONAL =================
