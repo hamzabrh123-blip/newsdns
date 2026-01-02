@@ -1,41 +1,139 @@
-<div class="card">
-  <div class="card-header fw-bold">
-    संबंधित खबरें
-  </div>
+<div class="news-detail-sidebar">
 
-  <ul class="list-group list-group-flush">
-
-    {% for n in sidebar_news %}
-    <li class="list-group-item">
-      <div class="d-flex align-items-center gap-2">
-
-        {% if n.image %}
-          <img
-            src="{{ n.image.url }}"
-            alt="{{ n.title }}"
-            style="width:55px; height:40px; object-fit:cover; border-radius:4px;"
-          >
-        {% else %}
-          <img
-            src="/static/img/news-thumb.jpg"
-            alt="news"
-            style="width:55px; height:40px; object-fit:cover; border-radius:4px;"
-          >
-        {% endif %}
-
-        <!-- ✅ ONLY SLUG -->
-        <a href="{% url 'news_detail' n.slug %}"
-           class="text-decoration-none text-dark small fw-semibold">
-          {{ n.title|truncatechars:100 }}
+    <div class="sidebar-card mb-4 app-card text-center p-4 rounded-4 shadow-sm border-0">
+        <i class="fab fa-android fa-3x mb-2 text-white"></i>
+        <h5 class="fw-bold text-white mb-2">हलचल न्यूज़ ऐप</h5>
+        <p class="text-white opacity-75 small mb-3">ताज़ा खबरें, सीधा आपके फोन पर!</p>
+        <a href="https://raw.githubusercontent.com/hamzabrh123-blip/newsdns/main/public_html/media/halchal_news.apk" 
+           class="btn btn-white w-100 rounded-pill fw-bold text-danger py-2 shadow" download>
+           डाउनलोड करें <i class="fas fa-download ms-1"></i>
         </a>
+    </div>
 
-      </div>
-    </li>
-    {% empty %}
-      <li class="list-group-item text-muted small">
-        कोई संबंधित खबर नहीं
-      </li>
-    {% endfor %}
+    <div class="sidebar-section mb-4">
+        <h5 class="section-heading mb-3">
+            <span class="text-danger">●</span> ताज़ा अपडेट
+        </h5>
+        
+        <div class="trending-list">
+            {% for item in bharat_sidebar %}
+            <div class="trending-item d-flex gap-2 mb-3 align-items-center">
+                <div class="trending-img-box">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.title }}">
+                    {% else %}
+                        <img src="{% static 'default.jpg' %}" alt="No image">
+                    {% endif %}
+                </div>
+                <div class="trending-info">
+                    <a href="{% url 'news_detail' item.slug %}" class="text-dark text-decoration-none d-block fw-bold small-title">
+                        {{ item.title|truncatechars:55 }}
+                    </a>
+                    <small class="text-muted" style="font-size: 11px;">
+                        <i class="far fa-calendar-alt me-1"></i>{{ item.date|date:"d M" }}
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+    </div>
 
-  </ul>
+    <div class="sidebar-section bg-light p-3 rounded-4 border">
+        <h6 class="fw-bold mb-3"><i class="fas fa-map-marked-alt text-danger me-2"></i>ज़िलावार खबरें</h6>
+        <div class="district-grid d-flex flex-wrap gap-2">
+            <a href="/district/Lucknow" class="tag-link">लखनऊ</a>
+            <a href="/district/Bahraich" class="tag-link">बहराइच</a>
+            <a href="/district/Gonda" class="tag-link">गोंडा</a>
+            <a href="/district/Sitapur-Barabanki" class="tag-link">सीतापुर</a>
+            <a href="/district/Shravasti-Balrampur" class="tag-link">श्रावस्ती</a>
+        </div>
+    </div>
+
+    <div class="sidebar-section mt-4 text-center">
+        <p class="text-muted small mb-1" style="font-size: 10px; letter-spacing: 1px;">ADVERTISEMENT</p>
+        <div class="ad-box border bg-white p-2">
+            <script async="async" data-cfasync="false" src="https://encouragementglutton.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
+            <div id="container-33a48d4c698419feff59591694dee533"></div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+    /* Section Heading Styling */
+    .section-heading {
+        font-size: 1.1rem;
+        font-weight: 800;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        position: relative;
+    }
+    .section-heading::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background: #d32f2f;
+    }
+
+    /* App Card Design */
+    .app-card {
+        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+    }
+    .btn-white {
+        background: white;
+        transition: transform 0.3s ease;
+    }
+    .btn-white:hover {
+        transform: scale(1.05);
+        color: #000 !important;
+    }
+
+    /* Trending List Design */
+    .trending-img-box {
+        width: 90px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .trending-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .small-title {
+        line-height: 1.3;
+        transition: color 0.2s;
+    }
+    .small-title:hover {
+        color: #d32f2f !important;
+    }
+
+    /* Tags Design */
+    .tag-link {
+        background: #fff;
+        color: #444;
+        padding: 5px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #ddd;
+        transition: 0.3s;
+    }
+    .tag-link:hover {
+        background: #d32f2f;
+        color: white;
+        border-color: #d32f2f;
+    }
+
+    /* Fixed Sidebar Behavior */
+    .news-detail-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 85px;
+    }
+</style>
