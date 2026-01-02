@@ -44,7 +44,7 @@ def national_news(request):
 # ================= International News =================
 
 def international_news(request):
-    news_list = News.objects.filter(category="International National").order_by("-date")
+    news_list = News.objects.filter(category="International").order_by("-date")
     paginator = Paginator(news_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
