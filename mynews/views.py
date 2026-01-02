@@ -10,16 +10,23 @@ from django.conf import settings
 # ================= HOME =================
 def home(request):
     query = request.GET.get("q")
-    news_list = News.objects.all().order_by("-date")
     
     if query:
-        news_list = news_list.filter(title__icontains=query)
+        news_list = News.objects.filter(title__icontains=query).order_by("-date")
+    else:
+        # ✅ YAHAN FIX HAI: 
+        # Home par sirf National, International ya Important news dikhegi.
+        # District wali news (Bahraich, Lucknow etc.) home se bahar rahegi.
+        news_list = News.objects.filter(
+            models.Q(category__in=['National', 'International']) | 
+            models.Q(is_important=True)
+        ).distinct().order_by("-date")
 
     # 20 news cards ke liye
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    # Sidebar data (Bharat, Duniya aur saare Districts)
+    # Sidebar data (Ye wahi rahega jo pehle tha)
     context = {
         "page_obj": page_obj,
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
