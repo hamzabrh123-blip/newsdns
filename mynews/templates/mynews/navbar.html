@@ -44,7 +44,14 @@
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'national_news' %}active{% endif %}"
              href="{% url 'national_news' %}">
-            राष्ट्रीय
+            भारत
+          </a>
+        </li>
+            <!-- International -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'international_news' %}active{% endif %}"
+             href="{% url 'international_news' %}">
+            दुनिया
           </a>
         </li>
 
@@ -56,7 +63,7 @@
              role="button"
              data-bs-toggle="dropdown"
              aria-expanded="false">
-            जिले
+               उत्तर प्रदेश
           </a>
 
           <ul class="dropdown-menu dropdown-menu-end"
