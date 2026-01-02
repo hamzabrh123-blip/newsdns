@@ -53,6 +53,7 @@ def national_news(request):
     context.update(get_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 # ================= INTERNATIONAL NEWS =================
+# 2. International Page
 def international_news(request):
     news_list = News.objects.filter(category="International").order_by("-date")
     paginator = Paginator(news_list, 20)
@@ -62,9 +63,9 @@ def international_news(request):
         "page_obj": page_obj,
         "district": "दुनिया (International)",
     }
-    context.update(get_common_sidebar_data())
+    context.update(get_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-
+    
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
