@@ -6,8 +6,9 @@ from django.http import HttpResponse
 from .models import News, Comment
 from django.conf import settings
 
-# --- Helper function sidebar data ke liye (taaki code repeat na ho) ---
-def get_common_sidebar_data():
+
+# Helper function jo har page ke sidebar mein data bhejega
+def get_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
@@ -38,18 +39,19 @@ def home(request):
     return render(request, "mynews/home.html", context)
 
 # ================= NATIONAL NEWS =================
+# 1. National Page
 def national_news(request):
+    # Model ki choice 'National' se match karega
     news_list = News.objects.filter(category="National").order_by("-date")
     paginator = Paginator(news_list, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page_obj,
-        "district": "भारत (National)",
+        "district": "भारत (National)", 
     }
-    context.update(get_common_sidebar_data())
+    context.update(get_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-
 # ================= INTERNATIONAL NEWS =================
 def international_news(request):
     news_list = News.objects.filter(category="International").order_by("-date")
