@@ -40,18 +40,20 @@ def home(request):
     return render(request, "mynews/home.html", context)
 # ================= End HOME =================
 
-# ================= NATIONAL =================
+# ================= NATIONAL NEWS =================
 def national_news(request):
-    # National category wali news fetch karein
-    news_list = News.objects.filter(category__iexact="National").order_by("-date")
+    # Filter only National category
+    news_list = News.objects.filter(category="National").order_by("-date")
     
-    paginator = Paginator(news_list, 20) 
-    page_obj = paginator.get_page(request.GET.get("page"))
-    
+    # 20 cards per page
+    paginator = Paginator(news_list, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = {
         "page_obj": page_obj,
-        "district": "भारत", # Heading ke liye
-        # Sidebar data wahi rahega jo home par hai
+        "district": "भारत (National)", # Page Heading
+        # Sidebar data (Sabhi news categories ke liye data bhejna zaroori hai)
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
         "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
@@ -61,16 +63,16 @@ def national_news(request):
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
     return render(request, "mynews/district_news.html", context)
-# ================= End national =================
-# ================= internationl =================
 
+# ================= INTERNATIONAL NEWS =================
 def international_news(request):
-    # International category wali news fetch karein
-    news_list = News.objects.filter(category__iexact="International").order_by("-date")
+    # Filter only International category
+    news_list = News.objects.filter(category="International").order_by("-date")
     
-    paginator = Paginator(news_list, 20) 
-    page_obj = paginator.get_page(request.GET.get("page"))
-    
+    paginator = Paginator(news_list, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = {
         "page_obj": page_obj,
         "district": "दुनिया (International)",
@@ -83,15 +85,6 @@ def international_news(request):
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
     return render(request, "mynews/district_news.html", context)
-# ================= International News =================
-
-def international_news(request):
-    news_list = News.objects.filter(category="International").order_by("-date")
-    paginator = Paginator(news_list, 10)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(request, "mynews/international_news.html", {"page_obj": page_obj})
-
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
