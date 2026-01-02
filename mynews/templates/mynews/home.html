@@ -29,7 +29,17 @@
                             </h5>
 
                             <p class="card-text text-muted small mb-2">
-                                <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M Y" }} | {{ item.district }}
+                                <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M Y" }} | {% if item.district %}
+        {{ item.district }}
+    {% elif item.category == "National" %}
+        भारत
+    {% elif item.category == "International" %}
+        दुनिया
+    {% else %}
+        उत्तर प्रदेश
+    {% endif %}
+
+                                
                             </p>
 
                             <div class="card-text small text-secondary mb-3">
