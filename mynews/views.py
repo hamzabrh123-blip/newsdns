@@ -66,6 +66,20 @@ def international_news(request):
     context.update(get_sidebar_data())
     return render(request, "mynews/district_news.html", context)
     
+# ================= DISTRICT =================
+# 3. District News (Lucknow, Bahraich etc.)
+def district_news(request, district):
+    news_list = News.objects.filter(district__iexact=district).order_by("-date")
+    paginator = Paginator(news_list, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page_obj": page_obj,
+        "district": district,
+    }
+    context.update(get_sidebar_data())
+    return render(request, "mynews/district_news.html", context)
+    
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
@@ -84,18 +98,6 @@ def news_detail(request, slug):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
 
-# ================= DISTRICT =================
-def district_news(request, district):
-    news_list = News.objects.filter(district__iexact=district).order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-
-    context = {
-        "district": district, 
-        "page_obj": page_obj
-    }
-    context.update(get_common_sidebar_data()) # Yahan sidebar data missing tha, ab sahi hai
-    return render(request, "mynews/district_news.html", context)
 
 # ================= STATIC PAGES =================
 def privacy_policy(request):
