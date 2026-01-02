@@ -21,6 +21,6 @@ urlpatterns = [
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
     # ===== NEWS DETAIL (ALWAYS LAST) =====
-    path("<slug:slug>/", views.news_detail, name="news_detail"),
+    path("<path:slug>/", views.news_detail, name="news_detail"),
     re_path(r'^(?P<slug>.+)/$', views.news_detail, name='news_detail'),
 ]
