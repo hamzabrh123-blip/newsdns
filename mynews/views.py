@@ -53,9 +53,18 @@ def international_news(request):
 # ================= NEWS DETAIL =================
 def news_detail(request, slug):
     news = get_object_or_404(News, slug=slug)
-    sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:30]
+    
+    # Category wise sidebar data (Har category se 3 latest news)
+    bharat_sidebar = News.objects.filter(category="National").exclude(id=news.id).order_by("-date")[:3]
+    duniya_sidebar = News.objects.filter(category="International").exclude(id=news.id).order_by("-date")[:3]
+    up_sidebar = News.objects.filter(category="Uttar Pradesh").exclude(id=news.id).order_by("-date")[:3]
+    
+    # Purana sidebar logic agar aapko extra news chahiye ho to (optional)
+    sidebar_news = News.objects.exclude(id=news.id).order_by("-id")[:10]
+    
     comments = Comment.objects.filter(news=news).order_by("-date")
 
+    # YouTube URL handling
     if news.youtube_url:
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
@@ -65,10 +74,11 @@ def news_detail(request, slug):
     return render(request, "mynews/news_detail.html", {
         "news": news,
         "sidebar_news": sidebar_news,
+        "bharat_sidebar": bharat_sidebar,
+        "duniya_sidebar": duniya_sidebar,
+        "up_sidebar": up_sidebar,
         "comments": comments
     })
-
-
 # ================= DISTRICT =================
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
