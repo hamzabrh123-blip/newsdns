@@ -76,7 +76,7 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # ---------------- DATABASE ----------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("postgres://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb"),
+        default=os.environ.get("DATABASE_URL"), # Sirf naam likhna hai
         conn_max_age=600,
         ssl_require=True
     )
