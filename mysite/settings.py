@@ -75,13 +75,12 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
 DATABASES = {
-   "default": dj_database_url.parse(
-        "postgres://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb",
+    "default": dj_database_url.config(
+        default=os.environ.get("postgres://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb"),
         conn_max_age=600,
         ssl_require=True
     )
 }
-
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
