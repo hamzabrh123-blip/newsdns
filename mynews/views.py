@@ -109,22 +109,31 @@ def contact_us(request):
         full_message = f"Sender Name: {name}\nSender Email: {email}\n\nMessage:\n{message_body}"
         
         try:
-            # Humne email ke liye timeout kam kar diya hai taaki server na ruke
             send_mail(
                 subject=subject,
                 message=full_message,
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[settings.EMAIL_HOST_USER],
-                fail_silently=True,
-                # Isse server atakne se bachega
+                fail_silently=False, # Ise False karein taaki logs mein asli error dikhe
             )
             success = True
         except Exception as e:
-            logger.error(f"Email timeout or error: {e}")
-            # Agar email fail ho, tab bhi success page dikha denge taaki site crash na ho
+            # Agar logger kaam na kare toh print check karein
+            print(f"Email Error: {e}") 
+            # Render par logs dekhne ke liye logger zaroori hai
+            logger.error(f"Contact Form Error: {e}")
+            # User ko lage ki message chala gaya taaki wo bar bar click na kare
             success = True 
 
-    return render(request, "mynews/contact_us.html", {"success": success})
+    # Common sidebar data add karna mat bhulna jo aapne banaya tha
+    context = {"success": success}
+    try:
+        from .views import get_common_sidebar_data
+        context.update(get_common_sidebar_data())
+    except:
+        pass
+
+    return render(request, "mynews/contact_us.html", context)
 
 # ================= STATIC PAGES =================
 def privacy_policy(request):
