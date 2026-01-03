@@ -5,22 +5,27 @@ import dj_database_url
 # ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+
+
+
 # ---------------- SECURITY ----------------
-DEBUG = True # Error pakadne ke liye abhi True rehne dein
+# Render Environment se uthayega, nahi milega toh default use karega (Crash nahi hoga)
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
+
+DEBUG = True # Sab theek hone ke baad False kar dena
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
-    "halchal.onrender.com", # Render link zaroori hai
+    "halchal.onrender.com", 
 ]
 
-# Railway hata kar Render ka link yahan hona chahiye
 CSRF_TRUSTED_ORIGINS = [
     "https://halchal.onrender.com",
     "http://halchal.onrender.com",
 ]
-
 # ---------------- APPS ----------------
 INSTALLED_APPS = [
     "django.contrib.admin",
