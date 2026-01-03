@@ -6,20 +6,19 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ---------------- SECURITY ----------------
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-key")
-DEBUG = True # Live hone par ise False kar dena
+DEBUG = True # Error pakadne ke liye abhi True rehne dein
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
-    "halchal.onrender.com",
-    "halchal.up.railway.app",
+    "halchal.onrender.com", # Render link zaroori hai
 ]
 
+# Railway hata kar Render ka link yahan hona chahiye
 CSRF_TRUSTED_ORIGINS = [
-    "https://halchal.up.railway.app",
-    "http://halchal.up.railway.app",
+    "https://halchal.onrender.com",
+    "http://halchal.onrender.com",
 ]
 
 # ---------------- APPS ----------------
@@ -74,13 +73,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
+# Render par Database connect karne ka sabse safe tareeka:
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"), # Sirf naam likhna hai
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True
     )
 }
+
+# SSL Requirement check (Render ke liye zaroori)
+if not DEBUG:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
@@ -91,15 +94,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------- STATIC & MEDIA ----------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Isse error nahi aayega agar static folder na bhi ho
+STATIC_DIR = BASE_DIR / "static"
+if STATIC_DIR.exists():
+    STATICFILES_DIRS = [STATIC_DIR]
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.environ.get("CLOUDINARY_NAME", "dvoqsrkkq"),
-    "API_KEY": os.environ.get("CLOUDINARY_KEY", "468226887694915"),
-    "API_SECRET": os.environ.get("CLOUDINARY_SECRET", "1j2X6nWy-0xZqdbr6e9puCVC8VE"),
-}
-
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
