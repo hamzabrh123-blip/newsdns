@@ -5,8 +5,12 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from .models import News, Comment
 from django.conf import settings
+import logging
 
-# ✅ SABSE PEHLE YEH FUNCTION HONA CHAHIYE (Common Sidebar Data)
+# Logger setup taaki email error console mein dikhe
+logger = logging.getLogger(__name__)
+
+# ✅ OPTIMIZED SIDEBAR DATA (Common sidebar logic)
 def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
@@ -24,7 +28,6 @@ def home(request):
     if query:
         news_list = News.objects.filter(title__icontains=query).order_by("-date")
     else:
-        # Home par sirf National, International aur Important news dikhegi
         news_list = News.objects.filter(
             models.Q(category__in=['National', 'International']) | 
             models.Q(is_important=True)
@@ -34,7 +37,6 @@ def home(request):
     page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {"page_obj": page_obj}
-    # Yahan call ho raha hai, ab error nahi aayega
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
@@ -95,6 +97,33 @@ def district_news(request, district):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
+# ================= CONTACT US (FIXED) =================
+def contact_us(request):
+    success = False
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        message_body = request.POST.get("message")
+        
+        # Email content
+        subject = f"UP Halchal News: Message from {name}"
+        full_message = f"Sender Name: {name}\nSender Email: {email}\n\nMessage:\n{message_body}"
+        
+        try:
+            send_mail(
+                subject=subject,
+                message=full_message,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[settings.EMAIL_HOST_USER], # Aapko mail milega
+                fail_silently=False,
+            )
+            success = True
+        except Exception as e:
+            logger.error(f"Email sending failed: {e}")
+            # Agar koi error aaye to aap yahan error message bhi bhej sakte hain
+
+    return render(request, "mynews/contact_us.html", {"success": success})
+
 # ================= STATIC PAGES =================
 def privacy_policy(request):
     return render(request, "mynews/privacy_policy.html")
@@ -105,20 +134,6 @@ def about_us(request):
 def disclaimer(request):
     return render(request, "mynews/disclaimer.html")
 
-def contact_us(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        message = request.POST.get("message")
-        send_mail(
-            subject=f"Contact Form: {name}",
-            message=f"From: {name} <{email}>\n\n{message}",
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[settings.EMAIL_HOST_USER],
-        )
-        return render(request, "mynews/contact_us.html", {"success": True})
-    return render(request, "mynews/contact_us.html")
-
 # ================= SEO & ADS =================
 def ads_txt(request):
     return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
@@ -128,9 +143,13 @@ def robots_txt(request):
 
 def sitemap_xml(request):
     base_url = "https://halchal.up.railway.app"
+    # Optimization: Sirf zaroori fields fetch karein
+    news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").only("slug")
+    
     urls = [f"{base_url}/"]
-    for news in News.objects.exclude(slug__isnull=True).exclude(slug=""):
+    for news in news_items:
         urls.append(f"{base_url}/{news.slug}")
+        
     xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     for url in urls:
         xml += f"<url><loc>{url}</loc></url>"
