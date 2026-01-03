@@ -122,9 +122,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "youremail@gmail.com")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
-
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "hamzabrh@gmail.com")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "brjboidzxxciayvw")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # ---------------- CKEDITOR ----------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
