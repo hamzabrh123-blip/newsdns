@@ -87,8 +87,8 @@ DATABASES = {
     )
 }
 
-# SSL error ko handle karne ka sahi tareeka
-if not DEBUG or os.environ.get('DATABASE_URL'):
+# SSL error ko rokne ke liye ye sabse pakka tarika hai
+if os.environ.get('DATABASE_URL'):
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
     }
