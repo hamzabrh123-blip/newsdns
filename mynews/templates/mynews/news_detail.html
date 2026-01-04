@@ -36,9 +36,17 @@
                             <small class="text-muted"><i class="far fa-clock"></i> {{ news.date|date:"d M Y, h:i A" }}</small>
                         </div>
                     </div>
-                    <div class="py-1">
-                        <span class="badge bg-light text-dark border"><i class="fas fa-map-marker-alt text-danger"></i> {{ news.district|default:"Uttar Pradesh" }}</span>
-                    </div>
+                   <div class="py-1">
+    {% if news.district %}
+        <span class="badge bg-light text-dark border">
+            <i class="fas fa-map-marker-alt text-danger"></i> {{ news.district }}
+        </span>
+    {% elif news.category.name != "International" %}
+        <span class="badge bg-light text-dark border">
+            <i class="fas fa-map-marker-alt text-danger"></i> Uttar Pradesh
+        </span>
+    {% endif %}
+</div>
                 </div>
 
                 {% if news.image %}
