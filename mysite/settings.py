@@ -79,17 +79,19 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
 # Render par Database connect karne ka sabse safe tareeka:
+
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        conn_params={'sslmode': 'require'}  # 👈 Ye line SSL error theek karegi
     )
 }
 
-# SSL Requirement check (Render ke liye zaroori)
-if not DEBUG:
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+# SSL error ko handle karne ka sahi tareeka
+if not DEBUG or os.environ.get('DATABASE_URL'):
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
