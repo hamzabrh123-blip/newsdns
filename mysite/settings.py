@@ -81,11 +81,10 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
-        conn_max_age=0,  # 0 karne se timeout ke chances kam ho jate hain
+        conn_max_age=0,  # Isse timeout ke chances kam ho jate hain
     )
 }
 
-# Oregon server ke liye ye settings RAMBAAN hain
 DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
 }
