@@ -1,8 +1,11 @@
 from django import template
-from mynews.utils import encode_id
+import base64
 
 register = template.Library()
 
 @register.filter
 def encode_news_id(value):
-    return encode_id(value)
+    try:
+        return base64.urlsafe_b64encode(str(value).encode()).decode()
+    except Exception:
+        return value

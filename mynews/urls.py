@@ -1,30 +1,26 @@
 from django.urls import path
-from django.urls import re_path
+from django.urls import path, re_path
 from . import views
+from .views import robots_txt, sitemap_xml
 
 urlpatterns = [
+    # ===== CORE PAGES =====
     path("", views.home, name="home"),
     path("national/", views.national_news, name="national_news"),
-
-<<<<<<< HEAD
-    # SEO + Secure URL
-    path(
-        "news/<slug:slug>-<str:code>/",
-        views.news_detail,
-        name="news_detail"
-    ),
-=======
-    # ✅ Add news page
-    path("add-news/", views.add_news, name="add_news"),
-
-    # ✅ SEO Friendly News URL (ID hata diya)
-    re_path(r'^news/(?P<slug>[-\w\d\u0900-\u097F]+)/$', views.news_detail, name='news_detail'),
->>>>>>> eb7583f (Initial commit: fixed slug and template errors)
-
+    path("international/", views.international_news, name="international_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
-    path("about/", views.about, name="about"),
-    path("contact/", views.contact, name="contact"),
 
-    # ads.txt at root
+    # ===== SEO / SYSTEM FILES =====
+    path("robots.txt", robots_txt),
+    path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
+    # ===== adseence important page=====
+    path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+    path("about-us/", views.about_us, name="about_us"),
+    path("contact-us/", views.contact_us, name="contact_us"),
+    path("disclaimer/", views.disclaimer, name="disclaimer"),
+
+    # ===== NEWS DETAIL (ALWAYS LAST) =====
+    path("<path:slug>/", views.news_detail, name="news_detail"),
+    re_path(r'^(?P<slug>.+)/$', views.news_detail, name='news_detail'),
 ]

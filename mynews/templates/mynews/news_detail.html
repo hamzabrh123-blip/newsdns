@@ -1,148 +1,156 @@
 {% extends 'mynews/base.html' %}
-{% block title %}{{ news.title }} | UP News{% endblock %}
+{% load static %}
+
+{% block title %}{{ news.title }} | UP Halchal{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <div class="row">
-    
-    <div class="col-lg-8">
-      <article class="bg-white shadow-lg rounded-3 p-4">
-        <h2 class="mb-3 text-center fw-bold text-primary">{{ news.title }}</h2>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-        {% if news.image %}
-        <div class="text-center mb-4">
-          <img src="{{ news.image.url }}" class="img-fluid rounded-4 shadow-sm news-image" alt="{{ news.title }}">
-        </div>
-        {% endif %}
+<div class="container mt-3">
+    <nav aria-label="breadcrumb" class="mb-3 d-none d-md-block">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">{{ news.category|default:"News" }}</a></li>
+            <li class="breadcrumb-item active text-danger" aria-current="page">{{ news.title|truncatechars:40 }}</li>
+        </ol>
+    </nav>
 
-        <div class="news-content fs-5 lh-lg">
-          {{ news.content|safe }}
-        </div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <article class="bg-white p-2 p-md-4 rounded shadow-sm border">
+                
+                {% if news.category %}
+                <span class="badge bg-danger mb-2 px-3 py-2 uppercase">{{ news.category }}</span>
+                {% endif %}
 
-        {% if news.youtube_url %}
-        <div class="ratio ratio-16x9 my-4">
-          <iframe src="{{ news.youtube_url }}" title="YouTube video" allowfullscreen></iframe>
-        </div>
-        {% endif %}
+                <h1 class="news-main-title mb-3">
+                    {{ news.title }}
+                </h1>
 
-        <p class="text-muted mt-4 text-end small">
-          🗓️ {{ news.date|date:"d M Y, h:i A" }} |
-          📍 {{ news.district|default:"District Unavailable" }}
-        </p>
+                <div class="news-meta d-flex align-items-center justify-content-between flex-wrap border-top border-bottom py-2 mb-4">
+                    <div class="d-flex align-items-center py-1">
+                        <img src="https://ui-avatars.com/api/?name=UP+Halchal&background=random" class="rounded-circle me-2" width="35" alt="Author">
+                        <div>
+                            <p class="mb-0 fw-bold small">टीम यूपी हलचल</p>
+                            <small class="text-muted"><i class="far fa-clock"></i> {{ news.date|date:"d M Y, h:i A" }}</small>
+                        </div>
+                    </div>
+                    <div class="py-1">
+                        <span class="badge bg-light text-dark border"><i class="fas fa-map-marker-alt text-danger"></i> {{ news.district|default:"Uttar Pradesh" }}</span>
+                    </div>
+                </div>
 
-        <div class="mt-4 pt-3 border-top text-center">
-          <h4 class="fw-bold mb-3">🤝 यह खबर साझा करें!</h4>
-          
-          {% comment %}
-          ध्यान दें: 
-          - `window.location.href` वर्तमान समाचार URL देगा।
-          - `news.title` समाचार का शीर्षक देगा।
-          - ये बटन लोकप्रिय सोशल मीडिया प्लेटफॉर्म के लिए हैं। आप इसमें और भी जोड़ सकते हैं।
-          {% endcomment %}
+                {% if news.image %}
+                <figure class="figure w-100 text-center">
+                    <img src="{{ news.image.url }}" class="img-fluid rounded shadow-sm w-100 main-img" alt="{{ news.title }}">
+                    <figcaption class="figure-caption text-start mt-2 small italic">यूपी हलचल ब्यूरो | फोटो: सोशल मीडिया</figcaption>
+                </figure>
+                {% endif %}
 
-          <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-primary me-2 mb-2" title="Facebook पर शेयर करें">
-            <i class="fab fa-facebook-f"></i> Facebook
-          </a>
+                <div class="ad-placeholder my-4 py-3 bg-light text-center border rounded small text-muted">
+                    <script async="async" data-cfasync="false" src="https://encouragementglutton.com/33a48d4c698419feff59591694dee533/invoke.js"></script>
+                    <div id="container-33a48d4c698419feff59591694dee533"></div>
+                </div>
 
-          <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ news.title|urlencode }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-info text-white me-2 mb-2" title="Twitter पर शेयर करें">
-            <i class="fab fa-twitter"></i> Twitter
-          </a>
-          
-          <a href="https://api.whatsapp.com/send?text={{ news.title|urlencode }}:%20{{ request.build_absolute_uri }}" 
-             target="_blank" rel="noopener noreferrer" 
-             class="btn btn-success me-2 mb-2" title="WhatsApp पर शेयर करें">
-            <i class="fab fa-whatsapp"></i> WhatsApp
-          </a>
+                <div class="news-content-body mt-4">
+                    {{ news.content|safe }}
+                </div>
 
-          <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" 
-                  class="btn btn-secondary me-2 mb-2" title="लिंक कॉपी करें">
-            <i class="fas fa-link"></i> लिंक कॉपी करें
-          </button>
-        </div>
-        </article>
+                {% if news.youtube_url %}
+                <div class="video-container my-4 shadow-lg rounded overflow-hidden">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="{{ news.youtube_url|safe }}" title="YouTube video" allowfullscreen></iframe>
+                    </div>
+                    <p class="bg-dark text-white p-2 small mb-0 text-center"><i class="fab fa-youtube text-danger"></i> वीडियो देखें</p>
+                </div>
+                {% endif %}
 
-      <section class="mt-5">
-        <h3 class="fw-bold mb-3">💬 टिप्पणियाँ</h3>
+                <div class="share-box bg-light p-3 rounded-3 d-flex align-items-center justify-content-between mt-5">
+                    <span class="fw-bold small d-none d-sm-inline">खबर शेयर करें:</span>
+                    <div class="share-icons d-flex gap-2">
+                        <a href="https://api.whatsapp.com/send?text={{ request.build_absolute_uri }}" target="_blank" class="btn btn-success btn-sm rounded-circle"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary btn-sm rounded-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-info text-white btn-sm rounded-circle"><i class="fab fa-twitter"></i></a>
+                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" class="btn btn-secondary btn-sm rounded-circle"><i class="fas fa-link"></i></button>
+                    </div>
+                </div>
 
-        <div class="comments-list">
-          {% for comment in comments %}
-          <div class="p-3 mb-3 border rounded-3 bg-light shadow-sm">
-            <strong>{{ comment.name }}</strong>
-            <span class="text-muted small">({{ comment.date|date:"d M Y, h:i A" }})</span>
-            <p class="mt-2">{{ comment.comment }}</p>
-          </div>
-          {% empty %}
-          <p class="text-muted">कोई टिप्पणी नहीं है — पहला कमेंट आप करें!</p>
-          {% endfor %}
+            </article>
         </div>
 
-        <h4 class="fw-bold mt-4 mb-3">✍️ नई टिप्पणी जोड़ें</h4>
-        <form method="POST" class="p-4 bg-white shadow rounded-3">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label">नाम</label>
-            <input type="text" name="name" class="form-control" placeholder="अपना नाम लिखें" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">ईमेल (वैकल्पिक)</label>
-            <input type="email" name="email" class="form-control" placeholder="example@gmail.com">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">टिप्पणी</label>
-            <textarea name="comment" class="form-control" rows="3" placeholder="अपनी टिप्पणी लिखें..." required></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">टिप्पणी भेजें</button>
-        </form>
-      </section>
+        <div class="col-lg-4">
+           
+                <div class="sidebar-news-list">
+                    {% include 'mynews/sidebars/news_detail_sidebar.html' %}
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-lg-4">
-      {% include 'mynews/sidebar.html' %}
-    </div>
-  </div>
 </div>
 
 <style>
-.news-image {
-  max-width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 10px;
-  overflow: hidden;
-  display: block;
-  margin: 0 auto;
-}
-article {
-  overflow: hidden;
-}
+    /* Professional Typography */
+    .news-main-title {
+        font-family: 'Noto Serif Devanagari', serif;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.3;
+        color: #1a1a1a;
+    }
+
+    .news-content-body {
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px !important;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .news-content-body p {
+        margin-bottom: 20px;
+    }
+
+    /* Images & Elements */
+    .main-img {
+        max-height: 450px;
+        object-fit: cover;
+    }
+
+    .news-meta {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        .news-main-title { font-size: 24px; }
+        .news-content-body { font-size: 16px !important; }
+        .p-md-4 { padding: 15px !important; }
+    }
+
+    /* Buttons */
+    .btn-sm.rounded-circle {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .video-container {
+        border: 1px solid #ddd;
+    }
+
+    /* Force Hindi Font Size on Editor Content */
+    .news-content-body * {
+        font-size: inherit !important;
+    }
 </style>
 
 <script>
-  function copyToClipboard(text) {
-    // एक अस्थायी टेक्स्टएरिया एलिमेंट बनाएं
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    // इसे दृश्यमान क्षेत्र से बाहर रखें
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    document.body.appendChild(textarea);
-    
-    // टेक्स्ट को चुनें और कॉपी करें
-    textarea.select();
-    try {
-      document.execCommand('copy');
-      alert('लिंक कॉपी हो गया है!');
-    } catch (err) {
-      console.error('Copy failed:', err);
-    }
-    
-    // अस्थायी एलिमेंट को हटा दें
-    document.body.removeChild(textarea);
-  }
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('लिंक कॉपी हो गया है!');
+    });
+}
 </script>
-
 {% endblock %}

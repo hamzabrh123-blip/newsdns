@@ -1,123 +1,119 @@
 import os
-import dj_database_url
 from pathlib import Path
+import dj_database_url
 
+# ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-+lm2ae99@mq!0!4m+663b&^9m3ye(85$$2@(@f=4go(j2m!^ez"
-DEBUG = True
+
+
+
+
+# ---------------- SECURITY ----------------
+# Render Environment se uthayega, nahi milega toh default use karega (Crash nahi hoga)
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
+
+DEBUG = True # Sab theek hone ke baad False kar dena
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
-    "halchal.onrender.com",
+    "halchal.onrender.com", 
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://halchal.onrender.com",
+    "http://halchal.onrender.com",
+]
+# ---------------- APPS ----------------
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 
-    # your apps
-    'mynews',
-
-    # rich text editor
-    'ckeditor',
-    'ckeditor_uploader',
-
-    # cloudinary
-    'cloudinary',
-    'cloudinary_storage',
+    "mynews",
+    "ckeditor",
+    "ckeditor_uploader",
+    "cloudinary",
 ]
 
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'mysite.urls'
+ROOT_URLCONF = "mysite.urls"
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                # Temporary hata diya hai crash rokne ke liye
+                # "mynews.context_processors.important_news",
+                # "mynews.context_processors.site_visits",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'mysite.wsgi.application'
+WSGI_APPLICATION = "mysite.wsgi.application"
 
-# -------- Database ---------
+# ---------------- DATABASE ----------------
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://brhnewsdb_user:Wg0XSw1GablPeCkybLFZ1wQ47CfW67M1@dpg-d4oqla7diees73dpqq60-a.oregon-postgres.render.com/brhnewsdb"
-        ),
-        conn_max_age=600,
-        ssl_require=True
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=0,  # Isse timeout ke chances kam ho jate hain
     )
 }
 
-# ---------------- PASSWORD VALIDATION ----------------
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# ---------------- GENERAL SETTINGS ----------------
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
+}
+# ---------------- GENERAL ----------------
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
 USE_I18N = True
 USE_TZ = True
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ---------------- STATIC FILES ----------------
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# ---------------- STATIC & MEDIA ----------------
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Isse error nahi aayega agar static folder na bhi ho
+STATIC_DIR = BASE_DIR / "static"
+if STATIC_DIR.exists():
+    STATICFILES_DIRS = [STATIC_DIR]
 
-# ------------ CLOUDINARY SETTINGS ------------
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dvoqsrkkq',
-    'API_KEY': '468226887694915',
-    'API_SECRET': '1j2X6nWy-0xZqdbr6e9puCVC8VE',
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "hamzabrh123@gmail.com"
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "your-app-password")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+# ---------------- CKEDITOR ----------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"

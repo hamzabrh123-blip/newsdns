@@ -1,59 +1,128 @@
-{% load encode_tags %}
-
-<!-- 📂 templates/mynews/sidebar.html -->
 <aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
 
-  <!-- 🔍 Search -->
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414"
-     crossorigin="anonymous"></script>
-  <h5 class="mb-3 text-primary fw-bold">🔍 खोजें</h5>
-  <form method="get" action="/">
-    <div class="input-group mb-4">
-      <input name="q" class="form-control" placeholder="Search news..." value="{{ request.GET.q }}">
-      <button class="btn btn-primary">Go</button>
-    </div>
-  </form>
-
-  <!-- 📂 Categories -->
-  <h5 class="text-primary fw-bold mb-3">📂 श्रेणियाँ</h5>
-  <ul class="list-unstyled mb-4">
-    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Breaking</a></li>
-    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Politics</a></li>
-    <li><a href="#" class="text-decoration-none text-dark d-block py-1">Local</a></li>
-  </ul>
-
-  <h5 class="text-primary fw-bold mb-3">⭐ महत्वपूर्ण खबरें</h5>
-  {% for it in important|slice:":3" %}
-    <div class="mb-2 small border-bottom pb-2">
-<a href="{% url 'news_detail' slug=n.title|slugify code=n.id|encode_news_id %}"
-   class="btn btn-outline-primary btn-sm">
-       {{ it.title|truncatechars:60 }}
-    </a>
-    </div>
-  {% empty %}
-    <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
-  {% endfor %}
-
-{% for item in important|slice:":3" %}
-  <div class="mb-2 small border-bottom pb-2">
-  {% if item.slug %}
-<a href="{% url 'news_detail' slug=item.slug %}">{{ item.title|truncatechars:60 }}</a>
-{% endif %}
+  <div class="mb-4 text-center border-bottom pb-3">
+    <small class="text-muted d-block mb-1">ADVERTISEMENT</small>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3171847065256414" data-ad-slot="8971643398" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
-{% empty %}
-  <p class="text-muted small">कोई प्रमुख खबर नहीं।</p>
-{% endfor %}
+
+  {% if bharat_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-danger">🇮🇳 भारत (National)</h5>
+    {% for item in bharat_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="{% url 'national_news' %}" class="view-all text-danger">सभी भारत की खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if duniya_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-primary">🌍 दुनिया (International)</h5>
+    {% for item in duniya_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="{% url 'international_news' %}" class="view-all text-primary">सभी दुनिया की खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <hr>
+
+  {% if lucknow_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
+    {% for item in lucknow_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Lucknow/" class="view-all text-primary">लखनऊ की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if sitapur_barabanki_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-secondary" style="border-left: 5px solid #6c757d; padding-left: 10px;">📍 सीतापुर - बाराबंकी</h5>
+    {% for item in sitapur_barabanki_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Sitapur-Barabanki/" class="view-all text-secondary">और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if shravasti_balrampur_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 श्रावस्ती - बलरामपुर</h5>
+    {% for item in shravasti_balrampur_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Shravasti-Balrampur/" class="view-all text-warning">और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if gonda_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍 गोंडा</h5>
+    {% for item in gonda_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Gonda/" class="view-all text-info">गोंडा की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if bahraich_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-success" style="border-left: 5px solid #28a745; padding-left: 10px;">📍 बहराइच</h5>
+    {% for item in bahraich_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Bahraich/" class="view-all text-success">बहराइच की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
 </aside>
 
-<!-- ✅ Optional Styling -->
 <style>
-.sidebar {
-  position: sticky;
-  top: 80px; /* navbar ke niche */
-}
-@media (max-width: 991px) {
-  .sidebar {
-    margin-top: 2rem;
-  }
-}
+.sidebar { position: sticky; top: 80px; }
+.sidebar-title { font-weight: 800; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 12px; }
+.sidebar-item { display: flex; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f1f1; }
+.sidebar-img { width: 70px; height: 50px; border-radius: 4px; object-fit: cover; margin-right: 10px; }
+.sidebar-item a { color: #222; text-decoration: none; font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+.sidebar-item a:hover { color: #d32f2f !important; }
+.view-all { font-size: 0.75rem; font-weight: bold; text-decoration: none; }
+.view-all:hover { text-decoration: underline; opacity: 0.8; }
 </style>

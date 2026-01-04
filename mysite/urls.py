@@ -1,21 +1,24 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
-from django.template.loader import render_to_string
-from mynews import views
-from mynews.views import create_admin
+
+def google_verify(request):
+    return HttpResponse(
+        "google-site-verification: google21a82f00fad0f9b3.html",
+        content_type="text/html"
+    )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('mynews.urls')),
-    path('ckeditor/', include('ckeditor_uploader.urls')),
-]
+    path(
+        "google21a82f00fad0f9b3.html",
+        google_verify
+    ),
 
-urlpatterns += [
-    path("create-admin/", create_admin),
-    path("admin-login/", views.admin_login, name="admin_login"),
-    path("admin-verify/", views.admin_verify, name="admin_verify"),
+    path('', include('mynews.urls')),  # Main app urls
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.DEBUG:
