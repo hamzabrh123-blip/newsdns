@@ -78,13 +78,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
-# Render par Database connect karne ka sabse safe tareeka:
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True  # Sirf ye line rehne dein
+        conn_max_age=0,  # 0 karne se timeout ke chances kam ho jate hain
     )
+}
+
+# Oregon server ke liye ye settings RAMBAAN hain
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
 }
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
