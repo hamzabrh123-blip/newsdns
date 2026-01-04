@@ -68,7 +68,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 # Temporary hata diya hai crash rokne ke liye
-                # "mynews.context_processors.important_news",
+                "mynews.context_processors.important_news",
                 # "mynews.context_processors.site_visits",
             ],
         },
@@ -80,22 +80,16 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # ---------------- DATABASE ----------------
 DATABASES = {
     'default': dj_database_url.config(
+        # Render par ye variable automatically uthaya jayega
         default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600, # Connection ko thoda hold karne ke liye
+        conn_max_age=600,
     )
 }
 
-# Ye line sabse zaroori hai SSL error hatane ke liye
+# SSL/Connection errors se bachne ke liye ye zaroori hai
 DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
 }
-# Naya SQLite wala dalo
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-#}
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
