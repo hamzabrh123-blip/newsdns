@@ -37,8 +37,8 @@ INSTALLED_APPS = [
 
     "mynews",
     "ckeditor",
-    "ckeditor_uploader",
-    "cloudinary",
+   # "ckeditor_uploader",
+    #"cloudinary",
 ]
 
 # ---------------- MIDDLEWARE ----------------
@@ -78,15 +78,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- DATABASE ----------------
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=0,
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL'),
+#         conn_max_age=0,
+#     )
+# }
 
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
+# Naya SQLite wala dalo
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
@@ -116,4 +120,4 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ---------------- CKEDITOR ----------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
+#CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
