@@ -20,10 +20,9 @@ class News(models.Model):
     ]
 
     DISTRICT_CHOICES = [
-        ('Lucknow', 'Lucknow'),
-        ('Bahraich', 'Bahraich'),
-        ('Gonda', 'Gonda'),
-        ('Shravasti-Balrampur', 'Shravasti-Balrampur'),
+        ('Lucknow-UP', 'Lucknow-UP'),
+        ('Purvanchal', 'Purvanchal'),
+        ('Bahraich-Gonda', 'Bahraich-Gonda'),
         ('Sitapur-Barabanki', 'Sitapur-Barabanki'),
     ]
 
