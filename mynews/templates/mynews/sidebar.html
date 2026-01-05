@@ -39,24 +39,61 @@
 
   <hr>
 
-  {% if lucknow_sidebar %}
+"bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
+        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
+        "lucknow_up_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:3],
+         "purvanchal_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:3],
+        "bahraich_gonda_sidebar": News.objects.filter(district='Bahraich-Gonda').order_by("-date")[:3],
+        "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
+  
+  {% if lucknow_up_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
-    {% for item in lucknow_sidebar %}
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ और उत्तर प्रदेश </h5>
+    {% for item in lucknow_up_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
         <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/Lucknow/" class="view-all text-primary">लखनऊ की और खबरें →</a>
+        <a href="/district/Lucknow-UP/" class="view-all text-primary">लखनऊ और उत्तर प्रदेश की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if purvanchal_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-secondary" style="border-left: 5px solid #6c757d; padding-left: 10px;">📍 पूर्वांचल यूपी </h5>
+    {% for item in purvanchal_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Purvanchal/" class="view-all text-secondary">पूर्वांचल उत्तर प्रदेश की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if bahraich_gonda_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 बहराइच-गोण्डा-बलरामपुर-श्रावस्ती </h5>
+    {% for item in  %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Bahraich-Gonda/" class="view-all text-warning">बहराइच-गोण्डा-बलरामपुर-श्रावस्ती की और खबरें →</a>
     </div>
   </div>
   {% endif %}
 
   {% if sitapur_barabanki_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-secondary" style="border-left: 5px solid #6c757d; padding-left: 10px;">📍 सीतापुर - बाराबंकी</h5>
+    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍सीतापुर-बाराबंकी-लखीमपुर-पीलीभीत</h5>
     {% for item in sitapur_barabanki_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
@@ -64,52 +101,7 @@
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/Sitapur-Barabanki/" class="view-all text-secondary">और खबरें →</a>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if shravasti_balrampur_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 श्रावस्ती - बलरामपुर</h5>
-    {% for item in shravasti_balrampur_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="/district/Shravasti-Balrampur/" class="view-all text-warning">और खबरें →</a>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if gonda_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍 गोंडा</h5>
-    {% for item in gonda_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="/district/Gonda/" class="view-all text-info">गोंडा की और खबरें →</a>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if bahraich_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-success" style="border-left: 5px solid #28a745; padding-left: 10px;">📍 बहराइच</h5>
-    {% for item in bahraich_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="/district/Bahraich/" class="view-all text-success">बहराइच की और खबरें →</a>
+        <a href="/district/Sitapur-Barabanki/" class="view-all text-info">सीतापुर-बाराबंकी-लखीमपुर-पीलीभीत की और खबरें →</a>
     </div>
   </div>
   {% endif %}
