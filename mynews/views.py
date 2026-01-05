@@ -15,10 +15,9 @@ def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
-        "lucknow_sidebar": News.objects.filter(district='Lucknow').order_by("-date")[:3],
-        "bahraich_sidebar": News.objects.filter(district='Bahraich').order_by("-date")[:3],
-        "gonda_sidebar": News.objects.filter(district='Gonda').order_by("-date")[:3],
-        "shravasti_balrampur_sidebar": News.objects.filter(district='Shravasti-Balrampur').order_by("-date")[:3],
+        "lucknow_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:3],
+         "gonda_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:3],
+        "bahraich_sidebar": News.objects.filter(district='Bahraich-Gonda').order_by("-date")[:3],
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:3],
     }
 
