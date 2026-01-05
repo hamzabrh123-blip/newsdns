@@ -71,7 +71,7 @@
   {% if bahraich_gonda_sidebar %}
   <div class="mb-4">
     <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 बहराइच-गोण्डा-बलरामपुर-श्रावस्ती </h5>
-    {% for item in  %}
+    {% for item in bahraich_gonda_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
         <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
