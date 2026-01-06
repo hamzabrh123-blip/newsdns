@@ -7,30 +7,27 @@ from .models import News, Comment
 from django.conf import settings
 import logging
 
-# Logger setup taaki email error console mein dikhe
+# Logger setup
 logger = logging.getLogger(__name__)
 
-# ✅ OPTIMIZED SIDEBAR DATA (Common sidebar logic)
+# ✅ OPTIMIZED SIDEBAR DATA
 def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
         "lucknow_up_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:10],
-         "purvanchal_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:10],
+        "purvanchal_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:10],
         "bahraich_gonda_sidebar": News.objects.filter(district='Bahraich-Gonda').order_by("-date")[:10],
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:5],
     }
 
-# ================= HOME =================
+# ================= HOME (MODIFIED) =================
 def home(request):
     query = request.GET.get("q")
     if query:
         news_list = News.objects.filter(title__icontains=query).order_by("-date")
     else:
-        news_list = News.objects.filter(
-            models.Q(category__in=['National', 'International']) | 
-            models.Q(is_important=True)
-        ).distinct().order_by("-date")
+        news_list = News.objects.filter(is_important=True).order_by("-date")
 
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -96,7 +93,7 @@ def district_news(request, district):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= CONTACT US (FIXED) =================
+# ================= CONTACT US =================
 def contact_us(request):
     success = False
     if request.method == "POST":
@@ -113,25 +110,16 @@ def contact_us(request):
                 message=full_message,
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[settings.EMAIL_HOST_USER],
-                fail_silently=False, # Ise False karein taaki logs mein asli error dikhe
+                fail_silently=False,
             )
             success = True
         except Exception as e:
-            # Agar logger kaam na kare toh print check karein
             print(f"Email Error: {e}") 
-            # Render par logs dekhne ke liye logger zaroori hai
             logger.error(f"Contact Form Error: {e}")
-            # User ko lage ki message chala gaya taaki wo bar bar click na kare
             success = True 
 
-    # Common sidebar data add karna mat bhulna jo aapne banaya tha
     context = {"success": success}
-    try:
-        from .views import get_common_sidebar_data
-        context.update(get_common_sidebar_data())
-    except:
-        pass
-
+    context.update(get_common_sidebar_data())
     return render(request, "mynews/contact_us.html", context)
 
 # ================= STATIC PAGES =================
@@ -153,7 +141,6 @@ def robots_txt(request):
 
 def sitemap_xml(request):
     base_url = "https://halchal.up.railway.app"
-    # Optimization: Sirf zaroori fields fetch karein
     news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").only("slug")
     
     urls = [f"{base_url}/"]
