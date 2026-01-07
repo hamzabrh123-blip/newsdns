@@ -137,10 +137,19 @@ def ads_txt(request):
     return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
 
 def robots_txt(request):
-    return HttpResponse("User-Agent: *\nDisallow:\n\nSitemap: https://halchal.up.railway.app/sitemap.xml", content_type="text/plain")
+    # Maine admin pages ko disallow kar diya hai security ke liye
+    content = (
+        "User-Agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin_login.html\n"
+        "Disallow: /admin_verify.html\n\n"
+        "Sitemap: https://halchal.onrender.com/sitemap.xml"
+    )
+    return HttpResponse(content, content_type="text/plain")
 
 def sitemap_xml(request):
-    base_url = "https://halchal.up.railway.app"
+    # Yahan Railway ki jagah Render wala URL daal diya hai
+    base_url = "https://halchal.onrender.com"
     news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").only("slug")
     
     urls = [f"{base_url}/"]
