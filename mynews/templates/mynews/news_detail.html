@@ -3,7 +3,11 @@
 
 {% block title %}{{ news.title }} | UP Halchal{% endblock %}
 
-{# ✅ Sabse main sudhaar: Saare meta tags isi block ke andar hone chahiye #}
+{% extends 'mynews/base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} | UP Halchal{% endblock %}
+
 {% block social_meta %}
 <meta name="description" content="{{ news.content|striptags|truncatewords:25 }}">
 <meta property="og:type" content="article">
@@ -12,20 +16,25 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
 {% if news.image %}
-    <meta property="og:image" content="{{ news.image.url|cut:'http://'|add:'https://' }}">
-    <meta property="og:image:secure_url" content="{{ news.image.url|cut:'http://'|add:'https://' }}">
+    {# ✅ Yahan se 'add' aur 'cut' filters hata diye hain taaki URL kharab na ho #}
+    <meta property="og:image" content="{{ news.image.url }}">
+    <meta property="og:image:secure_url" content="{{ news.image.url }}">
 {% else %}
     <meta property="og:image" content="https://halchal.onrender.com/static/logo.png">
 {% endif %}
 
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:type" content="image/png">
 <meta property="og:site_name" content="Halchal News">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ news.image.url|cut:'http://'|add:'https://' }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
+{# ✅ Twitter ke liye bhi clean URL #}
+<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
+{% endblock %}
+
+{% block content %}
 {% endblock %}
 
 {% block content %}
