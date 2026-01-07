@@ -5,21 +5,22 @@
 
 {% block extra_head %}
 <meta name="description" content="{{ news.content|striptags|truncatewords:25 }}">
-<meta name="keywords" content="{{ news.title|replace:' ',', ' }}, {{ news.district }}, news today, up halchal, hindi news">
+<meta name="keywords" content="{{ news.title }}, {{ news.district }}, news today, up halchal, hindi news">
 
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ news.title }}">
 <meta property="og:description" content="{{ news.content|striptags|truncatewords:20 }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
 {% if news.image %}
-<meta property="og:image" content="https://halchal.onrender.com{{ news.image.url }}">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}">
 {% else %}
-<meta property="og:image" content="https://halchal.onrender.com/static/logo.png">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}">
 {% endif %}
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="https://halchal.onrender.com{% if news.image %}{{ news.image.url }}{% else %}/static/logo.png{% endif %}">
+<meta name="twitter:image" content="{% if news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
 {% endblock %}
 
 {% block content %}
