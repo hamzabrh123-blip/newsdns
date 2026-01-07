@@ -151,18 +151,20 @@ def robots_txt(request):
 
 # 3. Google Indexing ke liye sitemap.xml
 def sitemap_xml(request):
-    base_url = "https://halchal.onrender.com"
+    # Railway hata kar yahan Render wala URL hi rakhein
+    base_url = "https://halchal.onrender.com" 
     news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").order_by('-date')[:500]
     
     xml = '<?xml version="1.0" encoding="UTF-8"?>'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     
-    # Homepage
+    # 1. Homepage
     xml += f"<url><loc>{base_url}/</loc><priority>1.0</priority></url>"
     
-    # News Pages
+    # 2. News Pages
     for news in news_items:
-        url = f"{base_url}/{news.slug}/"
+        # ✅ Slug ke aage '/' lagana bahut zaroori hai
+        url = f"{base_url}/{news.slug}/" 
         xml += f"<url><loc>{url}</loc><priority>0.8</priority></url>"
         
     xml += "</urlset>"
