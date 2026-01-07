@@ -12,22 +12,24 @@
 <meta property="og:description" content="{{ news.content|striptags|truncatewords:20 }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
-{# ✅ Sabse Zaroori: Image Logic ko Hardcode kar rahe hain #}
 {% if news.image %}
-    <meta property="og:image" content="{{ news.image.url }}">
-    <meta property="og:image:url" content="{{ news.image.url }}">
-    <meta property="og:image:secure_url" content="{{ news.image.url }}">
+    {# Yahan hum http ko https mein badal rahe hain aur full path ensure kar rahe hain #}
+    <meta property="og:image" content="{{ news.image.url|cut:'http://'|add:'https://' }}">
+    <meta property="og:image:secure_url" content="{{ news.image.url|cut:'http://'|add:'https://' }}">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
 {% else %}
     <meta property="og:image" content="https://halchal.onrender.com/static/logo.png">
 {% endif %}
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
-{% endblock %}
+{% if news.image %}
+    <meta name="twitter:image" content="{{ news.image.url|cut:'http://'|add:'https://' }}">
+{% else %}
+    <meta name="twitter:image" content="https://halchal.onrender.com/static/logo.png">
+{% endif %}
+
+<meta property="fb:app_id" content="123456789"> {% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -86,13 +88,7 @@
                 <div class="video-container my-4 shadow rounded overflow-hidden border">
                     <h5 class="p-2 bg-light mb-0" style="font-size: 1rem;">वीडियो रिपोर्ट</h5>
                     <div class="ratio ratio-16x9">
-                        <iframe 
-                            src="{{ news.youtube_url }}" 
-                            title="YouTube video player" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen>
-                        </iframe>
+                        <iframe src="{{ news.youtube_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
                 {% endif %}
