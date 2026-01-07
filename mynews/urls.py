@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
-from .views import robots_txt, sitemap_xml
 
+# Note: robots_txt aur sitemap_xml hum views se hi le rahe hain
 urlpatterns = [
     # ===== CORE PAGES =====
     path("", views.home, name="home"),
@@ -9,9 +9,9 @@ urlpatterns = [
     path("international/", views.international_news, name="international_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
 
-    # ===== SEO / SYSTEM FILES =====
-    path("robots.txt", robots_txt),
-    path("sitemap.xml", sitemap_xml),
+    # ===== SEO / SYSTEM FILES (No extra .txt files needed) =====
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("sitemap.xml", views.sitemap_xml, name="sitemap_xml"),
     path("ads.txt", views.ads_txt, name="ads_txt"),
 
     # ===== ADSENSE IMPORTANT PAGES =====
@@ -20,7 +20,6 @@ urlpatterns = [
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # ===== NEWS DETAIL (Sirf ek clean path rakhein) =====
-    # <path:slug> tabhi use karein agar slug mein '/' aata ho, warna <slug:slug> behtar hai
+    # ===== NEWS DETAIL (Hamesha Last Mein Rakhein) =====
     path("<path:slug>/", views.news_detail, name="news_detail"),
 ]
