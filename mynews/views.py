@@ -133,31 +133,37 @@ def disclaimer(request):
     return render(request, "mynews/disclaimer.html")
 
 # ================= SEO & ADS =================
+# 1. Google AdSense ke liye ads.txt
 def ads_txt(request):
-    return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(content, content_type="text/plain")
 
+# 2. Search Engines ke liye robots.txt
 def robots_txt(request):
-    # Maine admin pages ko disallow kar diya hai security ke liye
     content = (
         "User-Agent: *\n"
         "Allow: /\n"
         "Disallow: /admin_login.html\n"
-        "Disallow: /admin_verify.html\n\n"
+        "Disallow: /admin_verify.html\n"
         "Sitemap: https://halchal.onrender.com/sitemap.xml"
     )
     return HttpResponse(content, content_type="text/plain")
 
+# 3. Google Indexing ke liye sitemap.xml
 def sitemap_xml(request):
-    # Yahan Railway ki jagah Render wala URL daal diya hai
     base_url = "https://halchal.onrender.com"
-    news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").only("slug")
+    news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").order_by('-date')[:500]
     
-    urls = [f"{base_url}/"]
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    
+    # Homepage
+    xml += f"<url><loc>{base_url}/</loc><priority>1.0</priority></url>"
+    
+    # News Pages
     for news in news_items:
-        urls.append(f"{base_url}/{news.slug}")
+        url = f"{base_url}/{news.slug}/"
+        xml += f"<url><loc>{url}</loc><priority>0.8</priority></url>"
         
-    xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-    for url in urls:
-        xml += f"<url><loc>{url}</loc></url>"
     xml += "</urlset>"
     return HttpResponse(xml, content_type="application/xml")
