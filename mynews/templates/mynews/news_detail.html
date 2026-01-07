@@ -3,11 +3,6 @@
 
 {% block title %}{{ news.title }} | UP Halchal{% endblock %}
 
-{% extends 'mynews/base.html' %}
-{% load static %}
-
-{% block title %}{{ news.title }} | UP Halchal{% endblock %}
-
 {% block social_meta %}
 <meta name="description" content="{{ news.content|striptags|truncatewords:25 }}">
 <meta property="og:type" content="article">
@@ -16,7 +11,7 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
 {% if news.image %}
-    {# ✅ Yahan se 'add' aur 'cut' filters hata diye hain taaki URL kharab na ho #}
+    {# ✅ Bilkul clean URL bina kisi extra filter ke #}
     <meta property="og:image" content="{{ news.image.url }}">
     <meta property="og:image:secure_url" content="{{ news.image.url }}">
 {% else %}
@@ -30,11 +25,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-{# ✅ Twitter ke liye bhi clean URL #}
 <meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
-{% endblock %}
-
-{% block content %}
 {% endblock %}
 
 {% block content %}
