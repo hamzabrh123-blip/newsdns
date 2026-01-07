@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /admin_login.html
+Disallow: /admin_verify.html
+
+Sitemap: https://halchal.onrender.com/sitemap.xml
