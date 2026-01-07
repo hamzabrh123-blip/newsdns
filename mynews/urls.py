@@ -1,5 +1,4 @@
 from django.urls import path
-from django.urls import path, re_path
 from . import views
 from .views import robots_txt, sitemap_xml
 
@@ -14,13 +13,14 @@ urlpatterns = [
     path("robots.txt", robots_txt),
     path("sitemap.xml", sitemap_xml),
     path("ads.txt", views.ads_txt, name="ads_txt"),
-    # ===== adseence important page=====
+
+    # ===== ADSENSE IMPORTANT PAGES =====
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("about-us/", views.about_us, name="about_us"),
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # ===== NEWS DETAIL (ALWAYS LAST) =====
+    # ===== NEWS DETAIL (Sirf ek clean path rakhein) =====
+    # <path:slug> tabhi use karein agar slug mein '/' aata ho, warna <slug:slug> behtar hai
     path("<path:slug>/", views.news_detail, name="news_detail"),
-    re_path(r'^(?P<slug>.+)/$', views.news_detail, name='news_detail'),
 ]
