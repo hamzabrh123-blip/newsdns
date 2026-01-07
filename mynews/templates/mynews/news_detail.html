@@ -14,7 +14,7 @@
 <meta property="og:image:type" content="image/jpeg">
 {% endblock %}
 
-{# ✅ Ye dono blocks base.html wale logo ko overwrite kar denge #}
+{# ✅ Ye blocks base.html ke default logo ko replace karenge #}
 {% block og_image %}{% if news.image %}{{ news.image.url|cut:'http://'|add:'https://' }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}{% endblock %}
 {% block tw_image %}{% if news.image %}{{ news.image.url|cut:'http://'|add:'https://' }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}{% endblock %}
 
