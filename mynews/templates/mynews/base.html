@@ -24,24 +24,22 @@
 
 
  
-<!-- Open Graph Meta Tags -->
-<meta property="og:type" content="article" />
-<meta property="og:title" content="{{ news.title }}" />
- 
-{% if news.image %}
-<meta property="og:image" content="{{ news.image.url }}" />
-{% else %}
-<meta property="og:image" content="{% static 'logo.png' %}" />
-{% endif %}
- 
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:site_name" content="Halchal News" />
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{% block og_title %}Halchal UP | Uttar Pradesh Hindi News{% endblock %}">
+<meta property="og:description" content="{% block og_description %}UP ki taaza khabrein aur Railway updates.{% endblock %}">
 
-<!-- Twitter Card Meta Tags -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="{{ news.title }}" />
-<meta name="twitter:image" content="{{ news.image.url }}" />
+{% block og_image %}
+<meta property="og:image" content="https://halchal.onrender.com/static/logo.png">
+{% endblock %}
+
+<meta property="og:site_name" content="Halchal News">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% block tw_title %}Halchal UP News{% endblock %}">
+{% block tw_image %}
+<meta name="twitter:image" content="https://halchal.onrender.com/static/logo.png">
+{% endblock %}
     <style>
      /* Navbar ko sabse upar rakhne ke liye */
 .navbar {
