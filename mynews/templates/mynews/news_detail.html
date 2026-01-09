@@ -11,17 +11,20 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
 {% if news.image %}
-    {# ✅ Social image ke liye absolute URL zaroori hai #}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}">
+    {# ✅ Fixed: Cloudinary provides full URL, so no need for request.get_host here #}
+    <meta property="og:image" content="{{ news.image.url }}">
+    <meta property="og:image:secure_url" content="{{ news.image.url }}">
 {% else %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}">
 {% endif %}
 
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:site_name" content="UP Halchal">
+
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
+<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
 {% endblock %}
 
 {% block content %}
@@ -65,7 +68,6 @@
 
                 {% if news.image %}
                 <figure class="figure w-100 text-center">
-                    {# ✅ Removed Cloudinary filters for stability #}
                     <img src="{{ news.image.url }}" 
                          class="img-fluid rounded shadow-sm w-100 main-img" 
                          alt="{{ news.title }}"
@@ -95,70 +97,4 @@
                         <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success px-4 rounded-pill">
                             <i class="fab fa-whatsapp me-2"></i>WhatsApp
                         </a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary px-4 rounded-pill">
-                            <i class="fab fa-facebook-f me-2"></i>Facebook
-                        </a>
-                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" class="btn btn-dark px-4 rounded-pill">
-                            <i class="fas fa-link me-2"></i>Copy
-                        </button>
-                    </div>
-                </div>
-            </article>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 90px;">
-                {% include 'mynews/sidebar.html' %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .news-main-title { 
-        font-family: 'Noto Serif Devanagari', serif; 
-        font-size: 34px; 
-        font-weight: 700; 
-        line-height: 1.3; 
-        color: #000; 
-    }
-    .news-content-body { 
-        font-family: 'Poppins', sans-serif; 
-        font-size: 19px !important; 
-        line-height: 1.9; 
-        color: #222; 
-    }
-    .news-content-body p { margin-bottom: 1.5rem; }
-    
-    .news-content-body img {
-        max-width: 100% !important;
-        height: auto !important;
-        border-radius: 12px;
-        margin: 25px 0;
-        display: block;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .main-img { 
-        max-height: 500px; 
-        object-fit: cover; 
-        width: 100%; 
-        border: 1px solid #eee;
-    }
-    
-    @media (max-width: 768px) {
-        .news-main-title { font-size: 26px; }
-        .news-content-body { font-size: 18px !important; }
-        .main-img { max-height: 300px; }
-        .share-box .btn { padding: 8px 15px; font-size: 0.9rem; }
-    }
-</style>
-
-<script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('लिंक कॉपी हो गया है! अब आप इसे कहीं भी शेयर कर सकते हैं।');
-    });
-}
-</script>
-{% endblock %}
+                        <a href="
