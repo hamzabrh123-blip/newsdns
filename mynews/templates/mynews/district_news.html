@@ -15,8 +15,8 @@
       
       <div class="district-header mb-4 p-3 bg-white shadow-sm rounded-3 border-start border-4 border-danger">
         <div class="d-flex align-items-center justify-content-between flex-wrap">
-          <h2 class="fw-bold mb-0 main-title h4">
-            <i class="fas fa-newspaper text-danger me-2"></i>{{ district }}
+          <h2 class="fw-bold mb-0 main-title h4 text-uppercase">
+            <i class="fas fa-map-marked-alt text-danger me-2"></i>{{ district }}
           </h2>
           <div class="live-pulse-container d-flex align-items-center">
             <span class="pulse-dot"></span>
@@ -32,7 +32,11 @@
             
             <div class="img-container position-relative overflow-hidden">
               {% if item.image %}
-                <img src="{{ item.image.url }}" class="card-img-top news-thumb" alt="{{ item.title }}">
+                {# ✅ Optimized District Image: WebP + Auto Quality + Size Limit #}
+                <img src="{{ item.image.url|add:'/f_auto,q_auto,w_550,c_fill' }}" 
+                     class="card-img-top news-thumb" 
+                     alt="{{ item.title }}"
+                     loading="lazy">
               {% else %}
                 <img src="{% static 'default.jpg' %}" class="card-img-top news-thumb" alt="No image">
               {% endif %}
@@ -57,17 +61,19 @@
               </h5>
 
               <div class="card-text text-muted small mb-3 excerpt">
-                {{ item.content|truncatechars_html:100|safe }}
+                {# Strip HTML to keep cards clean #}
+                {{ item.content|striptags|truncatechars:100 }}
               </div>
 
               <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
                 <small class="text-muted">
-                  <i class="far fa-clock me-1"></i>{{ item.date|timesince }} पहले
+                  <i class="far fa-clock me-1 text-danger"></i>{{ item.date|timesince }} पहले
                 </small>
                 <div class="action-buttons">
-                    <a href="https://api.whatsapp.com/send?text={{ item.title }} - https://halchal.up.railway.app{% url 'news_detail' item.slug %}" 
-                       target="_blank" class="text-success me-2">
-                        <i class="fab fa-whatsapp"></i>
+                    {# Dynamic Link for WhatsApp #}
+                    <a href="https://api.whatsapp.com/send?text={{ item.title }} - {{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.slug %}" 
+                       target="_blank" class="text-success me-3 text-decoration-none">
+                        <i class="fab fa-whatsapp fa-lg"></i>
                     </a>
                     <a href="{% url 'news_detail' item.slug %}" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
                         पढ़ें <i class="fas fa-chevron-right ms-1"></i>
@@ -78,11 +84,11 @@
           </article>
         </div>
         {% empty %}
-        <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4">
+        <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
           <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
           <h5 class="text-muted fw-bold">क्षमा करें!</h5>
           <p class="text-secondary small">{{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
-          <a href="/" class="btn btn-danger btn-sm rounded-pill px-4">होम पेज पर वापस जाएं</a>
+          <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">होम पेज पर वापस जाएं</a>
         </div>
         {% endfor %}
       </div>
@@ -129,7 +135,7 @@
 </div>
 
 <style>
-  /* Root & Layout */
+  /* Global Adjustments */
   .main-title { color: #1a1a1a; letter-spacing: -0.2px; }
   .sticky-sidebar { position: sticky; top: 90px; }
 
@@ -144,34 +150,53 @@
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
   }
 
-  /* News Cards */
-  .news-card-v2 { border-radius: 15px; transition: transform 0.4s ease, box-shadow 0.4s ease; border: 1px solid #f0f0f0 !important; }
-  .news-card-v2:hover { transform: translateY(-7px); box-shadow: 0 12px 25px rgba(0,0,0,0.08) !important; }
-  .img-container { border-radius: 15px 15px 0 0; height: 190px; }
+  /* News Cards Design */
+  .news-card-v2 { 
+    border-radius: 15px; 
+    transition: transform 0.4s ease, box-shadow 0.4s ease; 
+    border: 1px solid #f2f2f2 !important; 
+    background: #fff;
+  }
+  .news-card-v2:hover { 
+    transform: translateY(-7px); 
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08) !important; 
+  }
+  .img-container { border-radius: 15px 15px 0 0; height: 190px; background: #f8f8f8; }
   .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
   .news-card-v2:hover .news-thumb { transform: scale(1.08); }
 
-  /* Date Badge Over Image */
+  /* Date Overlay Badge */
   .date-overlay {
     position: absolute; top: 12px; right: 12px;
     background: #fff; border-radius: 10px; padding: 4px 10px;
     text-align: center; line-height: 1.1; min-width: 45px;
+    z-index: 5;
   }
   .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; }
   .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #666; font-weight: bold; }
 
-  /* Typography */
+  /* Text Clamp for Content */
   .hover-title:hover { color: #d32f2f !important; }
-  .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 3.8em; }
+  .excerpt { 
+    display: -webkit-box; 
+    -webkit-line-clamp: 3; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+    height: 3.8em; 
+    line-height: 1.6;
+  }
 
-  /* Pagination Styling */
+  /* Pagination Improvements */
   .custom-pagination .page-link {
     border: none; margin: 0 5px; border-radius: 10px !important;
-    color: #444; font-weight: bold; width: 45px; height: 45px;
+    color: #444; font-weight: bold; width: 40px; height: 40px;
     display: flex; align-items: center; justify-content: center;
+    background: #fff;
   }
-  .custom-pagination .page-item.active .page-link { background: #d32f2f; color: #fff; box-shadow: 0 4px 10px rgba(211,47,47,0.3); }
-
-  .no-news-box { border: 1px solid #eee; }
+  .custom-pagination .page-item.active .page-link { 
+    background: #d32f2f; 
+    color: #fff; 
+    box-shadow: 0 4px 10px rgba(211,47,47,0.3); 
+  }
 </style>
 {% endblock %}
