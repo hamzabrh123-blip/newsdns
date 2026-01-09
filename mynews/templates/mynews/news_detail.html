@@ -11,21 +11,20 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
 {% if news.image %}
-    {# ✅ Bilkul clean URL bina kisi extra filter ke #}
-    <meta property="og:image" content="{{ news.image.url }}">
-    <meta property="og:image:secure_url" content="{{ news.image.url }}">
+    {# ✅ Optimized social image (WebP) #}
+    <meta property="og:image" content="{{ news.image.url|add:'/f_auto,q_auto' }}">
+    <meta property="og:image:secure_url" content="{{ news.image.url|add:'/f_auto,q_auto' }}">
 {% else %}
     <meta property="og:image" content="https://halchal.onrender.com/static/logo.png">
 {% endif %}
 
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:type" content="image/png">
 <meta property="og:site_name" content="Halchal News">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
+<meta name="twitter:image" content="{% if news.image %}{{ news.image.url|add:'/f_auto,q_auto' }}{% else %}https://halchal.onrender.com/static/logo.png{% endif %}">
 {% endblock %}
 
 {% block content %}
@@ -71,7 +70,11 @@
 
                 {% if news.image %}
                 <figure class="figure w-100 text-center">
-                    <img src="{{ news.image.url }}" class="img-fluid rounded shadow-sm w-100 main-img" alt="{{ news.title }}">
+                    {# ✅ WebP Conversion + High Quality Auto Compression #}
+                    <img src="{{ news.image.url|add:'/f_auto,q_auto,w_1000,c_limit' }}" 
+                         class="img-fluid rounded shadow-sm w-100 main-img" 
+                         alt="{{ news.title }}"
+                         fetchpriority="high">
                     <figcaption class="figure-caption text-start mt-2 small italic">यूपी हलचल ब्यूरो | फोटो: सोशल मीडिया</figcaption>
                 </figure>
                 {% endif %}
@@ -111,10 +114,22 @@
 <style>
     .news-main-title { font-family: 'Noto Serif Devanagari', serif; font-size: 32px; font-weight: 700; line-height: 1.3; color: #1a1a1a; }
     .news-content-body { font-family: 'Poppins', sans-serif; font-size: 18px !important; line-height: 1.8; color: #333; }
-    .main-img { max-height: 500px; object-fit: cover; width: 100%; }
+    
+    /* ✅ Content Images Optimization */
+    .news-content-body img {
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 8px;
+        margin: 15px 0;
+        display: block;
+    }
+
+    .main-img { max-height: 550px; object-fit: cover; width: 100%; }
+    
     @media (max-width: 768px) {
         .news-main-title { font-size: 24px; }
         .news-content-body { font-size: 17px !important; }
+        .main-img { max-height: 350px; }
     }
     .btn-sm.rounded-circle { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
 </style>
