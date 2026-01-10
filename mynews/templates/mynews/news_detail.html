@@ -81,28 +81,45 @@
                     {{ news.content|safe }}
                 </div>
 
-               {% if news.youtube_url %}
+
+
+                
+              {% if news.youtube_url %}
 <div class="video-container my-5 shadow rounded overflow-hidden border">
     <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
     <div class="ratio ratio-16x9">
-        {% if "watch?v=" in news.youtube_url %}
-            {# साधारण लिंक को एम्बेड लिंक में बदलना #}
-            <iframe src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://www.youtube.com/watch?v='|cut:'&' }}" 
-                    title="YouTube video player" frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen></iframe>
-        {% elif "youtu.be/" in news.youtube_url %}
-            {# शेयर लिंक (Short URL) को एम्बेड लिंक में बदलना #}
-            <iframe src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://youtu.be/' }}" 
-                    title="YouTube video player" frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen></iframe>
-        {% else %}
-            {# अगर पहले से एम्बेड लिंक है #}
-            <iframe src="{{ news.youtube_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
-        {% endif %}
+        <iframe 
+            id="youtube-player"
+            src="" 
+            title="YouTube video player" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen>
+        </iframe>
     </div>
 </div>
+
+<script>
+    (function() {
+        var rawUrl = "{{ news.youtube_url }}";
+        var videoId = "";
+        
+        // YouTube ID निकालने का सबसे सटीक तरीका
+        if (rawUrl.indexOf('youtube.com/watch?v=') !== -1) {
+            videoId = rawUrl.split('v=')[1].split('&')[0];
+        } else if (rawUrl.indexOf('youtu.be/') !== -1) {
+            videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
+        } else if (rawUrl.indexOf('youtube.com/embed/') !== -1) {
+            videoId = rawUrl.split('embed/')[1].split('?')[0];
+        }
+
+        if (videoId) {
+            // यहाँ 'youtube-nocookie.com' का इस्तेमाल सुरक्षा और प्राइवेसी के लिए बेहतर है
+            document.getElementById('youtube-player').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?rel=0&modestbranding=1";
+        }
+    })();
+</script>
 {% endif %}
 
                 <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
