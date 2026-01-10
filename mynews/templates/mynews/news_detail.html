@@ -81,14 +81,29 @@
                     {{ news.content|safe }}
                 </div>
 
-                {% if news.youtube_url %}
-                <div class="video-container my-5 shadow rounded overflow-hidden border">
-                    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
-                    <div class="ratio ratio-16x9">
-                        <iframe src="{{ news.youtube_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                </div>
-                {% endif %}
+               {% if news.youtube_url %}
+<div class="video-container my-5 shadow rounded overflow-hidden border">
+    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
+    <div class="ratio ratio-16x9">
+        {% if "watch?v=" in news.youtube_url %}
+            {# साधारण लिंक को एम्बेड लिंक में बदलना #}
+            <iframe src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://www.youtube.com/watch?v='|cut:'&' }}" 
+                    title="YouTube video player" frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen></iframe>
+        {% elif "youtu.be/" in news.youtube_url %}
+            {# शेयर लिंक (Short URL) को एम्बेड लिंक में बदलना #}
+            <iframe src="https://www.youtube.com/embed/{{ news.youtube_url|cut:'https://youtu.be/' }}" 
+                    title="YouTube video player" frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen></iframe>
+        {% else %}
+            {# अगर पहले से एम्बेड लिंक है #}
+            <iframe src="{{ news.youtube_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
                 <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
                     <h6 class="fw-bold mb-3">यह खबर आपको कैसी लगी? दोस्तों के साथ शेयर करें:</h6>
