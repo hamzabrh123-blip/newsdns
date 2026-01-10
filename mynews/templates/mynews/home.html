@@ -112,7 +112,7 @@
                                 <i class="far fa-clock text-danger"></i> {{ item.date|timesince }} पहले | 
                                 <span class="text-dark fw-bold">
                                     <i class="fas fa-map-marker-alt ms-1"></i> 
-                                    {% if item.district %}{{ item.district }}{% else %}{% endif %}
+                                    {% if item.district %}{{ item.district }}{% elif item.category == "National" %}भारत{% elif item.category == "International" %}दुनिया{% else %}उत्तर प्रदेश{% endif %}
                                 </span>
                             </p>
 
