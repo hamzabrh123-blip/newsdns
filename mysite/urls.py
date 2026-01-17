@@ -12,14 +12,17 @@ def google_verify(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(
-        "google21a82f00fad0f9b3.html",
-        google_verify
-    ),
+    
+    # Google Verification
+    path("google21a82f00fad0f9b3.html", google_verify),
 
-    path('', include('mynews.urls')),  # Main app urls
+    # CKEditor Uploader (यही आपकी फोटो अपलोड कराता है)
     path('ckeditor/', include('ckeditor_uploader.urls')),
+
+    # Main Website URLs (इसे नीचे ही रखें ताकि बाकी paths पहले चेक हों)
+    path('', include('mynews.urls')),  
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media और Static files के लिए (Production और Local दोनों में बेहतर काम करेगा)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
