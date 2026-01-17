@@ -19,16 +19,17 @@ class News(models.Model):
         ('National', 'National'),
     ]
 
+    # यह लिस्ट गायब है, इसे वापस जोड़ें
+    DISTRICT_CHOICES = [
+        ('Lucknow-UP', 'Lucknow-UP'),
+        ('Purvanchal', 'Purvanchal'),
+        ('Bahraich-Gonda', 'Bahraich-Gonda'),
+        ('Sitapur-Barabanki', 'Sitapur-Barabanki'),
+    ]
+
     title = models.CharField(max_length=250)
-
-    category = models.CharField(
-        max_length=100,
-        choices=CATEGORY_CHOICES,
-        blank=True,
-        null=True
-    )
-
-    # हमने ForeignKey का इस्तेमाल किया है ताकि आप Admin से नए जिले जोड़ सकें
+    
+    # अब यह लाइन एरर नहीं देगी
     district = models.CharField(
         max_length=50,
         choices=DISTRICT_CHOICES,
