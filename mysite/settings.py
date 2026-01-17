@@ -34,11 +34,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
+    
+    "cloudinary_storage",
+    "cloudinary",
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
-    "cloudinary",
 ]
 
 # ---------------- MIDDLEWARE ----------------
@@ -116,6 +117,21 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# ---------------- CKEDITOR ----------------
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
+# ---------------- CKEDITOR SETTINGS ----------------
+CKEDITOR_UPLOAD_PATH = "uploads/" 
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'skin': 'moono-lisa',
+        'toolbar': 'full',
+        'height': 400,
+        'width': '100%',
+        'extraPlugins': ','.join([
+            'uploadimage', 
+            'image2',     
+        ]),
+        'removePlugins': 'image', 
+    },
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
