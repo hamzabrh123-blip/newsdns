@@ -102,7 +102,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Isse error nahi aayega agar static folder na bhi ho
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 STATIC_DIR = BASE_DIR / "static"
 if STATIC_DIR.exists():
     STATICFILES_DIRS = [STATIC_DIR]
