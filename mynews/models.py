@@ -29,13 +29,12 @@ class News(models.Model):
     )
 
     # हमने ForeignKey का इस्तेमाल किया है ताकि आप Admin से नए जिले जोड़ सकें
-    district = models.ForeignKey(
-        District, 
-        on_delete=models.SET_NULL, 
-        blank=True, 
-        null=True,
-        related_name='news'
-    )
+   district = models.CharField(
+    max_length=50,
+    choices=DISTRICT_CHOICES,
+    blank=True,
+    null=True
+)
 
     date = models.DateTimeField(auto_now_add=True)
 
