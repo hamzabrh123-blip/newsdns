@@ -13,11 +13,15 @@ logger = logging.getLogger(__name__)
 # ✅ OPTIMIZED SIDEBAR DATA
 def get_common_sidebar_data():
     return {
-        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:3],
-        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:3],
+        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
+        "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:10],
+         "technology_sidebar": News.objects.filter(category="Technology").order_by("-date")[:3],
+         "bollywood_sidebar": News.objects.filter(category="Bollywood").order_by("-date")[:3],
         "lucknow_up_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:10],
-        "purvanchal_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:10],
+        "up_national_sidebar": News.objects.filter(district='UP-National').order_by("-date")[:3],
+        "purvanchal_sidebar": News.objects.filter(district='Purvanchal').order_by("-date")[:5],
         "bahraich_gonda_sidebar": News.objects.filter(district='Bahraich-Gonda').order_by("-date")[:10],
+        "balrampur_shravasti_sidebar": News.objects.filter(district='Balrampur-Shravasti').order_by("-date")[:3],
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:5],
     }
 
@@ -48,6 +52,33 @@ def national_news(request):
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
+
+# ================= Technology NEWS =================
+def national_news(request):
+    news_list = News.objects.filter(category="Technology").order_by("-date")
+    paginator = Paginator(news_list, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page_obj": page_obj,
+        "district": "टेक्नॉलोजी (Technology)",
+    }
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/district_news.html", context)
+
+# ================= Bollywood NEWS =================
+def national_news(request):
+    news_list = News.objects.filter(category="Bollywood").order_by("-date")
+    paginator = Paginator(news_list, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page_obj": page_obj,
+        "district": "बॉलीवुड (Bollywood)",
+    }
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/district_news.html", context)
+
 
 # ================= INTERNATIONAL NEWS =================
 def international_news(request):
