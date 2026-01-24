@@ -85,9 +85,11 @@
                     <div class="card h-100 shadow-sm border-0 news-card">
                         
                         <div class="img-container">
+                            {% if item.category %}
                             <span class="category-badge shadow-sm">
-                                {% if item.category %}{{ item.category }}{% else %}Breaking{% endif %}
+                                {{ item.category }}
                             </span>
+                            {% endif %}
                             
                             {% if item.image %}
                                 <img src="{{ item.image.url }}" 
@@ -96,10 +98,6 @@
                                      loading="lazy">
                             {% else %}
                                 <img src="{% static 'images/default-news.jpg' %}" class="card-img-top" alt="No Image">
-                            {% endif %}
-
-                            {% if item.category %}
-                                <span class="position-absolute bottom-0 start-0 m-2 badge bg-dark opacity-75">{{ item.category }}</span>
                             {% endif %}
                         </div>
 
@@ -112,11 +110,12 @@
 
                             <p class="card-text text-muted small mb-2">
                                 <i class="far fa-calendar-alt text-danger"></i> {{ item.date|date:"d M Y" }} | 
-                                <i class="far fa-clock text-danger ms-1"></i> {{ item.date|timesince }} पहले | 
-                                <span class="text-dark fw-bold">
-                                    <i class="fas fa-map-marker-alt ms-1"></i> 
-                                    {% if item.district %}{{ item.district }}{% elif item.category == "National" %}भारत{% elif item.category == "International" %}दुनिया{% else %}उत्तर प्रदेश{% endif %}
+                                <i class="far fa-clock text-danger ms-1"></i> {{ item.date|timesince }} पहले
+                                {% if item.district %}
+                                | <span class="text-dark fw-bold">
+                                    <i class="fas fa-map-marker-alt ms-1"></i> {{ item.district }}
                                 </span>
+                                {% endif %}
                             </p>
 
                             <div class="card-text small text-secondary mb-3 excerpt-text">
@@ -169,6 +168,4 @@
         </div>
     </div>
 </div>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
