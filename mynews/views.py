@@ -53,8 +53,8 @@ def national_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= Technology NEWS =================
-def national_news(request):
+# ================= Technology NEWS (AB SAHI HAI) =================
+def technology(request):  # Yahan naam badal diya hai
     news_list = News.objects.filter(category="Technology").order_by("-date")
     paginator = Paginator(news_list, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -66,8 +66,8 @@ def national_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= Bollywood NEWS =================
-def national_news(request):
+# ================= Bollywood NEWS (AB SAHI HAI) =================
+def bollywood(request):  # Yahan naam badal diya hai
     news_list = News.objects.filter(category="Bollywood").order_by("-date")
     paginator = Paginator(news_list, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -78,7 +78,6 @@ def national_news(request):
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-
 
 # ================= INTERNATIONAL NEWS =================
 def international_news(request):
