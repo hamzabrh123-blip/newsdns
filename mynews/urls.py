@@ -6,6 +6,8 @@ urlpatterns = [
     # ===== CORE PAGES =====
     path("", views.home, name="home"),
     path("national/", views.national_news, name="national_news"),
+    path("technology/", views.technology, name="technology"),
+    path("bollywood/", views.bollywood, name="bollywood"),
     path("international/", views.international_news, name="international_news"),
     path("district/<str:district>/", views.district_news, name="district_news"),
 
