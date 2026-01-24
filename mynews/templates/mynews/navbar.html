@@ -44,14 +44,25 @@
                     <a class="nav-link px-3 {% if request.resolver_match.url_name == 'international_news' %}active text-warning{% endif %}" href="{% url 'international_news' %}">दुनिया</a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'technology' %}active text-warning{% endif %}" href="{% url 'technology' %}">टेक्नोलॉजी</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'bollywood' %}active text-warning{% endif %}" href="{% url 'bollywood' %}">बॉलीवुड</a>
+                </li>
+
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
                         उत्तर प्रदेश
                     </a>
                     <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">उत्तर प्रदेश राष्ट्रीय</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ-यूपी</a></li>
                          <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
                         <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर-बाराबंकी</a></li>
                     </ul>
                 </li>
