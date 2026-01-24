@@ -13,12 +13,17 @@ class News(models.Model):
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
+         ('Technology', 'Technology'),
+         ('Bollywood', 'Bollywood'),
+        
     ]
 
     DISTRICT_CHOICES = [
         ('Lucknow-UP', 'Lucknow-UP'),
+        ('UP-National', 'UP-National'),
         ('Purvanchal', 'Purvanchal'),
         ('Bahraich-Gonda', 'Bahraich-Gonda'),
+        ('Balrampur-Shravasti', 'Balrampur-Shravasti'),
         ('Sitapur-Barabanki', 'Sitapur-Barabanki'),
     ]
 
