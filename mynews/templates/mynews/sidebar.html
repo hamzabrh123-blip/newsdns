@@ -46,10 +46,41 @@ l.parentNode.insertBefore(s, l);
   </div>
   {% endif %}
 
-  <hr>
-  {% if lucknow_up_sidebar %}
+   {% if technology_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ और उत्तर प्रदेश </h5>
+    <h5 class="sidebar-title text-primary">टेक्नोलॉजी (Technology)</h5>
+    {% for item in technology_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="{% url 'technology' %}" class="view-all text-primary">टेक्नोलॉजी की अन्य खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+ {% if bollywood_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-primary">बॉलीवुड (Bollywood)</h5>
+    {% for item in bollywood_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="{% url 'bollywood' %}" class="view-all text-primary">बॉलीवुड की अन्य खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+
+  <hr>
+ {% if up_national_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
     {% for item in lucknow_up_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
@@ -57,7 +88,22 @@ l.parentNode.insertBefore(s, l);
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/Lucknow-UP/" class="view-all text-primary">लखनऊ और उत्तर प्रदेश की और खबरें →</a>
+        <a href="/district/Lucknow-UP/" class="view-all text-primary">लखनऊ की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if up_national_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 उत्तर प्रदेश की बड़ी ख़बरें </h5>
+    {% for item in up_national_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/UP-National/" class="view-all text-primary">उत्तर प्रदेश की अन्य ख़बरों →</a>
     </div>
   </div>
   {% endif %}
@@ -79,7 +125,7 @@ l.parentNode.insertBefore(s, l);
 
   {% if bahraich_gonda_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 बहराइच-गोण्डा-बलरामपुर-श्रावस्ती </h5>
+    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 बहराइच-गोण्डा </h5>
     {% for item in bahraich_gonda_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
@@ -87,10 +133,26 @@ l.parentNode.insertBefore(s, l);
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/Bahraich-Gonda/" class="view-all text-warning">बहराइच-गोण्डा-बलरामपुर-श्रावस्ती की और खबरें →</a>
+        <a href="/district/Bahraich-Gonda/" class="view-all text-warning">बहराइच-गोण्डा की और खबरें →</a>
     </div>
   </div>
   {% endif %}
+
+{% if balrampur_shravasti_sidebar %}
+  <div class="mb-4">
+    <h5 class="sidebar-title text-warning" style="border-left: 5px solid #ffc107; padding-left: 10px;">📍 बलरामपुर-श्रावस्ती </h5>
+    {% for item in balrampur_shravasti_sidebar %}
+      <div class="sidebar-item">
+        {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
+        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+      </div>
+    {% endfor %}
+    <div class="text-end">
+        <a href="/district/Balrampur-Shravasti/" class="view-all text-warning">बलरामपुर-श्रावस्ती की और खबरें →</a>
+    </div>
+  </div>
+  {% endif %}
+
 
   {% if sitapur_barabanki_sidebar %}
   <div class="mb-4">
