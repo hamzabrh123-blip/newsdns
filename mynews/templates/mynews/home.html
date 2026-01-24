@@ -99,6 +99,15 @@
                             {% else %}
                                 <img src="{% static 'images/default-news.jpg' %}" class="card-img-top" alt="No Image">
                             {% endif %}
+
+                             <div class="date-overlay shadow-sm">
+                                <span class="day">{{ item.date|date:"d" }}</span>
+                                <span class="month">{{ item.date|date:"M" }}</span>
+                              </div>
+
+                          {% if item.category %}
+                              <span class="position-absolute bottom-0 start-0 m-2 badge bg-dark opacity-75">{{ item.category }}</span>
+                          {% endif %}
                         </div>
 
                         <div class="card-body d-flex flex-column">
