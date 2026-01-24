@@ -1,0 +1,122 @@
+
+{% extends 'mynews/base.html' %}
+{% load static %}
+
+{% block title %}
+{{ district|default:"Technology" }} News | UP Halchal
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    /* Global News Card Styling */
+    .news-card {
+        transition: all 0.3s ease;
+        border-radius: 15px !important;
+        overflow: hidden;
+        border: 1px solid #eee !important;
+        background: #fff;
+    }
+    .news-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    .img-wrapper {
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+        position: relative;
+    }
+    .card-img-top {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+    .news-card:hover .card-img-top {
+        transform: scale(1.1);
+    }
+    /* International Badge */
+    .global-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(13, 110, 253, 0.9); /* Global Blue */
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        z-index: 10;
+    }
+    .card-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        line-height: 1.4;
+        margin-bottom: 12px;
+    }
+    .card-title a {
+        color: #1a1a1a;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .card-title a:hover {
+        color: #0d6efd;
+    }
+    .excerpt-box {
+        color: #555;
+        font-size: 0.9rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 4.5em;
+    }
+    .pagination .page-link {
+        border: none;
+        margin: 0 5px;
+        border-radius: 8px;
+        font-weight: bold;
+        color: #333;
+    }
+    .pagination .active .page-link {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+
+        <div class="col-lg-8 col-md-8">
+            <div class="category-header mb-4 p-3 bg-white shadow-sm rounded-3 border-start border-4 border-primary">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <h2 class="fw-bold mb-0 h4 text-uppercase">
+                        <i class="fas fa-globe-americas text-primary me-2"></i>{{ district|default:"Technology" }} न्यूज़
+                    </h2>
+                    <div class="small fw-bold text-muted">WORLD WIDE UPDATES</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                {% for item in page_obj %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm news-card border-0">
+
+                        <div class="img-wrapper">
+                            <span class="global-badge shadow-sm">GLOBAL</span>
+                            {% if item.image %}
+                                {# ✅ Safe Image: Filter hata diya gaya hai taaki image dikhe #}
+                                <img src="{{ item.image.url }}" 
+                                     class="card-img-top" 
+                                     alt="{{ item.title }}"
+                                     loading="lazy">
+                            {% else %}
+                                <img src="{% static 'default.jpg' %}" class="card-img-top" alt="No image">
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">
+                                <a href="{% url 'news_detail' item.slug
