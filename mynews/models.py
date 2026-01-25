@@ -17,7 +17,6 @@ class News(models.Model):
         ('Bollywood', 'Bollywood'),
     ]
 
-    # आपके पुराने डिस्ट्रिक्ट पेज के लिए चॉइस (इसे टच नहीं किया गया)
     DISTRICT_CHOICES = [
         ('Lucknow-UP', 'Lucknow-UP'),
         ('UP-National', 'UP-National'),
@@ -28,29 +27,14 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
+    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, blank=True, null=True)
+    district = models.CharField(max_length=50, choices=DISTRICT_CHOICES, blank=True, null=True)
     
-    category = models.CharField(
-        max_length=100,
-        choices=CATEGORY_CHOICES,
-        blank=True,
-        null=True
-    )
-
-    # पुराने पेज को चलाने के लिए डिस्ट्रिक्ट चॉइस
-    district = models.CharField(
-        max_length=50,
-        choices=DISTRICT_CHOICES,
-        blank=True,
-        null=True
-    )
-
-    # ✅ नया फ़ील्ड: URL में शहर का नाम दिखाने के लिए (जैसे: New_York)
-    # अगर इसे खाली छोड़ेंगे तो district का नाम अपने आप यहाँ आ जाएगा
     url_city = models.CharField(
         max_length=100, 
         blank=True, 
         null=True, 
-        help_text="URL के लिए शहर का नाम (जैसे: New York). खाली छोड़ने पर District का नाम लिया जाएगा।"
+        help_text="URL के लिए शहर का नाम (जैसे: New York). खाली छोड़ने पर District का नाम लिया जाएगा।"
     )
 
     date = models.DateTimeField(auto_now_add=True)
@@ -64,13 +48,12 @@ class News(models.Model):
         # 1. URL के लिए शहर का नाम तैयार करना
         if not self.url_city:
             if self.district:
-                # 'Lucknow-UP' को 'lucknow-up' बनाएगा
                 self.url_city = self.district.lower()
             else:
                 self.url_city = "news"
         
-        # स्पेस को हटाकर underscore (_) लगाना (e.g. 'New York' -> 'new_york')
-        self.url_city = self.url_city.strip().replace(" ", "_").lower()
+        if self.url_city:
+            self.url_city = self.url_city.strip().replace(" ", "_").lower()
 
         # 2. स्लग बनाना
         if not self.slug:
