@@ -104,8 +104,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "mynews" / "static",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # ---------------- CLOUDINARY SETTINGS ----------------
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
