@@ -1,5 +1,3 @@
-
-
 {% extends 'mynews/base.html' %}
 {% load static %}
 
@@ -38,12 +36,12 @@
     .news-card:hover .card-img-top {
         transform: scale(1.1);
     }
-    /* International Badge */
+    /* Bollywood Badge */
     .global-badge {
         position: absolute;
         top: 10px;
         right: 10px;
-        background: rgba(13, 110, 253, 0.9); /* Global Blue */
+        background: rgba(233, 30, 99, 0.9); /* Pinkish for Bollywood */
         color: white;
         padding: 4px 12px;
         border-radius: 20px;
@@ -63,7 +61,7 @@
         transition: color 0.2s;
     }
     .card-title a:hover {
-        color: #0d6efd;
+        color: #e91e63;
     }
     .excerpt-box {
         color: #555;
@@ -82,7 +80,7 @@
         color: #333;
     }
     .pagination .active .page-link {
-        background-color: #0d6efd !important;
+        background-color: #e91e63 !important;
         color: white !important;
     }
 </style>
@@ -91,12 +89,12 @@
     <div class="row">
 
         <div class="col-lg-8 col-md-8">
-            <div class="category-header mb-4 p-3 bg-white shadow-sm rounded-3 border-start border-4 border-primary">
+            <div class="category-header mb-4 p-3 bg-white shadow-sm rounded-3 border-start border-4 border-danger" style="border-color: #e91e63 !important;">
                 <div class="d-flex align-items-center justify-content-between flex-wrap">
                     <h2 class="fw-bold mb-0 h4 text-uppercase">
-                        <i class="fas fa-globe-americas text-primary me-2"></i>{{ district|default:"Bollywood" }} न्यूज़
+                        <i class="fas fa-film text-danger me-2" style="color: #e91e63 !important;"></i>{{ district|default:"Bollywood" }} न्यूज़
                     </h2>
-                    <div class="small fw-bold text-muted">WORLD WIDE UPDATES</div>
+                    <div class="small fw-bold text-muted">ENTERTAINMENT UPDATES</div>
                 </div>
             </div>
             
@@ -106,9 +104,8 @@
                     <div class="card h-100 shadow-sm news-card border-0">
 
                         <div class="img-wrapper">
-                            <span class="global-badge shadow-sm">GLOBAL</span>
+                            <span class="global-badge shadow-sm">BOLLYWOOD</span>
                             {% if item.image %}
-                                {# ✅ Safe Image: Filter hata diya gaya hai taaki image dikhe #}
                                 <img src="{{ item.image.url }}" 
                                      class="card-img-top" 
                                      alt="{{ item.title }}"
@@ -120,4 +117,60 @@
 
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">
-                                <a href="{% url 'news_detail' item.slug
+                                <a href="{% url 'news_detail' item.url_city item.slug %}">
+                                    {{ item.title|truncatechars:70 }}
+                                </a>
+                            </h5>
+
+                            <div class="excerpt-box mb-3">
+                                {{ item.content|striptags|truncatechars:120 }}
+                            </div>
+
+                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                <small class="text-muted fw-bold">
+                                    <i class="far fa-star text-danger me-1" style="color: #e91e63 !important;"></i>{{ item.date|date:"d M, Y" }}
+                                </small>
+                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="btn btn-sm text-white rounded-pill px-3 shadow-sm" style="background-color: #e91e63;">
+                                    पढ़ें <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-video fa-3x text-light mb-3"></i>
+                    <p class="text-muted">मनोरंजन की खबरें अभी लोड हो रही हैं...</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                            <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                        {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                            <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4 col-md-4">
+            <div class="sticky-sidebar">
+                {% include "mynews/sidebar.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
