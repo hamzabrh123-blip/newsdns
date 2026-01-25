@@ -1,103 +1,101 @@
 {% load static %}
 
 <style>
-    /* तिरंगा पट्टी - बेहतर कोडिंग के साथ */
-    .republic-header-strip {
+    /* 1. तिरंगा पट्टी - जो अब डेट सेक्शन और नेवबार को जोड़ेगी */
+    .republic-border {
         height: 6px;
         width: 100%;
-        background: #ff9933; /* Fallback color */
         background: linear-gradient(90deg, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #128807 66.66%);
-        display: block;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
     }
 
-    .date-section {
-        background: #f8f9fa; 
-        font-size: 0.88rem; 
-        border-bottom: 1px solid #ddd;
-        padding: 8px 0;
-        line-height: 1;
+    /* 2. डेट सेक्शन को और प्रोफेशनल लुक */
+    .top-header {
+        background: #ffffff;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 0.9rem;
     }
 
-    .social-links a {
-        transition: all 0.3s ease;
-        display: inline-block;
-        margin-left: 10px;
-        text-decoration: none;
+    .wish-text {
+        font-weight: 800;
+        background: linear-gradient(90deg, #FF9933, #128807);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
     }
-    .social-links a:hover {
-        transform: translateY(-2px);
+
+    /* 3. नेवबार फिक्स */
+    .main-nav {
+        background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .navbar-brand img {
+        transition: transform 0.3s ease;
     }
     
-    /* नेवबार होवर और एक्टिव क्लास */
-    .nav-link:hover {
-        color: #ffcc00 !important;
+    .navbar-brand:hover img {
+        transform: scale(1.05);
     }
-    .nav-link.active {
-        color: #ffcc00 !important;
+
+    /* मोबाइल के लिए भी पट्टी दिखे */
+    @media (max-width: 991px) {
+        .republic-border { height: 4px; }
     }
 </style>
 
-<div class="republic-header-strip"></div>
+<div class="republic-border"></div>
 
-<div class="date-section d-none d-lg-block">
+<div class="top-header d-none d-lg-block">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-            <span class="fw-bold text-danger"><i class="fas fa-calendar-alt me-1"></i> आज की तारीख:</span> 
-            <span class="text-dark fw-semibold">{% now "d F Y" %}</span>
+            <span class="text-secondary"><i class="fas fa-calendar-check me-2 text-danger"></i>{% now "l, d F Y" %}</span>
         </div>
-        <div class="d-flex align-items-center social-links">
-            <span class="me-3 fw-bold text-success"><i class="fas fa-flag"></i> गणतंत्र दिवस की शुभकामनाएँ!</span>
-            <div class="vr me-3" style="height: 20px; opacity: 0.2;"></div>
-            <span class="me-2 text-muted">Follow:</span>
-            <a href="#" class="text-primary"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="text-info"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="text-success"><i class="fab fa-whatsapp"></i></a>
+        <div class="d-flex align-items-center">
+            <span class="wish-text me-4">HAPPY REPUBLIC DAY 2026</span>
+            <div class="social-icons">
+                <a href="#" class="text-muted me-3"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-muted me-3"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-muted"><i class="fab fa-whatsapp"></i></a>
+            </div>
         </div>
     </div>
 </div>
 
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-lg" 
-     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.7rem 0;">
+<nav class="navbar navbar-expand-lg navbar-dark main-nav sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}">
-           <img src="{% static 'logo1.jpg' %}" alt="UP Halchal" class="me-2 shadow-sm" 
-                style="height: 60px; width: auto; border-radius: 8px; border: 2px solid #fff; object-fit: contain;">
-            <span style="font-size: 1.55rem; letter-spacing: 0.5px;">UP <span style="color: #ffcc00;">हलचल</span></span>
+            <img src="{% static 'logo1.jpg' %}" alt="UP Halchal" 
+                 style="height: 60px; width: auto; border-radius: 8px; border: 2px solid #fff;">
+            <span class="ms-2" style="font-size: 1.6rem;">UP <span style="color: #ffcc00;">हलचल</span></span>
         </a>
 
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold text-uppercase" style="font-size: 0.92rem;">
-                <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">होम</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'national_news' %}">भारत</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'international_news' %}">दुनिया</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'technology' %}">टेक्नोलॉजी</a>
-                </li>
+            <ul class="navbar-nav mx-auto text-uppercase fw-bold" style="font-size: 0.9rem;">
+                <li class="nav-item"><a class="nav-link px-3 active" href="{% url 'home' %}">होम</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="{% url 'national_news' %}">भारत</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="{% url 'international_news' %}">दुनिया</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
-                    <ul class="dropdown-menu border-0 shadow-lg mt-2">
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ-यूपी</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
+                    <a class="nav-link dropdown-toggle px-3" href="#" id="upDrop" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
+                    <ul class="dropdown-menu shadow-lg border-0">
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Bahraich-Gonda' %}">गोण्डा-बहराइच</a></li>
                     </ul>
                 </li>
             </ul>
-
-            <form class="d-flex position-relative shadow-sm rounded-pill overflow-hidden" action="{% url 'home' %}" method="get">
-                <input class="form-control form-control-sm border-0 rounded-pill pe-5" type="search" name="q" placeholder="खबर खोजें..." style="min-width: 200px;">
-                <button class="btn btn-link position-absolute end-0 text-danger p-1 me-2" type="submit" style="top: 2px; text-decoration: none;">
-                    <i class="fas fa-search"></i>
-                </button>
+            
+            <form class="d-flex" action="{% url 'home' %}" method="get">
+                <div class="input-group">
+                    <input class="form-control form-control-sm border-0 shadow-none" type="search" name="q" placeholder="खोजें..." style="border-radius: 20px 0 0 20px;">
+                    <button class="btn btn-warning btn-sm" type="submit" style="border-radius: 0 20px 20px 0;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
             </form>
         </div>
     </div>
