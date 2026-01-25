@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------- SECURITY ----------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-DEBUG = True # Production ke liye False hi rehne do
+DEBUG = False # Production ke liye False hi rehne do
 
 # ✅ FIX: Inhe sahi kar diya hai (Duplicate hataye)
 ROOT_URLCONF = "mysite.urls"
