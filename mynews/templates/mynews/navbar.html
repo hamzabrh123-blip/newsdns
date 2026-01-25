@@ -1,48 +1,73 @@
 {% load static %}
 
 <style>
-    /* नेवबार और तिरंगा पट्टी का परफेक्ट मर्जर */
-    .main-nav-bg {
-        background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
-        padding-top: 0 !important;
-        overflow: hidden;
-    }
-
-    /* तिरंगा पट्टी: यहाँ अब रंग आपस में शानदार तरीके से MIX होंगे */
-    .nav-tiranga-top {
-        height: 8px; /* मोटाई थोड़ी बढ़ाई ताकि शेड साफ़ दिखे */
+    /* 1. मिक्स तिरंगा पट्टी (सबके ऊपर) */
+    .republic-mix-line {
+        background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #128807 100%);
+        height: 6px;
         width: 100%;
-        /* Mix (Gradient) Effect */
-        background: linear-gradient(90deg, 
-            #FF9933 0%, 
-            #FFFFFF 50%, 
-            #128807 100%);
-        margin-bottom: 8px;
-        box-shadow: 0 1px 5px rgba(0,0,0,0.2);
     }
 
-    .flag-gif-mobile {
-        height: 48px;
+    /* 2. टॉप बार (मोबाइल + डेस्कटॉप दोनों के लिए) */
+    .top-info-bar {
+        background: #ffffff;
+        padding: 4px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .flag-gif {
+        height: 40px;
         width: auto;
     }
 
-    /* मोबाइल अलाइनमेंट */
-    @media (max-width: 991px) {
-        .navbar-brand img { height: 45px !important; }
-        .nav-tiranga-top { height: 6px; }
-        .navbar-brand span { font-size: 1.2rem !important; }
+    .wish-text {
+        font-weight: 800;
+        color: #b91d1d;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    /* 3. नेवबार */
+    .main-nav-bg {
+        background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
+    }
+
+    /* मोबाइल व्यू के लिए */
+    @media (max-width: 576px) {
+        .flag-gif { height: 32px; }
+        .wish-text { font-size: 0.65rem; }
+        .date-text { font-size: 0.65rem !important; }
     }
 </style>
 
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-lg main-nav-bg">
-    <div class="nav-tiranga-top"></div>
+<div class="republic-mix-line"></div>
 
+<div class="top-info-bar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <img src="https://cdn.pixabay.com/animation/2022/08/21/20/03/20-03-41-348_512.gif" class="flag-gif me-1" alt="Tiranga">
+            <div class="date-text fw-bold text-dark" style="font-size: 0.8rem; line-height: 1;">
+                <span class="d-none d-sm-inline text-danger">आज:</span> {% now "d M" %}
+            </div>
+        </div>
+
+        <div class="text-center px-1">
+            <span class="wish-text">गणतंत्र दिवस की शुभकामनाएँ 🇮🇳</span>
+        </div>
+
+        <div class="d-flex align-items-center">
+            <a href="#" class="text-success ms-2"><i class="fab fa-whatsapp"></i></a>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top main-nav-bg shadow-lg">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}">
-            <img src="https://cdn.pixabay.com/animation/2022/08/21/20/03/20-03-41-348_512.gif" class="flag-gif-mobile me-2" alt="Tiranga">
-            <img src="{% static 'logo1.jpg' %}" alt="UP Halchal" class="me-2 shadow-sm" 
-                 style="height: 55px; width: auto; border-radius: 6px; border: 1.5px solid #fff;">
-            <span style="font-size: 1.4rem;">UP <span style="color: #ffcc00;">हलचल</span></span>
+           <img src="{% static 'logo1.jpg' %}" alt="UP Halchal" class="me-2" 
+                style="height: 50px; width: auto; border-radius: 6px; border: 1.5px solid #fff;">
+            <span style="font-size: 1.3rem;">UP <span style="color: #ffcc00;">हलचल</span></span>
         </a>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -50,32 +75,28 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold text-uppercase" style="font-size: 0.9rem;">
+            <ul class="navbar-nav mx-auto fw-bold text-uppercase" style="font-size: 0.85rem;">
                 <li class="nav-item"><a class="nav-link px-2" href="{% url 'home' %}">होम</a></li>
                 <li class="nav-item"><a class="nav-link px-2" href="{% url 'national_news' %}">भारत</a></li>
                 <li class="nav-item"><a class="nav-link px-2" href="{% url 'international_news' %}">दुनिया</a></li>
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle px-2 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
-                    <ul class="dropdown-menu mt-2 shadow-lg border-0 overflow-hidden">
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ-यूपी</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर-बाराबंकी</a></li>
-                    </ul>
-                </li>
-                
                 <li class="nav-item"><a class="nav-link px-2" href="{% url 'technology' %}">टेक्नोलॉजी</a></li>
                 <li class="nav-item"><a class="nav-link px-2" href="{% url 'bollywood' %}">बॉलीवुड</a></li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-2 text-white" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li><a class="dropdown-item border-bottom" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
+                        <li><a class="dropdown-item border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
+                        <li><a class="dropdown-item border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
+                        <li><a class="dropdown-item border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
+                        <li><a class="dropdown-item border-bottom" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर-बाराबंकी</a></li>
+                    </ul>
+                </li>
             </ul>
 
-            <form class="d-flex position-relative mt-2 mt-lg-0" action="{% url 'home' %}" method="get">
-                <input class="form-control form-control-sm border-0 rounded-pill shadow-sm pe-4" type="search" name="q" placeholder="खोजें..." style="max-width: 150px;">
-                <button class="btn btn-link position-absolute end-0 text-danger p-1 me-1" type="submit" style="top: 0; text-decoration: none;">
-                    <i class="fas fa-search"></i>
-                </button>
+            <form class="d-flex" action="{% url 'home' %}" method="get">
+                <input class="form-control form-control-sm rounded-pill border-0" type="search" name="q" placeholder="खोजें..." style="max-width: 120px;">
             </form>
         </div>
     </div>
