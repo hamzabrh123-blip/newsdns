@@ -95,13 +95,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Media settings for Cloudinary
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-STATIC_DIR = BASE_DIR / "static"
-if STATIC_DIR.exists():
-    STATICFILES_DIRS = [STATIC_DIR]
+# ✅ Fix: Static फोल्डर का सही रास्ता (mynews के अंदर)
+STATICFILES_DIRS = [
+    BASE_DIR / "mynews" / "static",
+]
 
+# Static files storage for Render
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ---------------- CLOUDINARY SETTINGS ----------------
