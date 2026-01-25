@@ -30,6 +30,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "https://newsdns-m8s1.onrender.com",
     "https://halchal.onrender.com",
+    "https://uttarworld.com",      # <--- Ye dalo
+    "https://www.uttarworld.com",  # <--- Ye bhi
 ]
 
 # ---------------- APPS ----------------
