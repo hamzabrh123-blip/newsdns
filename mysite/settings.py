@@ -83,9 +83,9 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
+        ssl_require=True  # <--- Ye add karke dekho agar connection error hai
     )
 }
-
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" 
