@@ -8,30 +8,39 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------- SECURITY ----------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-DEBUG = False
+DEBUG = False # Production ke liye False hi rehne do
+
+# ✅ FIX: Inhe sahi kar diya hai (Duplicate hataye)
+ROOT_URLCONF = "newsdns.urls"
+WSGI_APPLICATION = "newsdns.wsgi.application"
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
-    "halchal.onrender.com", 
+    "newsdns-m8s1.onrender.com", 
+    "halchal.onrender.com",
+    # Yahan apna Spaceship wala domain bina 'https://' ke dalo
+    "uttarworld.com", 
+    "www.uttarworld.com",
 ]
 
+# ✅ FIX: Trusted origins update kiye taaki login/post mein error na aaye
 CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+    "https://newsdns-m8s1.onrender.com",
     "https://halchal.onrender.com",
-    "http://halchal.onrender.com",
 ]
 
 # ---------------- APPS ----------------
 INSTALLED_APPS = [
-    "cloudinary_storage", # Ye hamesha staticfiles se upar hona chahiye
+    "cloudinary_storage", 
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
     "cloudinary",
     "mynews",
     "ckeditor",
@@ -41,7 +50,7 @@ INSTALLED_APPS = [
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Static files ke liye
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -49,8 +58,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-ROOT_URLCONF = "mysite.urls"
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
@@ -64,24 +71,17 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # "mynews.context_processors.important_news", # Error rokne ke liye band kiya hai
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = "mysite.wsgi.application"
-
 # ---------------- DATABASE ----------------
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
-        conn_max_age=0,
+        conn_max_age=600,
     )
-}
-
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
 }
 
 # ---------------- GENERAL ----------------
@@ -95,16 +95,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Media settings for Cloudinary
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ✅ Fix: Static फोल्डर का सही रास्ता (mynews के अंदर)
 STATICFILES_DIRS = [
     BASE_DIR / "mynews" / "static",
 ]
 
-# Static files storage for Render
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ---------------- CLOUDINARY SETTINGS ----------------
@@ -126,7 +123,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ---------------- CKEDITOR SETTINGS ----------------
 CKEDITOR_UPLOAD_PATH = "uploads/" 
-
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
