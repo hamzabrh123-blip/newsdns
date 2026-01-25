@@ -36,11 +36,15 @@ def home(request):
     return render(request, "mynews/home.html", context)
 
 # ✅ FIXED: Isne url_city ko optional kar diya taaki crash na ho
-def news_detail(request, slug, url_city=None):
-    news = get_object_or_404(News, slug=slug)
+def news_detail(request, url_city, slug): 
+    # अब ये url_city और slug दोनों का इस्तेमाल करेगा
+    news = get_object_or_404(News, slug=slug, url_city=url_city)
+    
     comments = Comment.objects.filter(news=news, active=True).order_by("-date")
+    
     if news.youtube_url:
         news.youtube_url = news.youtube_url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
+    
     context = {"news": news, "comments": comments}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
