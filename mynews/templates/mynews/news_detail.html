@@ -37,7 +37,9 @@
             <li class="breadcrumb-item">
                 <a href="#" class="text-decoration-none text-muted">{{ news.category|default:"News" }}</a>
             </li>
-            <li class="breadcrumb-item active text-danger" aria-current="page">{{ news.district|default:"Uttar Pradesh" }}</li>
+            <li class="breadcrumb-item active text-danger" aria-current="page">
+                <a href="{% url 'district_news' news.district %}" class="text-danger text-decoration-none">{{ news.district|default:"Uttar Pradesh" }}</a>
+            </li>
         </ol>
     </nav>
 
@@ -81,67 +83,62 @@
                     {{ news.content|safe }}
                 </div>
 
-
-
                 
-              {% if news.youtube_url %}
-<div class="video-container my-5 shadow rounded overflow-hidden border">
-    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
-    <div class="ratio ratio-16x9">
-        <iframe 
-            id="youtube-player"
-            src="" 
-            title="YouTube video player" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-            referrerpolicy="strict-origin-when-cross-origin"
-            allowfullscreen>
-        </iframe>
-    </div>
-</div>
-          <!--Ads -->      
-<script src="//cdn.runative-syndicate.com/sdk/v1/exit.popup.js"></script>
-<script>
-   ExitPopupAd({
-        spot: "d99e56d5353a4de3a3f8f99d965a8ac3",
-        type: "img-left",
-        cols: 3,
-        rows: 1,
-        title: "",
-        width: "50%",
-        cookieExpires: "3",
-        adsByPosition: "bottom-right",
-	styles: {
-		"container": {
-			"width": "900px",
-			"height": "90px",
-			"overflow": "hidden"
-		}
-	}
-   });
-</script>
- <!--Ads end -->                   
-<script>
-    (function() {
-        var rawUrl = "{{ news.youtube_url }}";
-        var videoId = "";
-        
-        // YouTube ID निकालने का सबसे सटीक तरीका
-        if (rawUrl.indexOf('youtube.com/watch?v=') !== -1) {
-            videoId = rawUrl.split('v=')[1].split('&')[0];
-        } else if (rawUrl.indexOf('youtu.be/') !== -1) {
-            videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
-        } else if (rawUrl.indexOf('youtube.com/embed/') !== -1) {
-            videoId = rawUrl.split('embed/')[1].split('?')[0];
-        }
+                {% if news.youtube_url %}
+                <div class="video-container my-5 shadow rounded overflow-hidden border">
+                    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
+                    <div class="ratio ratio-16x9">
+                        <iframe 
+                            id="youtube-player"
+                            src="" 
+                            title="YouTube video player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
 
-        if (videoId) {
-            // यहाँ 'youtube-nocookie.com' का इस्तेमाल सुरक्षा और प्राइवेसी के लिए बेहतर है
-            document.getElementById('youtube-player').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?rel=0&modestbranding=1";
-        }
-    })();
-</script>
-{% endif %}
+                <script src="//cdn.runative-syndicate.com/sdk/v1/exit.popup.js"></script>
+                <script>
+                   ExitPopupAd({
+                       spot: "d99e56d5353a4de3a3f8f99d965a8ac3",
+                       type: "img-left",
+                       cols: 3,
+                       rows: 1,
+                       title: "",
+                       width: "50%",
+                       cookieExpires: "3",
+                       adsByPosition: "bottom-right",
+                    styles: {
+                        "container": {
+                            "width": "900px",
+                            "height": "90px",
+                            "overflow": "hidden"
+                        }
+                    }
+                   });
+                </script>
+                 <script>
+                    (function() {
+                        var rawUrl = "{{ news.youtube_url }}";
+                        var videoId = "";
+                        
+                        if (rawUrl.indexOf('youtube.com/watch?v=') !== -1) {
+                            videoId = rawUrl.split('v=')[1].split('&')[0];
+                        } else if (rawUrl.indexOf('youtu.be/') !== -1) {
+                            videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
+                        } else if (rawUrl.indexOf('youtube.com/embed/') !== -1) {
+                            videoId = rawUrl.split('embed/')[1].split('?')[0];
+                        }
+
+                        if (videoId) {
+                            document.getElementById('youtube-player').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?rel=0&modestbranding=1";
+                        }
+                    })();
+                </script>
+                {% endif %}
 
                 <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
                     <h6 class="fw-bold mb-3">यह खबर आपको कैसी लगी? दोस्तों के साथ शेयर करें:</h6>
@@ -160,7 +157,7 @@
                 <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
                 
                 <script async="async" data-cfasync="false" src="https://encouragementglutton.com/9591a87f8b15a5fb42a04af3e605d8c0/invoke.js"></script>
-<div id="container-9591a87f8b15a5fb42a04af3e605d8c0"></div>
+                <div id="container-9591a87f8b15a5fb42a04af3e605d8c0"></div>
             </article>
         </div>
 
