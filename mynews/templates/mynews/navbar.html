@@ -1,7 +1,7 @@
 {% load static %}
 
 <style>
-    /* हिलता हुआ तिरंगा और तिरंगा पट्टी */
+    /* तिरंगा पट्टी */
     .republic-header {
         background: linear-gradient(90deg, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #128807 66.66%);
         height: 5px;
@@ -10,32 +10,25 @@
 
     .top-bar {
         background: #ffffff;
-        padding: 8px 0;
+        padding: 5px 0; /* पैडिंग थोड़ी कम की ताकि अलाइनमेंट सही रहे */
         border-bottom: 1px solid #ddd;
     }
 
-    /* तिरंगा GIF के लिए स्टाइल */
+    /* Pixabay लहराता तिरंगा GIF */
     .flag-gif {
-        height: 30px;
+        height: 50px; /* पिक्साबे जीआईएफ के लिए बेस्ट साइज */
         width: auto;
-        vertical-align: middle;
+        margin-right: 10px;
     }
 
     .wish-text-animated {
         font-weight: 800;
         color: #b91d1d;
         letter-spacing: 1px;
-        text-transform: uppercase;
     }
 
     .main-nav-bg {
         background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
-    }
-    
-    .dropdown-menu {
-        border-radius: 0 0 10px 10px;
-        border: none;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
     }
 </style>
 
@@ -43,13 +36,16 @@
 
 <div class="top-bar d-none d-lg-block">
     <div class="container d-flex justify-content-between align-items-center">
-        <div>
-            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3VxdXo0M3h4M3h4M3h4M3h4M3h4M3h4M3h4M3h4M3h4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/m88X6Pz8E00B1194E1/giphy.gif" class="flag-gif me-2" alt="Tiranga">
-            <span class="text-danger fw-bold"><i class="fas fa-calendar-alt me-1"></i> आज की तारीख:</span> 
-            <span class="text-muted fw-semibold">{% now "d F Y" %}</span>
+        <div class="d-flex align-items-center">
+            <img src="https://cdn.pixabay.com/animation/2022/08/21/20/03/20-03-41-348_512.gif" class="flag-gif" alt="Tiranga">
+            
+            <div class="ms-2">
+                <span class="text-danger fw-bold"><i class="fas fa-calendar-alt me-1"></i> आज की तारीख:</span> 
+                <span class="text-dark fw-semibold">{% now "d F Y" %}</span>
+            </div>
         </div>
         <div>
-            <span class="wish-text-animated me-3">गणतंत्र दिवस की शुभकामनाएँ</span>
+            <span class="wish-text-animated me-3">गणतंत्र दिवस की शुभकामनाएँ | 2026</span>
             <a href="#" class="text-primary me-2"><i class="fab fa-facebook-f"></i></a>
             <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
             <a href="#" class="text-success"><i class="fab fa-whatsapp"></i></a>
@@ -81,7 +77,7 @@
                     <a class="nav-link dropdown-toggle px-2 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
                         उत्तर प्रदेश
                     </a>
-                    <ul class="dropdown-menu mt-2 py-0 overflow-hidden">
+                    <ul class="dropdown-menu mt-2 shadow-lg border-0 overflow-hidden">
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">उत्तर प्रदेश राष्ट्रीय</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ-यूपी</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
