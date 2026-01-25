@@ -13,11 +13,11 @@ class News(models.Model):
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
-         ('Technology', 'Technology'),
-         ('Bollywood', 'Bollywood'),
-        
+        ('Technology', 'Technology'),
+        ('Bollywood', 'Bollywood'),
     ]
 
+    # आपके पुराने डिस्ट्रिक्ट पेज के लिए चॉइस (इसे टच नहीं किया गया)
     DISTRICT_CHOICES = [
         ('Lucknow-UP', 'Lucknow-UP'),
         ('UP-National', 'UP-National'),
@@ -29,20 +29,28 @@ class News(models.Model):
 
     title = models.CharField(max_length=250)
     
-    # --- यह फ़ील्ड गायब थी, इसे यहाँ वापस जोड़ दिया है ---
     category = models.CharField(
         max_length=100,
         choices=CATEGORY_CHOICES,
         blank=True,
         null=True
     )
-    # -----------------------------------------------
 
+    # पुराने पेज को चलाने के लिए डिस्ट्रिक्ट चॉइस
     district = models.CharField(
         max_length=50,
         choices=DISTRICT_CHOICES,
         blank=True,
         null=True
+    )
+
+    # ✅ नया फ़ील्ड: URL में शहर का नाम दिखाने के लिए (जैसे: New_York)
+    # अगर इसे खाली छोड़ेंगे तो district का नाम अपने आप यहाँ आ जाएगा
+    url_city = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True, 
+        help_text="URL के लिए शहर का नाम (जैसे: New York). खाली छोड़ने पर District का नाम लिया जाएगा।"
     )
 
     date = models.DateTimeField(auto_now_add=True)
@@ -53,6 +61,18 @@ class News(models.Model):
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
     def save(self, *args, **kwargs):
+        # 1. URL के लिए शहर का नाम तैयार करना
+        if not self.url_city:
+            if self.district:
+                # 'Lucknow-UP' को 'lucknow-up' बनाएगा
+                self.url_city = self.district.lower()
+            else:
+                self.url_city = "news"
+        
+        # स्पेस को हटाकर underscore (_) लगाना (e.g. 'New York' -> 'new_york')
+        self.url_city = self.url_city.strip().replace(" ", "_").lower()
+
+        # 2. स्लग बनाना
         if not self.slug:
             base_slug = slugify(force_str(self.title), allow_unicode=True)
             slug = base_slug
@@ -61,6 +81,7 @@ class News(models.Model):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
+            
         super().save(*args, **kwargs)
 
     def __str__(self):
