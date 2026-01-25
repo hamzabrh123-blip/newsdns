@@ -45,17 +45,18 @@ class News(models.Model):
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
     def save(self, *args, **kwargs):
-        # 1. URL के लिए शहर का नाम तैयार करना
-        if not self.url_city:
-            if self.district:
-                self.url_city = self.district.lower()
-            else:
-                self.url_city = "news"
-        
+        # 1. URL के लिए शहर का नाम अपडेट करना (इसे अब FORCE अपडेट करेगा)
         if self.url_city:
-            self.url_city = self.url_city.strip().replace(" ", "_").lower()
+            # अगर आपने खुद भरा है तो उसे क्लीन करेगा (New York -> new-york)
+            self.url_city = slugify(self.url_city)
+        elif self.district:
+            # अगर खाली है तो District उठाएगा
+            self.url_city = slugify(self.district)
+        else:
+            # अगर दोनों खाली हैं तो 'news'
+            self.url_city = "news"
 
-        # 2. स्लग बनाना
+        # 2. स्लग बनाना (अगर नहीं है तभी बनाएगा)
         if not self.slug:
             base_slug = slugify(force_str(self.title), allow_unicode=True)
             slug = base_slug
