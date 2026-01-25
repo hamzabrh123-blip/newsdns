@@ -35,17 +35,40 @@ def home(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# ✅ FIXED & IMPROVED: Related News logic added
+# ✅ Missing Category Functions (Added)
+def national_news(request):
+    news_list = News.objects.filter(category="National").order_by("-date")
+    page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+    context = {"category": "National", "page_obj": page_obj}
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/category_news.html", context)
+
+def international_news(request):
+    news_list = News.objects.filter(category="International").order_by("-date")
+    page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+    context = {"category": "International", "page_obj": page_obj}
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/category_news.html", context)
+
+def tech_news(request):
+    news_list = News.objects.filter(category="Technology").order_by("-date")
+    page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+    context = {"category": "Technology", "page_obj": page_obj}
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/category_news.html", context)
+
+def bollywood_news(request):
+    news_list = News.objects.filter(category="Bollywood").order_by("-date")
+    page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+    context = {"category": "Bollywood", "page_obj": page_obj}
+    context.update(get_common_sidebar_data())
+    return render(request, "mynews/category_news.html", context)
+
 def news_detail(request, url_city, slug): 
-    # न्यूज़ को slug और url_city के आधार पर ढूँढना
     news = get_object_or_404(News, slug=slug, url_city=url_city)
-    
-    # सम्बन्धित खबरें: उसी शहर (district) की 3 ताजा खबरें (वर्तमान न्यूज़ को छोड़कर)
     related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
-    
     comments = Comment.objects.filter(news=news, active=True).order_by("-date")
     
-    # Youtube URL logic (Template handles this, but keeping for safety)
     if news.youtube_url:
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
@@ -55,26 +78,22 @@ def news_detail(request, url_city, slug):
     context = {
         "news": news, 
         "comments": comments,
-        "related_news": related_news  # ✅ अब टेम्पलेट में खबरें दिखेंगी
+        "related_news": related_news 
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
 
-# Redirect old news to new URL format
 def old_news_redirect(request, slug):
     news = get_object_or_404(News, slug=slug)
     city = news.url_city if news.url_city else "news"
     return redirect(f'/{city}/{news.slug}.html', permanent=True)
 
-# अन्य views जैसे हैं वैसे ही रहेंगे...
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
     page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
     context = {"district": district, "page_obj": page_obj}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
-
-# ... (बाकी के views National, Technology, Bollywood, International सब सही हैं)
 
 def contact_us(request):
     success = False
@@ -87,7 +106,6 @@ def contact_us(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/contact_us.html", context)
 
-# Static Pages
 def privacy_policy(request): return render(request, "mynews/privacy_policy.html")
 def about_us(request): return render(request, "mynews/about_us.html")
 def disclaimer(request): return render(request, "mynews/disclaimer.html")
