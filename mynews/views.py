@@ -1,10 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
-from django.db import models
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from .models import News, Comment
-from django.utils.text import slugify
 from django.conf import settings
 import logging
 
@@ -26,7 +24,7 @@ def get_common_sidebar_data():
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:5],
     }
 
-# ================= HOME (SEO FIXED) =================
+# ================= HOME =================
 def home(request):
     query = request.GET.get("q")
     if query:
@@ -46,12 +44,12 @@ def home(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# ================= NEWS DETAIL (NEW FORMAT FIXED) =================
-# Ab URL mein url_city aur slug dono milenge
+# ================= NEWS DETAIL =================
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
-    comments = Comment.objects.filter(news=news).order_by("-date")
+    comments = Comment.objects.filter(news=news, active=True).order_by("-date")
 
+    # YouTube URL Formatting
     if news.youtube_url:
         if "watch?v=" in news.youtube_url:
             news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
@@ -61,14 +59,20 @@ def news_detail(request, url_city, slug):
     context = {
         "news": news,
         "comments": comments,
-        "meta_description": f"{news.title[:160]}. ताज़ा खबरें {url_city} और उत्तर प्रदेश से।",
-        "meta_keywords": f"{news.category} News, {url_city} Khabar, UP News Today, {news.title[:50]}",
+        "meta_description": f"{news.title[:160]}",
+        "meta_keywords": f"{news.category} News, UP News",
         "og_title": f"{news.title} - UP Halchal",
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
 
-# ================= DISTRICT NEWS (UNCHANGED - SAFE) =================
+# ================= OLD NEWS REDIRECT (Add this here!) =================
+def old_news_redirect(request, slug):
+    news = get_object_or_404(News, slug=slug)
+    city = news.url_city if news.url_city else "news"
+    return redirect(f'/{city}/{news.slug}.html', permanent=True)
+
+# ================= DISTRICT NEWS =================
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
     paginator = Paginator(news_list, 20)
@@ -77,13 +81,11 @@ def district_news(request, district):
     context = {
         "district": district, 
         "page_obj": page_obj,
-        "meta_description": f"Latest {district} News in Hindi on UP Halchal.",
-        "meta_keywords": f"{district} News, {district} Hindi Khabar, UP Halchal {district}",
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= CATEGORY PAGES (UNCHANGED - SAFE) =================
+# ================= CATEGORY PAGES =================
 def national_news(request):
     news_list = News.objects.filter(category="National").order_by("-date")
     paginator = Paginator(news_list, 20)
@@ -144,7 +146,7 @@ def about_us(request):
 def disclaimer(request):
     return render(request, "mynews/disclaimer.html")
 
-# ================= SEO FILES (UPDATED FOR .HTML) =================
+# ================= SEO FILES =================
 def ads_txt(request):
     content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
@@ -160,7 +162,6 @@ def sitemap_xml(request):
     xml += f"<url><loc>{base_url}/</loc><priority>1.0</priority></url>"
     
     for news in news_items:
-        # Naye URL format ke hisaab se sitemap update
         city = news.url_city if news.url_city else "news"
         url = f"{base_url}/{city}/{news.slug}.html" 
         xml += f"<url><loc>{url}</loc><priority>0.8</priority></url>"
