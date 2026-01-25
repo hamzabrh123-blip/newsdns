@@ -16,9 +16,9 @@ urlpatterns = [
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # ✅ FIXED: Ye dono type ke link handle kar lega
+    # ✅ सिर्फ इस एक लाइन को रखें, बाकी न्यूज़ वाली पुरानी लाइनें हटा दें
     path("<str:url_city>/<slug:slug>.html", views.news_detail, name="news_detail"),
-    path("<slug:slug>.html", views.news_detail, name="news_detail"), 
     
+    # अगर कोई पुरानी न्यूज़ बिना सिटी के है, तो उसे redirect करने के लिए इसे नीचे रखें
     path("<slug:slug>/", views.old_news_redirect, name="old_news_redirect"),
 ]
