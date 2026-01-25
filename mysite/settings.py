@@ -5,15 +5,10 @@ import dj_database_url
 # ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-
-
-
 # ---------------- SECURITY ----------------
-# Render Environment se uthayega, nahi milega toh default use karega (Crash nahi hoga)
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-DEBUG = True # Sab theek hone ke baad False kar dena
+DEBUG = True 
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -26,8 +21,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://halchal.onrender.com",
     "http://halchal.onrender.com",
 ]
+
 # ---------------- APPS ----------------
 INSTALLED_APPS = [
+    "cloudinary_storage", # Ye hamesha staticfiles se upar hona chahiye
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -35,7 +32,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     
-    "cloudinary_storage",
     "cloudinary",
     "mynews",
     "ckeditor",
@@ -68,9 +64,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # Temporary hata diya hai crash rokne ke liye
-                "mynews.context_processors.important_news",
-                # "mynews.context_processors.site_visits",
+                # "mynews.context_processors.important_news", # Error rokne ke liye band kiya hai
             ],
         },
     },
@@ -81,19 +75,18 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # ---------------- DATABASE ----------------
 DATABASES = {
     'default': dj_database_url.config(
-        # Render par ye variable automatically uthaya jayega
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=0,
     )
 }
 
-# SSL/Connection errors se bachne ke liye ye zaroori hai
 DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
 }
+
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata" # India time set kiya hai
+TIME_ZONE = "Asia/Kolkata" 
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -110,6 +103,15 @@ if STATIC_DIR.exists():
     STATICFILES_DIRS = [STATIC_DIR]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ---------------- CLOUDINARY SETTINGS ----------------
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -128,12 +130,7 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'full',
         'height': 400,
         'width': '100%',
-        'extraPlugins': ','.join([
-            'uploadimage', 
-            'image2',     
-        ]),
+        'extraPlugins': ','.join(['uploadimage', 'image2']),
         'removePlugins': 'image', 
     },
 }
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
