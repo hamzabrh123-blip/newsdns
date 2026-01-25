@@ -6,10 +6,8 @@ from .models import News, Comment
 from django.conf import settings
 import logging
 
-# Logger setup
 logger = logging.getLogger(__name__)
 
-# ✅ OPTIMIZED SIDEBAR DATA
 def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
@@ -24,147 +22,87 @@ def get_common_sidebar_data():
         "sitapur_barabanki_sidebar": News.objects.filter(district='Sitapur-Barabanki').order_by("-date")[:5],
     }
 
-# ================= HOME =================
 def home(request):
     query = request.GET.get("q")
-    if query:
-        news_list = News.objects.filter(title__icontains=query).order_by("-date")
-    else:
-        news_list = News.objects.filter(is_important=True).order_by("-date")
-
+    news_list = News.objects.filter(title__icontains=query).order_by("-date") if query else News.objects.filter(is_important=True).order_by("-date")
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get("page"))
-
     context = {
         "page_obj": page_obj,
-        "meta_description": "UP Halchal News: Latest Uttar Pradesh News in Hindi. उत्तर प्रदेश की हर हलचल पर हमारी नज़र। पढ़ें देश-दुनिया की ताज़ा खबरें।",
-        "meta_keywords": "UP Halchal, UP News Hindi, Latest News, Breaking News, Uttar Pradesh News Portal",
-        "og_title": "UP Halchal News | सबसे तेज़, सबसे सटीक न्यूज़ पोर्टल",
+        "meta_description": "UP Halchal News: Latest Uttar Pradesh News in Hindi.",
+        "og_title": "UP Halchal News",
     }
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# ================= NEWS DETAIL =================
-def news_detail(request, url_city, slug):
+# ✅ FIXED: Isne url_city ko optional kar diya taaki crash na ho
+def news_detail(request, slug, url_city=None):
     news = get_object_or_404(News, slug=slug)
     comments = Comment.objects.filter(news=news, active=True).order_by("-date")
-
-    # YouTube URL Formatting
     if news.youtube_url:
-        if "watch?v=" in news.youtube_url:
-            news.youtube_url = news.youtube_url.replace("watch?v=", "embed/")
-        elif "youtu.be/" in news.youtube_url:
-            news.youtube_url = news.youtube_url.replace("youtu.be/", "www.youtube.com/embed/")
-
-    context = {
-        "news": news,
-        "comments": comments,
-        "meta_description": f"{news.title[:160]}",
-        "meta_keywords": f"{news.category} News, UP News",
-        "og_title": f"{news.title} - UP Halchal",
-    }
+        news.youtube_url = news.youtube_url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
+    context = {"news": news, "comments": comments}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/news_detail.html", context)
 
-# ================= OLD NEWS REDIRECT (Add this here!) =================
 def old_news_redirect(request, slug):
     news = get_object_or_404(News, slug=slug)
     city = news.url_city if news.url_city else "news"
     return redirect(f'/{city}/{news.slug}.html', permanent=True)
 
-# ================= DISTRICT NEWS =================
 def district_news(request, district):
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-
-    context = {
-        "district": district, 
-        "page_obj": page_obj,
-    }
+    page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+    context = {"district": district, "page_obj": page_obj}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= CATEGORY PAGES =================
 def national_news(request):
     news_list = News.objects.filter(category="National").order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    context = {"page_obj": page_obj, "district": "भारत (National)"}
+    context = {"page_obj": Paginator(news_list, 20).get_page(request.GET.get("page")), "district": "भारत"}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
 def technology(request):
     news_list = News.objects.filter(category="Technology").order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    context = {"page_obj": page_obj, "district": "टेक्नॉलोजी (Technology)"}
+    context = {"page_obj": Paginator(news_list, 20).get_page(request.GET.get("page")), "district": "टेक्नॉलोजी"}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
 def bollywood(request):
     news_list = News.objects.filter(category="Bollywood").order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    context = {"page_obj": page_obj, "district": "बॉलीवुड (Bollywood)"}
+    context = {"page_obj": Paginator(news_list, 20).get_page(request.GET.get("page")), "district": "बॉलीवुड"}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
 def international_news(request):
     news_list = News.objects.filter(category="International").order_by("-date")
-    paginator = Paginator(news_list, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    context = {"page_obj": page_obj, "district": "दुनिया (International)"}
+    context = {"page_obj": Paginator(news_list, 20).get_page(request.GET.get("page")), "district": "दुनिया"}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-# ================= CONTACT / STATIC PAGES =================
 def contact_us(request):
     success = False
     if request.method == "POST":
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        message_body = request.POST.get("message")
-        subject = f"UP Halchal News: Message from {name}"
-        full_message = f"Sender Name: {name}\nSender Email: {email}\n\nMessage:\n{message_body}"
         try:
-            send_mail(subject=subject, message=full_message, from_email=settings.EMAIL_HOST_USER, recipient_list=[settings.EMAIL_HOST_USER], fail_silently=False)
+            send_mail(f"Message from {request.POST.get('name')}", request.POST.get('message'), settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER])
             success = True
-        except Exception as e:
-            logger.error(f"Contact Form Error: {e}")
-            success = True 
+        except: pass
     context = {"success": success}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/contact_us.html", context)
 
-def privacy_policy(request):
-    return render(request, "mynews/privacy_policy.html")
-
-def about_us(request):
-    return render(request, "mynews/about_us.html")
-    
-def disclaimer(request):
-    return render(request, "mynews/disclaimer.html")
-
-# ================= SEO FILES =================
-def ads_txt(request):
-    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
-    return HttpResponse(content, content_type="text/plain")
-
-def robots_txt(request):
-    content = "User-Agent: *\nAllow: /\nDisallow: /admin/\nSitemap: https://halchal.onrender.com/sitemap.xml"
-    return HttpResponse(content, content_type="text/plain")
+def privacy_policy(request): return render(request, "mynews/privacy_policy.html")
+def about_us(request): return render(request, "mynews/about_us.html")
+def disclaimer(request): return render(request, "mynews/disclaimer.html")
+def ads_txt(request): return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+def robots_txt(request): return HttpResponse("User-Agent: *\nAllow: /\nSitemap: https://halchal.onrender.com/sitemap.xml", content_type="text/plain")
 
 def sitemap_xml(request):
-    base_url = "https://halchal.onrender.com" 
-    news_items = News.objects.exclude(slug__isnull=True).exclude(slug="").order_by('-date')[:500]
+    items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-    xml += f"<url><loc>{base_url}/</loc><priority>1.0</priority></url>"
-    
-    for news in news_items:
-        city = news.url_city if news.url_city else "news"
-        url = f"{base_url}/{city}/{news.slug}.html" 
-        xml += f"<url><loc>{url}</loc><priority>0.8</priority></url>"
-        
+    xml += "<url><loc>https://halchal.onrender.com/</loc></url>"
+    for n in items:
+        xml += f"<url><loc>https://halchal.onrender.com/{n.url_city or 'news'}/{n.slug}.html</loc></url>"
     xml += "</urlset>"
     return HttpResponse(xml, content_type="application/xml")
