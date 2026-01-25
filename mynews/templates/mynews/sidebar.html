@@ -3,18 +3,19 @@
   <div class="mb-4 text-center border-bottom pb-3">
     <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
   </div>
+  
   <script>
-(function(ecowah){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = ecowah || {};
-s.src = "\/\/improbablehospital.com\/c-DE9d6mb.2m5XlcScW\/QS9xN-jYcc1lMeTCArzFMNys0f2BNczkUAxSMfDkMV0f";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-</script>
+  (function(ecowah){
+  var d = document,
+      s = d.createElement('script'),
+      l = d.scripts[d.scripts.length - 1];
+  s.settings = ecowah || {};
+  s.src = "\/\/improbablehospital.com\/c-DE9d6mb.2m5XlcScW\/QS9xN-jYcc1lMeTCArzFMNys0f2BNczkUAxSMfDkMV0f";
+  s.async = true;
+  s.referrerPolicy = 'no-referrer-when-downgrade';
+  l.parentNode.insertBefore(s, l);
+  })({})
+  </script>
 
   {% if bharat_sidebar %}
   <div class="mb-4">
@@ -22,7 +23,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in bharat_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -37,7 +38,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in duniya_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -52,7 +53,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in technology_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -67,7 +68,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in bollywood_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -76,15 +77,14 @@ l.parentNode.insertBefore(s, l);
   </div>
   {% endif %}
 
-
   <hr>
- {% if up_national_sidebar %}
+ {% if lucknow_up_sidebar %}
   <div class="mb-4">
     <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
     {% for item in lucknow_up_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -95,15 +95,15 @@ l.parentNode.insertBefore(s, l);
 
   {% if up_national_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 उत्तर प्रदेश की बड़ी ख़बरें </h5>
+    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 उत्तर प्रदेश की बड़ी ख़बरें </h5>
     {% for item in up_national_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/UP-National/" class="view-all text-primary">उत्तर प्रदेश की अन्य ख़बरों →</a>
+        <a href="/district/UP-National/" class="view-all text-primary">उत्तर प्रदेश की अन्य ख़बरों →</a>
     </div>
   </div>
   {% endif %}
@@ -114,7 +114,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in purvanchal_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -129,7 +129,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in bahraich_gonda_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -144,7 +144,7 @@ l.parentNode.insertBefore(s, l);
     {% for item in balrampur_shravasti_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
@@ -153,18 +153,17 @@ l.parentNode.insertBefore(s, l);
   </div>
   {% endif %}
 
-
   {% if sitapur_barabanki_sidebar %}
   <div class="mb-4">
-    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍सीतापुर-बाराबंकी-लखीमपुर-पीलीभीत</h5>
+    <h5 class="sidebar-title text-info" style="border-left: 5px solid #17a2b8; padding-left: 10px;">📍सीतापुर-बाराबंकी</h5>
     {% for item in sitapur_barabanki_sidebar %}
       <div class="sidebar-item">
         {% if item.image %}<img src="{{ item.image.url }}" class="sidebar-img">{% endif %}
-        <a href="{% url 'news_detail' item.slug %}">{{ item.title|truncatechars:45 }}</a>
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:45 }}</a>
       </div>
     {% endfor %}
     <div class="text-end">
-        <a href="/district/Sitapur-Barabanki/" class="view-all text-info">सीतापुर-बाराबंकी-लखीमपुर-पीलीभीत की और खबरें →</a>
+        <a href="/district/Sitapur-Barabanki/" class="view-all text-info">और खबरें →</a>
     </div>
   </div>
   {% endif %}
