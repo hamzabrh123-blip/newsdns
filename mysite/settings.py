@@ -11,8 +11,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-43
 DEBUG = False # Production ke liye False hi rehne do
 
 # ✅ FIX: Inhe sahi kar diya hai (Duplicate hataye)
-ROOT_URLCONF = "newsdns.urls"
-WSGI_APPLICATION = "newsdns.wsgi.application"
+ROOT_URLCONF = "mysite.urls"
+WSGI_APPLICATION = "mysite.wsgi.application"
 
 ALLOWED_HOSTS = [
     "localhost",
