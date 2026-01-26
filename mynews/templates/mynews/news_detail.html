@@ -1,7 +1,7 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
 
-{% block title %}{{ news.title }} | UP Halchal{% endblock %}
+{% block title %}{{ news.title }} | Uttar World News{% endblock %}
 
 {% block social_meta %}
 <meta name="description" content="{{ news.content|striptags|truncatechars:160 }}">
@@ -12,18 +12,12 @@
 
 {% if news.image %}
     <meta property="og:image" content="{{ news.image.url }}">
-    <meta property="og:image:secure_url" content="{{ news.image.url }}">
 {% else %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:image" content="{% static 'logo.png' %}">
 {% endif %}
 
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:site_name" content="UP Halchal">
-
+<meta property="og:site_name" content="Uttar World News">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
 {% endblock %}
 
 {% block content %}
@@ -35,35 +29,41 @@
         <ol class="breadcrumb small bg-transparent p-0">
             <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
             <li class="breadcrumb-item">
-                <a href="/category/{{ news.category|slugify }}/" class="text-decoration-none text-muted">{{ news.category|default:"News" }}</a>
+                <a href="#" class="text-decoration-none text-muted">{{ news.category|default:"News" }}</a>
             </li>
-            <li class="breadcrumb-item active text-danger" aria-current="page">
-                <a href="{% url 'district_news' news.url_city %}" class="text-danger text-decoration-none fw-bold">{{ news.district|default:"Uttar Pradesh" }}</a>
+            <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">
+                {{ news.district|default:"Uttar Pradesh" }}
             </li>
         </ol>
     </nav>
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <article class="bg-white p-3 p-md-4 rounded shadow-sm border overflow-hidden main-article-box">
+            <div class="ad-placeholder mb-4"></div>
+
+            <article class="bg-white p-3 p-md-4 rounded shadow-sm border main-article-box">
                 
                 {% if news.category %}
-                <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase shadow-sm" style="font-weight: 500; letter-spacing: 0.5px;">{{ news.category }}</span>
+                <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase" style="font-weight: 600; font-size: 0.75rem;">{{ news.category }}</span>
                 {% endif %}
 
                 <h1 class="news-main-title mb-3">{{ news.title }}</h1>
 
-                <div class="news-meta d-flex align-items-center justify-content-between flex-wrap border-top border-bottom py-3 mb-4 bg-light px-2 rounded">
+                <div class="news-meta d-flex align-items-center justify-content-between flex-wrap border-top border-bottom py-3 mb-4 bg-light px-3 rounded">
                     <div class="d-flex align-items-center">
-                        <img src="https://ui-avatars.com/api/?name=UP+Halchal&background=d32f2f&color=fff" class="rounded-circle me-2 border" width="45" alt="Author">
+                        <img src="https://ui-avatars.com/api/?name=Uttar+World&background=d32f2f&color=fff" class="rounded-circle me-2 border" width="45" alt="Author">
                         <div>
-                            <p class="mb-0 fw-bold small text-dark">टीम यूपी हलचल</p>
-                            <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ news.date|date:"d M Y" }} | <i class="far fa-clock me-1"></i> {{ news.date|date:"h:i A" }}</small>
+                            <p class="mb-0 fw-bold small text-dark">By Uttar World Desk</p>
+                            <small class="text-muted">
+                                <i class="far fa-calendar-alt me-1"></i> {{ news.date|date:"d M Y" }} 
+                                <span class="mx-2">|</span>
+                                <i class="far fa-clock me-1"></i> {{ news.date|date:"h:i A" }}
+                            </small>
                         </div>
                     </div>
                     <div class="share-buttons-top mt-2 mt-md-0 d-flex gap-2">
-                        <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-outline-success rounded-circle"><i class="fab fa-whatsapp"></i></a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-success rounded-circle shadow-sm"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-primary rounded-circle shadow-sm"><i class="fab fa-facebook-f"></i></a>
                     </div>
                 </div>
 
@@ -71,20 +71,21 @@
                 <figure class="figure w-100 text-center">
                     <img src="{{ news.image.url }}" 
                          class="img-fluid rounded shadow-sm w-100 main-img" 
-                         alt="{{ news.title }}"
-                         fetchpriority="high">
+                         alt="{{ news.title }}">
                     <figcaption class="figure-caption text-start mt-2 small text-muted">
-                        <i class="fas fa-camera me-1"></i> फोटो साभार: सोशल मीडिया (यूपी हलचल न्यूज़)
+                        <i class="fas fa-camera me-1"></i> फोटो साभार: Uttar World News
                     </figcaption>
                 </figure>
                 {% endif %}
+
+                <div class="ad-placeholder my-4"></div>
 
                 <div class="news-content-body mt-4">
                     {{ news.content|safe }}
                 </div>
 
                 {% if news.youtube_url %}
-                <div class="video-container my-5 shadow rounded overflow-hidden border">
+                <div class="video-container my-5 shadow-sm rounded overflow-hidden border">
                     <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
                     <div class="ratio ratio-16x9">
                         <iframe id="youtube-player" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
@@ -102,35 +103,34 @@
                 {% endif %}
 
                 <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
-                    <h6 class="fw-bold mb-3">यह खबर दोस्तों के साथ शेयर करें:</h6>
+                    <h6 class="fw-bold mb-3">अपने क्षेत्र की खबरों के लिए शेयर करें:</h6>
                     <div class="d-flex justify-content-center flex-wrap gap-2">
-                        <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success px-4 rounded-pill">
+                        <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success px-4 rounded-pill shadow-sm">
                             <i class="fab fa-whatsapp me-2"></i>WhatsApp
                         </a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary px-4 rounded-pill">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary px-4 rounded-pill shadow-sm">
                             <i class="fab fa-facebook-f me-2"></i>Facebook
                         </a>
-                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" class="btn btn-dark px-4 rounded-pill">
+                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" class="btn btn-dark px-4 rounded-pill shadow-sm">
                             <i class="fas fa-link me-2"></i>Copy Link
                         </button>
                     </div>
                 </div>
 
-                <div class="mt-4 text-center">
-                    <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
-                </div>
+                <div class="ad-placeholder mt-4"></div>
+
             </article>
 
             <div class="related-news mt-5">
-                <h4 class="fw-bold mb-4 border-bottom pb-2">सम्बन्धित खबरें</h4>
+                <h4 class="fw-bold mb-4 border-bottom pb-2"><span class="border-bottom border-danger border-3 pb-2">सम्बन्धित</span> खबरें</h4>
                 <div class="row g-3">
                     {% for r in related_news %}
                     <div class="col-md-4 col-6">
                         <a href="{% url 'news_detail' r.url_city r.slug %}" class="text-decoration-none text-dark">
-                            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
-                                <img src="{{ r.image.url }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden related-card">
+                                <img src="{{ r.image.url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
                                 <div class="p-2">
-                                    <h6 class="small fw-bold mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px;">{{ r.title }}</h6>
+                                    <h6 class="small fw-bold mb-0 lh-base">{{ r.title|truncatechars:55 }}</h6>
                                 </div>
                             </div>
                         </a>
@@ -143,57 +143,56 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="sticky-top" style="top: 90px;">
+            <aside class="sticky-top" style="top: 90px; z-index: 100;">
+                <div class="ad-placeholder mb-4"></div>
                 {% include 'mynews/sidebar.html' %}
-            </div>
+            </aside>
         </div>
     </div>
 </div>
 
 <style>
-    body { background-color: #f8f9fa; }
+    body { background-color: #f4f7f6; }
     
-    /* headline size reduced for better looks */
+    /* Ads jagah reserve karne ke liye */
+    .ad-placeholder {
+        width: 100%;
+        min-height: 10px; /* Abhi invisible rakha hai */
+        text-align: center;
+        background: transparent;
+    }
+
     .news-main-title { 
         font-family: 'Noto Serif Devanagari', serif; 
-        font-size: 28px; 
+        font-size: 2.2rem; 
         font-weight: 700; 
-        line-height: 1.4; 
-        color: #1a1a1a; 
+        line-height: 1.3; 
+        color: #111; 
     }
 
-    /* Standardized reading font size (17px is ideal for news) */
     .news-content-body { 
         font-family: 'Poppins', sans-serif; 
-        font-size: 17px !important; 
-        line-height: 1.8; 
+        font-size: 1.15rem !important; 
+        line-height: 1.9; 
         color: #333; 
-        text-align: justify;
+        word-wrap: break-word;
     }
 
-    .news-content-body p { margin-bottom: 1.3rem; }
+    .news-content-body p { margin-bottom: 1.5rem; }
     
-    .news-content-body img {
-        max-width: 100% !important;
-        height: auto !important;
-        border-radius: 8px;
-        margin: 20px 0;
-        display: block;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-
     .main-img { 
-        max-height: 450px; 
+        max-height: 500px; 
         object-fit: cover; 
-        width: 100%; 
-        border-radius: 8px !important;
+        border-radius: 12px !important;
     }
-    
+
+    .related-card { transition: 0.3s; }
+    .related-card:hover { transform: translateY(-5px); }
+
     @media (max-width: 768px) {
-        .news-main-title { font-size: 22px; }
-        .news-content-body { font-size: 16px !important; line-height: 1.7; }
-        .main-img { max-height: 280px; }
-        .share-box .btn { padding: 8px 15px; font-size: 0.85rem; }
+        .news-main-title { font-size: 1.6rem; }
+        .news-content-body { font-size: 1.05rem !important; }
+        .main-img { max-height: 300px; }
     }
 </style>
 
