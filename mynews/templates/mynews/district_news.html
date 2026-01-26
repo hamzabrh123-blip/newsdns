@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-{{ district }} की ताज़ा खबरें | UP Halchal
+{{ district|default:"Latest" }} News | Uttar World
 {% endblock %}
 
 {% block content %}
@@ -10,7 +10,6 @@
 
 <div class="container mt-4">
     <div class="row">
-
         <div class="col-lg-8 col-md-8">
             
             <div class="district-header mb-4 p-3 bg-white shadow-sm rounded-3 border-start border-4 border-danger">
@@ -67,7 +66,7 @@
                                 <small class="text-muted">
                                     <i class="far fa-clock me-1 text-danger"></i>{{ item.date|timesince }} पहले
                                 </small>
-                                <div class="action-buttons">
+                                <div class="action-buttons d-flex align-items-center">
                                     <a href="https://api.whatsapp.com/send?text={{ item.title }} - {{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city item.slug %}" 
                                        target="_blank" class="text-success me-3 text-decoration-none">
                                         <i class="fab fa-whatsapp fa-lg"></i>
@@ -83,9 +82,9 @@
                 {% empty %}
                 <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
                     <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
-                    <h5 class="text-muted fw-bold">क्षमा करें!</h5>
+                    <h5 class="text-muted fw-bold">No News Found!</h5>
                     <p class="text-secondary small">{{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
-                    <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">होम पेज पर वापस जाएं</a>
+                    <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">Explore Home</a>
                 </div>
                 {% endfor %}
             </div>
@@ -133,7 +132,9 @@
 
 <style>
     .main-title { color: #1a1a1a; letter-spacing: -0.2px; }
-    .sticky-sidebar { position: sticky; top: 90px; }
+    .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
+    
+    /* Animation for Live Pulse */
     .pulse-dot {
         width: 8px; height: 8px; background: #dc3545; border-radius: 50%;
         animation: pulse 1.5s infinite;
@@ -143,15 +144,23 @@
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
-    .news-card-v2 { border-radius: 15px; transition: transform 0.4s ease; border: 1px solid #f2f2f2 !important; background: #fff; }
+
+    /* Card Styling */
+    .news-card-v2 { border-radius: 15px; transition: all 0.3s ease; border: 1px solid #f2f2f2 !important; background: #fff; }
     .news-card-v2:hover { transform: translateY(-7px); box-shadow: 0 12px 25px rgba(0,0,0,0.08) !important; }
     .img-container { border-radius: 15px 15px 0 0; height: 190px; background: #f8f8f8; }
-    .news-thumb { width: 100%; height: 100%; object-fit: cover; }
-    .date-overlay { position: absolute; top: 12px; right: 12px; background: #fff; border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
-    .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; }
-    .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #666; font-weight: bold; }
+    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .news-card-v2:hover .news-thumb { transform: scale(1.1); }
+
+    /* Date Overlay */
+    .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
+    .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
+    .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
+
     .hover-title:hover { color: #d32f2f !important; }
     .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 3.8em; line-height: 1.6; }
+
+    /* Pagination */
     .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 10px !important; color: #444; font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
     .custom-pagination .page-item.active .page-link { background: #d32f2f; color: #fff; }
 </style>
