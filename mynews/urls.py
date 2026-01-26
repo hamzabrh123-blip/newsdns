@@ -18,10 +18,6 @@ urlpatterns = [
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # ✅ न्यूज़ डिटेल: /lucknow/news-slug.html (सबसे बेस्ट SEO फॉर्मेट)
+    # ✅ न्यूज़ डिटेल: /city/news-slug.html (The Final SEO Structure)
     path("<str:url_city>/<slug:slug>.html", views.news_detail, name="news_detail"),
-    
-    # ✅ ओल्ड न्यूज़ रीडायरेक्ट: अगर कोई पुरानी लिंक /news-slug/ पर क्लिक करे
-    # इसे न्यूज़ डिटेल के नीचे ही रखें
-    path("<slug:slug>/", views.old_news_redirect, name="old_news_redirect"),
 ]
