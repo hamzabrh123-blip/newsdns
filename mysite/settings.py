@@ -80,11 +80,10 @@ TEMPLATES = [
 
 # ---------------- DATABASE ----------------
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True  # <--- Ye add karke dekho agar connection error hai
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
