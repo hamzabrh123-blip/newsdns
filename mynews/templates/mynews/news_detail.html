@@ -90,33 +90,21 @@
 <!---------------------Youtube Part ye hai jo start ho rraha hai -------------------------->
 
 
-                
-              {% if news.youtube_url %}
+{% if news.youtube_url %}
 <div class="video-container my-5 shadow-sm rounded overflow-hidden border">
     <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
     <div class="ratio ratio-16x9">
-        <iframe id="youtube-player" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        {% with news.youtube_url|slice:"-11:" as video_id %}
+            <iframe 
+                src="https://www.youtube.com/embed/{{ video_id }}" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        {% endwith %}
     </div>
 </div>
-
-<script>
-    (function() {
-        var url = "{{ news.youtube_url }}";
-        var vid = "";
-        
-        // URL से ID निकालने का सबसे पक्का तरीका
-        var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        var match = url.match(regExp);
-        
-        if (match && match[2].length == 11) {
-            vid = match[2];
-            document.getElementById('youtube-player').src = "https://www.youtube.com/embed/" + vid;
-        } else {
-            // अगर ID नहीं मिली तो पूरा कंटेनर ही छुपा दो
-            document.querySelector('.video-container').style.display = 'none';
-        }
-    })();
-</script>
 {% endif %}
 
 
