@@ -6,6 +6,9 @@ from .models import News, Comment
 from django.conf import settings
 import logging
 
+# Site URL constant taaki baar-baar change na karna pade
+SITE_URL = "https://uttarworld.com"
+
 def get_common_sidebar_data():
     return {
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
@@ -23,7 +26,6 @@ def home(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# ✅ URLS.PY ke naam se match kiya: national_news
 def national_news(request):
     news_list = News.objects.filter(category="National").order_by("-date")
     page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
@@ -31,7 +33,6 @@ def national_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/category_news.html", context)
 
-# ✅ URLS.PY ke naam se match kiya: international_news
 def international_news(request):
     news_list = News.objects.filter(category="International").order_by("-date")
     page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
@@ -67,18 +68,25 @@ def district_news(request, district):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/district_news.html", context)
 
-def old_news_redirect(request, slug):
-    news = get_object_or_404(News, slug=slug)
-    city = news.url_city if news.url_city else "news"
-    return redirect(f'/{city}/{news.slug}.html', permanent=True)
-
 def contact_us(request):
     success = False
     if request.method == "POST":
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        full_msg = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
         try:
-            send_mail(f"Msg from {request.POST.get('name')}", request.POST.get('message'), settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER])
+            send_mail(
+                f"New Inquiry from Uttar World - {name}",
+                full_msg,
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER], # Aapko hi mail aayega
+                fail_silently=False,
+            )
             success = True
-        except: pass
+        except Exception as e:
+            print(f"Mail Error: {e}")
+    
     context = {"success": success}
     context.update(get_common_sidebar_data())
     return render(request, "mynews/contact_us.html", context)
@@ -86,14 +94,33 @@ def contact_us(request):
 def privacy_policy(request): return render(request, "mynews/privacy_policy.html")
 def about_us(request): return render(request, "mynews/about_us.html")
 def disclaimer(request): return render(request, "mynews/disclaimer.html")
-def ads_txt(request): return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
-def robots_txt(request): return HttpResponse("User-Agent: *\nAllow: /", content_type="text/plain")
+
+def ads_txt(request): 
+    return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+
+def robots_txt(request):
+    # Professional Robots.txt: Google ko allow karega aur sitemap ka rasta dikhayega
+    content = (
+        "User-Agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin/\n\n"
+        f"Sitemap: {SITE_URL}/sitemap.xml"
+    )
+    return HttpResponse(content, content_type="text/plain")
 
 def sitemap_xml(request):
-    items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
-    xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-    xml += "<url><loc>https://halchal.onrender.com/</loc></url>"
+    # Sitemap for Google Indexing
+    items = News.objects.exclude(slug__isnull=True).order_by('-date')[:1000] # Increased to 1000 items
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Homepage
+    xml += f"  <url><loc>{SITE_URL}/</loc><priority>1.0</priority></url>\n"
+    
+    # News Pages
     for n in items:
-        xml += f"<url><loc>https://halchal.onrender.com/{n.url_city or 'news'}/{n.slug}.html</loc></url>"
+        city = n.url_city if n.url_city else "news"
+        xml += f"  <url>\n    <loc>{SITE_URL}/{city}/{n.slug}.html</loc>\n    <lastmod>{n.date.strftime('%Y-%m-%d')}</lastmod>\n    <priority>0.8</priority>\n  </url>\n"
+    
     xml += "</urlset>"
     return HttpResponse(xml, content_type="application/xml")
