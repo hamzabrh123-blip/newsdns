@@ -8,30 +8,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------- SECURITY ----------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-DEBUG = True # Production ke liye False hi rehne do
+# Production ke liye niche wala logic best hai
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-# ✅ FIX: Inhe sahi kar diya hai (Duplicate hataye)
-ROOT_URLCONF = "mysite.urls"
-WSGI_APPLICATION = "mysite.wsgi.application"
-
+# ---------------- HOSTS ----------------
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
     "newsdns-m8s1.onrender.com", 
     "halchal.onrender.com",
-    # Yahan apna Spaceship wala domain bina 'https://' ke dalo
     "uttarworld.com", 
     "www.uttarworld.com",
 ]
 
-# ✅ FIX: Trusted origins update kiye taaki login/post mein error na aaye
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "https://newsdns-m8s1.onrender.com",
     "https://halchal.onrender.com",
-    "https://uttarworld.com",      # <--- Ye dalo
-    "https://www.uttarworld.com",  # <--- Ye bhi
+    "https://uttarworld.com",
+    "https://www.uttarworld.com",
 ]
 
 # ---------------- APPS ----------------
@@ -52,7 +48,7 @@ INSTALLED_APPS = [
 # ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Static files ke liye
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -60,6 +56,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+ROOT_URLCONF = "mysite.urls"
+WSGI_APPLICATION = "mysite.wsgi.application"
 
 # ---------------- TEMPLATES ----------------
 TEMPLATES = [
@@ -78,13 +77,15 @@ TEMPLATES = [
     },
 ]
 
-# ---------------- DATABASE ----------------
+# ---------------- DATABASE (AUTO-SWITCH LOGIC) ----------------
+# Agar Render par DATABASE_URL mili, toh online wala connect hoga, warna local sqlite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
+        conn_max_age=600
+    )
 }
+
 # ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata" 
@@ -95,15 +96,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------- STATIC & MEDIA ----------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-STATICFILES_DIRS = [
-    BASE_DIR / "mynews" / "static",
-]
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
 # ---------------- CLOUDINARY SETTINGS ----------------
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
