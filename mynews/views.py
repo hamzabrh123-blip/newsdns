@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -9,6 +10,15 @@ from django.utils.html import strip_tags
 # Professional Website Configuration
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
+
+# --- Naya Function Video ID nikalne ke liye ---
+def extract_video_id(url):
+    if not url:
+        return None
+    # Ye regex har tarah ke YouTube link (short, long, watch, embed) se ID nikal lega
+    regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+    match = re.search(regex, url)
+    return match.group(1) if match else None
 
 def get_common_sidebar_data():
     return {
@@ -75,15 +85,21 @@ def bollywood(request):
     except:
         return redirect('home')
 
+# --- YAHAN DEKHO: news_detail updated ---
 def news_detail(request, url_city, slug): 
     try:
         news = get_object_or_404(News, slug=slug, url_city=url_city)
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
+        
+        # Video ID yahan nikal kar bhej rahe hain
+        v_id = extract_video_id(news.youtube_url)
+        
         context = {
             "news": news, 
             "related_news": related_news,
             "meta_description": strip_tags(news.content)[:160],
             "og_title": f"{news.title} | {SITE_NAME}",
+            "v_id": v_id,  # Ab ye HTML mein use hoga
         }
         context.update(get_common_sidebar_data())
         return render(request, "mynews/news_detail.html", context)
