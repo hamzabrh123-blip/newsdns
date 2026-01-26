@@ -64,7 +64,10 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / "mynews" / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates", # Agar bahar koi folder ho
+            BASE_DIR / "mynews" / "templates", # Aapka main folder
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
