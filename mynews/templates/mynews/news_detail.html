@@ -86,23 +86,44 @@
                     {{ news.content|safe }}
                 </div>
 
-                {% if news.youtube_url %}
-                <div class="video-container my-5 shadow-sm rounded overflow-hidden border">
-                    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
-                    <div class="ratio ratio-16x9">
-                        <iframe id="youtube-player" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                </div>
-                <script>
-                    (function() {
-                        var rawUrl = "{{ news.youtube_url }}";
-                        var videoId = "";
-                        if (rawUrl.indexOf('v=') !== -1) videoId = rawUrl.split('v=')[1].split('&')[0];
-                        else if (rawUrl.indexOf('youtu.be/') !== -1) videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
-                        if (videoId) document.getElementById('youtube-player').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?rel=0&modestbranding=1";
-                    })();
-                </script>
-                {% endif %}
+              {% if news.youtube_url %}
+<div class="video-container my-5 shadow-sm rounded overflow-hidden border">
+    <div class="bg-dark text-white p-2 small"><i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट</div>
+    <div class="ratio ratio-16x9">
+        <iframe id="youtube-player" 
+                src="" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+<script>
+    (function() {
+        var rawUrl = "{{ news.youtube_url|safe }}";
+        var videoId = "";
+        
+        try {
+            if (rawUrl.includes('v=')) {
+                videoId = rawUrl.split('v=')[1].split('&')[0];
+            } else if (rawUrl.includes('youtu.be/')) {
+                videoId = rawUrl.split('youtu.be/')[1].split(/[?#]/)[0];
+            } else if (rawUrl.includes('embed/')) {
+                videoId = rawUrl.split('embed/')[1].split(/[?#]/)[0];
+            }
+            
+            if (videoId) {
+                // 'youtube-nocookie' ki jagah standard 'youtube.com' use kar rahe hain stable player ke liye
+                document.getElementById('youtube-player').src = "https://www.youtube.com/embed/" + videoId + "?rel=0&modestbranding=1&enablejsapi=1";
+            }
+        } catch (e) {
+            console.error("YouTube URL parsing error:", e);
+        }
+    })();
+</script>
+{% endif %}
 
                 <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
                     <h6 class="fw-bold mb-3">अपने क्षेत्र की खबरों के लिए शेयर करें:</h6>
