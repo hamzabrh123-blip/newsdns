@@ -4,11 +4,18 @@ import os
 
 def upload_to_imgbb(image_file):
     # API Key Render ke Environment variables se lega
-    api_key = os.environ.get("IMGBB_API_KEY", "d0528bc96d36a90b0cfbac9227174e41")
+    # Agar Render pe key nahi mili, toh ye None return karega (Safe approach)
+    api_key = os.environ.get("IMGBB_API_KEY")
+    
+    if not api_key:
+        print("Error: IMGBB_API_KEY nahi mili. Render settings check karein.")
+        return None
+
     url = "https://api.imgbb.com/1/upload"
     
     try:
         # Image ko base64 format mein convert karna
+        image_file.seek(0) # File pointer ko shuruat mein le jane ke liye
         image_data = base64.b64encode(image_file.read())
         
         data = {
