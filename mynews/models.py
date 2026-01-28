@@ -1,8 +1,9 @@
 from django.db import models
-from cloudinary.models import CloudinaryField
+# CloudinaryField hata diya hai
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.utils.text import slugify
 from django.utils.encoding import force_str
+from .utils import upload_to_imgbb 
 
 class District(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -39,24 +40,38 @@ class News(models.Model):
 
     date = models.DateTimeField(auto_now_add=True)
     content = RichTextUploadingField(blank=True)
-    image = CloudinaryField("Image", blank=True, null=True)
+    
+    # CloudinaryField ki jagah normal ImageField (Taki API Key ka error na aaye)
+    image = models.ImageField("Image", upload_to="news_pics/", blank=True, null=True)
+    
+    # Nayi photos ka ImgBB link yahan save hoga
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+    
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
     def save(self, *args, **kwargs):
-        # 1. URL के लिए शहर का नाम अपडेट करना (इसे अब FORCE अपडेट करेगा)
+        # 1. ImgBB Logic
+        if self.image and not self.image_url:
+            try:
+                # Sirf nayi upload ki gayi files ke liye (InMemoryUploadedFile)
+                if hasattr(self.image, 'file'):
+                    uploaded_link = upload_to_imgbb(self.image)
+                    if uploaded_link:
+                        self.image_url = uploaded_link
+            except Exception as e:
+                print(f"Error uploading to ImgBB: {e}")
+
+        # 2. City URL Logic
         if self.url_city:
-            # अगर आपने खुद भरा है तो उसे क्लीन करेगा (New York -> new-york)
             self.url_city = slugify(self.url_city)
         elif self.district:
-            # अगर खाली है तो District उठाएगा
             self.url_city = slugify(self.district)
         else:
-            # अगर दोनों खाली हैं तो 'news'
             self.url_city = "news"
 
-        # 2. स्लग बनाना (अगर नहीं है तभी बनाएगा)
+        # 3. Slug Logic
         if not self.slug:
             base_slug = slugify(force_str(self.title), allow_unicode=True)
             slug = base_slug
@@ -70,14 +85,3 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
-
-class Comment(models.Model):
-    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
-    name = models.CharField(max_length=120)
-    email = models.EmailField(blank=True, null=True)
-    comment = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.name} on {self.news.title}"

@@ -7,8 +7,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ---------------- SECURITY ----------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
-
-# Production ke liye niche wala logic best hai
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 # ---------------- HOSTS ----------------
@@ -65,8 +63,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "templates", # Agar bahar koi folder ho
-            BASE_DIR / "mynews" / "templates", # Aapka main folder
+            BASE_DIR / "templates",
+            BASE_DIR / "mynews" / "templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -81,7 +79,6 @@ TEMPLATES = [
 ]
 
 # ---------------- DATABASE (AUTO-SWITCH LOGIC) ----------------
-# Agar Render par DATABASE_URL mili, toh online wala connect hoga, warna local sqlite
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -106,13 +103,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-# ---------------- CLOUDINARY SETTINGS ----------------
+# ---------------- STORAGE SETTINGS (CHANGES HERE) ----------------
+# Maine Cloudinary ko default storage se hata diya hai 
+# taaki naye uploads ImgBB aur Local folder mein jayein.
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ---------------- EMAIL ----------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
