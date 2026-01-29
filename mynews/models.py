@@ -5,11 +5,13 @@ from django.utils.encoding import force_str
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
+    # 1. Yahan Market add kar diya hai
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
         ('Technology', 'Technology'),
         ('Bollywood', 'Bollywood'),
+        ('Market', 'Market'), # <-- Ab Admin mein dikhega
     ]
 
     LOCATION_CHOICES = [
@@ -35,22 +37,26 @@ class News(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     content = RichTextField(blank=True) 
     
-    # Ye field sirf upload ke liye hai
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
-    
-    # Asli link yahan save hoga (ImgBB wala)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
+    # --- Property: Ye image ko Cloudinary ke raaste se load karegi (Bandwidth Fix) ---
+    @property
+    def fast_image_url(self):
+        if self.image_url:
+            cloud_name = "apka_cloud_name" # <-- Yahan apna Cloudinary name dalo
+            # f_auto (WebP), q_auto (Compressed), w_800 (Resize)
+            return f"https://res.cloudinary.com/{cloud_name}/image/fetch/f_auto,q_auto,w_800/{self.image_url}"
+        return ""
+
     def save(self, *args, **kwargs):
-        # 1. Logic: Sirf tabhi upload karo jab 'image' field mein nayi file ho aur URL khali ho
-        # Ya phir agar image change ki gayi ho
+        # 1. ImgBB Upload Logic
         if self.image:
             try:
-                # 'file' attribute check karta hai ki kya ye nayi upload ki gayi memory file hai
                 if hasattr(self.image, 'file'):
                     uploaded_link = upload_to_imgbb(self.image)
                     if uploaded_link:
@@ -67,7 +73,6 @@ class News(models.Model):
         # 3. Slug Logic
         if not self.slug:
             self.slug = slugify(force_str(self.title), allow_unicode=True)
-            # Duplicate slug handle karne ke liye
             original_slug = self.slug
             counter = 1
             while News.objects.filter(slug=self.slug).exists():
