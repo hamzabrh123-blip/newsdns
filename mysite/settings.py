@@ -2,48 +2,26 @@ import os
 from pathlib import Path
 import dj_database_url
 
-# ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# ---------------- SECURITY ----------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-# ---------------- HOSTS ----------------
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".onrender.com",
-    "newsdns-m8s1.onrender.com", 
-    "halchal.onrender.com",
-    "uttarworld.com", 
-    "www.uttarworld.com",
-]
+# LIVE SITE KE LIYE DEBUG FALSE HONA CHAHIYE
+DEBUG = False 
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
-    "https://newsdns-m8s1.onrender.com",
-    "https://halchal.onrender.com",
-    "https://uttarworld.com",
-    "https://www.uttarworld.com",
-]
+ALLOWED_HOSTS = ["*"] # Abhi ke liye sab allow kar diya hai
 
-# ---------------- APPS ----------------
 INSTALLED_APPS = [
-    "cloudinary_storage", 
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary",
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
 ]
 
-# ---------------- MIDDLEWARE ----------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -56,16 +34,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "mysite.urls"
-WSGI_APPLICATION = "mysite.wsgi.application"
 
-# ---------------- TEMPLATES ----------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates",
-            BASE_DIR / "mynews" / "templates",
-        ],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -78,7 +51,6 @@ TEMPLATES = [
     },
 ]
 
-# ---------------- DATABASE (AUTO-SWITCH LOGIC) ----------------
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -86,52 +58,29 @@ DATABASES = {
     )
 }
 
-# ---------------- GENERAL ----------------
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata" 
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ---------------- STATIC & MEDIA ----------------
+# STATIC & MEDIA (ImgBB use karoge toh ye sirf local fallback rahega)
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-
-# ---------------- STORAGE SETTINGS (CHANGES HERE) ----------------
-# Maine Cloudinary ko default storage se hata diya hai 
-# taaki naye uploads ImgBB aur Local folder mein jayein.
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
-
-# ---------------- EMAIL ----------------
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# ---------------- CKEDITOR SETTINGS ----------------
+# CKEDITOR CONFIG (Sirf URL based image ke liye)
 CKEDITOR_UPLOAD_PATH = "uploads/" 
 CKEDITOR_CONFIGS = {
     'default': {
-        'skin': 'moono-lisa',
         'toolbar': 'full',
         'height': 400,
         'width': '100%',
-        'extraPlugins': ','.join(['uploadimage', 'image2']),
-        'removePlugins': 'image', 
+        'linkShowTargetTab': False,
+        'linkShowAdvancedTab': False,
     },
 }
