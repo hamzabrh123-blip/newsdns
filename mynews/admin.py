@@ -1,19 +1,23 @@
 from django.contrib import admin
-from .models import News, District
+from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     # 1. Ye saare columns aapko admin panel mein saamne dikhenge
-    list_display = ('title', 'url_city', 'category', 'district', 'date', 'is_important')
+    # 'url_city' ko 'district' ke baad rakha hai taaki asani ho
+    list_display = ('title', 'district', 'category', 'date', 'is_important')
     
-    # 2. Side mein filter lag jayega jisse aap city/district wise news dekh sakte ho
-    list_filter = ('district', 'category', 'date', 'url_city')
+    # 2. Side mein filter (District ab Dropdown hai toh filter mast kaam karega)
+    list_filter = ('district', 'category', 'date')
     
-    # 3. Search bar: Title se news dhoondne ke liye
+    # 3. Search bar: Title aur Content se news dhoondne ke liye
     search_fields = ('title', 'content')
     
-    # 4. Ek page par kitni news dikhe
+    # 4. News likhte waqt Slug apne aap ban jaye (Auto-fill)
+    prepopulated_fields = {'slug': ('title',)}
+    
+    # 5. Ek page par kitni news dikhe
     list_per_page = 20
 
-# District ko register rehne do
-admin.site.register(District)
+# 'admin.site.register(District)' ko maine hata diya hai 
+# kyunki ab District model exist nahi karta.
