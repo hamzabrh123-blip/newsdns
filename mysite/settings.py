@@ -8,19 +8,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY: Secret key environment se uthayega
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-# ✅ SECURITY: DEBUG default False rahega live site ke liye
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-# ✅ SECURITY: ALLOWED_HOSTS ko limit karo (Apne domain dalo)
 ALLOWED_HOSTS = [
     "uttarworld.com", 
     "www.uttarworld.com", 
-    ".onrender.com", # Render ke sare subdomains allow karne ke liye
+    ".onrender.com", 
     "localhost", 
     "127.0.0.1"
 ]
 
-# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -31,15 +28,12 @@ INSTALLED_APPS = [
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
-    
-    # ✅ Cloudinary Apps (Optimization ke liye)
-    "cloudinary_storage",
-    "cloudinary",
+    # Cloudinary yahan se hata diya gaya hai
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Static files serving & compression
+    "whitenoise.middleware.WhiteNoiseMiddleware", 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -68,7 +62,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# Database: Render Database connection
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -76,7 +69,6 @@ DATABASES = {
     )
 }
 
-# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
@@ -87,19 +79,11 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# ✅ WHITENOISE: Best optimization for speed
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-WHITENOISE_MAX_AGE = 31536000 # Browser caching 1 saal ke liye
 
+# Media settings ab simple rahengi (ImgBB links ke liye)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-# --- ✅ CLOUDINARY SETTINGS (Bandwidth & Express Delivery) ---
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
 
 # CKEDITOR CONFIG
 CKEDITOR_UPLOAD_PATH = "uploads/" 
@@ -108,8 +92,6 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'full',
         'height': 400,
         'width': '100%',
-        'linkShowTargetTab': False,
-        'linkShowAdvancedTab': False,
     },
 }
 
