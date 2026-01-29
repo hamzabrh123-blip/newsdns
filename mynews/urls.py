@@ -7,6 +7,10 @@ urlpatterns = [
     path("technology/", views.technology, name="technology"),
     path("bollywood/", views.bollywood, name="bollywood"),
     path("international/", views.international_news, name="international_news"),
+    
+    # ✅ Market News Link (Ise District se upar rakha hai taaki clash na ho)
+    path("market-news/", views.market_news_view, name="market_news"),
+
     path("district/<str:district>/", views.district_news, name="district_news"),
     
     # SEO & Legal Pages
