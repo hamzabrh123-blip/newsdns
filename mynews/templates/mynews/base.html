@@ -12,21 +12,13 @@
     <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
     <link rel="apple-touch-icon" href="{% static 'logo.png' %}">
 
-
-
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WWQ17XXGZP"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-WWQ17XXGZP');
-</script>
-
-
-
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WWQ17XXGZP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-WWQ17XXGZP');
+    </script>
     
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
@@ -34,12 +26,15 @@
     <title>{% block title %}Uttar World News | सटीक खबरें, सबसे तेज़{% endblock %}</title>
 
     {% block social_meta %}
-    <meta name="description" content="Uttar World News: उत्तर प्रदेश और दुनिया की ताज़ा खबरें।">
+    <meta name="description" content="Uttar World News: उत्तर प्रदेश और दुनिया की ताज़ा खबरें। सटीक खबरें, सबसे तेज़ सिर्फ उत्तर वर्ल्ड न्यूज़ पर।">
     <meta property="og:site_name" content="Uttar World News">
-    <meta property="og:title" content="Uttar World News">
-    <meta property="og:description" content="उत्तर प्रदेश की हर हलचल पर हमारी नज़र।">
+    <meta property="og:title" content="Uttar World News | उत्तर प्रदेश की ताज़ा खबरें">
+    <meta property="og:description" content="उत्तर वर्ल्ड न्यूज़: उत्तर प्रदेश की हर हलचल पर हमारी नज़र।">
     <meta property="og:image" content="https://uttarworld.com{% static 'logo.png' %}">
     <meta property="og:url" content="https://uttarworld.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Uttar World News">
+    <meta name="twitter:description" content="सटीक खबरें, सबसे तेज़।">
     {% endblock %}
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -74,6 +69,7 @@
     (function() {
         var oldOpen = window.open;
         window.open = function(url, name, specs, replace) {
+            // Updated to check for uttarworld.com
             if (url.indexOf('uttarworld.com') !== -1 || url.startsWith('/') || url === "") {
                 return oldOpen(url, name, specs, replace);
             }
