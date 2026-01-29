@@ -12,7 +12,6 @@ class News(models.Model):
         ('Bollywood', 'Bollywood'),
     ]
 
-    # Location list seedha yahan se manage hogi
     LOCATION_CHOICES = [
         ('Lucknow-UP', 'Lucknow-UP'),
         ('UP-National', 'UP-National'),
@@ -30,16 +29,16 @@ class News(models.Model):
         max_length=100, 
         blank=True, 
         null=True, 
-        help_text="URL के लिए शहर का नाम (जैसे: lucknow). खाली छोड़ने पर District लिया जाएगा।"
+        help_text="URL के लिए शहर का नाम. खाली छोड़ने पर District लिया जाएगा।"
     )
 
     date = models.DateTimeField(auto_now_add=True)
-    content = RichTextField(blank=True) # Simple CKEditor for stability
+    content = RichTextField(blank=True) 
     
-    # Upload helper
+    # Ye field sirf upload ke liye hai
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
     
-    # Permanent ImgBB Link
+    # Asli link yahan save hoga (ImgBB wala)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
     youtube_url = models.URLField(blank=True, null=True)
@@ -47,9 +46,11 @@ class News(models.Model):
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
     def save(self, *args, **kwargs):
-        # 1. Automatic ImgBB Upload
+        # 1. Logic: Sirf tabhi upload karo jab 'image' field mein nayi file ho aur URL khali ho
+        # Ya phir agar image change ki gayi ho
         if self.image:
             try:
+                # 'file' attribute check karta hai ki kya ye nayi upload ki gayi memory file hai
                 if hasattr(self.image, 'file'):
                     uploaded_link = upload_to_imgbb(self.image)
                     if uploaded_link:
@@ -59,22 +60,19 @@ class News(models.Model):
 
         # 2. URL City Logic
         if not self.url_city:
-            if self.district:
-                self.url_city = slugify(self.district)
-            else:
-                self.url_city = "news"
+            self.url_city = slugify(self.district) if self.district else "news"
         else:
             self.url_city = slugify(self.url_city)
 
         # 3. Slug Logic
         if not self.slug:
-            base_slug = slugify(force_str(self.title), allow_unicode=True)
-            slug = base_slug
+            self.slug = slugify(force_str(self.title), allow_unicode=True)
+            # Duplicate slug handle karne ke liye
+            original_slug = self.slug
             counter = 1
-            while News.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
+            while News.objects.filter(slug=self.slug).exists():
+                self.slug = f"{original_slug}-{counter}"
                 counter += 1
-            self.slug = slug
             
         super().save(*args, **kwargs)
 
