@@ -1,100 +1,27 @@
 {% load static %}
 
 <style>
-    /* 1. तिरंगा पट्टी (Sabse upar) */
-    .republic-mix-line {
-        background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #128807 100%);
-        height: 6px;
-        width: 100%;
-    }
-
-    /* 2. Top Bar (White) */
-    .top-info-bar {
-        background: #ffffff;
-        padding: 6px 0;
-        border-bottom: 1px solid #eee;
-    }
-
+    /* 1. Tiranga Line (Top) */
+    .republic-mix-line { background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #128807 100%); height: 6px; width: 100%; }
+    
+    /* 2. Top Bar */
+    .top-info-bar { background: #ffffff; padding: 6px 0; border-bottom: 1px solid #eee; }
     .flag-gif { height: 38px; width: auto; }
+    
+    /* 3. Main Nav */
+    .main-nav-bg { background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important; padding: 0 !important; }
+    .navbar-nav .nav-link { color: #ffffff !important; font-weight: 700 !important; padding: 18px 15px !important; transition: all 0.3s ease; position: relative; font-size: 0.9rem; }
+    
+    /* Hover Effect */
+    .navbar-nav .nav-link::after { content: ''; position: absolute; width: 0; height: 3px; bottom: 10px; left: 50%; background: #ffcc00; transition: all 0.3s ease; transform: translateX(-50%); }
+    .navbar-nav .nav-link:hover::after { width: 60%; }
+    .navbar-nav .nav-link:hover { color: #ffcc00 !important; }
 
-    .wish-text {
-        font-weight: 800;
-        color: #b91d1d;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-    }
+    /* Badge for Bazaar */
+    .badge-new { font-size: 0.6rem !important; padding: 3px 6px !important; vertical-align: middle; background-color: #ffcc00 !important; color: #000 !important; }
 
-    /* 3. Main Navbar (Red) */
-    .main-nav-bg {
-        background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
-        padding-top: 0px !important; 
-        padding-bottom: 0px !important;
-    }
-
-    /* Menu Links Styling */
-    .navbar-nav .nav-link {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        padding: 18px 15px !important; /* Proper spacing for clicks */
-        transition: all 0.3s ease;
-        position: relative;
-        font-size: 0.9rem;
-    }
-
-    /* Hover effect: Niche yellow line aayegi */
-    .navbar-nav .nav-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 3px;
-        bottom: 10px;
-        left: 50%;
-        background: #ffcc00;
-        transition: all 0.3s ease;
-        transform: translateX(-50%);
-    }
-
-    .navbar-nav .nav-link:hover::after {
-        width: 60%;
-    }
-
-    .navbar-nav .nav-link:hover {
-        color: #ffcc00 !important;
-    }
-
-    /* Dropdown Styling */
-    .dropdown-menu {
-        border: none;
-        border-top: 4px solid #ffcc00;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        border-radius: 0 0 8px 8px;
-        padding: 0;
-    }
-
-    .dropdown-item {
-        font-weight: 600;
-        padding: 12px 20px;
-        border-bottom: 1px solid #f1f1f1;
-    }
-
-    .dropdown-item:hover {
-        background-color: #fff9e6;
-        color: #b91d1d !important;
-    }
-
-    /* Search Box */
-    .search-input {
-        background: rgba(255,255,255,0.2) !important;
-        border: none !important;
-        color: white !important;
-        border-radius: 20px;
-    }
-    .search-input::placeholder { color: rgba(255,255,255,0.7); }
-
-    /* Mobile adjustments */
     @media (max-width: 991px) {
         .navbar-nav .nav-link { padding: 12px 20px !important; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .navbar-nav .nav-link::after { display: none; }
         .main-logo-img { height: 65px !important; margin: 0 !important; }
     }
 </style>
@@ -104,18 +31,18 @@
 <div class="top-info-bar">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-            <img src="https://cdn.pixabay.com/animation/2022/08/21/20/03/20-03-41-348_512.gif" class="flag-gif me-1" alt="Tiranga">
-            <div class="date-text fw-bold text-dark" style="font-size: 0.8rem;">
-                <span class="text-danger">आज:</span> {% now "d M, Y" %}
+            <img src="https://cdn.pixabay.com/animation/2022/08/21/20/03/20-03-41-348_512.gif" class="flag-gif me-2" alt="Tiranga">
+            <div class="date-text fw-bold text-dark" style="font-size: 0.85rem;">
+                <span class="text-danger">आज:</span> {% now "d F, Y" %}
             </div>
         </div>
 
-        <div class="text-center d-none d-md-block">
-            <span class="wish-text">🇮🇳 गणतंत्र दिवस की शुभकामनाएँ 🇮🇳</span>
+        <div class="d-none d-md-block fw-bold text-secondary" style="font-size: 0.8rem;">
+            <i class="fas fa-bolt text-warning me-1"></i> उत्तर प्रदेश की ताज़ा खबरें
         </div>
 
         <div class="d-flex align-items-center">
-            <a href="#" class="btn btn-sm btn-success rounded-pill fw-bold px-3" style="font-size: 0.75rem;">
+            <a href="https://wa.me/YOUR_NUMBER" class="btn btn-sm btn-success rounded-pill fw-bold px-3" style="font-size: 0.75rem;">
                 <i class="fab fa-whatsapp me-1"></i> WhatsApp
             </a>
         </div>
@@ -125,19 +52,8 @@
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top main-nav-bg shadow-lg">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}" style="overflow: visible;">
-            <img src="{% static 'logo.png' %}" 
-                 class="main-logo-img"
-                 alt="Uttar World News" 
-                 style="filter: drop-shadow(0px 0px 10px rgba(255, 255, 255, 1)); 
-                        height: 95px; 
-                        width: auto;
-                        margin-top: -15px;
-                        margin-bottom: -15px;
-                        position: relative;
-                        z-index: 1000;">
-            <span class="ms-2 d-none d-sm-inline" style="font-size: 1.3rem; letter-spacing: -0.5px;">
-                UTTARWORLD<span style="color: #ffcc00;">.com</span>
-            </span>
+            <img src="{% static 'logo.png' %}" class="main-logo-img" alt="Uttar World News" style="filter: drop-shadow(0px 0px 10px rgba(255, 255, 255, 1)); height: 95px; width: auto; margin-top: -15px; margin-bottom: -15px; position: relative; z-index: 1000;">
+            <span class="ms-2 d-none d-sm-inline" style="font-size: 1.3rem; letter-spacing: -0.5px;">UTTARWORLD<span style="color: #ffcc00;">.com</span></span>
         </a>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -151,6 +67,12 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'international_news' %}">दुनिया</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'technology' %}">टेक</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'bollywood' %}">बॉलीवुड</a></li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="/market-news/">
+                        बाज़ार <span class="badge rounded-pill badge-new">NEW</span>
+                    </a>
+                </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
@@ -164,7 +86,6 @@
                     </ul>
                 </li>
             </ul>
-
             <form class="d-flex" action="{% url 'home' %}" method="get">
                 <input class="form-control form-control-sm search-input px-3" type="search" name="q" placeholder="खोजें..." style="max-width: 130px;">
             </form>
