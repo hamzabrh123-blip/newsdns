@@ -33,7 +33,7 @@ def home(request):
     try:
         query = request.GET.get("q")
         news_list = News.objects.filter(title__icontains=query).order_by("-date") if query else News.objects.filter(is_important=True).order_by("-date")
-        page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
+        page_obj = Paginator(news_list, 60).get_page(request.GET.get("page"))
         
         context = {
             "page_obj": page_obj,
