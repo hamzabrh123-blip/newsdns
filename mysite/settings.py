@@ -2,14 +2,25 @@ import os
 from pathlib import Path
 import dj_database_url
 
+# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# SECURITY: Secret key environment se uthayega
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
-# LIVE SITE KE LIYE DEBUG FALSE HONA CHAHIYE
-DEBUG = False 
+# ✅ SECURITY: DEBUG default False rahega live site ke liye
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*"] # Abhi ke liye sab allow kar diya hai
+# ✅ SECURITY: ALLOWED_HOSTS ko limit karo (Apne domain dalo)
+ALLOWED_HOSTS = [
+    "uttarworld.com", 
+    "www.uttarworld.com", 
+    ".onrender.com", # Render ke sare subdomains allow karne ke liye
+    "localhost", 
+    "127.0.0.1"
+]
 
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -20,11 +31,15 @@ INSTALLED_APPS = [
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
+    
+    # ✅ Cloudinary Apps (Optimization ke liye)
+    "cloudinary_storage",
+    "cloudinary",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Static files serving & compression
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -51,6 +66,9 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = "mysite.wsgi.application"
+
+# Database: Render Database connection
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -58,22 +76,32 @@ DATABASES = {
     )
 }
 
+# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# STATIC & MEDIA (ImgBB use karoge toh ye sirf local fallback rahega)
+# --- STATIC & MEDIA CONFIG ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+# ✅ WHITENOISE: Best optimization for speed
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_MAX_AGE = 31536000 # Browser caching 1 saal ke liye
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# CKEDITOR CONFIG (Sirf URL based image ke liye)
+# --- ✅ CLOUDINARY SETTINGS (Bandwidth & Express Delivery) ---
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# CKEDITOR CONFIG
 CKEDITOR_UPLOAD_PATH = "uploads/" 
 CKEDITOR_CONFIGS = {
     'default': {
@@ -84,3 +112,5 @@ CKEDITOR_CONFIGS = {
         'linkShowAdvancedTab': False,
     },
 }
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
