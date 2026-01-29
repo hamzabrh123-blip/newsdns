@@ -5,13 +5,12 @@ from django.utils.encoding import force_str
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # 1. Yahan Market add kar diya hai
     CATEGORY_CHOICES = [
         ('International', 'International'),
         ('National', 'National'),
         ('Technology', 'Technology'),
         ('Bollywood', 'Bollywood'),
-        ('Market', 'Market'), # <-- Ab Admin mein dikhega
+        ('Market', 'Market'),
     ]
 
     LOCATION_CHOICES = [
@@ -37,6 +36,7 @@ class News(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     content = RichTextField(blank=True) 
     
+    # Render par file save na ho isliye null=True aur blank=True rakha hai
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
@@ -44,12 +44,11 @@ class News(models.Model):
     is_important = models.BooleanField(default=False)
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
-    # --- Property: Ye image ko Cloudinary ke raaste se load karegi (Bandwidth Fix) ---
     @property
     def fast_image_url(self):
         if self.image_url:
-            cloud_name = "apka_cloud_name" # <-- Yahan apna Cloudinary name dalo
-            # f_auto (WebP), q_auto (Compressed), w_800 (Resize)
+            # Yahan apna Cloudinary name dalo, settings ki zaroorat nahi
+            cloud_name = "apka_cloud_name" 
             return f"https://res.cloudinary.com/{cloud_name}/image/fetch/f_auto,q_auto,w_800/{self.image_url}"
         return ""
 
@@ -57,10 +56,14 @@ class News(models.Model):
         # 1. ImgBB Upload Logic
         if self.image:
             try:
-                if hasattr(self.image, 'file'):
-                    uploaded_link = upload_to_imgbb(self.image)
-                    if uploaded_link:
-                        self.image_url = uploaded_link
+                # Sirf upload karo, Render par save mat karo
+                uploaded_link = upload_to_imgbb(self.image)
+                if uploaded_link:
+                    self.image_url = uploaded_link
+                    # 🔥 YE HAI ASLI FIX: 
+                    # Upload hone ke baad image field ko None kar do 
+                    # taaki Django Render ki 'Read-Only' disk par file save na kare
+                    self.image = None 
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
