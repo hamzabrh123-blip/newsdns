@@ -10,8 +10,9 @@
 <meta property="og:description" content="{{ news.content|striptags|truncatechars:150 }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
-{% if news.image %}
-    {# Cloudinary ya local image ka poora URL #}
+{% if news.image_url %}
+    <meta property="og:image" content="{{ news.image_url }}">
+{% elif news.image %}
     <meta property="og:image" content="{{ news.image.url }}">
 {% else %}
     <meta property="og:image" content="https://uttarworld.com{% static 'logo.png' %}">
@@ -21,7 +22,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
 <meta name="twitter:description" content="{{ news.content|striptags|truncatechars:150 }}">
-{% if news.image %}
+{% if news.image_url %}
+    <meta name="twitter:image" content="{{ news.image_url }}">
+{% elif news.image %}
     <meta name="twitter:image" content="{{ news.image.url }}">
 {% endif %}
 {% endblock %}
@@ -71,9 +74,9 @@
                     </div>
                 </div>
 
-                {% if news.image %}
+                {% if news.image_url or news.image %}
                 <figure class="figure w-100 text-center">
-                    <img src="{{ news.image.url }}" 
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% else %}{{ news.image.url }}{% endif %}" 
                          class="img-fluid rounded shadow-sm w-100 main-img" 
                          alt="{{ news.title }}">
                     <figcaption class="figure-caption text-start mt-2 small text-muted">
@@ -86,10 +89,6 @@
                     {{ news.content|safe }}
                 </div>
 
-
-<!---------------------Youtube Part ye hai jo start ho rraha hai -------------------------->
-
-
 {% if v_id %}
 <div class="video-container my-5 shadow-sm rounded overflow-hidden border">
     <div class="bg-dark text-white p-2 small">
@@ -101,19 +100,17 @@
 </div>
 
 <script>
-    // 1. API code ko load karna
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    // 2. Ye function API download hone ke baad player banayega
     var player;
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
             height: '100%',
             width: '100%',
-            videoId: '{{ v_id }}', // Django se aayi hui ID
+            videoId: '{{ v_id }}',
             playerVars: {
                 'playsinline': 1,
                 'rel': 0,
@@ -133,18 +130,13 @@
 
     function onPlayerError(e) {
         console.error("Video Error Code: " + e.data);
-        // Agar player fail ho jaye toh purana iframe fallback
         if(e.data) {
             document.getElementById('player').innerHTML = `<iframe src="https://www.youtube.com/embed/{{ v_id }}" frameborder="0" allowfullscreen style="width:100%;height:100%;"></iframe>`;
         }
     }
 </script>
 {% endif %}
-<!---------------------Youtube Part ye hai jo end ho raha hai -------------------------->
-
-
-                
-                <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
+<div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
                     <h6 class="fw-bold mb-3">अपने क्षेत्र की खबरों के लिए शेयर करें:</h6>
                     <div class="d-flex justify-content-center flex-wrap gap-2">
                         <a href="https://api.whatsapp.com/send?text={{ news.title }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success px-4 rounded-pill shadow-sm">
@@ -168,8 +160,10 @@
                     <div class="col-md-4 col-6">
                         <a href="{% url 'news_detail' r.url_city r.slug %}" class="text-decoration-none text-dark">
                             <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden related-card">
-                                {% if r.image %}
-                                <img src="{{ r.image.url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
+                                {% if r.image_url %}
+                                    <img src="{{ r.image_url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
+                                {% elif r.image %}
+                                    <img src="{{ r.image.url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
                                 {% endif %}
                                 <div class="p-2">
                                     <h6 class="small fw-bold mb-0 lh-base">{{ r.title|truncatechars:55 }}</h6>
