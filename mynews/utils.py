@@ -2,35 +2,37 @@ import requests
 import base64
 import os
 
-def upload_to_imgbb(image_file):
-    # API Key Render ke Environment variables se lega
-    # Agar Render pe key nahi mili, toh ye None return karega (Safe approach)
+def upload_to_imgbb(image_field):
+    # API Key check
     api_key = os.environ.get("IMGBB_API_KEY")
-    
     if not api_key:
-        print("Error: IMGBB_API_KEY nahi mili. Render settings check karein.")
+        print("Error: IMGBB_API_KEY environment variable mein nahi mili!")
         return None
 
     url = "https://api.imgbb.com/1/upload"
     
     try:
-        # Image ko base64 format mein convert karna
-        image_file.seek(0) # File pointer ko shuruat mein le jane ke liye
-        image_data = base64.b64encode(image_file.read())
+        # Image ko sahi se read karna
+        image_field.open() # File ko open karna zaroori hai
+        image_data = base64.b64encode(image_field.read())
+        image_field.close() # Kaam hone ke baad close karna achhi aadat hai
         
-        data = {
+        payload = {
             "key": api_key,
             "image": image_data,
         }
         
-        response = requests.post(url, data=data)
+        # Timeout add karna zaroori hai taaki server hang na ho
+        response = requests.post(url, data=payload, timeout=30)
         json_data = response.json()
         
         if response.status_code == 200:
-            return json_data['data']['url'] # Direct image link
+            # Direct image link return karega
+            return json_data['data']['url']
         else:
-            print("ImgBB Error:", json_data)
+            print(f"ImgBB API Error: {json_data.get('error', {}).get('message', 'Unknown Error')}")
             return None
+            
     except Exception as e:
-        print("Upload failed:", e)
+        print(f"Upload process failed: {e}")
         return None
