@@ -94,6 +94,7 @@
         border-color: #d32f2f !important;
         color: #fff !important;
     }
+    .sticky-sidebar { position: sticky; top: 90px; }
 </style>
 
 <div class="container mt-4">
@@ -102,10 +103,10 @@
             <div class="category-header mb-4 p-3 shadow-sm rounded-2">
                 <div class="d-flex align-items-center justify-content-between">
                     <h1 class="h4 fw-bold mb-0 text-uppercase">
-                        <i class="fas fa-bolt text-danger me-2"></i>
-                        {{ category|default:district|default:"Latest" }} News
+                        <i class="fas fa-film text-danger me-2"></i>
+                        {{ category|default:district|default:"Bollywood" }} News
                     </h1>
-                    <span class="badge bg-light text-dark border fw-normal">UTTAR WORLD EXCLUSIVE</span>
+                    <span class="badge bg-light text-dark border fw-normal d-none d-sm-inline">UTTAR WORLD EXCLUSIVE</span>
                 </div>
             </div>
             
@@ -115,15 +116,17 @@
                     <div class="card news-card shadow-sm">
                         <div class="img-wrapper">
                             <span class="global-badge shadow-sm">
-                                {{ item.category|default:item.district }}
+                                {{ item.category|default:item.district|default:"BOLLYWOOD" }}
                             </span>
                             
-                            {% if item.image %}
+                            {% if item.image_url %}
+                                <img src="{{ item.image_url }}" class="card-img-top" alt="{{ item.title }}" loading="lazy">
+                            {% elif item.image %}
                                 <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}" loading="lazy">
                             {% else %}
                                 <img src="{% static 'default.jpg' %}" class="card-img-top" alt="Default Image">
                             {% endif %}
-                        </div>
+                            </div>
 
                         <div class="card-body">
                             <h5 class="card-title mb-2">
@@ -148,8 +151,8 @@
                 {% empty %}
                 <div class="col-12 text-center py-5">
                     <div class="p-5 bg-white rounded shadow-sm">
-                        <i class="fas fa-newspaper fa-3x text-light mb-3"></i>
-                        <p class="text-muted">Currently, no news is available in this section. Check back later!</p>
+                        <i class="fas fa-star fa-3x text-light mb-3"></i>
+                        <p class="text-muted">Bollywood ki koi khabar filhaal nahi hai. Jaldi hi update hogi!</p>
                     </div>
                 </div>
                 {% endfor %}
