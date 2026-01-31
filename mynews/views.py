@@ -1,4 +1,6 @@
 import re
+import requests  # Ye line naya hai
+import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -11,6 +13,35 @@ from django.utils.html import strip_tags
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
 
+# --- FB AUTO POST FUNCTION (Secure Version) ---
+def post_to_facebook_network(title, slug, url_city):
+    # Ab ye Render ke 'Environment Variables' se data uthayega
+    access_token = os.environ.get('FB_ACCESS_TOKEN')
+    page_id = os.environ.get('FB_PAGE_ID')
+    group1_id = os.environ.get('FB_GROUP_1_ID')
+    group2_id = os.environ.get('FB_GROUP_2_ID')
+    
+    if not access_token:
+        return # Agar token nahi mila to function ruk jayega
+        
+    news_url = f"{SITE_URL}/{url_city}/{slug}.html"
+    
+    # IDs ki list jo Render se aayi hain
+    destinations = [page_id, group1_id, group2_id]
+    
+    for target in destinations:
+        if target: # Sirf unhi IDs par bhejega jo Render mein set hain
+            fb_url = f"https://graph.facebook.com/v19.0/{target}/feed"
+            payload = {
+                'message': f"🔥 {title}\n\nपूरी खबर यहाँ पढ़ें 👇",
+                'link': news_url,
+                'access_token': access_token
+            }
+            try:
+                requests.post(fb_url, data=payload, timeout=10)
+            except:
+                pass
+
 # --- Video ID nikalne ke liye function ---
 def extract_video_id(url):
     if not url:
@@ -19,10 +50,10 @@ def extract_video_id(url):
     match = re.search(regex, url)
     return match.group(1) if match else None
 
-# --- Sidebar Data (Ab isme Bazaar bhi hai) ---
+# --- Sidebar Data ---
 def get_common_sidebar_data():
     return {
-        "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5], # Naya section
+        "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
         "duniya_sidebar": News.objects.filter(category="International").order_by("-date")[:10],
         "technology_sidebar": News.objects.filter(category="Technology").order_by("-date")[:3],
@@ -46,17 +77,11 @@ def home(request):
     except:
         return HttpResponse("Home Page Loading Error", status=500)
 
-# --- Naya Bazaar (Market) View ---
 def market_news_view(request):
     try:
-        # Category "Market" wali news filter karega
         news_list = News.objects.filter(category="Market").order_by("-date")
         page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
-        
-        context = {
-            "page_obj": page_obj,
-            "category_name": "बाज़ार न्यूज़",
-        }
+        context = {"page_obj": page_obj, "category_name": "बाज़ार न्यूज़"}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/market_news.html", context)
     except:
@@ -102,12 +127,18 @@ def bollywood(request):
     except:
         return redirect('home')
 
+
+
+
 def news_detail(request, url_city, slug): 
     try:
         news = get_object_or_404(News, slug=slug, url_city=url_city)
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
         v_id = extract_video_id(news.youtube_url)
         
+        # Trigger Auto Post
+        post_to_facebook_network(news.title, news.slug, news.url_city)
+
         context = {
             "news": news, 
             "related_news": related_news,
@@ -119,6 +150,9 @@ def news_detail(request, url_city, slug):
         return render(request, "mynews/news_detail.html", context)
     except:
         return redirect('home')
+
+
+
 
 def district_news(request, district):
     try:
@@ -156,7 +190,6 @@ def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     xml += f"  <url><loc>{SITE_URL}/</loc><priority>1.0</priority></url>\n"
-    # Sitemap mein Market ka naya link
     xml += f"  <url><loc>{SITE_URL}/market-news/</loc><priority>0.9</priority></url>\n"
     for n in items:
         city = n.url_city if n.url_city else "news"
