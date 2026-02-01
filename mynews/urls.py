@@ -1,9 +1,9 @@
 from django.urls import path
-# Folder se saare functions ko ek saath import kar rahe hain
 from .views_folder import (
     home, national_news, technology, bollywood, international_news,
     market_news_view, district_news, robots_txt, sitemap_xml,
-    ads_txt, privacy_policy, about_us, contact_us, disclaimer, news_detail
+    ads_txt, privacy_policy, about_us, contact_us, disclaimer, 
+    news_detail, fix_webp_image  # ✅ Naya function yahan add kiya
 )
 
 urlpatterns = [
@@ -13,8 +13,10 @@ urlpatterns = [
     path("bollywood/", bollywood, name="bollywood"),
     path("international/", international_news, name="international_news"),
     
-    # ✅ Market News Link
     path("market-news/", market_news_view, name="market_news"),
+
+    # ✅ WebP to JPG Fix (Facebook ke liye)
+    path("fix-img/", fix_webp_image, name="fix_webp_image"),
 
     path("district/<str:district>/", district_news, name="district_news"),
     
