@@ -4,9 +4,7 @@ from django.http import HttpResponse
 from django.utils.html import strip_tags
 from mynews.config import SITE_NAME
 
-# NOTE: News aur get_common_sidebar_data ko humne top se hata diya hai
-# taaki loop na bane. Inhe humne functions ke andar dala hai.
-
+# --- 1. HOME VIEW ---
 def home(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -24,24 +22,38 @@ def home(request):
     except Exception as e:
         return HttpResponse(f"Home Page Loading Error: {e}", status=500)
 
+# --- 2. NEWS DETAIL (FB IMAGE FIX KE SAATH) ---
 def news_detail(request, url_city, slug):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data, extract_video_id
     try:
         news = get_object_or_404(News, slug=slug, url_city=url_city)
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
+        
+        # Absolute URL for Image (FB ko poora link chahiye hota hai)
+        if news.image_url:
+            og_image = news.image_url
+        elif news.image:
+            og_image = request.build_absolute_uri(news.image.url)
+        else:
+            og_image = request.build_absolute_uri('/static/logo.png')
+
         context = {
             "news": news, 
             "related_news": related_news, 
             "v_id": extract_video_id(news.youtube_url),
             "meta_description": strip_tags(news.content)[:160], 
             "og_title": f"{news.title} | {SITE_NAME}",
+            "og_image": og_image, # Ye Facebook ke liye hai
+            "meta_url": request.build_absolute_uri(),
         }
         context.update(get_common_sidebar_data())
         return render(request, "mynews/news_detail.html", context)
-    except:
+    except Exception as e:
+        print(f"Detail Error: {e}")
         return redirect('home')
 
+# --- 3. MARKET NEWS ---
 def market_news_view(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -51,6 +63,7 @@ def market_news_view(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/market_news.html", context)
 
+# --- 4. NATIONAL NEWS ---
 def national_news(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -60,6 +73,7 @@ def national_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
+# --- 5. INTERNATIONAL NEWS ---
 def international_news(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -69,6 +83,7 @@ def international_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
+# --- 6. TECHNOLOGY NEWS ---
 def technology(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -78,6 +93,7 @@ def technology(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
+# --- 7. BOLLYWOOD NEWS ---
 def bollywood(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -87,6 +103,7 @@ def bollywood(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
+# --- 8. DISTRICT NEWS ---
 def district_news(request, district):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
