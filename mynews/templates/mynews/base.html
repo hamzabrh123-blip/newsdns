@@ -16,20 +16,24 @@
     <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
     <link rel="icon" type="image/png" href="https://{{ request.get_host }}{% static 'logo.png' %}">
 
-    <meta name="description" content="{% block description %}Uttar World News brings the latest news from Uttar Pradesh, India, and the World. Stay updated with unbiased journalism.{% endblock %}">
+    <meta name="description" content="{% block description %}Uttar World News brings the latest news from Uttar Pradesh, India, and the World.{% endblock %}">
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="article">
     <meta property="og:site_name" content="Uttar World News">
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
     <meta property="og:title" content="{% block og_title %}{{ news.title|default:'Uttar World News' }}{% endblock %}">
-    <meta property="og:description" content="Breaking News and Latest Updates in Hindi.">
     
+    {% if news.image %}
+    <meta property="og:image" content="https://{{ request.get_host }}{{ news.image.url }}">
+    <meta property="og:image:secure_url" content="https://{{ request.get_host }}{{ news.image.url }}">
+    {% else %}
     <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
     <meta property="og:image:secure_url" content="https://{{ request.get_host }}{% static 'logo.png' %}">
-    <meta property="og:image:type" content="image/png">
+    {% endif %}
+
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
@@ -37,14 +41,15 @@
         body { background-color: #f8f9fa; font-family: "Segoe UI", sans-serif; }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         main { flex: 1; }
-        /* Navbar Sticky Fix */
         .navbar { position: sticky; top: 0; z-index: 9999 !important; }
-        .dropdown-menu { z-index: 10000 !important; }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+    
+    
+    
+    <body>
 <div class="main-wrapper">
 
     {% include "mynews/navbar.html" %}
