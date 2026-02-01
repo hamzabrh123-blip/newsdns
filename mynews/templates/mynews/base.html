@@ -1,3 +1,11 @@
+Bhai, ekdum seedhi baat! Galti pakad li maine—aapko poori file <!DOCTYPE html> se lekar </head> ke aakhri shabd tak shuddh static chahiye, bina kisi "if-else" ke natak ke.
+
+Lijiye, ye raha aapka poora head section. Isme har jagah poora URL (https://...) set hai taaki Facebook ko koi bahana na mile.
+
+HTML
+{% load static %}
+<!DOCTYPE html>
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,35 +18,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
-    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
+    <link rel="icon" type="image/png" href="https://{{ request.get_host }}{% static 'logo.png' %}">
 
     <meta name="description" content="{% block description %}Uttar World News brings the latest news from Uttar Pradesh, India, and the World. Stay updated with unbiased journalism.{% endblock %}">
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
-    <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="Uttar World News" />
-    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
-    <meta property="og:title" content="{% block og_title %}{{ news.title|default:'Uttar World News' }}{% endblock %}" />
-    <meta property="og:description" content="{% block og_description %}Breaking News and Latest Updates in Hindi.{% endblock %}" />
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Uttar World News">
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:title" content="{% block og_title %}{{ news.title|default:'Uttar World News' }}{% endblock %}">
+    <meta property="og:description" content="Breaking News and Latest Updates in Hindi.">
     
-    <meta property="og:image" content="{% if news.image %}https://{{ request.get_host }}{{ news.image.url }}{% else %}https://{{ request.get_host }}{% static 'logo.png' %}{% endif %}" />
-    <meta property="og:image:secure_url" content="{% if news.image %}https://{{ request.get_host }}{{ news.image.url }}{% else %}https://{{ request.get_host }}{% static 'logo.png' %}{% endif %}" />
-    <meta property="og:image:alt" content="Uttar World News" />
+    <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:image:secure_url" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <style>
         body { background-color: #f8f9fa; font-family: "Segoe UI", sans-serif; }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         main { flex: 1; }
-        /* Sticky Navbar Fix */
+        /* Navbar Sticky Fix */
         .navbar { position: sticky; top: 0; z-index: 9999 !important; }
+        .dropdown-menu { z-index: 10000 !important; }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-
 <body>
 <div class="main-wrapper">
 
