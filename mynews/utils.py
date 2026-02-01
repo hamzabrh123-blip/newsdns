@@ -2,10 +2,18 @@ import requests
 import re
 import base64
 import os
+import logging
+# Yahan se config import karna zaroori hai
+try:
+    from .config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
+except ImportError:
+    FB_ACCESS_TOKEN = FB_PAGE_ID = SITE_URL = None
+
+logger = logging.getLogger(__name__)
 
 # --- SIDEBAR LOGIC ---
 def get_common_sidebar_data():
-    from mynews.models import News  # <--- Import ko function ke ANDAR daal diya
+    from mynews.models import News
     return {
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
@@ -27,16 +35,38 @@ def upload_to_imgbb(image_field):
         payload = {"key": api_key, "image": image_data}
         response = requests.post(url, data=payload, timeout=30)
         return response.json()['data']['url'] if response.status_code == 200 else None
-    except: return None
+    except Exception as e: 
+        logger.error(f"ImgBB Upload Error: {e}")
+        return None
 
-# --- FACEBOOK LOGIC ---
-def post_to_facebook_network(title, slug, url_city):
-    if not FB_ACCESS_TOKEN or not FB_PAGE_ID: return 
+# --- FACEBOOK LOGIC (Sahi Wala) ---
+def post_to_facebook_network(title, slug, url_city, image_url=None):
+    if not FB_ACCESS_TOKEN or not FB_PAGE_ID:
+        print("FB Credentials missing in config!")
+        return 
+        
     news_url = f"{SITE_URL}/{url_city}/{slug}.html"
     fb_url = f"https://graph.facebook.com/v19.0/{FB_PAGE_ID}/feed"
-    payload = {'message': f"🔥 {title}\n\nपूरी खबर यहाँ पढ़ें 👇", 'link': news_url, 'access_token': FB_ACCESS_TOKEN}
-    try: requests.post(fb_url, data=payload, timeout=60)
-    except: pass
+    
+    # Message se aag (emoji) aur faltu text hata diya
+    payload = {
+        'message': title, 
+        'link': news_url, 
+        'access_token': FB_ACCESS_TOKEN
+    }
+
+    # FB ko direct photo ka link bhej rahe hain
+    if image_url:
+        payload['picture'] = f"{SITE_URL}{image_url}"
+    else:
+        payload['picture'] = f"{SITE_URL}/static/logo.png"
+
+    try:
+        response = requests.post(fb_url, data=payload, timeout=60)
+        if response.status_code != 200:
+            print(f"FB Post Error: {response.json()}")
+    except Exception as e:
+        print(f"FB Connection Error: {e}")
 
 # --- VIDEO LOGIC ---
 def extract_video_id(url):
