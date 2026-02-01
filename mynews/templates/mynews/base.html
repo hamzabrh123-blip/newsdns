@@ -14,12 +14,16 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
-    <meta name="description" content="{% block description %}Uttar World News brings latest news updates.{% endblock %}">
-    
-    <meta property="og:type" content="website">
+    <meta name="description" content="{% if meta_description %}{{ meta_description }}{% else %}{% block description %}Uttar World News brings latest news updates.{% endblock %}{% endif %}">
+
+    <meta property="og:type" content="article">
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
-    <meta property="og:title" content="{% block og_title %}Uttar World News{% endblock %}">
-    <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:title" content="{% if og_title %}{{ og_title }}{% else %}{% block og_title %}Uttar World News{% endblock %}{% endif %}">
+    
+    <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}https://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
+    <meta property="og:image:secure_url" content="{% if og_image %}{{ og_image }}{% else %}https://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
@@ -33,10 +37,8 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-    
-    
-    
-    <body>
+
+<body>
 <div class="main-wrapper">
 
     {% include "mynews/navbar.html" %}
