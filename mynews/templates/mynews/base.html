@@ -7,35 +7,22 @@
     <meta name="robots" content="index, follow">
     <meta name="author" content="Uttar World News Team">
 
-    <title>{% block title %}Uttar World News | Breaking News in Hindi{% endblock %}</title>
+    <title>{% block title %}Uttar World News | Breaking News{% endblock %}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
-    <link rel="icon" type="image/png" href="https://{{ request.get_host }}{% static 'logo.png' %}">
-
-    <meta name="description" content="{% block description %}Uttar World News brings the latest news from Uttar Pradesh, India, and the World.{% endblock %}">
+    <meta name="description" content="{% block description %}Uttar World News brings latest news updates.{% endblock %}">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:title" content="{% block og_title %}Uttar World News{% endblock %}">
+    <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-
-    <meta property="og:type" content="article">
-    <meta property="og:site_name" content="Uttar World News">
-    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
-    <meta property="og:title" content="{% block og_title %}{{ news.title|default:'Uttar World News' }}{% endblock %}">
-    
-    {% if news.image %}
-    <meta property="og:image" content="https://{{ request.get_host }}{{ news.image.url }}">
-    <meta property="og:image:secure_url" content="https://{{ request.get_host }}{{ news.image.url }}">
-    {% else %}
-    <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
-    <meta property="og:image:secure_url" content="https://{{ request.get_host }}{% static 'logo.png' %}">
-    {% endif %}
-
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
 
     <style>
         body { background-color: #f8f9fa; font-family: "Segoe UI", sans-serif; }
