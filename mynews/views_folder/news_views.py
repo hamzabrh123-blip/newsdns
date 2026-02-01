@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.utils.html import strip_tags
 from mynews.config import SITE_NAME
+from .fb_logic import get_converted_image_response # Ye import dalo
 
 # --- 1. HOME VIEW ---
 def home(request):
@@ -30,13 +31,18 @@ def news_detail(request, url_city, slug):
         news = get_object_or_404(News, slug=slug, url_city=url_city)
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
         
-        # Absolute URL for Image (FB ko poora link chahiye hota hai)
+        # --- JADUI LOGIC START ---
         if news.image_url:
             og_image = news.image_url
+            # Agar image WebP hai toh use proxy link mein badal do
+            if '.webp' in og_image.lower():
+                proxy_url = request.build_absolute_uri('/fix-img/')
+                og_image = f"{proxy_url}?url={og_image}"
         elif news.image:
             og_image = request.build_absolute_uri(news.image.url)
         else:
             og_image = request.build_absolute_uri('/static/logo.png')
+        # --- JADUI LOGIC END ---
 
         context = {
             "news": news, 
@@ -44,7 +50,7 @@ def news_detail(request, url_city, slug):
             "v_id": extract_video_id(news.youtube_url),
             "meta_description": strip_tags(news.content)[:160], 
             "og_title": f"{news.title} | {SITE_NAME}",
-            "og_image": og_image, # Ye Facebook ke liye hai
+            "og_image": og_image,
             "meta_url": request.build_absolute_uri(),
         }
         context.update(get_common_sidebar_data())
@@ -53,7 +59,13 @@ def news_detail(request, url_city, slug):
         print(f"Detail Error: {e}")
         return redirect('home')
 
-# --- 3. MARKET NEWS ---
+# --- 3. JADUI IMAGE CONVERTER VIEW ---
+def fix_webp_image(request):
+    """Ye view fb_logic.py se connected hai"""
+    img_url = request.GET.get('url')
+    return get_converted_image_response(img_url)
+
+# --- 4. BAAKI VIEWS (NO CHANGE) ---
 def market_news_view(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -63,7 +75,6 @@ def market_news_view(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/market_news.html", context)
 
-# --- 4. NATIONAL NEWS ---
 def national_news(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -73,7 +84,6 @@ def national_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# --- 5. INTERNATIONAL NEWS ---
 def international_news(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -83,7 +93,6 @@ def international_news(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# --- 6. TECHNOLOGY NEWS ---
 def technology(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -93,7 +102,6 @@ def technology(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# --- 7. BOLLYWOOD NEWS ---
 def bollywood(request):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
@@ -103,7 +111,6 @@ def bollywood(request):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# --- 8. DISTRICT NEWS ---
 def district_news(request, district):
     from mynews.models import News
     from mynews.utils import get_common_sidebar_data
