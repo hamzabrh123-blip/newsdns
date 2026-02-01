@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from .config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
 
 def post_to_facebook_network(title, slug, url_city, image_url=None):
+    """Facebook Page par auto-post karne ke liye"""
     if not FB_ACCESS_TOKEN or not FB_PAGE_ID:
         print("FB Error: Credentials missing!")
         return 
@@ -12,8 +13,7 @@ def post_to_facebook_network(title, slug, url_city, image_url=None):
     news_url = f"{SITE_URL}/{url_city}/{slug}.html"
     fb_url = f"https://graph.facebook.com/v19.0/{FB_PAGE_ID}/feed"
     
-    # Simple logic: Agar ImgBB ka link hai (http se shuru), toh wahi rakho, 
-    # warna SITE_URL ke saath static path jodo.
+    # Image logic: Agar ImgBB link hai toh wahi use karo, warna static logo
     if image_url and image_url.startswith('http'):
         final_img = image_url
     elif image_url:
@@ -38,17 +38,22 @@ def post_to_facebook_network(title, slug, url_city, image_url=None):
     except Exception as e:
         print(f"FB Request Failed: {e}")
 
-# --- JADUI IMAGE CONVERTER (For WebP Problem) ---
-def get_converted_image(img_url):
-    """WebP image ko download karke memory mein hi JPG bana deta hai"""
-    if not img_url: return None
+# --- IMAGE CONVERSION LOGIC (Isi file mein) ---
+
+def get_converted_image_response(img_url):
+    """WebP ko JPG mein badal kar HttpResponse return karta hai"""
+    if not img_url:
+        return HttpResponse(status=400)
     try:
         resp = requests.get(img_url, timeout=10)
         img = Image.open(BytesIO(resp.content))
+        
+        # JPG Conversion
         img = img.convert('RGB')
         buffer = BytesIO()
         img.save(buffer, format="JPEG", quality=85)
-        return buffer.getvalue()
+        
+        return HttpResponse(buffer.getvalue(), content_type="image/jpeg")
     except Exception as e:
         print(f"Conversion Error: {e}")
-        return None
+        return HttpResponse(status=404)
