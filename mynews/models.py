@@ -77,6 +77,10 @@ class News(models.Model):
         # Pehle news save karein taaki URL ban jaye
         super().save(*args, **kwargs)
 
+        # --- LOCAL IMPORT (Circular Import Fix) ---
+        from .views_folder.fb_logic import post_to_facebook_network
+        # ------------------------------------------
+
         # 4. FACEBOOK AUTOMATIC POSTING (The Master Logic)
         # Agar FB par post nahi hua hai, toh save hote hi post ho jaye
         if not self.is_fb_posted:
