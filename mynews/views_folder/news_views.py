@@ -2,9 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.utils.html import strip_tags
-from .models import News
-from .utils import get_common_sidebar_data, extract_video_id
-from .config import SITE_NAME
+from mynews.models import News
+from mynews.utils import get_common_sidebar_data, extract_video_id
+from mynews.config import SITE_NAME
 
 def home(request):
     try:
