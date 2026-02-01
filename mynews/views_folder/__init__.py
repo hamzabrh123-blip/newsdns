@@ -1,6 +1,5 @@
 # views_folder/__init__.py
 
-# 1. News aur Categories (news_views.py se)
 from .news_views import (
     home, 
     news_detail, 
@@ -9,7 +8,8 @@ from .news_views import (
     international_news, 
     technology, 
     bollywood, 
-    district_news
+    district_news,
+    fix_webp_image  # <--- Ye ek line yahan zaroor jodo!
 )
 
 # 2. Information Pages (info_views.py se)
