@@ -1,10 +1,31 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top main-nav-bg shadow-lg">
+<div class="py-1 d-none d-lg-block" style="background: #f8f9fa; font-size: 0.85rem; border-bottom: 1px solid #ddd;">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <span class="text-danger fw-bold"><i class="fas fa-calendar-alt me-1"></i> आज की तारीख:</span> 
+            <span id="current-date" class="text-muted">{% now "d F Y" %}</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="me-3 text-muted">हमें फॉलो करें:</span>
+            <a href="#" class="text-primary me-2"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-success me-2"><i class="fab fa-whatsapp"></i></a>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-lg" 
+     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.8rem 0;">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}" style="overflow: visible;">
-            <img src="{% static 'logo.png' %}" class="main-logo-img" alt="Uttar World News" style="filter: drop-shadow(0px 0px 10px rgba(255, 255, 255, 1)); height: 95px; width: auto; margin-top: -15px; margin-bottom: -15px; position: relative; z-index: 1000;">
-            <span class="ms-2 d-none d-sm-inline" style="font-size: 1.3rem; letter-spacing: -0.5px;">UTTARWORLD<span style="color: #ffcc00;">.com</span></span>
+
+        <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}" style="letter-spacing: 1px;">
+            <img src="{% static 'logo.png' %}" 
+                 alt="UP Halchal" 
+                 width="50" height="50" 
+                 class="me-2 rounded-circle border border-2 border-white shadow-sm"
+                 style="background: white;">
+            <span style="font-size: 1.5rem;">UP <span style="color: #ffcc00;">हलचल</span></span>
         </a>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -12,34 +33,66 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto text-uppercase">
-                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">होम</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'national_news' %}">भारत</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'international_news' %}">दुनिया</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'technology' %}">टेक</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'bollywood' %}">बॉलीवुड</a></li>
-                
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold text-uppercase" style="font-size: 0.95rem;">
                 <li class="nav-item">
-                    <a class="nav-link" href="/market-news/">
-                        बाज़ार <span class="badge rounded-pill badge-new">NEW</span>
-                    </a>
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'home' %}active text-warning{% endif %}" href="{% url 'home' %}">होम</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'national_news' %}active text-warning{% endif %}" href="{% url 'national_news' %}">भारत</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'international_news' %}active text-warning{% endif %}" href="{% url 'international_news' %}">दुनिया</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'technology' %}active text-warning{% endif %}" href="{% url 'technology' %}">टेक</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'bollywood' %}active text-warning{% endif %}" href="{% url 'bollywood' %}">बॉलीवुड</a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
-                    <ul class="dropdown-menu shadow border-0">
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर-बाराबंकी</a></li>
+                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
+                        उत्तर प्रदेश
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्तीी</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर / बाराबंकी</a></li>
+
                     </ul>
                 </li>
             </ul>
-            <form class="d-flex" action="{% url 'home' %}" method="get">
-                <input class="form-control form-control-sm search-input px-3" type="search" name="q" placeholder="खोजें..." style="max-width: 130px;">
+
+            <form class="d-flex mt-3 mt-lg-0 ms-lg-3 position-relative" action="{% url 'home' %}" method="get">
+                <input class="form-control form-control-sm pe-5 border-0 rounded-pill" 
+                       type="search" name="q" placeholder="खबर खोजें..." aria-label="Search">
+                <button class="btn btn-link position-absolute end-0 text-danger" type="submit" style="top: 1px;">
+                    <i class="fas fa-search"></i>
+                </button>
             </form>
         </div>
     </div>
 </nav>
+
+<style>
+    .navbar-dark .navbar-nav .nav-link {
+        color: rgba(255,255,255,0.9);
+        transition: all 0.3s ease;
+    }
+    .navbar-dark .navbar-nav .nav-link:hover {
+        color: #ffcc00 !important;
+        transform: translateY(-2px);
+    }
+    .dropdown-item:hover {
+        background-color: #f8d7da;
+        color: #b91d1d !important;
+    }
+    .sticky-top {
+        z-index: 1020;
+    }
+</style>
