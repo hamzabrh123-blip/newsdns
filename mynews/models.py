@@ -2,9 +2,8 @@ from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.encoding import force_str
+# Yahan sirf upload_to_imgbb rakha hai taaki build na phate
 from .utils import upload_to_imgbb 
-
-
 
 class News(models.Model):
     CATEGORY_CHOICES = [
@@ -49,7 +48,7 @@ class News(models.Model):
     is_fb_posted = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # 1. ImgBB Upload Logic (Image URL banane ke liye)
+        # 1. ImgBB Upload Logic
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
@@ -74,26 +73,24 @@ class News(models.Model):
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
             
-        # Pehle news save karein taaki URL ban jaye
+        # News ko save karo taaki ID mil jaye
         super().save(*args, **kwargs)
 
-        # --- LOCAL IMPORT (Circular Import Fix) ---
-        from .views_folder.fb_logic import post_to_facebook_network
-        # ------------------------------------------
-
-        # 4. FACEBOOK AUTOMATIC POSTING (The Master Logic)
-        # Agar FB par post nahi hua hai, toh save hote hi post ho jaye
+        # 4. FACEBOOK AUTOMATIC POSTING (Circular Import Safe Logic)
         if not self.is_fb_posted:
             try:
-                # Hum image_url bhej rahe hain kyunki ImgBB wala link wahan save hai
+                # Local import taaki build pass ho jaye
+                from .views_folder.fb_logic import post_to_facebook_network
+                
                 post_to_facebook_network(
                     title=self.title, 
                     slug=self.slug, 
                     url_city=self.url_city, 
                     image_url=self.image_url
                 )
-                # Post hone ke baad isse True kar rahe hain taaki dobara post na ho
+                # Loop rokne ke liye status update
                 News.objects.filter(id=self.id).update(is_fb_posted=True)
+                print(f"Success: News '{self.title}' posted to Facebook.")
             except Exception as fb_err:
                 print(f"Facebook Posting Error: {fb_err}")
 
