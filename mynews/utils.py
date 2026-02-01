@@ -2,11 +2,10 @@ import requests
 import re
 import base64
 import os
-from mynews.models import News
-from mynews.config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
 
 # --- SIDEBAR LOGIC ---
 def get_common_sidebar_data():
+    from mynews.models import News  # <--- Import ko function ke ANDAR daal diya
     return {
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:10],
