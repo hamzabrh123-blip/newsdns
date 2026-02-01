@@ -1,4 +1,7 @@
 import requests
+from io import BytesIO
+from PIL import Image
+from django.http import HttpResponse
 from .config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
 
 def post_to_facebook_network(title, slug, url_city, image_url=None):
@@ -9,27 +12,43 @@ def post_to_facebook_network(title, slug, url_city, image_url=None):
     news_url = f"{SITE_URL}/{url_city}/{slug}.html"
     fb_url = f"https://graph.facebook.com/v19.0/{FB_PAGE_ID}/feed"
     
-    # Ekdum Clean Payload: No extra text, no emojis
+    # Simple logic: Agar ImgBB ka link hai (http se shuru), toh wahi rakho, 
+    # warna SITE_URL ke saath static path jodo.
+    if image_url and image_url.startswith('http'):
+        final_img = image_url
+    elif image_url:
+        final_img = f"{SITE_URL}{image_url}"
+    else:
+        final_img = f"{SITE_URL}/static/logo.png"
+
     payload = {
-        'message': title,  # Sirf headline jayegi upar
-        'link': news_url,  # Link se FB khud card bana lega
+        'message': title,
+        'link': news_url,
+        'picture': final_img,
         'access_token': FB_ACCESS_TOKEN
     }
 
-    # Image URL fix: Full path bhej rahe hain taaki FB preview sahi dikhaye
-    if image_url:
-        payload['picture'] = f"{SITE_URL}{image_url}"
-    else:
-        payload['picture'] = f"{SITE_URL}/static/logo.png"
-
     try:
-        response = requests.post(fb_url, data=payload, timeout=60)
-        result = response.json()
-        
-        if response.status_code != 200:
-            print(f"FB Post Failed: {result.get('error', {}).get('message')}")
+        response = requests.post(fb_url, data=payload, timeout=30)
+        res_data = response.json()
+        if response.status_code == 200:
+            print(f"FB Success! ID: {res_data.get('id')}")
         else:
-            print(f"FB Post Success! ID: {result.get('id')}")
-            
+            print(f"FB Error: {res_data.get('error', {}).get('message')}")
     except Exception as e:
-        print(f"Network Error: {str(e)}")
+        print(f"FB Request Failed: {e}")
+
+# --- JADUI IMAGE CONVERTER (For WebP Problem) ---
+def get_converted_image(img_url):
+    """WebP image ko download karke memory mein hi JPG bana deta hai"""
+    if not img_url: return None
+    try:
+        resp = requests.get(img_url, timeout=10)
+        img = Image.open(BytesIO(resp.content))
+        img = img.convert('RGB')
+        buffer = BytesIO()
+        img.save(buffer, format="JPEG", quality=85)
+        return buffer.getvalue()
+    except Exception as e:
+        print(f"Conversion Error: {e}")
+        return None
