@@ -2,7 +2,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 from django.http import HttpResponse
-from .config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
+from mynews.config import FB_ACCESS_TOKEN, FB_PAGE_ID, SITE_URL
 
 def post_to_facebook_network(title, slug, url_city, image_url=None):
     """Facebook Page par auto-post karne ke liye"""
