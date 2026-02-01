@@ -3,7 +3,6 @@ from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.utils.encoding import force_str
 from .utils import upload_to_imgbb 
-from .views_folder.fb_logic import post_to_facebook_network
 
 
 
