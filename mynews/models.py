@@ -2,7 +2,8 @@ from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.encoding import force_str
-from .utils import upload_to_imgbb 
+# Utils se dono zaroori cheezein import ki hain
+from .utils import upload_to_imgbb, post_to_facebook_network 
 
 class News(models.Model):
     CATEGORY_CHOICES = [
@@ -43,18 +44,11 @@ class News(models.Model):
     is_important = models.BooleanField(default=False)
     slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
 
-    # 🔥 YE HAI FIX: Ye field check karegi ki FB par post ho gaya ya nahi
+    # FB status check
     is_fb_posted = models.BooleanField(default=False)
 
-    @property
-    def fast_image_url(self):
-        if self.image_url:
-            cloud_name = "apka_cloud_name" 
-            return f"https://res.cloudinary.com/{cloud_name}/image/fetch/f_auto,q_auto,w_800/{self.image_url}"
-        return ""
-
     def save(self, *args, **kwargs):
-        # 1. ImgBB Upload Logic
+        # 1. ImgBB Upload Logic (Image URL banane ke liye)
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
@@ -79,7 +73,24 @@ class News(models.Model):
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
             
+        # Pehle news save karein taaki URL ban jaye
         super().save(*args, **kwargs)
+
+        # 4. FACEBOOK AUTOMATIC POSTING (The Master Logic)
+        # Agar FB par post nahi hua hai, toh save hote hi post ho jaye
+        if not self.is_fb_posted:
+            try:
+                # Hum image_url bhej rahe hain kyunki ImgBB wala link wahan save hai
+                post_to_facebook_network(
+                    title=self.title, 
+                    slug=self.slug, 
+                    url_city=self.url_city, 
+                    image_url=self.image_url
+                )
+                # Post hone ke baad isse True kar rahe hain taaki dobara post na ho
+                News.objects.filter(id=self.id).update(is_fb_posted=True)
+            except Exception as fb_err:
+                print(f"Facebook Posting Error: {fb_err}")
 
     def __str__(self):
         return self.title
