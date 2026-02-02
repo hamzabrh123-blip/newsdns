@@ -7,7 +7,10 @@
     <meta name="robots" content="index, follow">
     <meta name="author" content="Uttar World News Team">
 
-    <title>{% block title %}Uttar World News | ताज़ा खबरें, ब्रेकिंग न्यूज़{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+<link rel="apple-touch-icon" href="{% static 'logo.png' %}">
+
+    <title>{% block title %}Uttar World News | Latest News, Breaking News, India News{% endblock %}</title>
     
     <meta name="keywords" content="{% if meta_keywords %}{{ meta_keywords }}{% else %}Uttar World, UttarWorld News, Latest UP News, Breaking News India, Hindi News, उत्तर प्रदेश समाचार{% endif %}">
     
@@ -20,11 +23,17 @@
     {% block social_meta %}
     <meta name="description" content="Uttar World News brings latest news updates from Uttar Pradesh and India.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
-    <meta property="og:title" content="Uttar World News | सच आप तक">
-    <meta property="og:description" content="उत्तर प्रदेश और भारत की ताज़ा खबरें निष्पक्षता के साथ।">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="Uttar World News | Truth Above All">
+    <meta property="og:description" content="Get the latest breaking news from India and around the world.">
+
     <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:image:secure_url" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta property="og:image:type" content="image/png">
+
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Uttar World News | Truth Above All">
+    <meta name="twitter:description" content="Get the latest breaking news from India and around the world.">
     {% endblock %}
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
