@@ -7,35 +7,35 @@
     <meta name="robots" content="index, follow">
     <meta name="author" content="Uttar World News Team">
 
-    <title>{% block title %}Uttar World News | Breaking News{% endblock %}</title>
+    <title>{% block title %}Uttar World News | ताज़ा खबरें, ब्रेकिंग न्यूज़{% endblock %}</title>
+    
+    <meta name="keywords" content="{% if meta_keywords %}{{ meta_keywords }}{% else %}Uttar World, UttarWorld News, Latest UP News, Breaking News India, Hindi News, उत्तर प्रदेश समाचार{% endif %}">
+    
+    <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
-    <meta name="description" content="{% if meta_description %}{{ meta_description }}{% else %}{% block description %}Uttar World News brings latest news updates.{% endblock %}{% endif %}">
-
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
-  <meta property="og:title" content="{% if og_title %}{{ og_title }}{% else %}{% block og_title %}Uttar World News{% endblock %}{% endif %}">
-
-  <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% else %}उत्तर प्रदेश और भारत की ताज़ा खबरें।{% endif %}">
-
-  <meta property="fb:app_id" content="741916956166104"> 
-
-  <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}https://{{ request.get_host }}{% static 'logo.png' %}{% endif %}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+    {% block social_meta %}
+    <meta name="description" content="Uttar World News brings latest news updates from Uttar Pradesh and India.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:title" content="Uttar World News | सच आप तक">
+    <meta property="og:description" content="उत्तर प्रदेश और भारत की ताज़ा खबरें निष्पक्षता के साथ।">
+    <meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    {% endblock %}
 
     <meta name="google-adsense-account" content="ca-pub-3171847065256414">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
     <style>
-        body { background-color: #f8f9fa; font-family: "Segoe UI", sans-serif; }
+        body { background-color: #f8f9fa; font-family: "Segoe UI", "Roboto", sans-serif; overflow-x: hidden; }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         main { flex: 1; }
-        .navbar { position: sticky; top: 0; z-index: 9999 !important; }
+        .navbar { position: sticky; top: 0; z-index: 9999 !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer-link:hover { color: #ffcc00 !important; transition: 0.3s; }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -50,45 +50,58 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer style="background: #1a1a1a; color: #ddd; padding: 50px 0 20px; font-size: 0.9rem;">
+    <footer style="background: #111; color: #ddd; padding: 60px 0 20px; font-size: 0.95rem; border-top: 4px solid #d32f2f;">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4">
+            <div class="row g-4">
+                <div class="col-md-4">
                     <h4 class="text-white fw-bold mb-3">Uttar World <span style="color: #ffcc00;">News</span></h4>
-                    <p class="text-secondary" style="line-height: 1.7;">
-                        Uttar World News उत्तर प्रदेश और भारत का उभरता हुआ न्यूज़ पोर्टल है। हम राजनीति, शिक्षा और स्थानीय खबरों को निष्पक्षता के साथ आप तक पहुँचाते हैं।
+                    <p class="text-secondary" style="line-height: 1.8;">
+                        उत्तर प्रदेश का विश्वसनीय समाचार पोर्टल। हम राजनीति, अपराध, शिक्षा और स्थानीय समस्याओं को प्रमुखता से उठाते हैं।
                     </p>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                    </div>
                 </div>
 
-                <div class="col-md-2 mb-4">
-                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">Links</h5>
+                <div class="col-md-2">
+                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">कैटेगरी</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'home' %}" class="text-secondary text-decoration-none">होम</a></li>
-                        <li class="mb-2"><a href="{% url 'about_us' %}" class="text-secondary text-decoration-none">हमारे बारे में</a></li>
-                        <li class="mb-2"><a href="{% url 'contact_us' %}" class="text-secondary text-decoration-none">संपर्क करें</a></li>
+                        <li class="mb-2"><a href="{% url 'national_news' %}" class="text-secondary text-decoration-none footer-link">देश</a></li>
+                        <li class="mb-2"><a href="{% url 'international_news' %}" class="text-secondary text-decoration-none footer-link">दुनिया</a></li>
+                        <li class="mb-2"><a href="{% url 'bollywood' %}" class="text-secondary text-decoration-none footer-link">मनोरंजन</a></li>
+                        <li class="mb-2"><a href="{% url 'technology' %}" class="text-secondary text-decoration-none footer-link">टेक्नोलॉजी</a></li>
                     </ul>
                 </div>
 
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">Policies</h5>
+                <div class="col-md-3">
+                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">सूचना</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'privacy_policy' %}" class="text-secondary text-decoration-none">Privacy Policy</a></li>
-                        <li class="mb-2"><a href="{% url 'disclaimer' %}" class="text-secondary text-decoration-none">Disclaimer</a></li>
+                        <li class="mb-2"><a href="{% url 'about_us' %}" class="text-secondary text-decoration-none footer-link">हमारे बारे में</a></li>
+                        <li class="mb-2"><a href="{% url 'contact_us' %}" class="text-secondary text-decoration-none footer-link">संपर्क करें</a></li>
+                        <li class="mb-2"><a href="{% url 'privacy_policy' %}" class="text-secondary text-decoration-none footer-link">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="{% url 'disclaimer' %}" class="text-secondary text-decoration-none footer-link">Disclaimer</a></li>
                     </ul>
                 </div>
 
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">Contact</h5>
-                    <p class="text-secondary mb-1"><i class="fas fa-map-marker-alt text-danger me-2"></i> बहराइच, उत्तर प्रदेश</p>
-                    <p class="text-secondary mb-1"><i class="fas fa-envelope text-danger me-2"></i> contact@uttarworld.com</p>
+                <div class="col-md-3">
+                    <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">संपर्क</h5>
+                    <p class="text-secondary mb-2"><i class="fas fa-map-marker-alt text-danger me-2"></i> बहराइच - 271801, उत्तर प्रदेश</p>
+                    <p class="text-secondary mb-2"><i class="fas fa-envelope text-danger me-2"></i> info@uttarworld.com</p>
+                    <p class="text-secondary mb-2"><i class="fas fa-phone text-danger me-2"></i> +91-XXXXXXXXXX</p>
                 </div>
             </div>
 
-            <hr style="background: #444; margin: 30px 0;">
+            <hr style="border-color: #333; margin: 40px 0 20px;">
 
-            <div class="row text-center">
-                <div class="col-md-12">
-                    <p class="mb-0 text-secondary">&copy; 2026 <strong>Uttar World News</strong> | सर्वाधिकार सुरक्षित।</p>
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-secondary">&copy; 2026 <strong>Uttar World News</strong>. All Rights Reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                    <small class="text-muted">Designed with <i class="fas fa-heart text-danger"></i> for UP</small>
                 </div>
             </div>
         </div>
