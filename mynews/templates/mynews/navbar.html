@@ -8,24 +8,24 @@
         </div>
         <div class="d-flex align-items-center">
             <span class="me-3 text-muted">हमें फॉलो करें:</span>
-            <a href="#" class="text-primary me-2"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="text-success me-2"><i class="fab fa-whatsapp"></i></a>
+            <a href="#" class="text-primary me-2 text-decoration-none"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="text-info me-2 text-decoration-none"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-success text-decoration-none"><i class="fab fa-whatsapp"></i></a>
         </div>
     </div>
 </div>
 
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-lg" 
-     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.8rem 0;">
+     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.6rem 0;">
     <div class="container">
 
-        <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}" style="letter-spacing: 1px;">
-            <img src="{% static 'logo.png' %}" 
-                 alt="UP Halchal" 
-                 width="50" height="50" 
-                 class="me-2 rounded-circle border border-2 border-white shadow-sm"
-                 style="background: white;">
-            <span style="font-size: 1.5rem;">UP <span style="color: #ffcc00;">हलचल</span></span>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <div class="logo-wrapper">
+                <img src="{% static 'logo.png' %}" 
+                     alt="Uttar World News - उत्तर प्रदेश की ताज़ा खबरें" 
+                     width="55" height="55" 
+                     class="navbar-logo">
+            </div>
         </a>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -43,15 +43,12 @@
                 <li class="nav-item">
                     <a class="nav-link px-3 {% if request.resolver_match.url_name == 'international_news' %}active text-warning{% endif %}" href="{% url 'international_news' %}">दुनिया</a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link px-3 {% if request.resolver_match.url_name == 'technology' %}active text-warning{% endif %}" href="{% url 'technology' %}">टेक</a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link px-3 {% if request.resolver_match.url_name == 'bollywood' %}active text-warning{% endif %}" href="{% url 'bollywood' %}">बॉलीवुड</a>
                 </li>
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
                         उत्तर प्रदेश
@@ -61,9 +58,8 @@
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्तीी</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
                         <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर / बाराबंकी</a></li>
-
                     </ul>
                 </li>
             </ul>
@@ -71,7 +67,7 @@
             <form class="d-flex mt-3 mt-lg-0 ms-lg-3 position-relative" action="{% url 'home' %}" method="get">
                 <input class="form-control form-control-sm pe-5 border-0 rounded-pill" 
                        type="search" name="q" placeholder="खबर खोजें..." aria-label="Search">
-                <button class="btn btn-link position-absolute end-0 text-danger" type="submit" style="top: 1px;">
+                <button class="btn btn-link position-absolute end-0 text-danger" type="submit" style="top: 1px; text-decoration: none;">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
@@ -80,19 +76,45 @@
 </nav>
 
 <style>
+    /* Logo fix with White Glow/Shadow */
+    .logo-wrapper {
+        background: white;
+        padding: 2px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); /* White shadow glow */
+        border: 2px solid #fff;
+    }
+    .navbar-logo {
+        border-radius: 50%;
+        object-fit: contain;
+    }
+
+    /* Remove Underline from all links */
+    .nav-link, .dropdown-item, .navbar-brand, .btn-link {
+        text-decoration: none !important;
+        box-shadow: none !important;
+    }
+
     .navbar-dark .navbar-nav .nav-link {
         color: rgba(255,255,255,0.9);
         transition: all 0.3s ease;
     }
+
+    /* Hover effect without underline */
     .navbar-dark .navbar-nav .nav-link:hover {
         color: #ffcc00 !important;
         transform: translateY(-2px);
+        text-decoration: none !important;
     }
+
     .dropdown-item:hover {
         background-color: #f8d7da;
         color: #b91d1d !important;
+        text-decoration: none !important;
     }
-    .sticky-top {
-        z-index: 1020;
-    }
+
+    .sticky-top { z-index: 1020; }
 </style>
