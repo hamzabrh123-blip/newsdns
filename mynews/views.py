@@ -12,10 +12,8 @@ from django.utils.html import strip_tags
 from PIL import Image
 from io import BytesIO
 
-# Logs dekhne ke liye setup
 logger = logging.getLogger(__name__)
 
-# Professional Website Configuration
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
 
@@ -24,15 +22,11 @@ def fix_webp_image(request):
     img_url = request.GET.get('url')
     if not img_url:
         return HttpResponse("No Image URL", status=400)
-    
     try:
         response = requests.get(img_url, timeout=10)
         img = Image.open(BytesIO(response.content))
-        
-        # Convert to RGB if needed (JPG doesn't support transparency)
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
-            
         buffer = BytesIO()
         img.save(buffer, format="JPEG", quality=85)
         return HttpResponse(buffer.getvalue(), content_type="image/jpeg")
@@ -41,16 +35,16 @@ def fix_webp_image(request):
 
 # --- FB AUTO POST FUNCTION ---
 def post_to_facebook_network(news_obj):
-    # Render ke 'Environment Variables' se data uthayega
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
     group1_id = os.environ.get('FB_GROUP_1_ID')
     group2_id = os.environ.get('FB_GROUP_2_ID')
     
     if not access_token:
-        print("DEBUG: FB_ACCESS_TOKEN not found!")
+        print("❌ DEBUG: FB_ACCESS_TOKEN not found in Render settings!")
         return 
 
+    # .html suffix ke sath URL
     url_city = news_obj.url_city if news_obj.url_city else "news"
     news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}.html"
     
@@ -66,16 +60,19 @@ def post_to_facebook_network(news_obj):
             }
             try:
                 response = requests.post(fb_url, data=payload, timeout=10)
+                res_data = response.json()
                 if response.status_code == 200:
+                    # Sirf update flag, save dubara nahi (taaki loop na bane)
                     News.objects.filter(id=news_obj.id).update(is_fb_posted=True)
-                    print(f"FB Success for {target}")
+                    print(f"✅ FB Success for {target}")
+                else:
+                    print(f"❌ FB API Error for {target}: {res_data}")
             except Exception as e:
-                print(f"FB Post Error for {target}: {str(e)}")
+                print(f"❌ FB Post Connection Error for {target}: {str(e)}")
 
-# --- Video ID nikalne ke liye function ---
+# --- Video ID extractor ---
 def extract_video_id(url):
-    if not url:
-        return None
+    if not url: return None
     regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
     match = re.search(regex, url)
     return match.group(1) if match else None
@@ -91,13 +88,11 @@ def get_common_sidebar_data():
         "lucknow_up_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:10],
     }
 
-# --- Main Views ---
 def home(request):
     try:
         query = request.GET.get("q")
         news_list = News.objects.filter(title__icontains=query).order_by("-date") if query else News.objects.filter(is_important=True).order_by("-date")
         page_obj = Paginator(news_list, 60).get_page(request.GET.get("page"))
-        
         context = {
             "page_obj": page_obj,
             "meta_description": "Uttar World News: Get the latest breaking news from Uttar Pradesh, India, and around the world.",
@@ -105,9 +100,34 @@ def home(request):
         }
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return HttpResponse("Home Page Loading Error", status=500)
+    except: return HttpResponse("Home Page Loading Error", status=500)
 
+def news_detail(request, url_city, slug): 
+    try:
+        news = get_object_or_404(News, slug=slug, url_city=url_city)
+        related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
+        v_id = extract_video_id(news.youtube_url)
+        
+        # Admin wale keywords dynamic karein
+        keywords = news.meta_keywords if news.meta_keywords else "Uttar World, UttarWorld News, Latest UP News"
+
+        # FB Posting trigger (Sirf pehli baar)
+        if not news.is_fb_posted:
+            post_to_facebook_network(news)
+
+        context = {
+            "news": news, 
+            "related_news": related_news,
+            "meta_description": strip_tags(news.content)[:160],
+            "meta_keywords": keywords,
+            "og_title": f"{news.title} | {SITE_NAME}",
+            "v_id": v_id, 
+        }
+        context.update(get_common_sidebar_data())
+        return render(request, "mynews/news_detail.html", context)
+    except: return redirect('home')
+
+# --- Category Views ---
 def market_news_view(request):
     try:
         news_list = News.objects.filter(category="Market").order_by("-date")
@@ -115,8 +135,7 @@ def market_news_view(request):
         context = {"page_obj": page_obj, "category_name": "बाज़ार न्यूज़"}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/market_news.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def national_news(request):
     try:
@@ -125,8 +144,7 @@ def national_news(request):
         context = {"category": "National", "page_obj": page_obj}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def international_news(request):
     try:
@@ -135,8 +153,7 @@ def international_news(request):
         context = {"category": "International", "page_obj": page_obj}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def technology(request):
     try:
@@ -145,8 +162,7 @@ def technology(request):
         context = {"category": "Technology", "page_obj": page_obj}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def bollywood(request):
     try:
@@ -155,30 +171,7 @@ def bollywood(request):
         context = {"category": "Bollywood", "page_obj": page_obj}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return redirect('home')
-
-def news_detail(request, url_city, slug): 
-    try:
-        news = get_object_or_404(News, slug=slug, url_city=url_city)
-        related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
-        v_id = extract_video_id(news.youtube_url)
-        
-        # Trigger Auto Post
-        if not news.is_fb_posted:
-            post_to_facebook_network(news)
-
-        context = {
-            "news": news, 
-            "related_news": related_news,
-            "meta_description": strip_tags(news.content)[:160],
-            "og_title": f"{news.title} | {SITE_NAME}",
-            "v_id": v_id, 
-        }
-        context.update(get_common_sidebar_data())
-        return render(request, "mynews/news_detail.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def district_news(request, district):
     try:
@@ -187,8 +180,7 @@ def district_news(request, district):
         context = {"district": district, "page_obj": page_obj}
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except:
-        return redirect('home')
+    except: return redirect('home')
 
 def contact_us(request):
     success = False
