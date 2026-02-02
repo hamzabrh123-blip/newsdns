@@ -5,10 +5,12 @@ import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import News
 from django.conf import settings
 from django.utils.html import strip_tags
+from PIL import Image
+from io import BytesIO
 
 # Logs dekhne ke liye setup
 logger = logging.getLogger(__name__)
@@ -16,6 +18,26 @@ logger = logging.getLogger(__name__)
 # Professional Website Configuration
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
+
+# ✅ WebP to JPG Converter (Facebook/SEO ke liye)
+def fix_webp_image(request):
+    img_url = request.GET.get('url')
+    if not img_url:
+        return HttpResponse("No Image URL", status=400)
+    
+    try:
+        response = requests.get(img_url, timeout=10)
+        img = Image.open(BytesIO(response.content))
+        
+        # Convert to RGB if needed (JPG doesn't support transparency)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        buffer = BytesIO()
+        img.save(buffer, format="JPEG", quality=85)
+        return HttpResponse(buffer.getvalue(), content_type="image/jpeg")
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)
 
 # --- FB AUTO POST FUNCTION ---
 def post_to_facebook_network(news_obj):
@@ -29,7 +51,6 @@ def post_to_facebook_network(news_obj):
         print("DEBUG: FB_ACCESS_TOKEN not found!")
         return 
 
-    # City handle karna
     url_city = news_obj.url_city if news_obj.url_city else "news"
     news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}.html"
     
@@ -45,12 +66,9 @@ def post_to_facebook_network(news_obj):
             }
             try:
                 response = requests.post(fb_url, data=payload, timeout=10)
-                res_data = response.json()
-                print(f"FB Response for {target}: {res_data}")
-                
-                # Agar success ho jaye toh flag update kar dena
                 if response.status_code == 200:
                     News.objects.filter(id=news_obj.id).update(is_fb_posted=True)
+                    print(f"FB Success for {target}")
             except Exception as e:
                 print(f"FB Post Error for {target}: {str(e)}")
 
@@ -73,6 +91,7 @@ def get_common_sidebar_data():
         "lucknow_up_sidebar": News.objects.filter(district='Lucknow-UP').order_by("-date")[:10],
     }
 
+# --- Main Views ---
 def home(request):
     try:
         query = request.GET.get("q")
@@ -145,7 +164,7 @@ def news_detail(request, url_city, slug):
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
         v_id = extract_video_id(news.youtube_url)
         
-        # TRIGGER: Sirf tabhi post karega agar is_fb_posted False hai
+        # Trigger Auto Post
         if not news.is_fb_posted:
             post_to_facebook_network(news)
 
