@@ -19,14 +19,22 @@
      style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.6rem 0;">
     <div class="container">
 
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-            <div class="logo-wrapper">
-                <img src="{% static 'logo.png' %}" 
-                     alt="Uttar World News - उत्तर प्रदेश की ताज़ा खबरें" 
-                     width="55" height="55" 
-                     class="navbar-logo">
-            </div>
-        </a>
+        <div class="navbar-brand d-flex align-items-center">
+    <a href="{% url 'home' %}" class="logo-link">
+        <div class="logo-wrapper">
+            <img src="{% static 'logo.png' %}" 
+                 alt="Uttar World News" 
+                 width="55" height="55" 
+                 class="navbar-logo">
+        </div>
+    </a>
+    
+    <div class="brand-text">
+        <span class="text-white">UTTAR WORLD</span>
+        <span class="text-yellow">NEWS</span>
+    </div>
+</div>
+
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>

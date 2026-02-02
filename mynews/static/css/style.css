@@ -1,130 +1,139 @@
-/* --- 1. Global Reset & Fonts --- */
+/* ============================================================
+   1. GLOBAL & BACKGROUND (The Foundation)
+   ============================================================ */
 body {  
-    font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
-    margin: 0; 
-    padding: 0; 
-    background-color: #f8f9fa;
-    color: #212529;
-    overflow-x: hidden;
+  font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
+  margin: 0;  
+  padding: 0;  
+  background-image: url('../bg.jpg') !important; 
+  background-attachment: fixed; 
+  background-repeat: repeat; 
+  background-size: auto; 
+  color: #333;
+  line-height: 1.6;
 }
 
-/* --- 2. Navbar & Branding --- */
+/* Global Link Reset */
+a { text-decoration: none !important; }
+
+/* ============================================================
+   2. NAVBAR & BRANDING (Logo & Modern Touch)
+   ============================================================ */
 .navbar {
-    background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
-    padding: 0.6rem 0;
+  background-color: #800000 !important; 
+  padding: 4px 0 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+  min-height: 55px !important;
 }
 
-.logo-wrapper {
-    background: #ffffff;
-    padding: 3px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
-    border: 2px solid #ffffff;
-    transition: transform 0.3s ease;
+/* Logo Wrapper - Sirf yahan ungli (pointer) banegi */
+.logo-link {
+  display: inline-block;
+  cursor: pointer !important;
 }
 
-.logo-wrapper:hover { transform: scale(1.05); }
-.navbar-logo { border-radius: 50%; object-fit: contain; }
-
-/* Global Link Cleanup (No Underlines) */
-.nav-link, .dropdown-item, .navbar-brand, .btn-link, .footer-link {
-    text-decoration: none !important;
-    box-shadow: none !important;
-    outline: none !important;
+.navbar-logo {
+  height: 45px !important;
+  width: auto !important;
+  filter: drop-shadow(0px 0px 2px rgba(255, 255, 255, 0.8)) 
+          drop-shadow(0px 0px 5px rgba(255, 223, 0, 0.4)) !important;
+  transition: transform 0.3s ease;
 }
 
-.navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.9) !important;
-    transition: all 0.3s ease;
-    padding: 0.5rem 1rem;
+.navbar-logo:hover {
+  transform: scale(1.08);
 }
 
-.navbar-dark .navbar-nav .nav-link:hover,
-.navbar-dark .navbar-nav .nav-link.active {
-    color: #ffcc00 !important;
-    transform: translateY(-2px);
+/* Brand Text - Static look, no pointer */
+.brand-text {
+  margin-left: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  display: flex;
+  gap: 8px;
+  pointer-events: none; /* No click, no finger */
+  user-select: none;
 }
 
-/* --- 3. Layout Structure --- */
-.main-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+.text-white { color: #ffffff !important; filter: drop-shadow(0px 0px 2px #fff); }
+.text-yellow { color: #ffcc00 !important; filter: drop-shadow(0px 0px 4px #ffcc00); font-style: italic; }
+
+
+/* ============================================================
+   3. NAVIGATION LINKS (Menu Items)
+   ============================================================ */
+   
+   .navbar-nav .nav-link { 
+  color: #ffffff !important; 
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 12px 18px !important;
+  transition: 0.3s all ease;
 }
 
-main { flex: 1; padding: 20px 0; }
-
-.container-flex { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 20px;
+.navbar-nav .nav-link:hover { 
+  color: #ffcc00 !important; 
+  background-color: rgba(255, 255, 255, 0.1); 
+  border-radius: 4px;
 }
 
-.sticky-sidebar {
-    position: sticky;
-    top: 90px;
-    z-index: 10;
+/* ============================================================
+   4. MAIN CONTENT & CARDS (The News Feed)      
+============================================================ */
+
+.container {  
+  display: flex; flex-wrap: wrap; gap: 25px; padding-top: 20px;
 }
 
-/* --- 4. News Cards & Grid --- */
-.news-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-    gap: 20px; 
+main { flex: 3; min-width: 0; }
+
+.news-card {  
+  background: #ffffff; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06); transition: transform 0.3s ease;
+  border: 1px solid #f0f0f0; margin-bottom: 20px;
 }
 
-.news-card { 
-    background: white; 
-    border-radius: 12px; 
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: 0.3s;
-    border: 1px solid #eee;
+.news-card:hover { transform: translateY(-5px); }
+
+.news-card img { width: 100%; height: 210px; object-fit: cover; }
+
+/* ============================================================
+   5. SIDEBAR & FOOTER (Watermark Feeling)      
+============================================================ */
+
+.sidebar {  
+  flex: 1; background: #ffffff; padding: 20px; min-width: 300px;
+  border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-
-.news-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
+footer {  
+  background: #1a1a1a !important; color: #ffffff !important;  
+  text-align: center; padding: 40px 10px; margin-top: 50px;  
 }
 
-/* --- 5. Dropdowns & Search --- */
-.dropdown-menu {
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
 
-.dropdown-item:hover {
-    background-color: #f8d7da !important;
-    color: #b91d1d !important;
-    padding-left: 1.5rem;
-}
+/* ============================================================
+   6. MOBILE RESPONSIVE (The Final Sequence)      
+============================================================ */
 
-.navbar .form-control {
-    border-radius: 20px;
-    font-size: 0.9rem;
-}
-
-/* --- 6. Footer --- */
-footer { 
-    background: #111; 
-    color: #ddd; 
-    padding: 40px 0 20px; 
-    margin-top: auto; 
-}
-
-/* --- 7. Mobile Responsiveness --- */
 @media (max-width: 768px) {
-    .container-flex { flex-direction: column; }
-    h1 { font-size: 22px; }
-    h2 { font-size: 18px; }
-    h5 { font-size: 16px; }
-    p { font-size: 14px; } /* Pehle 8px tha, jo bahut chota tha */
+  /* Header Fix */
+  .navbar .container {
+    display: flex !important; flex-direction: row !important;
+    justify-content: space-between !important; align-items: center !important;
+  }
+
+  /* Text size adjustment for mobile */
+  .brand-text { font-size: 1.1rem; gap: 5px; }
+  .navbar-logo { height: 35px !important; }
+
+  /* Layout Sequence */
+  .container { display: block !important; padding: 10px !important; }
+  main { width: 100% !important; display: block !important; }
+  .sidebar { width: 100% !important; display: block !important; margin-top: 20px !important; }
+  
+  /* Dropdown Menu */
+  .navbar-collapse { background-color: #800000 !important; padding: 10px; border-radius: 8px; }
 }

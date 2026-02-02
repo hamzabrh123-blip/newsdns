@@ -3,9 +3,22 @@ from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = ('title', 'district', 'category', 'date', 'is_important')
-    list_filter = ('district', 'category', 'date', 'is_important')
+    list_display = ('title', 'district', 'category', 'date', 'is_important', 'share_now_to_fb', 'is_fb_posted')
+    list_filter = ('district', 'category', 'date', 'is_important', 'is_fb_posted')
     search_fields = ('title', 'content')
-    prepopulated_fields = {'slug': ('title',)}
+    list_editable = ('is_important', 'share_now_to_fb')
     list_per_page = 20
-    list_editable = ('is_important',)
+    readonly_fields = ('is_fb_posted', 'slug')
+
+    fieldsets = (
+        ('News Details', {
+            'fields': ('title', 'content', 'category', 'district', 'url_city', 'image', 'youtube_url')
+        }),
+        ('Facebook Control', {
+            'fields': ('share_now_to_fb', 'is_fb_posted'),
+        }),
+        ('SEO & Metadata', {
+            'fields': ('meta_keywords', 'slug', 'is_important', 'date'),
+            'classes': ('collapse',),
+        }),
+    )

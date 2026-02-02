@@ -2,9 +2,9 @@ import uuid
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
-from django.utils.encoding import force_str
 from django.utils.timezone import now
 from unidecode import unidecode
+from django.urls import reverse
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -33,27 +33,31 @@ class News(models.Model):
         max_length=100, 
         blank=True, 
         null=True, 
-        help_text="URL ke liye shehar ka naam. Khali chhodne par District liya jayega."
+        help_text="Khali chhodne par 'news' liya jayega."
     )
 
-    date = models.DateTimeField(default=now) # auto_now_add se hata kar default kiya
+    date = models.DateTimeField(default=now)
     content = RichTextField(blank=True) 
     
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
     youtube_url = models.URLField(blank=True, null=True)
-    is_important = models.BooleanField(default=False)
+    is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     
-    # SEO & Slug
-    meta_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Keywords comma se alag karein")
+    meta_keywords = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
 
-    # FB status check
-    is_fb_posted = models.BooleanField(default=False)
+    # FB CONTROLS
+    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook par abhi bhejein?")
+    is_fb_posted = models.BooleanField(default=False, verbose_name="FB par post ho chuka hai")
+
+    def get_absolute_url(self):
+        """Asli magic: Ye hamesha working link generate karega"""
+        return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. ImgBB Upload Logic
+        # 1. Image Upload
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
@@ -63,40 +67,34 @@ class News(models.Model):
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. URL City Logic (City slugify)
+        # 2. City Logic Fix (No more 404)
         if not self.url_city:
-            self.url_city = slugify(unidecode(self.district)) if self.district else "news"
+            if self.district:
+                self.url_city = slugify(unidecode(self.district))
+            else:
+                self.url_city = "news"
         else:
             self.url_city = slugify(unidecode(self.url_city))
 
-        # 3. Aaj Tak Style Slug (English + ID + Date)
+        # 3. Slug Generation
         if not self.slug:
-            # Hindi title ko English jaisa convert karo
             roman_title = unidecode(self.title)
             base_slug = slugify(roman_title)
-            
-            # Unique ID + Current Date
             unique_id = str(uuid.uuid4())[:8]
             date_str = now().strftime('%Y-%m-%d')
-            
             self.slug = f"{base_slug}-{unique_id}-{date_str}"
 
-        # Pehle news ko save karo taaki FB ko data sahi mile
         super().save(*args, **kwargs)
 
-        # 4. FACEBOOK AUTOMATIC POSTING
-        if not self.is_fb_posted:
+        # 4. FB Auto-Trigger
+        if self.share_now_to_fb and not self.is_fb_posted:
             try:
-                # Local import taaki view aur model ke bich circular import ka chakkar na ho
-                from .views import post_to_facebook_network # dhyaan do ki tumhari view file ka sahi path ho
-                
-                # FB function call
-                post_to_facebook_network(self)
-                
-                # Status update bina save() dubara trigger kiye
-                News.objects.filter(id=self.id).update(is_fb_posted=True)
+                from .views import post_to_facebook_network
+                success = post_to_facebook_network(self)
+                if success:
+                    News.objects.filter(id=self.id).update(is_fb_posted=True, share_now_to_fb=False)
             except Exception as fb_err:
-                print(f"Facebook Posting System Error: {fb_err}")
+                print(f"FB System Error: {fb_err}")
 
     def __str__(self):
         return self.title
