@@ -3,7 +3,7 @@ from .views import (
     home, national_news, technology, bollywood, international_news,
     market_news_view, district_news, robots_txt, sitemap_xml,
     ads_txt, privacy_policy, about_us, contact_us, disclaimer, 
-    news_detail, fix_webp_image  # ✅ Ab ye yahan chalega!
+    news_detail, fix_webp_image
 )
 
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     path("international/", international_news, name="international_news"),
     path("market-news/", market_news_view, name="market_news"),
 
-    # ✅ Image Fix Path
+    # ✅ Image Fix Path (Facebook image preview ke liye)
     path("fix-img/", fix_webp_image, name="fix_webp_image"),
 
     path("district/<str:district>/", district_news, name="district_news"),
@@ -26,6 +26,6 @@ urlpatterns = [
     path("contact-us/", contact_us, name="contact_us"),
     path("disclaimer/", disclaimer, name="disclaimer"),
 
-    # NEWS DETAIL
-    path("<str:url_city>/<slug:slug>.html", news_detail, name="news_detail"),
+    # ✅ NEWS DETAIL: <path:slug> use kiya hai taaki date/ID wale lambe slug crash na hon
+    path("<str:url_city>/<path:slug>.html", news_detail, name="news_detail"),
 ]
