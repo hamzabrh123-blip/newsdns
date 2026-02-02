@@ -1,123 +1,130 @@
-body { 
-  font-family: 'Poppins', sans-serif;
-  margin: 0; 
-  padding: 0; 
-  background-color: #f8f9fa;
+/* --- 1. Global Reset & Fonts --- */
+body {  
+    font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+    margin: 0; 
+    padding: 0; 
+    background-color: #f8f9fa;
+    color: #212529;
+    overflow-x: hidden;
 }
 
+/* --- 2. Navbar & Branding --- */
 .navbar {
-  background: linear-gradient(90deg, #007bff, #6610f2);
+    background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%) !important;
+    padding: 0.6rem 0;
 }
 
-h2, h3 { 
-  color: #212529;
+.logo-wrapper {
+    background: #ffffff;
+    padding: 3px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+    border: 2px solid #ffffff;
+    transition: transform 0.3s ease;
 }
 
-header { 
-  background: #c2185b; 
-  color: #fff; 
-  padding: 10px; 
-  text-align: center; 
+.logo-wrapper:hover { transform: scale(1.05); }
+.navbar-logo { border-radius: 50%; object-fit: contain; }
+
+/* Global Link Cleanup (No Underlines) */
+.nav-link, .dropdown-item, .navbar-brand, .btn-link, .footer-link {
+    text-decoration: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-nav a { 
-  color: white; 
-  margin: 0 10px; 
-  text-decoration: none; 
-  font-weight: bold; 
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
 }
 
-nav a:hover { 
-  text-decoration: underline; 
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: #ffcc00 !important;
+    transform: translateY(-2px);
 }
 
-.container { 
-  display: flex; 
-  flex-wrap: wrap; 
+/* --- 3. Layout Structure --- */
+.main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.sidebar { 
-  flex: 1; 
-  background: #fff; 
-  padding: 15px; 
-  min-width: 200px; 
+main { flex: 1; padding: 20px 0; }
+
+.container-flex { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px;
 }
 
-main { 
-  flex: 3; 
-  padding: 20px; 
+.sticky-sidebar {
+    position: sticky;
+    top: 90px;
+    z-index: 10;
 }
 
+/* --- 4. News Cards & Grid --- */
 .news-grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-  gap: 15px; 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 20px; 
 }
 
 .news-card { 
-  background: white; 
-  border-radius: 10px; 
-  padding:0;
-  box-shadow: 0 2px 5px #ccc; 
+    background: white; 
+    border-radius: 12px; 
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: 0.3s;
+    border: 1px solid #eee;
 }
 
-.news-card img { 
-  width: 100%; 
-  border-radius: 10px; 
-}
-
-footer { 
-  background: #222; 
-  color: white; 
-  text-align: center; 
-  padding: 10px; 
-  margin-top: 20px; 
-}
-
-aside {
-  position: sticky;
-  top: 80px;
-}
+.news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
 .news-image {
-  max-width: 100%;
-  max-height: 400px;
-  height: auto;
-  object-fit: cover;
-  border-radius: 10px;
-  overflow: hidden;
-  display: block;
-  margin: 0 auto;
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
 }
 
-article {
-  overflow: hidden;
+/* --- 5. Dropdowns & Search --- */
+.dropdown-menu {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-/* Mobile Responsive Fix */
+.dropdown-item:hover {
+    background-color: #f8d7da !important;
+    color: #b91d1d !important;
+    padding-left: 1.5rem;
+}
+
+.navbar .form-control {
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* --- 6. Footer --- */
+footer { 
+    background: #111; 
+    color: #ddd; 
+    padding: 40px 0 20px; 
+    margin-top: auto; 
+}
+
+/* --- 7. Mobile Responsiveness --- */
 @media (max-width: 768px) {
-
-  .container { 
-    flex-direction: column; 
-  }
-
-  nav { 
-    display: flex; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-  }
-
-  h1 {
-    font-size: 18px;
-  }
-
-  h2 {
-    font-size: 15px;
-  }
-
-  h3 {
-    font-size: 12px;
-  }
-  p {
- font-size: 8px;  }
+    .container-flex { flex-direction: column; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 18px; }
+    h5 { font-size: 16px; }
+    p { font-size: 14px; } /* Pehle 8px tha, jo bahut chota tha */
 }
