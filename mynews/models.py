@@ -1,8 +1,10 @@
+import uuid
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.encoding import force_str
-# Yahan sirf upload_to_imgbb rakha hai taaki build na phate
+from django.utils.timezone import now
+from unidecode import unidecode
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -31,10 +33,10 @@ class News(models.Model):
         max_length=100, 
         blank=True, 
         null=True, 
-        help_text="URL के लिए शहर का नाम. खाली छोड़ने पर District लिया जाएगा।"
+        help_text="URL ke liye shehar ka naam. Khali chhodne par District liya jayega."
     )
 
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=now) # auto_now_add se hata kar default kiya
     content = RichTextField(blank=True) 
     
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
@@ -42,7 +44,10 @@ class News(models.Model):
     
     youtube_url = models.URLField(blank=True, null=True)
     is_important = models.BooleanField(default=False)
-    slug = models.SlugField(max_length=350, unique=True, blank=True, allow_unicode=True)
+    
+    # SEO & Slug
+    meta_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Keywords comma se alag karein")
+    slug = models.SlugField(max_length=500, unique=True, blank=True)
 
     # FB status check
     is_fb_posted = models.BooleanField(default=False)
@@ -58,41 +63,40 @@ class News(models.Model):
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. URL City Logic
+        # 2. URL City Logic (City slugify)
         if not self.url_city:
-            self.url_city = slugify(self.district) if self.district else "news"
+            self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
-            self.url_city = slugify(self.url_city)
+            self.url_city = slugify(unidecode(self.url_city))
 
-        # 3. Slug Logic
+        # 3. Aaj Tak Style Slug (English + ID + Date)
         if not self.slug:
-            self.slug = slugify(force_str(self.title), allow_unicode=True)
-            original_slug = self.slug
-            counter = 1
-            while News.objects.filter(slug=self.slug).exists():
-                self.slug = f"{original_slug}-{counter}"
-                counter += 1
+            # Hindi title ko English jaisa convert karo
+            roman_title = unidecode(self.title)
+            base_slug = slugify(roman_title)
             
-        # News ko save karo taaki ID mil jaye
+            # Unique ID + Current Date
+            unique_id = str(uuid.uuid4())[:8]
+            date_str = now().strftime('%Y-%m-%d')
+            
+            self.slug = f"{base_slug}-{unique_id}-{date_str}"
+
+        # Pehle news ko save karo taaki FB ko data sahi mile
         super().save(*args, **kwargs)
 
-        # 4. FACEBOOK AUTOMATIC POSTING (Circular Import Safe Logic)
+        # 4. FACEBOOK AUTOMATIC POSTING
         if not self.is_fb_posted:
             try:
-                # Local import taaki build pass ho jaye
-                from .views_folder.fb_logic import post_to_facebook_network
+                # Local import taaki view aur model ke bich circular import ka chakkar na ho
+                from .views import post_to_facebook_network # dhyaan do ki tumhari view file ka sahi path ho
                 
-                post_to_facebook_network(
-                    title=self.title, 
-                    slug=self.slug, 
-                    url_city=self.url_city, 
-                    image_url=self.image_url
-                )
-                # Loop rokne ke liye status update
+                # FB function call
+                post_to_facebook_network(self)
+                
+                # Status update bina save() dubara trigger kiye
                 News.objects.filter(id=self.id).update(is_fb_posted=True)
-                print(f"Success: News '{self.title}' posted to Facebook.")
             except Exception as fb_err:
-                print(f"Facebook Posting Error: {fb_err}")
+                print(f"Facebook Posting System Error: {fb_err}")
 
     def __str__(self):
         return self.title
