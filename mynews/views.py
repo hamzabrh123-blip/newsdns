@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
 
-# --- FB AUTO POST FUNCTION (Secure Version) ---
-def post_to_facebook_network(title, slug, url_city):
+# --- FB AUTO POST FUNCTION ---
+def post_to_facebook_network(news_obj):
     # Render ke 'Environment Variables' se data uthayega
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
@@ -26,24 +26,31 @@ def post_to_facebook_network(title, slug, url_city):
     group2_id = os.environ.get('FB_GROUP_2_ID')
     
     if not access_token:
-        print("DEBUG: FB_ACCESS_TOKEN not found in environment!")
+        print("DEBUG: FB_ACCESS_TOKEN not found!")
         return 
-        
-    news_url = f"{SITE_URL}/{url_city}/{slug}.html"
+
+    # City handle karna
+    url_city = news_obj.url_city if news_obj.url_city else "news"
+    news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}.html"
+    
     destinations = [page_id, group1_id, group2_id]
     
     for target in destinations:
         if target:
             fb_url = f"https://graph.facebook.com/v19.0/{target}/feed"
             payload = {
-                'message': f"🔥 {title}\n\nपूरी खबर यहाँ पढ़ें 👇",
+                'message': f"🔥 {news_obj.title}\n\nपूरी खबर यहाँ पढ़ें 👇",
                 'link': news_url,
                 'access_token': access_token
             }
             try:
                 response = requests.post(fb_url, data=payload, timeout=10)
-                # Ye line tumhare terminal/logs mein batayegi ki FB ne kya bola
-                print(f"FB Response for {target}: {response.json()}") 
+                res_data = response.json()
+                print(f"FB Response for {target}: {res_data}")
+                
+                # Agar success ho jaye toh flag update kar dena
+                if response.status_code == 200:
+                    News.objects.filter(id=news_obj.id).update(is_fb_posted=True)
             except Exception as e:
                 print(f"FB Post Error for {target}: {str(e)}")
 
@@ -138,8 +145,9 @@ def news_detail(request, url_city, slug):
         related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:3]
         v_id = extract_video_id(news.youtube_url)
         
-        # Trigger Auto Post (Sirf ek baar trigger hoga jab detail page load hoga)
-        post_to_facebook_network(news.title, news.slug, news.url_city)
+        # TRIGGER: Sirf tabhi post karega agar is_fb_posted False hai
+        if not news.is_fb_posted:
+            post_to_facebook_network(news)
 
         context = {
             "news": news, 
