@@ -1,118 +1,119 @@
-<aside class="sidebar p-3 bg-white rounded-4 shadow-sm">
+<aside class="sidebar-professional shadow-sm bg-white p-3 rounded-3">
+    
+    <div class="mb-4 text-center border-bottom pb-3">
+        <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
+        </div>
 
-  <div class="mb-4 text-center border-bottom pb-3">
-    <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
-  </div>
-  
-  {% if bazaar_sidebar %}
-  <div class="mb-4 market-sidebar-box p-2 rounded-3" style="background: #fff5f5; border: 1px solid #ffebeb;">
-    <h5 class="sidebar-title text-danger" style="border-left: 5px solid #d32f2f; padding-left: 10px;">
-        <i class="fas fa-chart-line me-1"></i> बाज़ार (Market)
-    </h5>
-    {% for item in bazaar_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" class="sidebar-img">
-        {% elif item.image %}
-            <img src="{{ item.image.url }}" class="sidebar-img">
-        {% endif %}
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="/market-news/" class="view-all text-danger">आज का ताज़ा भाव देखें →</a>
+    {% if world_sidebar %}
+    <div class="sidebar-block mb-4">
+        <h5 class="sidebar-heading text-dark border-start border-4 border-danger ps-2">
+            <i class="fas fa-globe-americas text-danger me-2"></i>दुनिया (World)
+        </h5>
+        {% for item in world_sidebar %}
+        <div class="sidebar-post">
+            <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}" class="sidebar-thumb">
+            <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
+        </div>
+        {% endfor %}
+        <a href="/Int-MiddleEast/" class="view-link text-danger">Middle East की खबरें देखें →</a>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if bharat_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-danger">🇮🇳 भारत (National)</h5>
-    {% for item in bharat_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" class="sidebar-img">
-        {% elif item.image %}
-            <img src="{{ item.image.url }}" class="sidebar-img">
-        {% endif %}
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="{% url 'national_news' %}" class="view-all text-danger">सभी भारत की खबरें →</a>
+    {% if bazaar_sidebar %}
+    <div class="sidebar-block mb-4 bg-light p-3 rounded-2 shadow-sm border-top border-3 border-danger">
+        <h5 class="sidebar-heading text-danger">
+            <i class="fas fa-chart-line me-2"></i>बाज़ार (Market)
+        </h5>
+        {% for item in bazaar_sidebar %}
+        <div class="sidebar-post border-bottom py-2">
+            <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link fw-bold" style="font-size: 0.85rem;">
+                <i class="fas fa-caret-right text-danger me-1"></i> {{ item.title }}
+            </a>
+        </div>
+        {% endfor %}
+        <div class="text-end mt-2">
+            <a href="/Market/" class="view-link text-danger fw-bold">ताज़ा भाव →</a>
+        </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if technology_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-primary">टेक्नोलॉजी (Technology)</h5>
-    {% for item in technology_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" class="sidebar-img">
-        {% elif item.image %}
-            <img src="{{ item.image.url }}" class="sidebar-img">
-        {% endif %}
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="{% url 'technology' %}" class="view-all text-primary">टेक्नोलॉजी की अन्य खबरें →</a>
+    {% if sports_sidebar %}
+    <div class="sidebar-block mb-4">
+        <h5 class="sidebar-heading text-dark border-start border-4 border-success ps-2">
+            <i class="fas fa-trophy text-success me-2"></i>खेल जगत (Sports)
+        </h5>
+        {% for item in sports_sidebar %}
+        <div class="sidebar-post">
+            <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}" class="sidebar-thumb">
+            <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
+        </div>
+        {% endfor %}
+        <a href="/Sports/" class="view-link text-success">सभी खेल समाचार →</a>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if bollywood_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-primary">बॉलीवुड (Bollywood)</h5>
-    {% for item in bollywood_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" class="sidebar-img">
-        {% elif item.image %}
-            <img src="{{ item.image.url }}" class="sidebar-img">
-        {% endif %}
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="{% url 'bollywood' %}" class="view-all text-primary">बॉलीवुड की अन्य खबरें →</a>
+    {% if lucknow_up_sidebar %}
+    <div class="sidebar-block mb-4">
+        <h5 class="sidebar-heading text-dark border-start border-4 border-primary ps-2">
+            <i class="fas fa-map-marker-alt text-primary me-2"></i>लखनऊ & यूपी
+        </h5>
+        {% for item in lucknow_up_sidebar %}
+        <div class="sidebar-post">
+            <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}" class="sidebar-thumb">
+            <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link text-dark">{{ item.title|truncatechars:50 }}</a>
+        </div>
+        {% endfor %}
+        <a href="/Lucknow-UP/" class="view-link text-primary">पूरा उत्तर प्रदेश देखें →</a>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  <hr>
-
-  {% if lucknow_up_sidebar %}
-  <div class="mb-4">
-    <h5 class="sidebar-title text-primary" style="border-left: 5px solid #007bff; padding-left: 10px;">📍 लखनऊ</h5>
-    {% for item in lucknow_up_sidebar %}
-      <div class="sidebar-item">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" class="sidebar-img">
-        {% elif item.image %}
-            <img src="{{ item.image.url }}" class="sidebar-img">
-        {% endif %}
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title }}</a>
-      </div>
-    {% endfor %}
-    <div class="text-end">
-        <a href="/district/Lucknow-UP/" class="view-all text-primary">लखनऊ की और खबरें →</a>
-    </div>
-  </div>
-  {% endif %}
-
-  </aside>
+</aside>
 
 <style>
-.sidebar { position: sticky; top: 80px; }
-.sidebar-title { font-weight: 800; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 12px; }
-.sidebar-item { display: flex; align-items: flex-start; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f1f1; }
-.sidebar-img { width: 80px; height: 55px; border-radius: 6px; object-fit: cover; margin-right: 12px; flex-shrink: 0; }
-.sidebar-item a { color: #222; text-decoration: none; font-size: 0.9rem; font-weight: 600; line-height: 1.3; display: block; }
-.sidebar-item a:hover { color: #d32f2f !important; }
-.view-all { font-size: 0.75rem; font-weight: bold; text-decoration: none; }
-.view-all:hover { text-decoration: underline; opacity: 0.8; }
-.market-sidebar-box { border-bottom: 3px solid #d32f2f !important; }
+    .sidebar-professional {
+        position: sticky;
+        top: 100px;
+        border: 1px solid #f0f0f0;
+    }
+    .sidebar-heading {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        letter-spacing: -0.5px;
+    }
+    .sidebar-post {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        transition: 0.3s;
+    }
+    .sidebar-thumb {
+        width: 70px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    .post-link {
+        text-decoration: none;
+        color: #333;
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .post-link:hover { color: #d32f2f !important; }
+    .view-link {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-decoration: none;
+        text-transform: uppercase;
+        display: block;
+        margin-top: 5px;
+    }
+    .view-link:hover { text-decoration: underline; }
 </style>
