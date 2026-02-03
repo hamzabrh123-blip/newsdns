@@ -62,9 +62,15 @@
                 <li class="nav-item">
                     <a class="nav-link px-3" href="{% url 'technology' %}">टेक</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'bollywood' %}">बॉलीवुड</a>
-                </li>
+               <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown">
+                        मनोरंजन
+                    </a>
+                  <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
+            <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Ent-Bollywood' %}">बॉलीवुड (Bollywood)</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Ent-Hollywood' %}">हॉलीवुड (Hollywood)</a></li>
+                </ul>
+            </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
