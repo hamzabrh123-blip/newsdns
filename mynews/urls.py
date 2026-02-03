@@ -1,26 +1,28 @@
 from django.urls import path
-from . import views # Isse code saaf rehta hai
+from . import views
 
 urlpatterns = [
-    # 1. Home Page
     path("", views.home, name="home"),
 
-    # 2. THE BIG CONTROLLER (Universal Route)
-    # Ab yahi ek rasta National, International, Sports, sab handle karega
-    # Example: /national/, /sports/, /int-middleeast/ sab isi par jayenge
-    path("<str:district>/", views.district_news, name="district_news"),
+    # 1. Universal Category Route (Ise DETAIL se upar rakho taaki clash na ho)
+    path("category/<str:district>/", views.district_news, name="district_news"),
 
-    # 3. News Detail (SEO Friendly)
-    path("<str:url_city>/<slug:slug>.html", views.news_detail, name="news_detail"),
-    path("news/<slug:slug>.html", views.news_detail, name="news_detail_simple"),
+    # 2. Sabhi Purane Names (Template Compatibility)
+    path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
+    path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
+    path("news/int/", views.district_news, {'district': 'International'}, name="international"),
+    path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
+    path("news/sports/", views.district_news, {'district': 'Sports'}, name="sports"),
+    path("news/bollywood/", views.district_news, {'district': 'Bollywood'}, name="bollywood"),
+    path("news/market/", views.district_news, {'district': 'Market'}, name="market"),
+
+    # 3. News Detail Page (Ise niche rakho kyunki ye sabse flexible hai)
+    path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 
     # 4. Utilities & SEO
-    path("fix-img/", views.fix_webp_image, name="fix_webp_image"),
     path("robots.txt", views.robots_txt, name="robots_txt"),
     path("sitemap.xml", views.sitemap_xml, name="sitemap_xml"),
     path("ads.txt", views.ads_txt, name="ads_txt"),
-
-    # 5. Static Pages
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("about-us/", views.about_us, name="about_us"),
     path("contact-us/", views.contact_us, name="contact_us"),

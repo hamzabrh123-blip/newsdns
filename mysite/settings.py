@@ -5,9 +5,9 @@ import dj_database_url
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- SECURITY ---
+# --- DEBUG & SECURITY ---
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
-DEBUG = False # Production par False hi rehna chahiye
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -18,16 +18,18 @@ ALLOWED_HOSTS = [
     "newsdns.onrender.com"
 ]
 
-# CSRF & SSL Fix (Facebook Share aur Render ke liye zaroori hai)
+# --- SSL & CSRF Fix ---
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com", 
     "https://www.uttarworld.com", 
     "https://newsdns.onrender.com"
 ]
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 
 # --- APPS ---
 INSTALLED_APPS = [
@@ -36,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic", # Static files fix
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -47,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Static load karne ke liye
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -69,6 +71,11 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                
+                # --- NAYE AUTOMATIC PROCESSORS YAHA HAIN ---
+                "mynews.context_processors.important_news",
+                "mynews.context_processors.site_visits",
+                "mynews.context_processors.active_cities_processor",
             ],
         },
     },
@@ -76,35 +83,34 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE ---
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-    )
-}
-if not DEBUG:
+# --- DATABASE (PC vs Server Switch) ---
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+        )
+    }
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-# --- LOCALIZATION ---
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata"
-USE_I18N = True
-USE_TZ = True
-
-# --- STATIC & MEDIA STORAGE (Cloudinary + WhiteNoise) ---
+# --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Cloudinary Credentials (Inhe Render Env Vars mein dalo ya yahan hardcode karo)
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your_api_key'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
 }
 
-# Django 5.0+ Storages Configuration
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
@@ -115,20 +121,11 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-# Note: MEDIA_ROOT ki ab zaroorat nahi kyunki Cloudinary handle kar raha hai
+TIME_ZONE = "Asia/Kolkata"
+USE_TZ = True
 
-# --- CKEDITOR CONFIG ---
-CKEDITOR_UPLOAD_PATH = "uploads/" 
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'full',
-        'height': 400,
-        'width': '100%',
-    },
-}
-
-# --- FACEBOOK CONFIG ---
+# --- FACEBOOK & CKEDITOR ---
 FB_PAGE_ID = "108286920828619"
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_LONG_LIVED_TOKEN_HERE")
-
+CKEDITOR_UPLOAD_PATH = "uploads/" 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
