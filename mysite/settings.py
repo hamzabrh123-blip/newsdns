@@ -7,8 +7,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SECURITY ---
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
-
-# Local testing ke liye ise True rakha hai
 DEBUG = False
 
 ALLOWED_HOSTS = [
@@ -16,7 +14,15 @@ ALLOWED_HOSTS = [
     "www.uttarworld.com", 
     ".onrender.com", 
     "localhost", 
-    "127.0.0.1"
+    "127.0.0.1",
+    "newsdns.onrender.com"
+]
+
+# CSRF Fix (Facebook Share ke liye zaroori hai)
+CSRF_TRUSTED_ORIGINS = [
+    "https://uttarworld.com", 
+    "https://www.uttarworld.com", 
+    "https://newsdns.onrender.com"
 ]
 
 # --- APPS ---
@@ -26,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -34,7 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", 
+    "whitenoise.middleware.WhiteNoiseMiddleware", # CSS load karne ke liye yahan hona zaroori hai
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -66,17 +73,13 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # ---------------- DATABASE ----------------
 DATABASES = {
     'default': dj_database_url.config(
-        # Render par ye variable automatically uthaya jayega
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
     )
 }
 
-# SSL/Connection errors se bachne ke liye ye zaroori hai
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
-}
-
+if not DEBUG:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 # --- LOCALIZATION ---
 LANGUAGE_CODE = "en-us"
@@ -84,17 +87,25 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIC & MEDIA CONFIG ---
+# --- STATIC CONFIG (Menu CSS Fix) ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Folder check: mynews/static ke andar logo/css rakho
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Render par deployment ke liye storage
-if not DEBUG:
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Django 5.0+ Static Storage
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+
+# --- MEDIA CONFIG ---
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
