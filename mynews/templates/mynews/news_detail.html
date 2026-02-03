@@ -12,141 +12,164 @@
 <meta property="og:title" content="{{ news.title }}">
 <meta property="og:description" content="{{ meta_description }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:site_name" content="Uttar World News">
-
-{% if news.image_url %}
-    <meta property="og:image" content="{{ news.image_url }}">
-{% elif news.image %}
-    <meta property="og:image" content="{{ news.image.url }}">
-{% else %}
-    <meta property="og:image" content="https://uttarworld.com{% static 'logo.png' %}">
-{% endif %}
+<meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{{ news.image.url }}{% endif %}">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:description" content="{{ meta_description }}">
-{% if news.image_url %}
-    <meta name="twitter:image" content="{{ news.image_url }}">
-{% elif news.image %}
-    <meta name="twitter:image" content="{{ news.image.url }}">
-{% endif %}
+<meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{{ news.image.url }}{% endif %}">
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
-<div class="container mt-3">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb small bg-transparent p-0">
-            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
-            <li class="breadcrumb-item">
-                <a href="#" class="text-decoration-none text-muted">{{ news.category|default:"News" }}</a>
-            </li>
-            <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">
-                {{ news.district|default:"Uttar Pradesh" }}
-            </li>
-        </ol>
-    </nav>
+<style>
+    :root { --news-red: #d32f2f; --text-dark: #1a1a1a; }
+    body { background-color: #fff; color: var(--text-dark); }
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <article class="bg-white p-3 p-md-4 rounded shadow-sm border main-article-box">
-                
-                {% if news.category %}
-                <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase" style="font-weight: 600; font-size: 0.75rem;">{{ news.category }}</span>
-                {% endif %}
+    /* Typography */
+    .article-title { 
+        font-family: 'Noto Serif Devanagari', serif; 
+        font-weight: 800; font-size: 2.6rem; 
+        line-height: 1.2; color: #000; margin-bottom: 25px; 
+    }
+    .article-content { 
+        font-family: 'Noto Serif Devanagari', serif; 
+        font-size: 1.3rem; line-height: 1.9; color: #333; 
+    }
 
-                <h1 class="news-main-title mb-3">{{ news.title }}</h1>
+    /* Meta & Badges */
+    .author-box { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0; }
+    .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 3px; }
 
-                <div class="news-meta d-flex align-items-center justify-content-between flex-wrap border-top border-bottom py-3 mb-4 bg-light px-3 rounded">
-                    <div class="d-flex align-items-center">
-                        <img src="https://ui-avatars.com/api/?name=Uttar+World&background=d32f2f&color=fff" class="rounded-circle me-2 border" width="45" alt="Author">
-                        <div>
-                            <p class="mb-0 fw-bold small text-dark">By Uttar World Desk</p>
-                            <small class="text-muted">
-                                <i class="far fa-calendar-alt me-1"></i> {{ news.date|date:"d M Y" }} 
-                                <span class="mx-2">|</span>
-                                <i class="far fa-clock me-1"></i> {{ news.date|date:"h:i A" }}
-                            </small>
-                        </div>
-                    </div>
-                    <div class="share-buttons-top mt-2 mt-md-0 d-flex gap-2">
-                        <a href="https://api.whatsapp.com/send?text={{ news.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-sm btn-success rounded-circle shadow-sm"><i class="fab fa-whatsapp"></i></a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-sm btn-primary rounded-circle shadow-sm"><i class="fab fa-facebook-f"></i></a>
-                    </div>
+    /* Space Filler & Grids */
+    .news-wall-section { background: #fdfdfd; padding: 40px 0; border-top: 2px solid #f1f1f1; }
+    .horizontal-card { transition: 0.3s; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 0 !important; }
+    .horizontal-card:hover { background: #f9f9f9; }
+    .thumb-img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; }
+
+    /* Sticky Side Share */
+    .sticky-share { position: sticky; top: 120px; z-index: 10; }
+    .share-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: white !important; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+    @media (max-width: 768px) {
+        .article-title { font-size: 1.8rem; }
+        .article-content { font-size: 1.15rem; }
+    }
+</style>
+
+<div class="container-fluid px-md-5 mt-4">
+    <div class="row">
+        <div class="col-lg-1 d-none d-lg-block">
+            <div class="sticky-share d-flex flex-column align-items-center">
+                <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="share-btn bg-success"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="share-btn bg-primary"><i class="fab fa-facebook-f"></i></a>
+                <a href="javascript:void(0)" onclick="copyUrl()" class="share-btn bg-dark"><i class="fas fa-link"></i></a>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb small p-0 m-0 bg-transparent">
+                    <li class="breadcrumb-item"><a href="/" class="text-danger text-decoration-none">HOME</a></li>
+                    <li class="breadcrumb-item active">{{ news.category|upper }}</li>
+                </ol>
+            </nav>
+
+            <span class="cat-badge mb-3 d-inline-block">{{ news.district|default:"UTTAR PRADESH" }}</span>
+            <h1 class="article-title">{{ news.title }}</h1>
+
+            <div class="author-box d-flex align-items-center mb-4">
+                <img src="https://ui-avatars.com/api/?name=Uttar+World&background=d32f2f&color=fff" class="rounded-circle me-3" width="50">
+                <div>
+                    <p class="mb-0 fw-bold">By Uttar World Desk</p>
+                    <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | <i class="far fa-clock"></i> {{ news.date|date:"h:i A" }}</small>
                 </div>
+            </div>
 
-                {% if news.image_url or news.image %}
-                <figure class="figure w-100 text-center">
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% else %}{{ news.image.url }}{% endif %}" 
-                         class="img-fluid rounded shadow-sm w-100 main-img" 
-                         alt="{{ news.title }}">
-                    <figcaption class="figure-caption text-start mt-2 small text-muted">
-                        <i class="fas fa-camera me-1"></i> फोटो साभार: Uttar World News
-                    </figcaption>
-                </figure>
-                {% endif %}
+            <figure class="mb-4">
+                <img src="{% if news.image_url %}{{ news.image_url }}{% else %}{{ news.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
+                <figcaption class="mt-2 small text-muted font-italic border-start border-danger border-3 ps-2">
+                    Source: Uttar World News Portal
+                </figcaption>
+            </figure>
 
-                <div class="news-content-body mt-4">
-                    {{ news.content|safe }}
+            <div class="article-content mb-5">
+                {{ news.content|safe }}
+            </div>
+
+            {% if v_id %}
+            <div class="ratio ratio-16x9 my-5 shadow-lg rounded overflow-hidden">
+                <iframe src="https://www.youtube.com/embed/{{ v_id }}" allowfullscreen></iframe>
+            </div>
+            {% endif %}
+
+            <div class="bg-light p-4 rounded-3 text-center mb-5 border">
+                <h5 class="fw-bold mb-3">खबर पसंद आई? अपनों के साथ साझा करें</h5>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" class="btn btn-success px-4 rounded-pill"><i class="fab fa-whatsapp me-2"></i>WhatsApp</a>
+                    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" class="btn btn-primary px-4 rounded-pill"><i class="fab fa-facebook-f me-2"></i>Facebook</a>
                 </div>
+            </div>
 
-                {% if v_id %}
-                <div class="video-container my-5 shadow-sm rounded overflow-hidden border">
-                    <div class="bg-dark text-white p-2 small">
-                        <i class="fab fa-youtube text-danger me-2"></i>वीडियो रिपोर्ट
-                    </div>
-                    <div class="ratio ratio-16x9">
-                        <div id="player"></div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="share-box bg-light p-4 rounded-3 border text-center mt-5">
-                    <h6 class="fw-bold mb-3">अपने क्षेत्र की खबरों के लिए शेयर करें:</h6>
-                    <div class="d-flex justify-content-center flex-wrap gap-2">
-                        <a href="https://api.whatsapp.com/send?text={{ news.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-success px-4 rounded-pill shadow-sm">
-                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
-                        </a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-primary px-4 rounded-pill shadow-sm">
-                            <i class="fab fa-facebook-f me-2"></i>Facebook
-                        </a>
-                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}')" class="btn btn-dark px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-link me-2"></i>Copy Link
-                        </button>
-                    </div>
-                </div>
-            </article>
-
-            <div class="related-news mt-5">
-                <h4 class="fw-bold mb-4 border-bottom pb-2"><span class="border-bottom border-danger border-3 pb-2">सम्बन्धित</span> खबरें</h4>
-                <div class="row g-3">
+            <div class="news-wall-section">
+                <h3 class="fw-bold mb-4 border-bottom pb-2">सम्बन्धित और ताज़ा खबरें</h3>
+                <div class="row g-4">
                     {% for r in related_news %}
-                    <div class="col-md-4 col-6">
-                        <a href="{% url 'news_detail' r.url_city r.slug %}" class="text-decoration-none text-dark">
-                            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden related-card">
-                                {% if r.image_url %}
-                                    <img src="{{ r.image_url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
-                                {% elif r.image %}
-                                    <img src="{{ r.image.url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
-                                {% endif %}
-                                <div class="p-2">
-                                    <h6 class="small fw-bold mb-0 lh-base">{{ r.title|truncatechars:55 }}</h6>
+                    <div class="col-md-6">
+                        <div class="card horizontal-card h-100">
+                            <div class="row g-0">
+                                <div class="col-4">
+                                    <img src="{{ r.image_url|default:r.image.url }}" class="img-fluid rounded" style="height: 100px; width: 100%; object-fit: cover;">
+                                </div>
+                                <div class="col-8 ps-3">
+                                    <h6 class="fw-bold small mb-1">
+                                        <a href="{% url 'news_detail' r.url_city r.slug %}" class="text-dark text-decoration-none">{{ r.title|truncatechars:65 }}</a>
+                                    </h6>
+                                    <small class="text-muted">{{ r.date|timesince }} पहले</small>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
                     {% endfor %}
+                </div>
+
+                <div class="mt-5 p-4 bg-dark text-white rounded-4 shadow">
+                    <h4 class="fw-bold mb-4 text-warning">बड़ी खबरें: भारत और दुनिया</h4>
+                    <div class="row g-3">
+                        {% for item in bharat_sidebar %}
+                        <div class="col-md-6 border-bottom border-secondary pb-2">
+                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-white text-decoration-none small">
+                                <i class="fas fa-chevron-right text-warning me-2"></i>{{ item.title }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <aside class="sticky-top" style="top: 90px; z-index: 100;">
+        <div class="col-lg-4 ps-lg-5">
+            <div class="sticky-top" style="top: 100px;">
                 {% include 'mynews/sidebar.html' %}
-            </aside>
+                
+                <div class="mt-4 p-3 bg-light rounded border">
+                    <h6 class="fw-bold border-bottom pb-2">Trending Zones</h6>
+                    <div class="d-flex flex-wrap gap-2 pt-2">
+                        <a href="/UP-National/" class="badge bg-white text-dark border p-2 text-decoration-none">उत्तर प्रदेश</a>
+                        <a href="/Int-MiddleEast/" class="badge bg-white text-dark border p-2 text-decoration-none">मिडिल ईस्ट</a>
+                        <a href="/Sports/" class="badge bg-white text-dark border p-2 text-decoration-none">खेल समाचार</a>
+                        <a href="/Market/" class="badge bg-white text-dark border p-2 text-decoration-none">बाज़ार भाव</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function copyUrl() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link Copied!");
+}
+</script>
 {% endblock %}
