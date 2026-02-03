@@ -1,3 +1,4 @@
+<!-------mynews/includes/static_head.html--------->
 {% load static %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,22 +10,27 @@
 
 <title>{% block title %}Uttar World News | Latest News, Breaking News, India News{% endblock %}</title>
 <meta name="keywords" content="{% if meta_keywords %}{{ meta_keywords }}{% else %}Uttar World, UttarWorld News, Latest UP News, Breaking News India, Hindi News, उत्तर प्रदेश समाचार{% endif %}">
-<link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}">
 
+<link rel="canonical" href="https://uttarworld.com{{ request.path }}">
 
 <meta name="google-adsense-account" content="ca-pub-3171847065256414">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
 {% block social_meta %}
-<meta name="description" content="Uttar World News brings latest news updates from Uttar Pradesh and India.">
-<meta property="og:type" content="website">
+<meta name="description" content="{% if meta_description %}{{ meta_description }}{% else %}Uttar World News brings latest news updates from Uttar Pradesh and India.{% endif %}">
+
+<meta property="og:type" content="article">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="Uttar World News | Truth Above All">
-<meta property="og:description" content="Get the latest breaking news from India and around the world.">
-<meta property="og:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+<meta property="og:title" content="{% if og_title %}{{ og_title }}{% else %}Uttar World News | Truth Above All{% endif %}">
+<meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% else %}Get the latest breaking news from India and around the world.{% endif %}">
+
+{# FB Image Fix: Agar news ki apni image hai toh wo dikhegi, nahi toh default logo #}
+<meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
 <meta property="fb:app_id" content="741916956166104">
+
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://{{ request.get_host }}{% static 'logo.png' %}">
+<meta name="twitter:title" content="{% if og_title %}{{ og_title }}{% else %}Uttar World News{% endif %}">
+<meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
 {% endblock %}
 
 {% block extra_head %}{% endblock %}
