@@ -14,16 +14,18 @@ logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
 
-# --- FB AUTO POST FUNCTION ---
+# --- FB AUTO POST FUNCTION (UPDATED) ---
 def post_to_facebook_network(news_obj):
+    # Render ke 'Environment Variables' mein ye naam check karo
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
     group1_id = os.environ.get('FB_GROUP_1_ID')
     
     if not access_token:
-        print("❌ DEBUG: FB_ACCESS_TOKEN not found in Render settings!")
+        print("❌ DEBUG: FB_ACCESS_TOKEN missing in Render Settings!")
         return False
 
+    # URL Logic Fix
     url_city = news_obj.url_city if news_obj.url_city else "news"
     news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}.html"
     
@@ -32,6 +34,7 @@ def post_to_facebook_network(news_obj):
 
     for target in destinations:
         if target:
+            # Facebook Graph API v19.0+ use kar rahe hain
             fb_url = f"https://graph.facebook.com/v19.0/{target}/feed"
             payload = {
                 'message': f"🔥 {news_obj.title}\n\nपूरी खबर यहाँ पढ़ें 👇",
@@ -39,17 +42,17 @@ def post_to_facebook_network(news_obj):
                 'access_token': access_token
             }
             try:
-                response = requests.post(fb_url, data=payload, timeout=10)
+                response = requests.post(fb_url, data=payload, timeout=15)
+                res_data = response.json()
                 if response.status_code == 200:
                     success_flag = True
-                    print(f"✅ FB Success for {target}")
+                    print(f"✅ FB Success for {target}: Post ID {res_data.get('id')}")
                 else:
-                    print(f"❌ FB API Error for {target}: {response.json()}")
+                    # Isse Render logs mein asli wajah dikhegi (jaise Token Expire ya Permission Error)
+                    print(f"❌ FB API Error for {target}: {res_data.get('error', {}).get('message')}")
             except Exception as e:
-                print(f"❌ FB Post Connection Error: {str(e)}")
+                print(f"❌ FB Connection Failed: {str(e)}")
     
-    if success_flag:
-        News.objects.filter(id=news_obj.id).update(is_fb_posted=True)
     return success_flag
 
 # --- WebP to JPG Converter ---
@@ -81,7 +84,8 @@ def home(request):
     try:
         query = request.GET.get("q")
         news_list = News.objects.filter(title__icontains=query).order_by("-date") if query else News.objects.filter(is_important=True).order_by("-date")
-        page_obj = Paginator(news_list, 60).get_page(request.GET.get("page"))
+        page_number = request.GET.get("page")
+        page_obj = Paginator(news_list, 60).get_page(page_number)
         context = {
             "page_obj": page_obj,
             "meta_description": "Uttar World News: Latest breaking news from UP, India.",
@@ -89,7 +93,9 @@ def home(request):
         }
         context.update(get_common_sidebar_data())
         return render(request, "mynews/home.html", context)
-    except: return HttpResponse("Home Page Error", status=500)
+    except Exception as e: 
+        logger.error(f"Home Error: {e}")
+        return HttpResponse("Home Page Error", status=500)
 
 # --- News Detail ---
 def news_detail(request, url_city, slug): 
@@ -158,7 +164,7 @@ def district_news(request, district):
     context.update(get_common_sidebar_data())
     return render(request, "mynews/home.html", context)
 
-# --- Static Pages & SEO ---
+# --- Static Pages ---
 def contact_us(request):
     success = False
     if request.method == "POST":
@@ -174,6 +180,7 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html")
 def disclaimer(request): return render(request, "mynews/disclaimer.html")
 def ads_txt(request): return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+
 def robots_txt(request):
     return HttpResponse(f"User-Agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: {SITE_URL}/sitemap.xml", content_type="text/plain")
 
