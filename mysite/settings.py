@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SECURITY ---
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
-DEBUG = False
+DEBUG = False # Production par False hi rehna chahiye
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -18,12 +18,16 @@ ALLOWED_HOSTS = [
     "newsdns.onrender.com"
 ]
 
-# CSRF Fix (Facebook Share ke liye zaroori hai)
+# CSRF & SSL Fix (Facebook Share aur Render ke liye zaroori hai)
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com", 
     "https://www.uttarworld.com", 
     "https://newsdns.onrender.com"
 ]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # --- APPS ---
 INSTALLED_APPS = [
@@ -32,16 +36,18 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
+    "whitenoise.runserver_nostatic", # Static files fix
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
+    "cloudinary",
+    "cloudinary_storage",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # CSS load karne ke liye yahan hona zaroori hai
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Static load karne ke liye
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -70,14 +76,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# ---------------- DATABASE ----------------
+# --- DATABASE ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
     )
 }
-
 if not DEBUG:
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
@@ -87,27 +92,30 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIC CONFIG (Menu CSS Fix) ---
+# --- STATIC & MEDIA STORAGE (Cloudinary + WhiteNoise) ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Django 5.0+ Static Storage
+# Cloudinary Credentials (Inhe Render Env Vars mein dalo ya yahan hardcode karo)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your_api_key'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
+}
+
+# Django 5.0+ Storages Configuration
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-WHITENOISE_USE_FINDERS = True
-WHITENOISE_MANIFEST_STRICT = False
-
-# --- MEDIA CONFIG ---
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Note: MEDIA_ROOT ki ab zaroorat nahi kyunki Cloudinary handle kar raha hai
 
 # --- CKEDITOR CONFIG ---
 CKEDITOR_UPLOAD_PATH = "uploads/" 
@@ -118,5 +126,9 @@ CKEDITOR_CONFIGS = {
         'width': '100%',
     },
 }
+
+# --- FACEBOOK CONFIG ---
+FB_PAGE_ID = "108286920828619"
+FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_LONG_LIVED_TOKEN_HERE")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
