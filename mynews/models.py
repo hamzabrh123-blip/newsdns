@@ -10,32 +10,41 @@ from django.conf import settings
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    CATEGORY_CHOICES = [
-        ('International', 'International'),
-        ('National', 'National'),
-        ('Technology', 'Technology'),
-        ('Bollywood', 'Bollywood'),
-        ('Market', 'Market'),
-    ]
-
+    # MASTER CONTROLLER: Inhi se poori site chalegi
     LOCATION_CHOICES = [
-        ('Lucknow-UP', 'Lucknow-UP'),
-        ('UP-National', 'UP-National'),
-        ('Purvanchal', 'Purvanchal'),
-        ('Bahraich-Gonda', 'Bahraich-Gonda'),
-        ('Balrampur-Shravasti', 'Balrampur-Shravasti'),
-        ('Sitapur-Barabanki', 'Sitapur-Barabanki'),
+        # --- International ---
+        ('Int-MiddleEast', 'मिडिल ईस्ट (Middle East)'),
+        ('Int-America', 'अमेरिका (America-Canada)'),
+        ('International', 'अंतर्राष्ट्रीय (International)'),
+        
+        # --- Sports & Entertainment ---
+        ('Sports', 'खेल जगत (Sports)'),
+        ('Bollywood', 'बॉलीवुड (Bollywood)'),
+        ('Hollywood', 'हॉलीवुड (Hollywood)'),
+
+        # --- Tech & Business ---
+        ('Technology', 'टेक्नोलॉजी (Tech)'),
+        ('Market', 'मार्केट / बिज़नेस (Market)'),
+
+        # --- Uttar Pradesh & Others ---
+        ('Lucknow-UP', 'लखनऊ न्यूज़'),
+        ('UP-National', 'यूपी राष्ट्रीय'),
+        ('Purvanchal', 'पूर्वांचल'),
+        ('Bahraich-Gonda', 'बहराइच-गोण्डा'),
+        ('Balrampur-Shravasti', 'बलरामपुर-श्रावस्ती'),
+        ('Sitapur-Barabanki', 'सीतापुर-बाराबंकी'),
+        ('Other-States', 'अन्य राज्य (Other States)'),
     ]
 
     title = models.CharField(max_length=250)
-    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, blank=True, null=True)
+    category = models.CharField(max_length=100, blank=True, null=True) # General tag ke liye
     district = models.CharField(max_length=50, choices=LOCATION_CHOICES, blank=True, null=True)
     
     url_city = models.CharField(
         max_length=100, 
         blank=True, 
         null=True, 
-        help_text="Khali chhodne par 'news' liya jayega."
+        help_text="Khali chhodne par 'news' ya district name liya jayega."
     )
 
     date = models.DateTimeField(default=now)
@@ -50,7 +59,6 @@ class News(models.Model):
     meta_keywords = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
 
-    # FB CONTROLS
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook par abhi bhejein?")
     is_fb_posted = models.BooleanField(default=False, verbose_name="FB par post ho chuka hai")
 
@@ -58,7 +66,7 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. Image Upload Logic (ImgBB)
+        # 1. Image Upload Logic
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
@@ -68,7 +76,7 @@ class News(models.Model):
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. City Logic
+        # 2. City Logic (Isi se district_news.html track hota hai)
         if not self.url_city:
             self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
@@ -78,27 +86,19 @@ class News(models.Model):
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}-{now().strftime('%Y-%m-%d')}"
 
-        # Save record first
         super().save(*args, **kwargs)
 
-        # 4. Asli Facebook Posting Logic (Direct in Model to avoid import issues)
+        # 4. Facebook Posting Logic
         if self.share_now_to_fb and not self.is_fb_posted:
             try:
-                # FB Access
                 token = settings.FB_ACCESS_TOKEN
                 page_id = settings.FB_PAGE_ID
                 graph = facebook.GraphAPI(access_token=token)
-                
-                # Full URLs (Facebook hamesha full domain mangta hai)
                 site_domain = "https://uttarworld.com"
                 full_news_url = f"{site_domain}{self.get_absolute_url()}"
-                
-                # Image check
                 final_img = self.image_url if self.image_url else ""
-
                 message = f"🔥 {self.title}\n\nPuri khabar padhein: {full_news_url}"
 
-                # API Call to Page Feed
                 graph.put_object(
                     parent_object=page_id,
                     connection_name='feed',
@@ -106,11 +106,7 @@ class News(models.Model):
                     link=full_news_url,
                     picture=final_img
                 )
-
-                # Update status without triggering save() again
                 News.objects.filter(id=self.id).update(is_fb_posted=True, share_now_to_fb=False)
-                print("✅ FB POST SUCCESS")
-
             except Exception as fb_err:
                 print(f"❌ FB Error: {fb_err}")
 
