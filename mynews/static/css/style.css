@@ -5,7 +5,7 @@ body {
   font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
   margin: 0;  
   padding: 0;  
-  background-color: #f4f4f4; /* Image load hone se pehle ye color dikhega */
+  background-color: #f4f4f4; /* Fallback color */
   color: #333;
   line-height: 1.6;
 }
