@@ -20,21 +20,16 @@
     <div class="container">
 
         <div class="navbar-brand d-flex align-items-center">
-    <a href="{% url 'home' %}" class="logo-link">
-        <div class="logo-wrapper">
-            <img src="{% static 'logo.png' %}" 
-                 alt="Uttar World News" 
-                 width="55" height="55" 
-                 class="navbar-logo">
+            <a href="{% url 'home' %}" class="logo-link text-decoration-none">
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'logo.png' %}" alt="Uttar World News" width="55" height="55" class="me-2">
+                    <div class="brand-text">
+                        <span class="text-white fw-bold">UTTAR WORLD</span><br>
+                        <span style="color: #ffcc00; letter-spacing: 2px; font-size: 0.8rem;">NEWS</span>
+                    </div>
+                </div>
+            </a>
         </div>
-    </a>
-    
-    <div class="brand-text">
-        <span class="text-white">UTTAR WORLD</span>
-        <span class="text-yellow">NEWS</span>
-    </div>
-</div>
-
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -46,17 +41,31 @@
                     <a class="nav-link px-3 {% if request.resolver_match.url_name == 'home' %}active text-warning{% endif %}" href="{% url 'home' %}">होम</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'national_news' %}active text-warning{% endif %}" href="{% url 'national_news' %}">भारत</a>
+                    <a class="nav-link px-3" href="{% url 'national_news' %}">भारत</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="worldDropdown" role="button" data-bs-toggle="dropdown">
+                        दुनिया
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
+                        <li><a class="dropdown-item py-2 fw-bold text-danger border-bottom" href="{% url 'district_news' 'Int-MiddleEast' %}">
+                            <i class="fas fa-fire me-2"></i>मिडिल ईस्ट (Bumper News)
+                        </a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-America' %}">अमेरिका-कनाडा</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-SouthAsia' %}">दक्षिण एशिया (पड़ोसी)</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-NorthAsia' %}">उत्तर एशिया (चीन-रूस)</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Int-Australia' %}">ऑस्ट्रेलिया-ओशिनिया</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'technology' %}">टेक</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'international_news' %}active text-warning{% endif %}" href="{% url 'international_news' %}">दुनिया</a>
+                    <a class="nav-link px-3" href="{% url 'bollywood' %}">बॉलीवुड</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'technology' %}active text-warning{% endif %}" href="{% url 'technology' %}">टेक</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'bollywood' %}active text-warning{% endif %}" href="{% url 'bollywood' %}">बॉलीवुड</a>
-                </li>
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
                         उत्तर प्रदेश
@@ -65,6 +74,7 @@
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
+                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bundelkhand' %}">बुंदेलखंड</a></li>
                         <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
                         <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
                         <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर / बाराबंकी</a></li>
