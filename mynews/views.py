@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
+
 # --- FB AUTO POST FUNCTION (Final Fix) ---
 def post_to_facebook_network(news_obj):
     # Render ke Config Vars se data uthana
