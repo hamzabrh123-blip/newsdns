@@ -10,19 +10,18 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <style>
-        /* Background Image Fix (Render Safe) */
-        body {
-            background-image: url("{% static 'bg.jpg' %}") !important;
-            background-attachment: fixed;
-            background-repeat: repeat;
-            background-size: auto;
-            background-color: #f4f4f4; /* Fallback color */
+       body {
+        /* Django template tag Render parhashed filename apne aap utha lega */
+        background-image: url("{% static 'bg.jpg' %}") !important;
+        background-attachment: fixed;
+        background-repeat: repeat;
+        background-size: auto;
         }
 
-        /* Mobile Performance Tweak */
+        /* Mobile par smooth performance ke liye fixed hata dena */
         @media (max-width: 768px) {
-            body {
-                background-attachment: scroll; /* Mobile par lag nahi karega */
+        body {
+                background-attachment: scroll;
             }
         }
 
