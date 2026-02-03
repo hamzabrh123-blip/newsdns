@@ -2,71 +2,44 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-{% include "mynews/includes/static_head.html" %}
+    {% include "mynews/includes/static_head.html" %}
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <style>
-       body {
-        /* Django template tag Render parhashed filename apne aap utha lega */
-        background-image: url("{% static 'bg.jpg' %}") !important;
-        background-attachment: fixed;
-        background-repeat: repeat;
-        background-size: auto;
+        /* Language Selector Styling */
+        #google_translate_element {
+            display: inline-block;
+            margin-left: 15px;
+            vertical-align: middle;
         }
+        .goog-te-gadget-simple {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+            padding: 5px 8px !important;
+            border-radius: 4px !important;
+            font-size: 13px !important;
+            cursor: pointer !important;
+        }
+        .goog-te-banner-frame.skiptranslate { display: none !important; }
+        body { top: 0px !important; }
 
-        /* Mobile par smooth performance ke liye fixed hata dena */
-        @media (max-width: 768px) {
         body {
-                background-attachment: scroll;
-            }
+            background-image: url("{% static 'bg.jpg' %}") !important;
+            background-attachment: fixed;
+            background-repeat: repeat;
+            background-size: auto;
+        }
+        @media (max-width: 768px) {
+            body { background-attachment: scroll; }
+            #google_translate_element { margin: 10px 0; display: block; text-align: center; }
         }
 
-        /* Additional UI Fixes */
+        .navbar { position: sticky !important; top: 0; z-index: 9999 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         main { flex: 1; }
-        .navbar { position: sticky; top: 0; z-index: 1050 !important; }
-        
-        /* Layout Wrappers */
-        .main-wrapper { 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        main { flex: 1; }
-
-        /* Navbar Sticky aur Shadow Fix */
-        .navbar { 
-            position: sticky !important; 
-            top: 0; 
-            z-index: 9999 !important; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-        }
-
-        /* Footer Link Effects */
-        .footer-link {
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        .footer-link:hover { 
-            color: #ffcc00 !important; 
-            transform: translateX(5px);
-        }
-
-        /* Category Header in Footer */
-        .footer-heading {
-            text-white mb-3 border-bottom border-danger pb-2 d-inline-block;
-        }
-
-        /* Mobile Responsive Fixes */
-        @media (max-width: 768px) {
-            .navbar-brand img { width: 45px; height: 45px; }
-            footer { padding: 40px 0 20px; }
-        }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -74,6 +47,13 @@
 
 <body>
 <div class="main-wrapper">
+
+    <div style="background: #f8f9fa; border-bottom: 1px solid #eee; padding: 5px 0;">
+        <div class="container d-flex justify-content-between align-items-center">
+            <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {% now "l, d F Y" %}</small>
+            <div id="google_translate_element"></div>
+        </div>
+    </div>
 
     {% include "mynews/navbar.html" %}
 
@@ -100,7 +80,7 @@
                 <div class="col-md-2">
                     <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">कैटेगरी</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'national_news' %}" class="text-secondary text-decoration-none footer-link">দেশ</a></li>
+                        <li class="mb-2"><a href="{% url 'national_news' %}" class="text-secondary text-decoration-none footer-link">देश</a></li>
                         <li class="mb-2"><a href="{% url 'international_news' %}" class="text-secondary text-decoration-none footer-link">दुनिया</a></li>
                         <li class="mb-2"><a href="{% url 'bollywood' %}" class="text-secondary text-decoration-none footer-link">मनोरंजन</a></li>
                         <li class="mb-2"><a href="{% url 'technology' %}" class="text-secondary text-decoration-none footer-link">टेक्नोलॉजी</a></li>
@@ -121,7 +101,6 @@
                     <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">संपर्क</h5>
                     <p class="text-secondary mb-2 small"><i class="fas fa-map-marker-alt text-danger me-2"></i> बहराइच - 271801, उत्तर प्रदेश</p>
                     <p class="text-secondary mb-2 small"><i class="fas fa-envelope text-danger me-2"></i> info@uttarworld.com</p>
-                    <p class="text-secondary mb-2 small"><i class="fas fa-phone text-danger me-2"></i> +91-XXXXXXXXXX</p>
                 </div>
             </div>
 
@@ -140,6 +119,18 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'hi', // Asli bhasha Hindi hai
+    includedLanguages: 'en,ta,te,kn,ml,pa,gu,mr,bn,ur,fr,es,ar', // In bhashao mein badlega
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 {% block extra_scripts %}{% endblock %}
 
