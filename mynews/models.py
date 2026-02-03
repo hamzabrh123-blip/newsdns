@@ -63,7 +63,6 @@ class News(models.Model):
     meta_keywords = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     
-    # Facebook Fields
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook par post karein?")
     is_fb_posted = models.BooleanField(default=False, verbose_name="Kya FB par post ho chuki hai?")
 
@@ -71,66 +70,43 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. ImgBB Upload Logic
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    # Note: self.image ko None nahi kar rahe taaki admin mein file dikhe
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. URL City Logic
         if not self.url_city:
             self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
             self.url_city = slugify(unidecode(self.url_city))
 
-        # 3. Slug Logic
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}"
 
-        # Database mein save karein
         super().save(*args, **kwargs)
 
-        # 4. FB Share Logic (Sirf tab jab tick ho aur pehle post na hui ho)
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
-        """Facebook API Logic"""
         try:
-            # --- Inhe replace karein ---
-            PAGE_ACCESS_TOKEN = "YOUR_PAGE_ACCESS_TOKEN"
-            PAGE_ID = "YOUR_PAGE_ID"
+            PAGE_ACCESS_TOKEN = "TERA_TOKEN_YAHAN" 
+            PAGE_ID = "TERA_PAGE_ID_YAHAN"
             
             graph = facebook.GraphAPI(access_token=PAGE_ACCESS_TOKEN)
-            
-            # Website Link
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-            message = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}\n\n#UttarWorld #News #UPNews"
+            message = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
 
-            # Image ke saath post
             if self.image_url:
-                graph.put_object(
-                    parent_object=PAGE_ID,
-                    connection_name='photos',
-                    url=self.image_url,
-                    caption=message
-                )
+                graph.put_object(parent_object=PAGE_ID, connection_name='photos', url=self.image_url, caption=message)
             else:
-                graph.put_object(
-                    parent_object=PAGE_ID,
-                    connection_name='feed',
-                    message=message,
-                    link=post_url
-                )
+                graph.put_object(parent_object=PAGE_ID, connection_name='feed', message=message, link=post_url)
 
-            # Update flags after success (using update to avoid recursion)
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
             print("FB Post Successful!")
-            
         except Exception as e:
             print(f"Facebook API Error: {e}")
 
