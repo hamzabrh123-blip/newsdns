@@ -2,28 +2,34 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    {% include "mynews/includes/static_head.html" %}
-
+{% include "mynews/includes/static_head.html" %}
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <style>
-       body {
-        /* Django static tag se image path 100% kaam karega */
-        background-image: url("{% static 'bg.jpg' %}") !important;
-        background-attachment: fixed;
-        background-repeat: repeat;
-        background-size: auto;
-    }
-
-    /* Mobile par background image heavy na ho isliye ye tweak */
-    @media (max-width: 768px) {
+        /* Background Image Fix (Render Safe) */
         body {
-            background-attachment: scroll; /* Mobile smooth chali ga */
+            background-image: url("{% static 'bg.jpg' %}") !important;
+            background-attachment: fixed;
+            background-repeat: repeat;
+            background-size: auto;
+            background-color: #f4f4f4; /* Fallback color */
         }
-    }
+
+        /* Mobile Performance Tweak */
+        @media (max-width: 768px) {
+            body {
+                background-attachment: scroll; /* Mobile par lag nahi karega */
+            }
+        }
+
+        /* Additional UI Fixes */
+        .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
+        main { flex: 1; }
+        .navbar { position: sticky; top: 0; z-index: 1050 !important; }
         
         /* Layout Wrappers */
         .main-wrapper { 
