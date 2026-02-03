@@ -5,12 +5,13 @@ body {
   font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
   margin: 0;  
   padding: 0;  
-  background-color: #f4f4f4; /* Fallback color agar image na load ho */
+  background-color: #f4f4f4; /* Image load hone se pehle ye color dikhega */
   color: #333;
   line-height: 1.6;
 }
 
 a { text-decoration: none !important; }
+
 /* ============================================================
    2. NAVBAR & BRANDING
    ============================================================ */
