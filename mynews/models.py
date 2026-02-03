@@ -1,10 +1,12 @@
 import uuid
+import facebook
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unidecode import unidecode
 from django.urls import reverse
+from django.conf import settings
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -53,11 +55,10 @@ class News(models.Model):
     is_fb_posted = models.BooleanField(default=False, verbose_name="FB par post ho chuka hai")
 
     def get_absolute_url(self):
-        """Asli magic: Ye hamesha working link generate karega"""
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. Image Upload
+        # 1. Image Upload Logic (ImgBB)
         if self.image:
             try:
                 uploaded_link = upload_to_imgbb(self.image)
@@ -67,34 +68,51 @@ class News(models.Model):
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. City Logic Fix (No more 404)
+        # 2. City Logic
         if not self.url_city:
-            if self.district:
-                self.url_city = slugify(unidecode(self.district))
-            else:
-                self.url_city = "news"
+            self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
             self.url_city = slugify(unidecode(self.url_city))
 
         # 3. Slug Generation
         if not self.slug:
-            roman_title = unidecode(self.title)
-            base_slug = slugify(roman_title)
-            unique_id = str(uuid.uuid4())[:8]
-            date_str = now().strftime('%Y-%m-%d')
-            self.slug = f"{base_slug}-{unique_id}-{date_str}"
+            self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}-{now().strftime('%Y-%m-%d')}"
 
+        # Save record first
         super().save(*args, **kwargs)
 
-        # 4. FB Auto-Trigger
+        # 4. Asli Facebook Posting Logic (Direct in Model to avoid import issues)
         if self.share_now_to_fb and not self.is_fb_posted:
             try:
-                from .views import post_to_facebook_network
-                success = post_to_facebook_network(self)
-                if success:
-                    News.objects.filter(id=self.id).update(is_fb_posted=True, share_now_to_fb=False)
+                # FB Access
+                token = settings.FB_ACCESS_TOKEN
+                page_id = settings.FB_PAGE_ID
+                graph = facebook.GraphAPI(access_token=token)
+                
+                # Full URLs (Facebook hamesha full domain mangta hai)
+                site_domain = "https://uttarworld.com"
+                full_news_url = f"{site_domain}{self.get_absolute_url()}"
+                
+                # Image check
+                final_img = self.image_url if self.image_url else ""
+
+                message = f"🔥 {self.title}\n\nPuri khabar padhein: {full_news_url}"
+
+                # API Call to Page Feed
+                graph.put_object(
+                    parent_object=page_id,
+                    connection_name='feed',
+                    message=message,
+                    link=full_news_url,
+                    picture=final_img
+                )
+
+                # Update status without triggering save() again
+                News.objects.filter(id=self.id).update(is_fb_posted=True, share_now_to_fb=False)
+                print("✅ FB POST SUCCESS")
+
             except Exception as fb_err:
-                print(f"FB System Error: {fb_err}")
+                print(f"❌ FB Error: {fb_err}")
 
     def __str__(self):
         return self.title
