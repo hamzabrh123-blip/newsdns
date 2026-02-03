@@ -1,139 +1,99 @@
 /* ============================================================
-   1. GLOBAL & BACKGROUND (The Foundation)
+   1. GLOBAL & BACKGROUND (CSS Cleaned)
    ============================================================ */
 body {  
   font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
   margin: 0;  
   padding: 0;  
-  background-image: url('../bg.jpg') !important; 
-  background-attachment: fixed; 
-  background-repeat: repeat; 
-  background-size: auto; 
+  background-color: #f4f4f4; /* Fallback color agar image na load ho */
   color: #333;
   line-height: 1.6;
 }
 
-/* Global Link Reset */
 a { text-decoration: none !important; }
-
 /* ============================================================
-   2. NAVBAR & BRANDING (Logo & Modern Touch)
+   2. NAVBAR & BRANDING
    ============================================================ */
 .navbar {
   background-color: #800000 !important; 
-  padding: 4px 0 !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-  min-height: 55px !important;
+  padding: 8px 0 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
 }
 
-/* Logo Wrapper - Sirf yahan ungli (pointer) banegi */
 .logo-link {
-  display: inline-block;
+  display: flex;
+  align-items: center;
   cursor: pointer !important;
 }
 
 .navbar-logo {
   height: 45px !important;
-  width: auto !important;
-  filter: drop-shadow(0px 0px 2px rgba(255, 255, 255, 0.8)) 
-          drop-shadow(0px 0px 5px rgba(255, 223, 0, 0.4)) !important;
+  width: auto;
   transition: transform 0.3s ease;
 }
 
-.navbar-logo:hover {
-  transform: scale(1.08);
-}
-
-/* Brand Text - Static look, no pointer */
 .brand-text {
   margin-left: 12px;
-  font-family: 'Poppins', sans-serif;
   font-weight: 800;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   display: flex;
-  gap: 8px;
-  pointer-events: none; /* No click, no finger */
-  user-select: none;
+  gap: 5px;
+  color: #fff;
 }
 
-.text-white { color: #ffffff !important; filter: drop-shadow(0px 0px 2px #fff); }
-.text-yellow { color: #ffcc00 !important; filter: drop-shadow(0px 0px 4px #ffcc00); font-style: italic; }
-
+.text-yellow { color: #ffcc00 !important; font-style: italic; }
 
 /* ============================================================
-   3. NAVIGATION LINKS (Menu Items)
+   3. NAVIGATION LINKS
    ============================================================ */
-   
-   .navbar-nav .nav-link { 
+.navbar-nav .nav-link { 
   color: #ffffff !important; 
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 12px 18px !important;
-  transition: 0.3s all ease;
+  padding: 10px 15px !important;
 }
 
 .navbar-nav .nav-link:hover { 
   color: #ffcc00 !important; 
-  background-color: rgba(255, 255, 255, 0.1); 
-  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.15); 
+  border-radius: 5px;
 }
 
 /* ============================================================
-   4. MAIN CONTENT & CARDS (The News Feed)      
-============================================================ */
-
-.container {  
-  display: flex; flex-wrap: wrap; gap: 25px; padding-top: 20px;
-}
-
-main { flex: 3; min-width: 0; }
-
+   4. NEWS CARDS & LAYOUT
+   ============================================================ */
+/* Bootstrap ki row class use karo, .container ko flex mat banao */
 .news-card {  
-  background: #ffffff; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06); transition: transform 0.3s ease;
-  border: 1px solid #f0f0f0; margin-bottom: 20px;
+  background: #ffffff; 
+  border-radius: 10px; 
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+  transition: 0.3s;
+  border: 1px solid #eee;
+  margin-bottom: 20px;
+  height: 100%; /* Card barabar dikhne ke liye */
 }
 
-.news-card:hover { transform: translateY(-5px); }
+.news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
-.news-card img { width: 100%; height: 210px; object-fit: cover; }
+.news-card img { 
+  width: 100%; 
+  height: 200px; 
+  object-fit: cover; 
+}
 
 /* ============================================================
-   5. SIDEBAR & FOOTER (Watermark Feeling)      
-============================================================ */
-
-.sidebar {  
-  flex: 1; background: #ffffff; padding: 20px; min-width: 300px;
-  border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-footer {  
-  background: #1a1a1a !important; color: #ffffff !important;  
-  text-align: center; padding: 40px 10px; margin-top: 50px;  
-}
-
-
-/* ============================================================
-   6. MOBILE RESPONSIVE (The Final Sequence)      
-============================================================ */
-
+   5. MOBILE RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
-  /* Header Fix */
-  .navbar .container {
-    display: flex !important; flex-direction: row !important;
-    justify-content: space-between !important; align-items: center !important;
-  }
-
-  /* Text size adjustment for mobile */
-  .brand-text { font-size: 1.1rem; gap: 5px; }
+  .brand-text { font-size: 1rem; }
   .navbar-logo { height: 35px !important; }
-
-  /* Layout Sequence */
-  .container { display: block !important; padding: 10px !important; }
-  main { width: 100% !important; display: block !important; }
-  .sidebar { width: 100% !important; display: block !important; margin-top: 20px !important; }
   
-  /* Dropdown Menu */
-  .navbar-collapse { background-color: #800000 !important; padding: 10px; border-radius: 8px; }
+  /* Mobile menu background fix */
+  .navbar-collapse {
+    background-color: #800000 !important;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+  }
 }
