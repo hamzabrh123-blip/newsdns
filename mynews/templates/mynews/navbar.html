@@ -7,7 +7,7 @@
             <span id="current-date" class="text-muted">{% now "d F Y" %}</span>
         </div>
         <div class="d-flex align-items-center">
-            <span class="me-3 text-muted">हमें फॉलो करें:</span>
+            <div id="google_translate_element" class="me-3"></div>
             <a href="#" class="text-primary me-2 text-decoration-none"><i class="fab fa-facebook-f"></i></a>
             <a href="#" class="text-info me-2 text-decoration-none"><i class="fab fa-twitter"></i></a>
             <a href="#" class="text-success text-decoration-none"><i class="fab fa-whatsapp"></i></a>
@@ -16,16 +16,16 @@
 </div>
 
 <nav class="navbar navbar-expand-lg sticky-top shadow-lg" data-bs-theme="dark"
-     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.6rem 0;">
+     style="background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); padding: 0.5rem 0;">
     <div class="container">
 
         <div class="navbar-brand d-flex align-items-center">
             <a href="{% url 'home' %}" class="logo-link text-decoration-none">
                 <div class="d-flex align-items-center">
-                    <img src="{% static 'logo.png' %}" alt="Uttar World News" width="55" height="55" class="me-2">
+                    <img src="{% static 'logo.png' %}" alt="Uttar World News" width="50" height="50" class="me-2">
                     <div class="brand-text">
-                        <span class="text-white fw-bold">UTTAR WORLD</span><br>
-                        <span style="color: #ffcc00; letter-spacing: 2px; font-size: 0.8rem;">NEWS</span>
+                        <span class="text-white fw-bold" style="font-size: 1.2rem; line-height: 1;">UTTAR WORLD</span><br>
+                        <span style="color: #ffcc00; letter-spacing: 2px; font-size: 0.75rem;">NEWS PORTAL</span>
                     </div>
                 </div>
             </a>
@@ -36,62 +36,71 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold text-uppercase" style="font-size: 0.95rem;">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold text-uppercase" style="font-size: 0.85rem;">
+                
                 <li class="nav-item">
-                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'home' %}active text-warning{% endif %}" href="{% url 'home' %}">होम</a>
+                    <a class="nav-link px-2 {% if request.resolver_match.url_name == 'home' %}active text-warning{% endif %}" href="{% url 'home' %}">होम</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'national_news' %}">भारत</a>
+                    <a class="nav-link px-2 text-warning fw-bold" href="{% url 'district_news' 'Int-MiddleEast' %}">
+                        <i class="fas fa-globe-asia me-1"></i>मिडिल ईस्ट
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-2" href="{% url 'district_news' 'Int-America' %}">अमेरिका</a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="worldDropdown" role="button" data-bs-toggle="dropdown">
-                        दुनिया
-                    </a>
-                    <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
-                        <li><a class="dropdown-item py-2 fw-bold text-danger border-bottom" href="{% url 'district_news' 'Int-MiddleEast' %}">
-                            <i class="fas fa-fire me-2"></i>मिडिल ईस्ट
-                        </a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-America' %}">अमेरिका-कनाडा</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-SouthAsia' %}">दक्षिण एशिया (पड़ोसी)</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Int-NorthAsia' %}">उत्तर एशिया (चीन-रूस)</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Int-Australia' %}">ऑस्ट्रेलिया-ओशिनिया</a></li>
+                    <a class="nav-link dropdown-toggle px-2" href="#" id="worldDrop" data-bs-toggle="dropdown">दुनिया</a>
+                    <ul class="dropdown-menu border-0 shadow mt-2">
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Int-SouthAsia' %}">पड़ोसी देश (South Asia)</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Int-NorthAsia' %}">चीन-रूस-जापान</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Int-Australia' %}">ऑस्ट्रेलिया</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-2 text-white" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
+                    <ul class="dropdown-menu border-0 shadow mt-2">
+                        <li><a class="dropdown-item border-bottom fw-bold" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय (Noida-Kanpur)</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Bundelkhand' %}">बुंदेलखंड</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'technology' %}">टेक</a>
+                    <a class="nav-link px-2" href="{% url 'district_news' 'Other-States' %}">अन्य राज्य</a>
                 </li>
-               <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown">
-                        मनोरंजन
-                    </a>
-                  <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
-            <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Ent-Bollywood' %}">बॉलीवुड (Bollywood)</a></li>
-                <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Ent-Hollywood' %}">हॉलीवुड (Hollywood)</a></li>
-                </ul>
-            </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-2" href="{% url 'district_news' 'Sports' %}">खेल</a>
+                </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="upDropdown" role="button" data-bs-toggle="dropdown">
-                        उत्तर प्रदेश
-                    </a>
-                    <ul class="dropdown-menu border-0 shadow-lg mt-2 py-0 overflow-hidden">
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Lucknow-UP' %}">लखनऊ</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Purvanchal' %}">पूर्वांचल</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bundelkhand' %}">बुंदेलखंड</a></li>
-                        <li><a class="dropdown-item py-2 border-bottom" href="{% url 'district_news' 'Bahraich-Gonda' %}">बहराइच-गोण्डा</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Balrampur-Shravasti' %}">बलरामपुर-श्रावस्ती</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'district_news' 'Sitapur-Barabanki' %}">सीतापुर / बाराबंकी</a></li>
+                    <a class="nav-link dropdown-toggle px-2" href="#" data-bs-toggle="dropdown">टेक-बाज़ार</a>
+                    <ul class="dropdown-menu border-0 shadow mt-2">
+                        <li><a class="dropdown-item" href="{% url 'technology' %}">टेक्नोलॉजी</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Market' %}">मार्केट/बिज़नेस</a></li>
                     </ul>
                 </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-2" href="#" data-bs-toggle="dropdown">मनोरंजन</a>
+                    <ul class="dropdown-menu border-0 shadow mt-2">
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Ent-Bollywood' %}">बॉलीवुड</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Ent-Hollywood' %}">हॉलीवुड</a></li>
+                    </ul>
+                </li>
+
             </ul>
 
-            <form class="d-flex mt-3 mt-lg-0 ms-lg-3 position-relative" action="{% url 'home' %}" method="get">
-                <input class="form-control form-control-sm pe-5 border-0 rounded-pill" 
-                       type="search" name="q" placeholder="खबर खोजें..." aria-label="Search">
-                <button class="btn btn-link position-absolute end-0 text-danger" type="submit" style="top: 1px; text-decoration: none;">
+            <form class="d-flex mt-2 mt-lg-0 position-relative" action="{% url 'home' %}" method="get">
+                <input class="form-control form-control-sm pe-5 rounded-pill border-0" type="search" name="q" placeholder="खोजें...">
+                <button class="btn btn-link position-absolute end-0 text-danger" type="submit" style="top: 0; padding-top: 4px;">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
