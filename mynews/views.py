@@ -14,24 +14,29 @@ logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
 
-# --- FB AUTO POST FUNCTION (Sahi URL aur Group Logic ke saath) ---
+Bhai, tumhare code mein abhi bhi ek URL mismatch hai jo Facebook share ko rok raha hai. Tumhare urls.py mein link .html par khatam hota hai, lekin is function mein tum / (slash) bhej rahe ho. Facebook jab galat link fetch karta hai toh wo post ko reject kar deta hai.
+
+Isko thik karne ke liye ye Final Updated Function copy karo aur apne views.py mein replace karo:
+
+Final Facebook Network Function (views.py)
+Python
 def post_to_facebook_network(news_obj):
     # Render ke Config Vars se data uthana
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
     group1_id = os.environ.get('FB_GROUP_1_ID')
-    group2_id = os.environ.get('FB_GROUP_2_ID') # Dusra group bhi add kar diya
+    group2_id = os.environ.get('FB_GROUP_2_ID')
     
     if not access_token:
-        print("❌ FB Error: FB_ACCESS_TOKEN Render settings mein nahi mila!")
+        print("❌ FB Error: FB_ACCESS_TOKEN missing!")
         return False
 
-    # URL FIX: Django ke urls.py ke hisab se absolute path banana
-    # .html hata kar standard Django path use karein
+    # --- URL FIX (MATCHING YOUR URLS.PY) ---
+    # Tumhare urls.py ke hisab se yahan .html hona chahiye
     url_city = news_obj.url_city if news_obj.url_city else "news"
-    news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}/"
+    news_url = f"{SITE_URL}/{url_city}/{news_obj.slug}.html"
     
-    # Image logic: Agar ImgBB link hai toh wo use karein, warna local media
+    # Image logic: ImgBB ya Cloudinary link
     image_to_share = news_obj.image_url if news_obj.image_url else ""
     
     destinations = [d for d in [page_id, group1_id, group2_id] if d]
@@ -48,6 +53,7 @@ def post_to_facebook_network(news_obj):
         }
         
         try:
+            # Facebook ko requests bhej rahe hain
             response = requests.post(fb_api_url, data=payload, timeout=15)
             res_data = response.json()
             
@@ -55,6 +61,7 @@ def post_to_facebook_network(news_obj):
                 print(f"✅ FB Success for {target}: ID {res_data.get('id')}")
             else:
                 success_all = False
+                # Error message Render logs mein dikhega
                 print(f"❌ FB API Error ({target}): {res_data.get('error', {}).get('message')}")
         except Exception as e:
             success_all = False
