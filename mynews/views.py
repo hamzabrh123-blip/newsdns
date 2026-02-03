@@ -13,13 +13,7 @@ logger = logging.getLogger(__name__)
 
 SITE_URL = "https://uttarworld.com"
 SITE_NAME = "Uttar World News"
-
-Bhai, tumhare code mein abhi bhi ek URL mismatch hai jo Facebook share ko rok raha hai. Tumhare urls.py mein link .html par khatam hota hai, lekin is function mein tum / (slash) bhej rahe ho. Facebook jab galat link fetch karta hai toh wo post ko reject kar deta hai.
-
-Isko thik karne ke liye ye Final Updated Function copy karo aur apne views.py mein replace karo:
-
-Final Facebook Network Function (views.py)
-Python
+# --- FB AUTO POST FUNCTION (Final Fix) ---
 def post_to_facebook_network(news_obj):
     # Render ke Config Vars se data uthana
     access_token = os.environ.get('FB_ACCESS_TOKEN')
