@@ -1,34 +1,28 @@
 from django.urls import path
-from .views import ( 
-    home, national_news, technology, bollywood, international_news,
-    market_news_view, district_news, robots_txt, sitemap_xml,
-    ads_txt, privacy_policy, about_us, contact_us, disclaimer, 
-    news_detail, fix_webp_image
-)
+from . import views # Isse code saaf rehta hai
 
 urlpatterns = [
-    path("", home, name="home"),
-    path("national/", national_news, name="national_news"),
-    path("technology/", technology, name="technology"),
-    path("bollywood/", bollywood, name="bollywood"),
-    path("international/", international_news, name="international_news"),
-    path("market-news/", market_news_view, name="market_news"),
+    # 1. Home Page
+    path("", views.home, name="home"),
 
-    path("fix-img/", fix_webp_image, name="fix_webp_image"),
+    # 2. THE BIG CONTROLLER (Universal Route)
+    # Ab yahi ek rasta National, International, Sports, sab handle karega
+    # Example: /national/, /sports/, /int-middleeast/ sab isi par jayenge
+    path("<str:district>/", views.district_news, name="district_news"),
 
-    path("district/<str:district>/", district_news, name="district_news"),
-    path("robots.txt", robots_txt, name="robots_txt"),
-    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
-    path("ads.txt", ads_txt, name="ads_txt"),
-    path("privacy-policy/", privacy_policy, name="privacy_policy"),
-    path("about-us/", about_us, name="about_us"),
-    path("contact-us/", contact_us, name="contact_us"),
-    path("disclaimer/", disclaimer, name="disclaimer"),
+    # 3. News Detail (SEO Friendly)
+    path("<str:url_city>/<slug:slug>.html", views.news_detail, name="news_detail"),
+    path("news/<slug:slug>.html", views.news_detail, name="news_detail_simple"),
 
-    # --- NEWS DETAIL FIX ---
-    # Ye rasta city aur slug dono ke liye (lucknow/khabar-ki-link.html)
-    path("<str:url_city>/<slug:slug>.html", news_detail, name="news_detail"),
-    
-    # Ye backup rasta (agar galti se city na ho tab bhi news khulegi)
-    path("news/<slug:slug>.html", news_detail, name="news_detail_simple"),
+    # 4. Utilities & SEO
+    path("fix-img/", views.fix_webp_image, name="fix_webp_image"),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("sitemap.xml", views.sitemap_xml, name="sitemap_xml"),
+    path("ads.txt", views.ads_txt, name="ads_txt"),
+
+    # 5. Static Pages
+    path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+    path("about-us/", views.about_us, name="about_us"),
+    path("contact-us/", views.contact_us, name="contact_us"),
+    path("disclaimer/", views.disclaimer, name="disclaimer"),
 ]
