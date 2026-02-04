@@ -11,7 +11,8 @@
         </h5>
         {% for item in world_sidebar %}
         <div class="sidebar-post">
-<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}https://via.placeholder.com/150{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">      
+<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}https://via.placeholder.com/150x100?text=No+Image{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
+            
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
