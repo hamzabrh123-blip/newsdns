@@ -2,7 +2,7 @@
     
     <div class="mb-4 text-center border-bottom pb-3">
         <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
-        </div>
+    </div>
 
     {% if world_sidebar %}
     <div class="sidebar-block mb-4">
@@ -11,8 +11,7 @@
         </h5>
         {% for item in world_sidebar %}
         <div class="sidebar-post">
-<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}https://via.placeholder.com/150x100?text=No+Image{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
-            
+            <img src="{% if item.image %}{{ item.image.url }}{% elif item.image_url %}{{ item.image_url }}{% else %}https://via.placeholder.com/150x100?text=World{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
@@ -45,7 +44,7 @@
         </h5>
         {% for item in sports_sidebar %}
         <div class="sidebar-post">
-            <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}" class="sidebar-thumb">
+            <img src="{% if item.image %}{{ item.image.url }}{% elif item.image_url %}{{ item.image_url }}{% else %}https://via.placeholder.com/150x100?text=Sports{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
@@ -60,7 +59,7 @@
         </h5>
         {% for item in lucknow_up_sidebar %}
         <div class="sidebar-post">
-            <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}" class="sidebar-thumb">
+            <img src="{% if item.image %}{{ item.image.url }}{% elif item.image_url %}{{ item.image_url }}{% else %}https://via.placeholder.com/150x100?text=UP+News{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link text-dark">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
@@ -105,6 +104,7 @@
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        -webkit-left: 0;
         overflow: hidden;
     }
     .post-link:hover { color: #d32f2f !important; }
