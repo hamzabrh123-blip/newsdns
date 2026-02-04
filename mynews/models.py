@@ -70,24 +70,33 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
+        # 1. ImgBB Upload Logic
         if self.image:
             try:
+                # File ko upload karo
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
+                    # SABSE ZAROORI: image field ko None kar do 
+                    # taaki Django isse Cloudinary par upload karne ki koshish na kare
+                    self.image = None 
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
+        # 2. URL City Logic (English auto-convert)
         if not self.url_city:
             self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
             self.url_city = slugify(unidecode(self.url_city))
 
+        # 3. Slug Logic
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}"
 
+        # 4. Final Save
         super().save(*args, **kwargs)
 
+        # 5. Facebook Logic
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
