@@ -1,11 +1,12 @@
 /* ============================================================
-   1. GLOBAL & BACKGROUND (CSS Cleaned)
+   1. GLOBAL & BACKGROUND (FIXED: Image hatai)
    ============================================================ */
 body {  
   font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
   margin: 0;  
   padding: 0;  
-  background-color: #f4f4f4; /* Fallback color */
+  background-color: #f0f2f5 !important; 
+  background-image: none !important;    
   color: #333;
   line-height: 1.6;
 }
@@ -21,12 +22,6 @@ a { text-decoration: none !important; }
   box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
 }
 
-.logo-link {
-  display: flex;
-  align-items: center;
-  cursor: pointer !important;
-}
-
 .navbar-logo {
   height: 45px !important;
   width: auto;
@@ -38,12 +33,8 @@ a { text-decoration: none !important; }
   font-weight: 800;
   font-size: 1.4rem;
   text-transform: uppercase;
-  display: flex;
-  gap: 5px;
   color: #fff;
 }
-
-.text-yellow { color: #ffcc00 !important; font-style: italic; }
 
 /* ============================================================
    3. NAVIGATION LINKS
@@ -61,36 +52,84 @@ a { text-decoration: none !important; }
 }
 
 /* ============================================================
-   4. NEWS CARDS & LAYOUT
+   4. NEWS CARDS & LAYOUT (FINAL VERSION)
    ============================================================ */
-/* Bootstrap ki row class use karo, .container ko flex mat banao */
 .news-card {  
-  background: #ffffff; 
-  border-radius: 10px; 
+  background: #ffffff !important; 
+  border-radius: 12px; 
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-  transition: 0.3s;
-  border: 1px solid #eee;
-  margin-bottom: 20px;
-  height: 100%; /* Card barabar dikhne ke liye */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+  transition: all 0.3s ease;
+  border: 1px solid #e1e4e8;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Important for equal height */
 }
 
-.news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+.news-card:hover { 
+  transform: translateY(-8px); 
+  box-shadow: 0 12px 25px rgba(0,0,0,0.18); 
+}
 
 .news-card img { 
   width: 100%; 
-  height: 200px; 
-  object-fit: cover; 
+  height: 220px; 
+  object-fit: cover;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.news-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.news-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  min-height: 3.4em; /* Title space barabar rakhta hai */
+}
+
+.news-card-text {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 15px;
+  /* Text ko 3 line mein cut karne ka logic */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.btn-read-more {
+  margin-top: auto; /* Button hamesha niche rahega */
+  color: #800000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  border: 1px solid #800000;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: 0.3s;
+  text-align: center;
+}
+
+.btn-read-more:hover {
+  background-color: #800000;
+  color: #fff !important;
 }
 
 /* ============================================================
    5. MOBILE RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
-  .brand-text { font-size: 1rem; }
-  .navbar-logo { height: 35px !important; }
-  
-  /* Mobile menu background fix */
+  .brand-text { font-size: 1.1rem; }
+  .news-card img { height: 180px; }
   .navbar-collapse {
     background-color: #800000 !important;
     padding: 15px;
