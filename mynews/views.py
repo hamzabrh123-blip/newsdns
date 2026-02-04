@@ -28,13 +28,12 @@ def home(request):
         
         all_important = News.objects.filter(is_important=True).order_by("-date")
         
-        # Sections for Home Page
         context = {
             "top_3_highlights": all_important[:3],
             "politics_news": News.objects.filter(district="UP-National").order_by("-date")[:4],
             "market_news": News.objects.filter(district="Market").order_by("-date")[:4],
-            "sports_news": News.objects.filter(district="Sports").order_by("-date")[:4],
-            "other_news": all_important[3:23], # Baki ki news mix mein
+            "sports_news": News.objects.filter(district="Sports").order_by("-date")[:4], # Fixed here
+            "other_news": all_important[3:23],
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **get_common_sidebar_data()
         }
@@ -42,7 +41,7 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse("Home Page Error", status=500)
-
+        
 # --- 2. NEWS DETAIL (With FB Meta) ---
 def news_detail(request, url_city, slug): 
     news = get_object_or_404(News, slug=slug, url_city=url_city)
