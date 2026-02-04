@@ -27,16 +27,14 @@ def home(request):
             return render(request, "mynews/home.html", {"page_obj": page_obj, **get_common_sidebar_data()})
         
         all_important = News.objects.filter(is_important=True).order_by("-date")
-        top_3_highlights = all_important[:3]
         
-        for n in top_3_highlights:
-            clean = strip_tags(n.content)
-            n.clean_home_text = html.unescape(clean).replace('\xa0', ' ').strip()[:300] + "..."
-
-        other_news = all_important[3:43]
+        # Sections for Home Page
         context = {
-            "top_3_highlights": top_3_highlights,
-            "other_news": other_news,
+            "top_3_highlights": all_important[:3],
+            "politics_news": News.objects.filter(district="UP-National").order_by("-date")[:4],
+            "market_news": News.objects.filter(district="Market").order_by("-date")[:4],
+            "sports_news": News.objects.filter(district="Sports").order_content().order_by("-date")[:4],
+            "other_news": all_important[3:23], # Baki ki news mix mein
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **get_common_sidebar_data()
         }
