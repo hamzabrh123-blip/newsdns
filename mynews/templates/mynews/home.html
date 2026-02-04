@@ -5,79 +5,69 @@
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
-    /* Full Width Reset & Background */
+    /* Global & Layout Reset */
     .container-fluid { padding: 0 40px; }
-    body { background-color: #f8f9fa !important; overflow-x: hidden; font-family: 'Poppins', sans-serif; }
+    body { background-color: #f4f7f6 !important; font-family: 'Poppins', 'Mukta', sans-serif; }
+    a { text-decoration: none !important; transition: 0.3s; }
 
-    /* Hero Grid (Top 3 Highlights) */
+    /* 1. Hero Grid (Top Highlights) - Optimized for AdSense */
     .hero-grid {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr;
         grid-template-rows: 250px 250px;
-        gap: 10px;
+        gap: 12px;
         margin-bottom: 40px;
     }
-    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    .hero-item img { 
-        width: 100%; height: 100%; object-fit: cover; 
-        opacity: 0.7; transition: 0.5s; 
-    }
+    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 12px; }
+    .hero-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.75; transition: 0.5s; }
     .hero-item:hover img { transform: scale(1.05); opacity: 0.9; }
     .hero-content { 
         position: absolute; bottom: 0; left: 0; padding: 25px; 
-        background: linear-gradient(transparent, rgba(0,0,0,0.95)); width: 100%;
+        background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); width: 100%;
+        z-index: 2;
     }
     .hero-big { grid-row: span 2; }
-    .hero-content h2 { color: #fff; font-weight: 800; font-size: 1.8rem; margin-bottom: 10px; }
-    .hero-content h4 { color: #fff; font-weight: 700; font-size: 1.1rem; }
+    .hero-content h2 { color: #fff; font-weight: 800; font-size: 1.8rem; margin: 0; }
+    .hero-content h4 { color: #fff; font-weight: 700; font-size: 1.1rem; margin: 0; }
 
-    /* Modern News Card Style (Latest Updates) */
+    /* 2. Modern News Card (Used for Categories & Latest) */
     .clean-card {
         background: #fff;
         border-radius: 12px;
         border: 1px solid #eef0f2;
-        margin-bottom: 30px;
-        transition: all 0.3s ease;
+        margin-bottom: 25px;
+        transition: 0.3s;
         overflow: hidden;
         height: 100%;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    .clean-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-        border-color: #800000;
-    }
-    .clean-card img { 
-        width: 100%; height: 210px; object-fit: cover; 
-        border-bottom: 1px solid #f1f1f1;
-    }
-    .card-body-custom { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-    .news-tag { 
-        color: #800000; font-weight: 700; font-size: 0.75rem; 
-        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block;
-    }
-    .news-title { 
-        font-size: 1.2rem; font-weight: 800; color: #1a1a1a; 
-        text-decoration: none; line-height: 1.4; display: block;
-    }
-    .news-title:hover { color: #800000; }
-    .news-excerpt { color: #666; font-size: 0.9rem; margin-top: 10px; }
+    .clean-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); border-color: #d32f2f; }
+    .clean-card img { width: 100%; height: 180px; object-fit: cover; }
+    .card-body-custom { padding: 15px; flex-grow: 1; }
+    
+    .news-tag { color: #d32f2f; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 5px; }
+    .news-title { font-size: 1.15rem; font-weight: 800; color: #1a1a1a; line-height: 1.4; display: block; }
+    .news-title:hover { color: #d32f2f; }
+    .news-excerpt { color: #666; font-size: 0.9rem; margin-top: 8px; }
 
-    /* Section Header */
+    /* 3. Section Titles */
     .section-title {
-        border-left: 6px solid #800000;
+        border-left: 6px solid #d32f2f;
         padding-left: 15px;
         font-weight: 900;
-        letter-spacing: -0.5px;
         color: #1a1a1a;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     @media (max-width: 992px) {
         .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-        .hero-item { height: 300px; }
+        .hero-item { height: 280px; }
         .container-fluid { padding: 0 15px; }
     }
 </style>
@@ -90,8 +80,7 @@
                 <img src="{{ item.image_url }}" alt="{{ item.title }}">
                 <div class="hero-content">
                     <span class="badge bg-danger mb-2">{{ item.district }}</span>
-                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:60 }}</h4> {% endif %}
-                    <div class="text-white-50 small mt-2"><i class="far fa-clock"></i> {{ item.date|timesince }} ago</div>
+                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:65 }}</h4> {% endif %}
                 </div>
             </a>
         </div>
@@ -101,12 +90,60 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-9 border-end">
-            <h4 class="section-title">ताज़ा अपडेट्स (LATEST UPDATES)</h4>
+        <div class="col-lg-9">
             
+            {% if politics_news %}
+            <div class="mb-5">
+                <div class="section-title">
+                    <span>देश-राजनीति</span>
+                </div>
+                <div class="row">
+                    {% for item in politics_news %}
+                    <div class="col-md-3" data-aos="fade-up">
+                        <div class="clean-card shadow-sm">
+                            <a href="{% url 'news_detail' item.url_city item.slug %}">
+                                <img src="{{ item.image_url }}" alt="news">
+                            </a>
+                            <div class="card-body-custom">
+                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 1rem;">
+                                    {{ item.title|truncatechars:55 }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if market_news %}
+            <div class="mb-5">
+                <div class="section-title">
+                    <span>कारोबार-बाज़ार</span>
+                </div>
+                <div class="row">
+                    {% for item in market_news %}
+                    <div class="col-md-3" data-aos="fade-up">
+                        <div class="clean-card shadow-sm">
+                            <a href="{% url 'news_detail' item.url_city item.slug %}">
+                                <img src="{{ item.image_url }}" alt="news">
+                            </a>
+                            <div class="card-body-custom">
+                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 1rem;">
+                                    {{ item.title|truncatechars:55 }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <h4 class="section-title">ताज़ा अपडेट्स (Latest)</h4>
             <div class="row">
                 {% for item in other_news %}
-                <div class="col-md-6 col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:50 }}">
+                <div class="col-md-6 mb-4" data-aos="fade-up">
                     <div class="clean-card">
                         <a href="{% url 'news_detail' item.url_city item.slug %}">
                             <img src="{{ item.image_url }}" alt="{{ item.title }}">
@@ -117,9 +154,9 @@
                                 {{ item.title }}
                             </a>
                             <p class="news-excerpt">
-                                {{ item.content|striptags|truncatechars:110 }}
+                                {{ item.content|striptags|truncatechars:100 }}
                             </p>
-                            <div class="mt-auto pt-3 border-top small text-muted">
+                            <div class="mt-auto pt-2 border-top small text-muted">
                                 <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M, Y" }}
                             </div>
                         </div>
@@ -130,13 +167,13 @@
 
             {% if page_obj.has_other_pages %}
             <div class="py-5 text-center">
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-dark px-5 py-3 fw-bold shadow">पुराने समाचार देखें (LOAD MORE)</a>
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-danger px-5 py-3 fw-bold shadow">पुराने समाचार देखें</a>
             </div>
             {% endif %}
         </div>
 
-        <div class="col-lg-3">
-            <div class="sticky-top" style="top: 100px;">
+        <div class="col-lg-3 border-start">
+            <div class="sticky-top" style="top: 100px; padding-left: 15px;">
                 {% include "mynews/sidebar.html" %}
             </div>
         </div>
@@ -145,10 +182,7 @@
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    AOS.init({
-        duration: 800,
-        once: true,
-    });
+    AOS.init({ duration: 800, once: true });
 </script>
 
 {% endblock %}
