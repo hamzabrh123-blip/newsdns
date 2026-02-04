@@ -5,62 +5,95 @@
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
-    /* Full Width Reset */
+    /* Full Width Reset & Background */
     .container-fluid { padding: 0 40px; }
-    body { background-color: #fff; overflow-x: hidden; }
+    body { background-color: #f8f9fa !important; overflow-x: hidden; font-family: 'Poppins', sans-serif; }
 
-    /* Hero Grid (International News) */
+    /* Hero Grid (Top 3 Highlights) */
     .hero-grid {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr;
         grid-template-rows: 250px 250px;
         gap: 10px;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
     }
-    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 4px; }
+    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     .hero-item img { 
         width: 100%; height: 100%; object-fit: cover; 
         opacity: 0.7; transition: 0.5s; 
     }
     .hero-item:hover img { transform: scale(1.05); opacity: 0.9; }
     .hero-content { 
-        position: absolute; bottom: 0; left: 0; padding: 20px; 
-        background: linear-gradient(transparent, rgba(0,0,0,0.9)); width: 100%;
+        position: absolute; bottom: 0; left: 0; padding: 25px; 
+        background: linear-gradient(transparent, rgba(0,0,0,0.95)); width: 100%;
     }
     .hero-big { grid-row: span 2; }
-    .hero-content h2, .hero-content h4 { color: #fff; font-weight: bold; margin: 0; }
+    .hero-content h2 { color: #fff; font-weight: 800; font-size: 1.8rem; margin-bottom: 10px; }
+    .hero-content h4 { color: #fff; font-weight: 700; font-size: 1.1rem; }
 
-    /* News Cards Style */
+    /* Modern News Card Style (Latest Updates) */
     .clean-card {
-        border: none; border-bottom: 1px solid #eee;
-        padding-bottom: 20px; margin-bottom: 20px; transition: 0.3s;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #eef0f2;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
-    .clean-card img { border-radius: 4px; object-fit: cover; height: 180px; width: 100%; }
-    .news-tag { color: #d32f2f; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
-    .news-title { font-size: 1.3rem; font-weight: 800; color: #1a1a1a; text-decoration: none; display: block; margin-top: 5px; }
-    .news-title:hover { color: #d32f2f; }
+    .clean-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        border-color: #800000;
+    }
+    .clean-card img { 
+        width: 100%; height: 210px; object-fit: cover; 
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .card-body-custom { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+    .news-tag { 
+        color: #800000; font-weight: 700; font-size: 0.75rem; 
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block;
+    }
+    .news-title { 
+        font-size: 1.2rem; font-weight: 800; color: #1a1a1a; 
+        text-decoration: none; line-height: 1.4; display: block;
+    }
+    .news-title:hover { color: #800000; }
+    .news-excerpt { color: #666; font-size: 0.9rem; margin-top: 10px; }
 
-    /* Custom Scroll Animation Class */
-    [data-aos="fade-up"] { transition-timing-function: cubic-bezier(.175, .885, .32, 1.275); }
+    /* Section Header */
+    .section-title {
+        border-left: 6px solid #800000;
+        padding-left: 15px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: #1a1a1a;
+        margin-bottom: 30px;
+    }
 
     @media (max-width: 992px) {
         .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+        .hero-item { height: 300px; }
         .container-fluid { padding: 0 15px; }
     }
 </style>
 
-<div class="container-fluid mt-2">
+<div class="container-fluid mt-3">
     <div class="hero-grid">
         {% for item in top_3_highlights %}
         <div class="hero-item {% if forloop.first %}hero-big{% endif %}" data-aos="fade-in">
-            <img src="{{ item.image_url }}" alt="{{ item.title }}">
-            <div class="hero-content">
-                <span class="badge bg-danger mb-2">{{ item.district }}</span>
-                <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-decoration-none">
-                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:50 }}</h4> {% endif %}
-                </a>
-                <div class="text-white-50 small mt-2"><i class="far fa-clock"></i> {{ item.date|timesince }} ago</div>
-            </div>
+            <a href="{% url 'news_detail' item.url_city item.slug %}">
+                <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                <div class="hero-content">
+                    <span class="badge bg-danger mb-2">{{ item.district }}</span>
+                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:60 }}</h4> {% endif %}
+                    <div class="text-white-50 small mt-2"><i class="far fa-clock"></i> {{ item.date|timesince }} ago</div>
+                </div>
+            </a>
         </div>
         {% endfor %}
     </div>
@@ -69,26 +102,25 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-9 border-end">
-            <h4 class="fw-bold mb-4" style="border-left: 5px solid #d32f2f; padding-left: 15px;">LATEST UPDATES</h4>
+            <h4 class="section-title">ताज़ा अपडेट्स (LATEST UPDATES)</h4>
             
             <div class="row">
                 {% for item in other_news %}
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+                <div class="col-md-6 col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:50 }}">
                     <div class="clean-card">
-                        <div class="row align-items-center">
-                            <div class="col-5">
-                                <a href="{% url 'news_detail' item.url_city item.slug %}">
-                                    <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                                </a>
-                            </div>
-                            <div class="col-7">
-                                <span class="news-tag">{{ item.district }}</span>
-                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">
-                                    {{ item.title|truncatechars:70 }}
-                                </a>
-                                <div class="text-muted small mt-2 d-none d-md-block">
-                                    {{ item.content|striptags|truncatechars:80 }}
-                                </div>
+                        <a href="{% url 'news_detail' item.url_city item.slug %}">
+                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                        </a>
+                        <div class="card-body-custom">
+                            <span class="news-tag">{{ item.district }} | {{ item.category }}</span>
+                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">
+                                {{ item.title }}
+                            </a>
+                            <p class="news-excerpt">
+                                {{ item.content|striptags|truncatechars:110 }}
+                            </p>
+                            <div class="mt-auto pt-3 border-top small text-muted">
+                                <i class="far fa-calendar-alt"></i> {{ item.date|date:"d M, Y" }}
                             </div>
                         </div>
                     </div>
@@ -97,8 +129,8 @@
             </div>
 
             {% if page_obj.has_other_pages %}
-            <div class="py-4">
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-dark w-100 py-2 fw-bold">LOAD MORE NEWS</a>
+            <div class="py-5 text-center">
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-dark px-5 py-3 fw-bold shadow">पुराने समाचार देखें (LOAD MORE)</a>
             </div>
             {% endif %}
         </div>
@@ -113,10 +145,10 @@
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-  AOS.init({
-    duration: 1000,
-    once: true,
-  });
+    AOS.init({
+        duration: 800,
+        once: true,
+    });
 </script>
 
 {% endblock %}
