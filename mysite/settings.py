@@ -111,18 +111,19 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
 }
 
+# --- CLOUDINARY BLOCK KAR DIYA ---
 STORAGES = {
     "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
+# Media URL ko default rakho
 MEDIA_URL = '/media/'
-TIME_ZONE = "Asia/Kolkata"
-USE_TZ = True
+MEDIA_ROOT = BASE_DIR / "media"
 
 # --- FACEBOOK & CKEDITOR ---
 FB_PAGE_ID = "108286920828619"
