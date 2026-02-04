@@ -24,7 +24,7 @@ class News(models.Model):
         ('Firozabad', 'फिरोजाबाद'), ('Gautam-B-Nagar', 'नोएडा/G.B. Nagar'), 
         ('Ghaziabad', 'गाजियाबाद'), ('Ghazipur', 'गाजीपुर'), ('Gonda', 'गोंडा'), 
         ('Gorakhpur', 'गोरखपुर'), ('Hamirpur', 'हमीरपुर'), ('Hapur', 'हापुड़'), 
-        ('Hardoi', 'हरदोई'), ('Hathras', 'हाथरास'), ('Jalaun', 'जालौन'), 
+        ('Hardoi', 'हरदोई'), ('Hathras', 'हाथराas'), ('Jalaun', 'जालौन'), 
         ('Jaunpur', 'जाँयपुर'), ('Jhansi', 'झाँसी'), ('Kannauj', 'कन्नौज'), 
         ('Kanpur-Dehat', 'कानपुर देहात'), ('Kanpur-Nagar', 'कानपुर नगर'), 
         ('Kasganj', 'कासगंज'), ('Kaushambi', 'कौशाम्बी'), ('Kushinagar', 'कुशीनगर'), 
@@ -70,40 +70,40 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. ImgBB Upload Logic
+        # 1. ImgBB Upload & Closed File Fix
         if self.image:
             try:
-                # File ko upload karo
+                # Direct upload to ImgBB
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    # SABSE ZAROORI: image field ko None kar do 
-                    # taaki Django isse Cloudinary par upload karne ki koshish na kare
+                    # ERROR FIX: image field ko None karo taaki Cloudinary error na de
                     self.image = None 
             except Exception as e:
                 print(f"ImgBB Error: {e}")
 
-        # 2. URL City Logic (English auto-convert)
+        # 2. URL City Logic (Hindi to English Slug)
         if not self.url_city:
             self.url_city = slugify(unidecode(self.district)) if self.district else "news"
         else:
             self.url_city = slugify(unidecode(self.url_city))
 
-        # 3. Slug Logic
+        # 3. Unique Slug Logic
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}"
 
-        # 4. Final Save
+        # 4. Final Database Save
         super().save(*args, **kwargs)
 
-        # 5. Facebook Logic
+        # 5. Facebook Automation
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
         try:
-            PAGE_ACCESS_TOKEN = "TERA_TOKEN_YAHAN" 
-            PAGE_ID = "TERA_PAGE_ID_YAHAN"
+            # Settings se uthao ya yahan direct dalo
+            PAGE_ACCESS_TOKEN = getattr(settings, "FB_ACCESS_TOKEN", "YAHAN_TOKEN_DALO") 
+            PAGE_ID = getattr(settings, "FB_PAGE_ID", "YAHAN_ID_DALO")
             
             graph = facebook.GraphAPI(access_token=PAGE_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
@@ -114,8 +114,8 @@ class News(models.Model):
             else:
                 graph.put_object(parent_object=PAGE_ID, connection_name='feed', message=message, link=post_url)
 
+            # Re-update to prevent double posting
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-            print("FB Post Successful!")
         except Exception as e:
             print(f"Facebook API Error: {e}")
 
