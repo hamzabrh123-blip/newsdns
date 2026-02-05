@@ -23,7 +23,7 @@ class News(models.Model):
         ('Budaun', 'बदायूँ'), ('Bulandshahr', 'बुलंदशहर'), ('Chandauli', 'चंदौली'), 
         ('Chitrakoot', 'चित्रकूट'), ('Deoria', 'देवरिया'), ('Etah', 'एटा'), 
         ('Etawah', 'इटावा'), ('Farrukhabad', 'फर्रुखाबाद'), ('Fatehpur', 'फतेहपुर'), 
-        ('Firozabad', 'फिरोजाबाद'), ('Noida', 'नोएडा'), # <--- Yahan Noida sahi kar diya
+        ('Firozabad', 'फिरोजाबाद'), ('Noida', 'नोएडा'), 
         ('Ghaziabad', 'गाजियाबाद'), ('Ghazipur', 'गाजीपुर'), ('Gonda', 'गोंडा'), 
         ('Gorakhpur', 'गोरखपुर'), ('Hamirpur', 'हमीरपुर'), ('Hapur', 'हापुड़'), 
         ('Hardoi', 'हरदोई'), ('Hathras', 'हाथराas'), ('Jalaun', 'जालौन'), 
