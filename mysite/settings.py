@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "your-fallback-secret-key")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -18,7 +18,7 @@ ALLOWED_HOSTS = [
     "newsdns.onrender.com"
 ]
 
-# --- SSL & CSRF Fix (Render Production ke liye) ---
+# --- SSL & CSRF Fix (Render Production) ---
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -72,7 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # Naya Fix: Sirf ye do line rakho
+                # Context Processors Fixed
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.news_data_processor", 
             ],
@@ -90,39 +90,41 @@ DATABASES = {
     )
 }
 
-# --- STATIC & MEDIA (Cloudinary + Whitenoise) ---
+# --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Cloudinary Settings (Variables Render se aa rahe hain)
+# Cloudinary Settings
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
-# Default storage for media files
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
+# --- IMPORTANT: Static Storage Fix (No Manifest) ---
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Isse 'logo.png' wala error khatam ho jayega
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
-# --- EMAIL SETTINGS (Render Variables) ---
+# Render strictness fix
+WHITENOISE_MANIFEST_STRICT = False
+
+# --- EMAIL SETTINGS ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com' # Ya jo bhi aapka provider ho
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# --- FACEBOOK & IMGBB (Render Variables) ---
+# --- SOCIAL & TOOLS ---
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
 FB_GROUP_1_ID = os.environ.get("FB_GROUP_1_ID")
