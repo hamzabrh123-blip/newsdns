@@ -8,6 +8,7 @@ from unidecode import unidecode
 from django.urls import reverse
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.contrib.staticfiles import finders # Watermark dhoondne ke liye
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -29,7 +30,7 @@ class News(models.Model):
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
         ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'लalitपुर', 'UP'), 
         ('Lucknow', 'लखनऊ', 'UP'), ('Maharajganj', 'महराजगंज', 'UP'), ('Mahoba', 'महोबा', 'UP'), 
         ('Mainpuri', 'मैनपुरी', 'UP'), ('Mathura', 'मथुरा', 'UP'), ('Mau', 'मऊ', 'UP'), 
         ('Meerut', 'मेरठ', 'UP'), ('Mirzapur', 'मिर्जापुर', 'UP'), ('Moradabad', 'मुरादाबाद', 'UP'), 
@@ -47,6 +48,8 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
+    # Status field taaki draft save ho sake
+    status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(
@@ -84,14 +87,34 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Image Processing & ImgBB Upload
-        if self.image:
+        # 2. Image Processing + WATERMARK + ImgBB Upload
+        if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
-                img.thumbnail((1000, 1000), Image.LANCZOS)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                
+                # Image resize (Halki karne ke liye)
+                img.thumbnail((1200, 1200), Image.LANCZOS)
+
+                # --- AUTO WATERMARK LOGIC ---
+                watermark_path = finders.find('watermark.png')
+                if watermark_path:
+                    watermark = Image.open(watermark_path).convert("RGBA")
+                    # Watermark ko photo ke 25% width par set karo
+                    wm_width = int(img.width * 0.25)
+                    wm_height = int(watermark.height * (wm_width / watermark.width))
+                    watermark = watermark.resize((wm_width, wm_height), Image.LANCZOS)
+                    # Bottom-Right corner
+                    position = (img.width - wm_width - 20, img.height - wm_height - 20)
+                    img.paste(watermark, position, watermark)
+
+                # WebP Conversion
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=40)
+                img.save(output, format='WEBP', quality=50)
                 output.seek(0)
+                
+                # ContentFile bana ke upload karna
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
@@ -108,8 +131,8 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
-        # 4. Facebook Post Logic
-        if self.share_now_to_fb and not self.is_fb_posted:
+        # 4. Facebook Post Logic (Yahan wahi purana logic hai jo tumne diya tha)
+        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
@@ -120,7 +143,6 @@ class News(models.Model):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            # Recursion se bachne ke liye update() use kiya
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except:
             pass
