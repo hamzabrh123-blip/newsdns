@@ -6,28 +6,22 @@ def important_news(request):
     }
 
 def active_cities_processor(request):
-    # 1. Poora data map kar lo (Hindi names ke liye)
-    all_location_map = {item[0]: item[1] for item in News.LOCATION_DATA}
-    all_category_map = {item[0]: item[2] for item in News.LOCATION_DATA}
+    # 1. Check karo kin districts/categories mein news hai
+    active_districts = News.objects.values_list('district', flat=True).distinct()
     
-    # 2. Kin categories/districts mein news hai (Unique list)
-    active_keys = News.objects.values_list('district', flat=True).distinct()
-    
-    # 3. Alag-alag list banao taaki Navbar mein kachra na ho
+    # 2. News.LOCATION_DATA se filter karo
+    # item[0]=Key, item[1]=Hindi Name, item[2]=Category
     dynamic_up_cities = []
-    other_categories = []
-
-    for key in active_keys:
-        if key in all_location_map:
-            item = {'id': key, 'name': all_location_map[key]}
-            # Agar category 'UP' hai toh UP wale dropdown mein dalo
-            if all_category_map.get(key) == 'UP':
-                dynamic_up_cities.append(item)
-            # Warna National/International wale menu mein dalo
-            else:
-                other_categories.append(item)
+    
+    for item in News.LOCATION_DATA:
+        # Sirf tab add karo jab uski news ho AUR wo 'UP' category ka ho
+        if item[0] in active_districts and item[2] == 'UP':
+            dynamic_up_cities.append({
+                'id': item[0],
+                'name': item[1]
+            })
 
     return {
         'dynamic_up_cities': dynamic_up_cities,
-        'other_categories': other_categories, # National, Sports, etc. ke liye
+        'important_news': News.objects.filter(is_important=True).order_by('-date')[:20]
     }
