@@ -11,13 +11,14 @@ from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
+    # --- UP Ke Poore 75 Districts + Categories ---
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
         ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमगढ़', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
         ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बालरामपुर', 'UP'), 
         ('Banda', 'बांदा', 'UP'), ('Barabanki', 'बाराबंकी', 'UP'), ('Bareilly', 'बरेली', 'UP'), 
-        ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोही', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
+        ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोhi', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
         ('Budaun', 'बदायूँ', 'UP'), ('Bulandshahr', 'बुलंदशहर', 'UP'), ('Chandauli', 'चंदौली', 'UP'), 
         ('Chitrakoot', 'चित्रकूट', 'UP'), ('Deoria', 'देवरिया', 'UP'), ('Etah', 'एटा', 'UP'), 
         ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
@@ -99,13 +100,10 @@ class News(models.Model):
             except:
                 pass
 
-        # 3. SMART SLUG (Only if blank, else keeps manual edit)
+        # 3. SMART SLUG (Editable + Auto-generate)
         if not self.slug:
-            # Hindi to Latin (Hinglish)
             latin_title = unidecode(self.title)
-            # Cleaning common Hinglish spelling errors
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
-            # Final Slugify with Unique ID to prevent Django Errors
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
@@ -122,7 +120,7 @@ class News(models.Model):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            # Update without triggering save() again to avoid recursion
+            # Recursion se bachne ke liye update() use kiya
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except:
             pass
