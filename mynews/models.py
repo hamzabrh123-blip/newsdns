@@ -1,4 +1,4 @@
-import uuid, facebook, io, re
+import uuid, io, re
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -11,7 +11,6 @@ from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # --- UP Ke Poore 75 Districts + Categories ---
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
@@ -40,15 +39,11 @@ class News(models.Model):
         ('Siddharthnagar', 'सिद्धार्थनगर', 'UP'), ('Sitapur', 'सीतापुर', 'UP'), ('Sonbhadra', 'सोनभद्र', 'UP'), 
         ('Sultanpur', 'सुलतानपुर', 'UP'), ('Unnao', 'उन्नाव', 'UP'), ('Varanasi', 'वाराणसी', 'UP'),
         
-        # Categories & Other Major News Sections
         ('Delhi', 'दिल्ली', 'National'), ('National', 'राष्ट्रीय खबर', 'National'),
         ('International', 'अंतर्राष्ट्रीय', 'International'), ('Sports', 'खेल समाचार', 'Sports'),
         ('Bollywood', 'बॉलीवुड', 'Entertainment'), ('Technology', 'टेक्नोलॉजी', 'Technology'), 
         ('Market', 'मार्केट भाव', 'Market'),
     ]
-
-    # Error khatam karne ke liye ye static attribute zaroori hai
-    UP_CITIES = [(x[0], x[1]) for x in LOCATION_DATA if x[2] == 'UP']
 
     title = models.CharField(max_length=250)
     category = models.CharField(max_length=100, blank=True, null=True)
@@ -70,12 +65,17 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
 
     def get_absolute_url(self):
-        # url_city blank na rahe iska backup logic
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
+    @property
+    def get_image_url(self):
+        if self.image_url:
+            return self.image_url
+        return "/static/default.png"
+
     def save(self, *args, **kwargs):
-        # Auto-fill logic based on District
+        # 1. District Auto-Pilot
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -83,7 +83,7 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # Image processing & Cloud Upload
+        # 2. Image Processing & ImgBB Upload
         if self.image:
             try:
                 img = Image.open(self.image)
@@ -96,13 +96,21 @@ class News(models.Model):
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None
-            except: pass
+            except:
+                pass
 
+        # 3. SMART SLUG (Only if blank, else keeps manual edit)
         if not self.slug:
-            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
+            # Hindi to Latin (Hinglish)
+            latin_title = unidecode(self.title)
+            # Cleaning common Hinglish spelling errors
+            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
+            # Final Slugify with Unique ID to prevent Django Errors
+            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
         
+        # 4. Facebook Post Logic
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -114,7 +122,10 @@ class News(models.Model):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-        except: pass
+            # Update without triggering save() again to avoid recursion
+            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+        except:
+            pass
 
-    def __str__(self): return self.title
+    def __str__(self):
+        return self.title
