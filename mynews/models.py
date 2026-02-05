@@ -28,7 +28,7 @@ class News(models.Model):
         ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
         ('Firozabad', 'फिरोजाबाद', 'UP'), ('Gautam-Buddha-Nagar', 'नोएडा', 'UP'), 
         ('Ghaziabad', 'गाजियाबाद', 'UP'), ('Ghazipur', 'गाजीपुर', 'UP'), ('Gonda', 'गोंडा', 'UP'), 
-        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरपुर', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
+        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरpur', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
         ('Hardoi', 'हरदोई', 'UP'), ('Hathras', 'हाथरास', 'UP'), ('Jalaun', 'जालौन', 'UP'), 
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
@@ -53,8 +53,11 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
-    category = models.CharField(max_length=100, blank=True)
-    url_city = models.CharField(max_length=100, blank=True)
+    
+    # Category aur URL_City ko auto-fill ke liye null rakha hai
+    category = models.CharField(max_length=100, blank=True, null=True)
+    url_city = models.CharField(max_length=100, blank=True, null=True)
+    
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA])
     
     content = RichTextField(blank=True) 
@@ -79,7 +82,7 @@ class News(models.Model):
         return None
 
     def save(self, *args, **kwargs):
-        # 1. Auto-fill Category & url_city
+        # 1. AUTO-FILL LOGIC: Category aur url_city khud bharega
         for eng, hin, cat in self.LOCATION_DATA:
             if self.district == eng:
                 self.url_city = eng.lower()
@@ -106,6 +109,8 @@ class News(models.Model):
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
+        
+        # 4. Facebook Sharing
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
