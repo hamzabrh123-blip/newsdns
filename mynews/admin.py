@@ -1,53 +1,57 @@
 from django.contrib import admin
-from django.db import models  # Field overrides ke liye zaroori hai
+from django.db import models 
 from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    # List view jahan saari news dikhti hain
+    # Admin List view mein kya-kya dikhega
     list_display = ('title', 'district', 'category', 'date', 'is_important', 'share_now_to_fb', 'is_fb_posted')
     list_filter = ('district', 'category', 'date', 'is_important', 'is_fb_posted')
     search_fields = ('title', 'content')
     list_editable = ('is_important', 'share_now_to_fb')
     list_per_page = 20
-    readonly_fields = ('is_fb_posted', 'slug')
+    
+    # SLUG KO READONLY SE HATA DIYA HAI taaki tu edit kar sake
+    # Category aur url_city auto-pilot hain toh unhe readonly rehne de
+    readonly_fields = ('is_fb_posted', 'category', 'url_city')
 
-    # --- TITLE BOX KO BROAD (CHAUDA) KARNE KA LOGIC ---
+    # Heading dabba (Title) ko bada aur laal border dene ke liye formatting
     formfield_overrides = {
         models.CharField: {
             'widget': admin.widgets.AdminTextInputWidget(
                 attrs={
-                    'style': 'width: 100% !important; min-width: 900px; padding: 12px; font-size: 1.2rem; font-weight: bold; border: 2px solid #b91d1d; border-radius: 8px;'
+                    'style': 'width: 100%; padding: 15px; font-size: 1.4rem; border: 2px solid #b91d1d; border-radius: 8px;'
                 }
             )
         },
     }
 
-    # Admin Edit Page ka Structure
+    # Admin panel ke sections (Fields)
     fieldsets = (
-        ('Headline Section (Broad View)', {
+        ('Headline Section (Full Width)', {
             'fields': ('title',),
-            'description': 'Headline ko yahan bada aur saaf-saaf likhein.'
         }),
         ('Khabar ka Content', {
             'fields': ('content',)
         }),
-        ('Big Controller (Category & Location)', {
-            'fields': (('category', 'district', 'url_city'),),
-            'description': 'Select karein ki news kahan dikhani hai (Middle East, Sports, etc.)'
+        ('Location Control (Auto-Pilot)', {
+            'fields': (('district', 'category', 'url_city'),),
+            'description': 'Sirf District select karein, Category aur URL City apne aap set ho jayenge.'
         }),
         ('Media Section', {
             'fields': (('image', 'image_url'), 'youtube_url'),
         }),
-        ('Facebook Automation', {
-            'fields': (('share_now_to_fb', 'is_fb_posted'),),
+        ('Facebook & Importance', {
+            'fields': (('is_important', 'share_now_to_fb', 'is_fb_posted'),),
         }),
-        ('Advanced SEO & Settings', {
-            'fields': ('meta_keywords', 'slug', 'is_important', 'date'),
-            'classes': ('collapse',), # Is par click karne par hi khulega
+        ('Advanced SEO Settings', {
+            'fields': ('slug', 'date'), 
+            'description': 'Slug khali chhod dein auto-generate karne ke liye. Edit karna ho toh yahan se badlein.',
+            'classes': ('collapse',), # Isse ye section default mein band rahega
         }),
     )
 
-    # Automatically date fill karne ke liye agar blank chhoda
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
+        # Jab tu "Save" dabayega, toh ye model.py ke save() ko trigger karega
+        # Jahan humne slug banane ka logic likha hai
+        obj.save()

@@ -5,62 +5,49 @@
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
-    /* Full Width Reset */
+    /* Layout Reset */
     .container-fluid { padding: 0 40px; }
-    body { background-color: #fff; overflow-x: hidden; }
-
-    /* Hero Grid (International News) */
-    .hero-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
-        grid-template-rows: 250px 250px;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 4px; }
-    .hero-item img { 
-        width: 100%; height: 100%; object-fit: cover; 
-        opacity: 0.7; transition: 0.5s; 
-    }
+    body { background-color: #f4f7f6 !important; font-family: 'Poppins', 'Mukta', sans-serif; }
+    
+    /* Hero Grid */
+    .hero-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 250px 250px; gap: 12px; margin-bottom: 40px; }
+    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 12px; height: 100%; }
+    .hero-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.75; transition: 0.5s; }
     .hero-item:hover img { transform: scale(1.05); opacity: 0.9; }
-    .hero-content { 
-        position: absolute; bottom: 0; left: 0; padding: 20px; 
-        background: linear-gradient(transparent, rgba(0,0,0,0.9)); width: 100%;
-    }
-    .hero-big { grid-row: span 2; }
-    .hero-content h2, .hero-content h4 { color: #fff; font-weight: bold; margin: 0; }
+    .hero-content { position: absolute; bottom: 0; left: 0; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); width: 100%; z-index: 2; }
+    .hero-big { grid-column: 1 / 2; grid-row: 1 / 3; }
+    .hero-content h2 { color: #fff; font-weight: 800; font-size: 1.6rem; margin: 0; }
+    .hero-content h4 { color: #fff; font-weight: 700; font-size: 1rem; margin: 0; }
 
-    /* News Cards Style */
-    .clean-card {
-        border: none; border-bottom: 1px solid #eee;
-        padding-bottom: 20px; margin-bottom: 20px; transition: 0.3s;
-    }
-    .clean-card img { border-radius: 4px; object-fit: cover; height: 180px; width: 100%; }
-    .news-tag { color: #d32f2f; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
-    .news-title { font-size: 1.3rem; font-weight: 800; color: #1a1a1a; text-decoration: none; display: block; margin-top: 5px; }
-    .news-title:hover { color: #d32f2f; }
+    /* News Cards */
+    .clean-card { background: #fff; border-radius: 12px; border: 1px solid #eef0f2; margin-bottom: 25px; transition: 0.3s; overflow: hidden; height: 100%; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .clean-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); border-color: #d32f2f; }
+    .clean-card img { width: 100%; height: 180px; object-fit: cover; }
+    .card-body-custom { padding: 15px; flex-grow: 1; }
+    .news-tag { color: #d32f2f; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .news-title { font-size: 1.1rem; font-weight: 800; color: #1a1a1a; line-height: 1.4; text-decoration: none !important; }
 
-    /* Custom Scroll Animation Class */
-    [data-aos="fade-up"] { transition-timing-function: cubic-bezier(.175, .885, .32, 1.275); }
+    /* Section Headers */
+    .section-title { border-left: 6px solid #d32f2f; padding-left: 15px; font-weight: 900; color: #1a1a1a; margin: 30px 0 20px; text-transform: uppercase; background: #eee; padding-top: 5px; padding-bottom: 5px; }
 
-    @media (max-width: 992px) {
-        .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-        .container-fluid { padding: 0 15px; }
-    }
+    /* Pager Styling */
+    .pagination .page-link { color: #d32f2f; border-radius: 5px; margin: 0 3px; }
+    .pagination .active .page-link { background-color: #d32f2f; border-color: #d32f2f; color: white; }
+
+    @media (max-width: 992px) { .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; } .hero-big { grid-row: span 1; } }
 </style>
 
-<div class="container-fluid mt-2">
+<div class="container-fluid mt-3">
     <div class="hero-grid">
-        {% for item in top_3_highlights %}
+        {% for item in top_5_highlights %}
         <div class="hero-item {% if forloop.first %}hero-big{% endif %}" data-aos="fade-in">
-            <img src="{{ item.image_url }}" alt="{{ item.title }}">
-            <div class="hero-content">
-                <span class="badge bg-danger mb-2">{{ item.district }}</span>
-                <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-decoration-none">
-                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:50 }}</h4> {% endif %}
-                </a>
-                <div class="text-white-50 small mt-2"><i class="far fa-clock"></i> {{ item.date|timesince }} ago</div>
-            </div>
+            <a href="{% url 'news_detail' item.url_city item.slug %}">
+                <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                <div class="hero-content">
+                    <span class="badge bg-danger mb-2">{{ item.district }}</span>
+                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:55 }}</h4> {% endif %}
+                </div>
+            </a>
         </div>
         {% endfor %}
     </div>
@@ -68,26 +55,54 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-9 border-end">
-            <h4 class="fw-bold mb-4" style="border-left: 5px solid #d32f2f; padding-left: 15px;">LATEST UPDATES</h4>
+        <div class="col-lg-9">
             
+            <h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
             <div class="row">
-                {% for item in other_news %}
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+                {% for item in up_news|slice:":4" %}
+                <div class="col-md-3 mb-4">
+                    <div class="clean-card shadow-sm">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}"><img src="{{ item.image_url }}" alt="news"></a>
+                        <div class="card-body-custom">
+                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title|truncatechars:60 }}</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4 class="section-title">देश (National)</h4>
+                    {% for item in national_news|slice:":3" %}
+                    <div class="d-flex mb-3 border-bottom pb-2">
+                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <h4 class="section-title">दुनिया (World)</h4>
+                    {% for item in world_news|slice:":3" %}
+                    <div class="d-flex mb-3 border-bottom pb-2">
+                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <h4 class="section-title">बाज़ार और खेल (Market & Sports)</h4>
+            <div class="row">
+                {% for item in other_news|slice:":4" %}
+                <div class="col-md-6 mb-4">
                     <div class="clean-card">
-                        <div class="row align-items-center">
-                            <div class="col-5">
-                                <a href="{% url 'news_detail' item.url_city item.slug %}">
-                                    <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                                </a>
-                            </div>
-                            <div class="col-7">
-                                <span class="news-tag">{{ item.district }}</span>
-                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">
-                                    {{ item.title|truncatechars:70 }}
-                                </a>
-                                <div class="text-muted small mt-2 d-none d-md-block">
-                                    {{ item.content|striptags|truncatechars:80 }}
+                        <div class="row g-0">
+                            <div class="col-4"><img src="{{ item.image_url }}" class="img-fluid h-100" style="object-fit: cover;"></div>
+                            <div class="col-8">
+                                <div class="card-body-custom">
+                                    <span class="news-tag">{{ item.category }}</span>
+                                    <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.95rem;">{{ item.title }}</a>
                                 </div>
                             </div>
                         </div>
@@ -96,15 +111,24 @@
                 {% endfor %}
             </div>
 
-            {% if page_obj.has_other_pages %}
-            <div class="py-4">
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-dark w-100 py-2 fw-bold">LOAD MORE NEWS</a>
-            </div>
-            {% endif %}
+            <nav aria-label="Page navigation" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if other_news.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ other_news.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    
+                    <li class="page-item active"><span class="page-link">Page {{ other_news.number }} of {{ other_news.paginator.num_pages }}</span></li>
+
+                    {% if other_news.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ other_news.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
         </div>
 
-        <div class="col-lg-3">
-            <div class="sticky-top" style="top: 100px;">
+        <div class="col-lg-3 border-start">
+            <div class="sticky-top" style="top: 100px; padding-left: 15px;">
                 {% include "mynews/sidebar.html" %}
             </div>
         </div>
@@ -112,11 +136,5 @@
 </div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-  AOS.init({
-    duration: 1000,
-    once: true,
-  });
-</script>
-
+<script>AOS.init({ duration: 800, once: true });</script>
 {% endblock %}

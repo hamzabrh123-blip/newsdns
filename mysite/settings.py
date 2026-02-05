@@ -6,8 +6,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -18,7 +18,7 @@ ALLOWED_HOSTS = [
     "newsdns.onrender.com"
 ]
 
-# --- SSL & CSRF Fix ---
+# --- SSL & CSRF Fix (Render Production ke liye) ---
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -28,10 +28,11 @@ if not DEBUG:
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com", 
     "https://www.uttarworld.com", 
-    "https://newsdns.onrender.com"
+    "https://newsdns.onrender.com",
+    "https://*.onrender.com" 
 ]
 
-# --- APPS ---
+# --- INSTALLED APPS ---
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -71,8 +72,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                
-                # --- NAYE AUTOMATIC PROCESSORS YAHA HAIN ---
                 "mynews.context_processors.important_news",
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.active_cities_processor",
@@ -83,33 +82,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (PC vs Server Switch) ---
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-        )
-    }
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# --- DATABASE (Render Postgres) ---
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+    )
+}
 
-# --- STATIC & MEDIA ---
+# --- STATIC & MEDIA (Cloudinary + Whitenoise) ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
+# Cloudinary Settings (Variables Render se aa rahe hain)
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your_api_key'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
+
+# Default storage for media files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 STORAGES = {
     "default": {
@@ -120,12 +114,20 @@ STORAGES = {
     },
 }
 
-MEDIA_URL = '/media/'
-TIME_ZONE = "Asia/Kolkata"
-USE_TZ = True
+# --- EMAIL SETTINGS (Render Variables) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' # Ya jo bhi aapka provider ho
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# --- FACEBOOK & CKEDITOR ---
-FB_PAGE_ID = "108286920828619"
-FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_LONG_LIVED_TOKEN_HERE")
-CKEDITOR_UPLOAD_PATH = "uploads/" 
+# --- FACEBOOK & IMGBB (Render Variables) ---
+FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
+FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
+FB_GROUP_1_ID = os.environ.get("FB_GROUP_1_ID")
+FB_GROUP_2_ID = os.environ.get("FB_GROUP_2_ID")
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
