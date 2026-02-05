@@ -72,9 +72,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "mynews.context_processors.important_news",
+                # Naya Fix: Sirf ye do line rakho
                 "mynews.context_processors.site_visits",
-                "mynews.context_processors.active_cities_processor",
+                "mynews.context_processors.news_data_processor", 
             ],
         },
     },
