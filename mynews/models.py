@@ -14,13 +14,12 @@ from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # --- Sab Kuch Ek Hi List Mein (English, Hindi, Category) ---
+    # Sab Kuch Ek Hi List Mein
     LOCATION_DATA = [
-        # UP Districts (75)
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
         ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमगढ़', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
-        ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बलरामपुर', 'UP'), 
+        ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बालरामपुर', 'UP'), 
         ('Banda', 'बांदा', 'UP'), ('Barabanki', 'बाराबंकी', 'UP'), ('Bareilly', 'बरेली', 'UP'), 
         ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोही', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
         ('Budaun', 'बदायूँ', 'UP'), ('Bulandshahr', 'बुलंदशहर', 'UP'), ('Chandauli', 'चंदौली', 'UP'), 
@@ -33,7 +32,7 @@ class News(models.Model):
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
         ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'लalitpur', 'UP'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
         ('Lucknow', 'लखनऊ', 'UP'), ('Maharajganj', 'महराजगंज', 'UP'), ('Mahoba', 'महोबा', 'UP'), 
         ('Mainpuri', 'मैनपुरी', 'UP'), ('Mathura', 'मथुरा', 'UP'), ('Mau', 'मऊ', 'UP'), 
         ('Meerut', 'मेरठ', 'UP'), ('Mirzapur', 'मिर्जापुर', 'UP'), ('Moradabad', 'मुरादाबाद', 'UP'), 
@@ -44,7 +43,6 @@ class News(models.Model):
         ('Siddharthnagar', 'सिद्धार्थनगर', 'UP'), ('Sitapur', 'सीतापुर', 'UP'), ('Sonbhadra', 'सोनभद्र', 'UP'), 
         ('Sultanpur', 'सुलतानपुर', 'UP'), ('Unnao', 'उन्नाव', 'UP'), ('Varanasi', 'वाराणसी', 'UP'),
         
-        # Categories & Other Cities
         ('Delhi', 'दिल्ली', 'National'), ('National', 'राष्ट्रीय खबर', 'National'),
         ('Int-MiddleEast', 'मिडिल ईस्ट', 'International'), ('Int-America', 'अमेरिका', 'International'),
         ('International', 'अंतर्राष्ट्रीय', 'International'), ('Sports', 'खेल समाचार', 'Sports'),
@@ -52,9 +50,10 @@ class News(models.Model):
         ('Technology', 'टेक्नोलॉजी', 'Technology'), ('Market', 'मार्केट भाव', 'Market'),
     ]
 
+    # Error khatam karne ke liye static attribute
+    UP_CITIES = [(x[0], x[1]) for x in LOCATION_DATA if x[2] == 'UP']
+
     title = models.CharField(max_length=250)
-    
-    # In teenon fields ko nullable kiya hai taaki Render deployment na ruke
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(
@@ -77,16 +76,7 @@ class News(models.Model):
     def get_absolute_url(self):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
-    @property
-    def get_video_id(self):
-        if self.youtube_url:
-            pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
-            match = re.search(pattern, self.youtube_url)
-            if match: return match.group(1)
-        return None
-
     def save(self, *args, **kwargs):
-        # 1. AUTO-FILL LOGIC: District ke basis par category set hogi
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -94,7 +84,6 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Image WEBP Compression & ImgBB
         if self.image:
             try:
                 img = Image.open(self.image)
@@ -109,18 +98,17 @@ class News(models.Model):
                     self.image = None
             except: pass
 
-        # 3. Clean Slug
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
         
-        # 4. Facebook Sharing
         if self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
         try:
+            import facebook
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
