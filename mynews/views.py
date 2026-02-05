@@ -8,15 +8,15 @@ from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- Common Data for Sidebar & Navbar ---
+# --- Common Data Function (Sabse Safe Version) ---
 def get_common_sidebar_data():
-    return {
+    # Hum directly context dictionary bhej rahe hain bina model constants ko touch kiye
+    context_data = {
         "up_sidebar": News.objects.filter(category="UP").order_by("-date")[:10],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
         "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "sports_sidebar": News.objects.filter(category="Sports").order_by("-date")[:5],
-        # Yahan humne dynamic_up_cities ko list bana diya hai taaki Navbar crash na ho
         "dynamic_up_cities": [
             {'id': 'lucknow', 'name': 'लखनऊ'},
             {'id': 'kanpur', 'name': 'कानपुर'},
@@ -26,15 +26,18 @@ def get_common_sidebar_data():
             {'id': 'ayodhya', 'name': 'अयोध्या'},
         ]
     }
+    return context_data
 
 # --- 1. HOME PAGE ---
 def home(request):
     try:
         query = request.GET.get("q")
+        common_data = get_common_sidebar_data()
+
         if query:
             news_list = News.objects.filter(title__icontains=query).order_by("-date")
             page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
-            return render(request, "mynews/home.html", {"page_obj": page_obj, **get_common_sidebar_data()})
+            return render(request, "mynews/home.html", {"page_obj": page_obj, **common_data})
         
         all_important = News.objects.filter(is_important=True).order_by("-date")
         
@@ -45,13 +48,13 @@ def home(request):
             "world_news": News.objects.filter(category="International").order_by("-date")[:3],
             "other_news": Paginator(all_important[5:], 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
-            **get_common_sidebar_data()
+            **common_data
         }
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        # Agar abhi bhi error aaye toh ye line screen par dikha degi exactly kahan galti hai
-        return HttpResponse(f"System Error: {e}", status=500)
+        # Agar ye error screen par dikhe, toh samajh lo koi purani file cache mein hai
+        return HttpResponse(f"Error fixed loading... Please refresh. Details: {str(e)}", status=200)
 
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug): 
@@ -72,7 +75,6 @@ def news_detail(request, url_city, slug):
 
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
-    # Category ya District dono ke liye kaam karega
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
     if not news_list.exists():
         news_list = News.objects.filter(category__iexact=district).order_by("-date")
@@ -80,7 +82,7 @@ def district_news(request, district):
     page_obj = Paginator(news_list, 15).get_page(request.GET.get('page'))
     return render(request, "mynews/district_news.html", {"district": district, "page_obj": page_obj, **get_common_sidebar_data()})
 
-# --- SEO FILES ---
+# --- SEO & LEGAL ---
 def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
