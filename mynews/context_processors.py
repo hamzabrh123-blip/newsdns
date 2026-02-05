@@ -1,20 +1,26 @@
 from .models import News
 
-def important_news(request):
-    return {
-        'important_news': News.objects.filter(is_important=True).order_by('-date')[:20]
-    }
+def site_visits(request):
+    """
+    Render ka error fix karne ke liye:
+    Agar visitor count ka table nahi hai toh abhi sirf 0 bhej rahe hain.
+    """
+    return {'site_visits': 0}
 
-def active_cities_processor(request):
-    # 1. Check karo kin districts/categories mein news hai
+def news_data_processor(request):
+    """
+    Sare important data ko ek hi processor mein combine kar diya
+    taaki bar-bar database par load na pade.
+    """
+    # 1. Important News (Breaking News)
+    breaking_news = News.objects.filter(is_important=True).order_by('-date')[:20]
+
+    # 2. Dynamic UP Cities Logic
     active_districts = News.objects.values_list('district', flat=True).distinct()
     
-    # 2. News.LOCATION_DATA se filter karo
-    # item[0]=Key, item[1]=Hindi Name, item[2]=Category
     dynamic_up_cities = []
-    
     for item in News.LOCATION_DATA:
-        # Sirf tab add karo jab uski news ho AUR wo 'UP' category ka ho
+        # item[0]=Key (Agra), item[1]=Hindi (आगरा), item[2]=Category (UP)
         if item[0] in active_districts and item[2] == 'UP':
             dynamic_up_cities.append({
                 'id': item[0],
@@ -22,6 +28,6 @@ def active_cities_processor(request):
             })
 
     return {
+        'important_news': breaking_news,
         'dynamic_up_cities': dynamic_up_cities,
-        'important_news': News.objects.filter(is_important=True).order_by('-date')[:20]
     }
