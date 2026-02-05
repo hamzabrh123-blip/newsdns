@@ -12,7 +12,6 @@ from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # --- UP Districts Data ---
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
@@ -61,6 +60,9 @@ class News(models.Model):
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
+    
+    # Ye line Render ka error fixed karegi
+    meta_keywords = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
@@ -73,7 +75,6 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. District Logic
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -81,7 +82,6 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Watermark Logic (Optimized for 550x400)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -94,11 +94,8 @@ class News(models.Model):
                     watermark = Image.open(watermark_path).convert("RGBA")
                     base_side = min(img.width, img.height)
                     target_width = int(base_side * 0.20) 
-                    
-                    # Aspect ratio maintenance
                     w_ratio = target_width / float(watermark.size[0])
                     target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    
                     watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
                     position = (img.width - target_width - 20, img.height - target_height - 20)
                     img.paste(watermark, position, watermark)
@@ -115,7 +112,6 @@ class News(models.Model):
             except Exception as e:
                 print(f"Bhai Error: {e}")
 
-        # 3. Slug Logic
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -123,7 +119,6 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
-        # 4. Trigger FB Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -135,8 +130,6 @@ class News(models.Model):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            
-            # Post ke baad update takki loop na bane
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB Error: {e}")
