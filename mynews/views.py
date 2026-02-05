@@ -9,17 +9,17 @@ from django.db.models import Case, When, Value, IntegerField
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- SIDEBAR LOGIC ---
+# --- SIDEBAR LOGIC (Ab Category use karega) ---
 def get_common_sidebar_data():
     return {
-        "bazaar_sidebar": News.objects.filter(district="Market").order_by("-date")[:5],
-        "bharat_sidebar": News.objects.filter(district="UP-National").order_by("-date")[:5],
-        "up_sidebar": News.objects.exclude(district__in=["Market", "Sports", "UP-National"]).exclude(district__startswith="Int-").order_by("-date")[:10],
-        "world_sidebar": News.objects.filter(district__startswith="Int-").order_by("-date")[:5],
-        "sports_sidebar": News.objects.filter(district="Sports").order_by("-date")[:5],
+        "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
+        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
+        "up_sidebar": News.objects.filter(category="UP").order_by("-date")[:10],
+        "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
+        "sports_sidebar": News.objects.filter(category="Sports").order_by("-date")[:5],
     }
 
-# --- 1. HOME PAGE (With Sections & Pagination) ---
+# --- 1. HOME PAGE ---
 def home(request):
     try:
         query = request.GET.get("q")
@@ -31,19 +31,19 @@ def home(request):
         # Priority Logic
         all_important = News.objects.filter(is_important=True).annotate(
             priority=Case(
-                When(district__startswith="Int-", then=Value(1)),
+                When(category="International", then=Value(1)),
                 default=Value(2),
                 output_field=IntegerField(),
             )
         ).order_by("priority", "-date")
         
-        # Sections for Home
-        up_news = News.objects.exclude(district__in=["Market", "Sports", "UP-National"]).exclude(district__startswith="Int-").order_by("-date")
-        national_news = News.objects.filter(district="UP-National").order_by("-date")
-        world_news = News.objects.filter(district__startswith="Int-").order_by("-date")
+        # Sections for Home (Category based - ekdum saaf!)
+        up_news = News.objects.filter(category="UP").order_by("-date")
+        national_news = News.objects.filter(category="National").order_by("-date")
+        world_news = News.objects.filter(category="International").order_by("-date")
         
-        # PAGINATION logic for "Other News" section
-        paginator = Paginator(all_important[5:], 10) # Pehli 5 grid mein, baaki paginated
+        # PAGINATION
+        paginator = Paginator(all_important[5:], 10) 
         page_number = request.GET.get('page')
         other_news_page = paginator.get_page(page_number)
         
@@ -52,7 +52,7 @@ def home(request):
             "up_news": up_news[:4],
             "national_news": national_news[:3],
             "world_news": world_news[:3],
-            "other_news": other_news_page, # Ye template mein pager chalayega
+            "other_news": other_news_page,
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **get_common_sidebar_data()
         }
@@ -63,8 +63,9 @@ def home(request):
 
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug): 
-    news = get_object_of_404(News, slug=slug, url_city=url_city)
-    related_news = News.objects.filter(district=news.district).exclude(id=news.id).order_by("-date")[:6]
+    # Yahan get_object_or_404 hona chahiye (get_object_of_404 typos theek kiya)
+    news = get_object_or_404(News, slug=slug, url_city=url_city)
+    related_news = News.objects.filter(category=news.category).exclude(id=news.id).order_by("-date")[:6]
     
     v_id = None
     if news.youtube_url:
@@ -97,7 +98,9 @@ def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for n in items:
-        xml += f'  <url><loc>{SITE_URL.rstrip("/")}{n.get_absolute_url()}</loc><lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>\n'
+        # url_city aur slug use karke URL banao
+        full_url = f"{SITE_URL.rstrip('/')}/{n.url_city}/{n.slug}/"
+        xml += f'  <url><loc>{full_url}</loc><lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>\n'
     xml += "</urlset>"
     return HttpResponse(xml, content_type="application/xml")
 
