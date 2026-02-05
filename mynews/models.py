@@ -28,12 +28,12 @@ class News(models.Model):
         ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
         ('Firozabad', 'फिरोजाबाद', 'UP'), ('Gautam-Buddha-Nagar', 'नोएडा', 'UP'), 
         ('Ghaziabad', 'गाजियाबाद', 'UP'), ('Ghazipur', 'गाजीपुर', 'UP'), ('Gonda', 'गोंडा', 'UP'), 
-        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरpur', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
+        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरपुर', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
         ('Hardoi', 'हरदोई', 'UP'), ('Hathras', 'हाथरास', 'UP'), ('Jalaun', 'जालौन', 'UP'), 
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
         ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'लalitpur', 'UP'), 
         ('Lucknow', 'लखनऊ', 'UP'), ('Maharajganj', 'महराजगंज', 'UP'), ('Mahoba', 'महोबा', 'UP'), 
         ('Mainpuri', 'मैनपुरी', 'UP'), ('Mathura', 'मथुरा', 'UP'), ('Mau', 'मऊ', 'UP'), 
         ('Meerut', 'मेरठ', 'UP'), ('Mirzapur', 'मिर्जापुर', 'UP'), ('Moradabad', 'मुरादाबाद', 'UP'), 
@@ -54,11 +54,15 @@ class News(models.Model):
 
     title = models.CharField(max_length=250)
     
-    # Category aur URL_City ko auto-fill ke liye null rakha hai
+    # In teenon fields ko nullable kiya hai taaki Render deployment na ruke
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    
-    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA])
+    district = models.CharField(
+        max_length=100, 
+        choices=[(x[0], x[1]) for x in LOCATION_DATA],
+        blank=True,
+        null=True
+    )
     
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
@@ -82,12 +86,13 @@ class News(models.Model):
         return None
 
     def save(self, *args, **kwargs):
-        # 1. AUTO-FILL LOGIC: Category aur url_city khud bharega
-        for eng, hin, cat in self.LOCATION_DATA:
-            if self.district == eng:
-                self.url_city = eng.lower()
-                self.category = cat
-                break
+        # 1. AUTO-FILL LOGIC: District ke basis par category set hogi
+        if self.district:
+            for eng, hin, cat in self.LOCATION_DATA:
+                if self.district == eng:
+                    self.url_city = eng.lower()
+                    self.category = cat
+                    break
 
         # 2. Image WEBP Compression & ImgBB
         if self.image:
