@@ -78,7 +78,7 @@ class News(models.Model):
             return self.image_url
         return "/static/default.png"
 
-    def save(self, *args, **kwargs):
+def save(self, *args, **kwargs):
         # 1. District Auto-Pilot
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
@@ -87,26 +87,34 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Image Processing + WATERMARK + ImgBB Upload
+        # 2. Image Processing + FIXED WATERMARK + ImgBB
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
                 
-                # Image resize (Halki karne ke liye)
+                # Image resize (Max limit 1200px)
                 img.thumbnail((1200, 1200), Image.LANCZOS)
 
-                # --- AUTO WATERMARK LOGIC ---
+                # --- FIXED WATERMARK LOGIC ---
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
-                    # Watermark ko photo ke 25% width par set karo
-                    wm_width = int(img.width * 0.25)
-                    wm_height = int(watermark.height * (wm_width / watermark.width))
+                    
+                    # Logica: Image ki jo side sabse chhoti hai, uske hisaab se logo scale hoga
+                    # Isse logo patli ya lambi image mein "Ajeeb" nahi lagega
+                    base_size = min(img.width, img.height)
+                    
+                    # Logo ko base size ka 20% rakhte hain (Sahi dikhne ke liye)
+                    wm_width = int(base_size * 0.20) 
+                    w_percent = (wm_width / float(watermark.size[0]))
+                    wm_height = int((float(watermark.size[1]) * float(w_percent)))
+                    
                     watermark = watermark.resize((wm_width, wm_height), Image.LANCZOS)
-                    # Bottom-Right corner
-                    position = (img.width - wm_width - 20, img.height - wm_height - 20)
+                    
+                    # Padding: Corner se 15px door (Fix rakhte hain)
+                    position = (img.width - wm_width - 15, img.height - wm_height - 15)
                     img.paste(watermark, position, watermark)
 
                 # WebP Conversion
@@ -114,16 +122,15 @@ class News(models.Model):
                 img.save(output, format='WEBP', quality=50)
                 output.seek(0)
                 
-                # ContentFile bana ke upload karna
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None
-            except:
-                pass
+            except Exception as e:
+                print(f"Watermark Error: {e}")
 
-        # 3. SMART SLUG (Editable + Auto-generate)
+        # 3. SMART SLUG
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -131,7 +138,7 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
-        # 4. Facebook Post Logic (Yahan wahi purana logic hai jo tumne diya tha)
+        # 4. Facebook Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
