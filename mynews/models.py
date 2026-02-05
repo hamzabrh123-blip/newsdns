@@ -1,6 +1,7 @@
 import uuid
 import facebook
 import io
+import re
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -18,7 +19,7 @@ class News(models.Model):
         # UP Districts (75)
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
-        ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमgarh', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
+        ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमगढ़', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
         ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बलरामपुर', 'UP'), 
         ('Banda', 'बांदा', 'UP'), ('Barabanki', 'बाराबंकी', 'UP'), ('Bareilly', 'बरेली', 'UP'), 
         ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोही', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
@@ -29,7 +30,7 @@ class News(models.Model):
         ('Ghaziabad', 'गाजियाबाद', 'UP'), ('Ghazipur', 'गाजीपुर', 'UP'), ('Gonda', 'गोंडा', 'UP'), 
         ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरपुर', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
         ('Hardoi', 'हरदोई', 'UP'), ('Hathras', 'हाथरास', 'UP'), ('Jalaun', 'जालौन', 'UP'), 
-        ('Jaunpur', 'जौनपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
+        ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
         ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
         ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
@@ -52,33 +53,40 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
-    # Backend Auto-fill fields
     category = models.CharField(max_length=100, blank=True)
     url_city = models.CharField(max_length=100, blank=True)
-    
-    # Dropdown Menu
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA])
     
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
+    youtube_url = models.URLField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
+    is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
 
     def get_absolute_url(self):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
+    @property
+    def get_video_id(self):
+        if self.youtube_url:
+            pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+            match = re.search(pattern, self.youtube_url)
+            if match: return match.group(1)
+        return None
+
     def save(self, *args, **kwargs):
-        # --- Logic: Auto-populate Category & url_city ---
+        # 1. Auto-fill Category & url_city
         for eng, hin, cat in self.LOCATION_DATA:
             if self.district == eng:
-                self.url_city = eng.lower() # Link ke liye english
-                self.category = cat # Filter ke liye category
+                self.url_city = eng.lower()
+                self.category = cat
                 break
 
-        # Image Logic
+        # 2. Image WEBP Compression & ImgBB
         if self.image:
             try:
                 img = Image.open(self.image)
@@ -93,6 +101,7 @@ class News(models.Model):
                     self.image = None
             except: pass
 
+        # 3. Clean Slug
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
