@@ -3,7 +3,6 @@
 <div class="py-1 d-none d-lg-block" style="background: #ffffff; font-size: 0.8rem; border-bottom: 1px solid #eee;">
     <div class="container d-flex justify-content-between align-items-center">
         <div id="google_translate_element"></div>
-        
         <div class="social-links">
             <a href="#" class="text-dark me-3"><i class="fab fa-facebook-f"></i></a>
             <a href="#" class="text-dark me-3"><i class="fab fa-twitter"></i></a>
@@ -48,11 +47,17 @@
                     <a class="nav-link dropdown-toggle text-white px-2" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
                     <ul class="dropdown-menu border-0 shadow-lg" style="max-height: 350px; overflow-y: auto;">
                         <li><a class="dropdown-item fw-bold border-bottom text-primary" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
-                        {% for city in dynamic_up_cities %}
-                            {% if city.id != 'UP-National' %}
-                            <li><a class="dropdown-item" href="{% url 'district_news' city.id %}">{{ city.name }}</a></li>
-                            {% endif %}
-                        {% endfor %}
+                        
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'lucknow' %}">लखनऊ</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'kanpur' %}">कानपुर</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'varanasi' %}">वाराणसी</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'gorakhpur' %}">गोरखपुर</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'prayagraj' %}">प्रयागराज</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'ayodhya' %}">अयोध्या</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'agra' %}">आगरा</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'bareilly' %}">बरेली</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'meerut' %}">मेरठ</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'jhansi' %}">झांसी</a></li>
                     </ul>
                 </li>
 
@@ -71,7 +76,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white px-2" href="#" data-bs-toggle="dropdown">टेक-बाज़ार</a>
                     <ul class="dropdown-menu border-0 shadow-lg">
-                        <li><a class="dropdown-item" href="{% url 'technology' %}">टेक्नोलॉजी</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Technology' %}">टेक्नोलॉजी</a></li>
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Market' %}">मार्केट / बिज़नेस</a></li>
                     </ul>
                 </li>
@@ -98,13 +103,11 @@
 </nav>
 
 <style>
-    /* Desktop Styles */
-    .navbar-nav .nav-link { transition: 0.3s; padding: 0.5rem 0.6rem !important; } /* Padding adjusted for more tabs */
+    .navbar-nav .nav-link { transition: 0.3s; padding: 0.5rem 0.6rem !important; }
     .navbar-nav .nav-link:hover { color: #ffcc00 !important; }
     .dropdown-menu { border-radius: 8px; font-size: 0.85rem; border-top: 3px solid #ffcc00; }
     .dropdown-item:hover { background-color: #f8f9fa; color: #800000; padding-left: 25px; transition: 0.2s; }
 
-    /* MOBILE VIEW FIX */
     @media (max-width: 991.98px) {
         .navbar-collapse {
             background: #4a0000;
