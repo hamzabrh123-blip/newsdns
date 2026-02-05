@@ -9,7 +9,10 @@ class NewsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'content')
     list_editable = ('is_important', 'share_now_to_fb')
     list_per_page = 20
-    readonly_fields = ('is_fb_posted', 'slug', 'category', 'url_city')
+    
+    # SLUG KO READONLY SE HATA DIYA HAI taaki tu edit kar sake
+    # Category aur url_city auto-pilot hain toh unhe readonly rehne de
+    readonly_fields = ('is_fb_posted', 'category', 'url_city')
 
     # Add/Edit page formatting
     formfield_overrides = {
@@ -40,10 +43,12 @@ class NewsAdmin(admin.ModelAdmin):
             'fields': (('is_important', 'share_now_to_fb', 'is_fb_posted'),),
         }),
         ('Advanced SEO Settings', {
-            'fields': ('slug', 'date'), # <--- Yahan se meta_keywords hata diya hai
+            'fields': ('slug', 'date'), 
+            'description': 'Slug khali chhod dein auto-generate karne ke liye. Edit karna ho toh yahan se badlein.',
             'classes': ('collapse',),
         }),
     )
 
     def save_model(self, request, obj, form, change):
+        # Seedha model ka save call hoga jisme hamara naya slug logic hai
         obj.save()
