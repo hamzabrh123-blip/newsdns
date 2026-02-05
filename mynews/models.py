@@ -8,18 +8,18 @@ from unidecode import unidecode
 from django.urls import reverse
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.contrib.staticfiles import finders # Watermark dhoondne ke liye
+from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # --- UP Ke Poore 75 Districts + Categories ---
+    # --- UP Districts Data ---
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
         ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
         ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमगढ़', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
         ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बालरामपुर', 'UP'), 
         ('Banda', 'बांदा', 'UP'), ('Barabanki', 'बाराबंकी', 'UP'), ('Bareilly', 'बरेली', 'UP'), 
-        ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोhi', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
+        ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोही', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
         ('Budaun', 'बदायूँ', 'UP'), ('Bulandshahr', 'बुलंदशहर', 'UP'), ('Chandauli', 'चंदौली', 'UP'), 
         ('Chitrakoot', 'चित्रकूट', 'UP'), ('Deoria', 'देवरिया', 'UP'), ('Etah', 'एटा', 'UP'), 
         ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
@@ -30,7 +30,7 @@ class News(models.Model):
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
         ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'लalitपुर', 'UP'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
         ('Lucknow', 'लखनऊ', 'UP'), ('Maharajganj', 'महराजगंज', 'UP'), ('Mahoba', 'महोबा', 'UP'), 
         ('Mainpuri', 'मैनपुरी', 'UP'), ('Mathura', 'मथुरा', 'UP'), ('Mau', 'मऊ', 'UP'), 
         ('Meerut', 'मेरठ', 'UP'), ('Mirzapur', 'मिर्जापुर', 'UP'), ('Moradabad', 'मुरादाबाद', 'UP'), 
@@ -48,16 +48,10 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
-    # Status field taaki draft save ho sake
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    district = models.CharField(
-        max_length=100, 
-        choices=[(x[0], x[1]) for x in LOCATION_DATA],
-        blank=True, null=True
-    )
-    
+    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
@@ -78,8 +72,8 @@ class News(models.Model):
             return self.image_url
         return "/static/default.png"
 
-def save(self, *args, **kwargs):
-        # 1. District Auto-Pilot
+    def save(self, *args, **kwargs):
+        # 1. District Logic
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -87,50 +81,41 @@ def save(self, *args, **kwargs):
                     self.category = cat
                     break
 
-        # 2. Image Processing + FIXED WATERMARK + ImgBB
+        # 2. Watermark Logic (Optimized for 550x400)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
-                
-                # Image resize (Max limit 1200px)
                 img.thumbnail((1200, 1200), Image.LANCZOS)
 
-                # --- FIXED WATERMARK LOGIC ---
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
+                    base_side = min(img.width, img.height)
+                    target_width = int(base_side * 0.20) 
                     
-                    # Logica: Image ki jo side sabse chhoti hai, uske hisaab se logo scale hoga
-                    # Isse logo patli ya lambi image mein "Ajeeb" nahi lagega
-                    base_size = min(img.width, img.height)
+                    # Aspect ratio maintenance
+                    w_ratio = target_width / float(watermark.size[0])
+                    target_height = int(float(watermark.size[1]) * float(w_ratio))
                     
-                    # Logo ko base size ka 20% rakhte hain (Sahi dikhne ke liye)
-                    wm_width = int(base_size * 0.20) 
-                    w_percent = (wm_width / float(watermark.size[0]))
-                    wm_height = int((float(watermark.size[1]) * float(w_percent)))
-                    
-                    watermark = watermark.resize((wm_width, wm_height), Image.LANCZOS)
-                    
-                    # Padding: Corner se 15px door (Fix rakhte hain)
-                    position = (img.width - wm_width - 15, img.height - wm_height - 15)
+                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
+                    position = (img.width - target_width - 20, img.height - target_height - 20)
                     img.paste(watermark, position, watermark)
 
-                # WebP Conversion
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=50)
                 output.seek(0)
-                
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None
             except Exception as e:
-                print(f"Watermark Error: {e}")
+                print(f"Bhai Error: {e}")
 
-        # 3. SMART SLUG
+        # 3. Slug Logic
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -138,7 +123,7 @@ def save(self, *args, **kwargs):
 
         super().save(*args, **kwargs)
         
-        # 4. Facebook Post
+        # 4. Trigger FB Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -150,9 +135,11 @@ def save(self, *args, **kwargs):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+            
+            # Post ke baad update takki loop na bane
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-        except:
-            pass
+        except Exception as e:
+            print(f"FB Error: {e}")
 
     def __str__(self):
         return self.title
