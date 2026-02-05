@@ -4,6 +4,7 @@ from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
+    # Admin List view mein kya-kya dikhega
     list_display = ('title', 'district', 'category', 'date', 'is_important', 'share_now_to_fb', 'is_fb_posted')
     list_filter = ('district', 'category', 'date', 'is_important', 'is_fb_posted')
     search_fields = ('title', 'content')
@@ -14,7 +15,7 @@ class NewsAdmin(admin.ModelAdmin):
     # Category aur url_city auto-pilot hain toh unhe readonly rehne de
     readonly_fields = ('is_fb_posted', 'category', 'url_city')
 
-    # Add/Edit page formatting
+    # Heading dabba (Title) ko bada aur laal border dene ke liye formatting
     formfield_overrides = {
         models.CharField: {
             'widget': admin.widgets.AdminTextInputWidget(
@@ -25,6 +26,7 @@ class NewsAdmin(admin.ModelAdmin):
         },
     }
 
+    # Admin panel ke sections (Fields)
     fieldsets = (
         ('Headline Section (Full Width)', {
             'fields': ('title',),
@@ -45,10 +47,11 @@ class NewsAdmin(admin.ModelAdmin):
         ('Advanced SEO Settings', {
             'fields': ('slug', 'date'), 
             'description': 'Slug khali chhod dein auto-generate karne ke liye. Edit karna ho toh yahan se badlein.',
-            'classes': ('collapse',),
+            'classes': ('collapse',), # Isse ye section default mein band rahega
         }),
     )
 
     def save_model(self, request, obj, form, change):
-        # Seedha model ka save call hoga jisme hamara naya slug logic hai
+        # Jab tu "Save" dabayega, toh ye model.py ke save() ko trigger karega
+        # Jahan humne slug banane ka logic likha hai
         obj.save()
