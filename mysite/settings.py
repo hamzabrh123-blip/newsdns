@@ -82,13 +82,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (Render Postgres) ---
+# --- DATABASE (Render Postgres + Local Support) ---
+# Niche wala code Render ke DATABASE_URL ko use karega.
+# Agar PC par ho aur error aaye, toh 'default' line ko badal kar sqlite wali kar dena.
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
     )
 }
+
+# PC PAR MIGRATION KE LIYE ISKO USE KAREIN (COMMENTED):
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
@@ -108,12 +118,10 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Isse 'logo.png' wala error khatam ho jayega
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
-# Render strictness fix
 WHITENOISE_MANIFEST_STRICT = False
 
 # --- EMAIL SETTINGS ---
