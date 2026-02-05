@@ -9,26 +9,26 @@ from django.db.models import Q
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- Common Data Function (Bina kisi Model Constant ke) ---
 def get_common_sidebar_data():
-    # Navbar dropdown ke shehar - Direct list taaki UP_CITIES ka error na aaye
-    cities = [
-        {'id': 'lucknow', 'name': 'लखनऊ'},
-        {'id': 'kanpur-nagar', 'name': 'कानपुर'},
-        {'id': 'varanasi', 'name': 'वाराणसी'},
-        {'id': 'prayagraj', 'name': 'प्रयागराज'},
-        {'id': 'gorakhpur', 'name': 'गोरखपुर'},
-        {'id': 'ayodhya', 'name': 'अयोध्या'},
-        {'id': 'bahraich', 'name': 'बहराइच'},
-    ]
+    from .models import News
     
-    context_data = {
+    # 1. Database se check karo kaun-kaun se districts mein news hai
+    # Isse wahi districts milenge jo empty nahi hain
+    used_districts = News.objects.exclude(district__isnull=True).values_list('district', flat=True).distinct()
+    
+    # 2. Sirf wahi cities navbar mein bhejo jinki news maujood hai
+    dynamic_cities = []
+    for eng, hin, cat in News.LOCATION_DATA:
+        if eng in used_districts:
+            dynamic_cities.append({'id': eng, 'name': hin})
+    
+    return {
         "up_sidebar": News.objects.filter(category="UP").order_by("-date")[:10],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
         "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "sports_sidebar": News.objects.filter(category="Sports").order_by("-date")[:5],
-        "dynamic_up_cities": cities,
+        "dynamic_up_cities": dynamic_cities,
     }
     return context_data
 
