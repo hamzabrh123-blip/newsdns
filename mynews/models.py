@@ -1,5 +1,7 @@
 import uuid
 import facebook
+import io
+from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
@@ -7,6 +9,7 @@ from django.utils.timezone import now
 from unidecode import unidecode
 from django.urls import reverse
 from django.conf import settings
+from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -31,7 +34,7 @@ class News(models.Model):
         ('Lucknow', 'लखनऊ'), ('Maharajganj', 'महराजगंज'), ('Mahoba', 'महोबा'), 
         ('Mainpuri', 'मैनपुरी'), ('Mathura', 'मथुरा'), ('Mau', 'मऊ'), 
         ('Meerut', 'मेरठ'), ('Mirzapur', 'मिर्जापुर'), ('Moradabad', 'मुरादाबाद'), 
-        ('Muzaffarnagar', 'मुजफ्फरनगर'), ('Pilibhit', 'पीलीभीत'), ('Pratapgarh', 'प्रतापगढ़'), 
+        ('Muzaffarnagar', 'मुजफ्फरनगर'), ('Pilibhit', 'पीलीभीत'), ('Pratapgarh', 'प्रatapgarh'), 
         ('Prayagraj', 'प्रयागराज'), ('Rae-Bareli', 'रायबरेली'), ('Rampur', 'रामपुर'), 
         ('Saharanpur', 'सहारनपुर'), ('Sambhal', 'सम्भल'), ('Sant-Kabir-Nagar', 'संत कबीर नगर'), 
         ('Shahjahanpur', 'शाहजहांपुर'), ('Shamli', 'शामली'), ('Shravasti', 'श्रावस्ती'), 
@@ -52,7 +55,7 @@ class News(models.Model):
     title = models.CharField(max_length=250)
     category = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, choices=LOCATION_CHOICES, blank=True, null=True)
-    url_city = models.CharField(max_length=100, blank=True, null=True)
+    url_city = models.CharField(max_length=100, blank=True, null=True) # Automatic banega ab
     date = models.DateTimeField(default=now)
     content = RichTextField(blank=True) 
     image = models.ImageField("Upload Image", upload_to="news_pics/", blank=True, null=True)
@@ -68,22 +71,39 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': self.url_city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # ERROR FIX: ImgBB upload and Cloudinary bypass
+        # --- MAGIC 1: IMAGE COMPRESSION TO WEBP (30-50KB) ---
         if self.image:
             try:
+                img = Image.open(self.image)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+
+                output = io.BytesIO()
+                # Quality 40 perfect hai 30-50kb ke liye
+                img.save(output, format='WEBP', quality=40, optimize=True)
+                output.seek(0)
+
+                # Naya compressed naam
+                new_name = f"{slugify(unidecode(self.title))[:30]}.webp"
+                self.image = ContentFile(output.read(), name=new_name)
+
+                # --- MAGIC 2: IMGBB UPLOAD ---
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    # Important: image field ko None karo taaki Cloudinary closed file error na de
-                    self.image = None 
+                    self.image = None # Cloudinary/Server space saved!
             except Exception as e:
-                print(f"ImgBB Error: {e}")
+                print(f"Compression/ImgBB Error: {e}")
 
+        # --- MAGIC 3: AUTO URL_CITY FROM DROPDOWN ---
+        if self.district:
+            # Agar district 'Bahraich' select hai, toh url_city bhi 'bahraich' ban jaye
+            self.url_city = slugify(unidecode(self.district))
+        
         if not self.url_city:
-            self.url_city = slugify(unidecode(self.district)) if self.district else "news"
-        else:
-            self.url_city = slugify(unidecode(self.url_city))
+            self.url_city = "news"
 
+        # --- MAGIC 4: AUTO SLUG ---
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))}-{str(uuid.uuid4())[:8]}"
 
@@ -103,7 +123,6 @@ class News(models.Model):
                 graph.put_object(parent_object=PAGE_ID, connection_name='photos', url=self.image_url, caption=message)
             else:
                 graph.put_object(parent_object=PAGE_ID, connection_name='feed', message=message, link=post_url)
-            # Use update to avoid calling save() recursively
             self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"Facebook API Error: {e}")
