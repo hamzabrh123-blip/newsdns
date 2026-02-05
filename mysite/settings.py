@@ -6,7 +6,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+# Production mein hamesha False rahega (Render Environment Variable se uthayega)
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
 
 ALLOWED_HOSTS = [
@@ -25,10 +26,12 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# Isme wildcards (*) add kar diye hain taaki Render par error na aaye
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com", 
     "https://www.uttarworld.com", 
-    "https://newsdns.onrender.com"
+    "https://newsdns.onrender.com",
+    "https://*.onrender.com" 
 ]
 
 # --- APPS ---
@@ -38,7 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
+    "whitenoise.runserver_nostatic", # Static files ke liye best
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -47,7 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Static handling
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -70,7 +73,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 
-                # --- NAYE AUTOMATIC PROCESSORS YAHA HAIN ---
+                # Custom processors
                 "mynews.context_processors.important_news",
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.active_cities_processor",
@@ -81,7 +84,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (PC vs Server Switch) ---
+# --- DATABASE ---
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(
@@ -101,15 +104,14 @@ else:
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Ensure this path is correct based on your project structure
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your_api_key'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
-}
+# Media Handling (Now using ImgBB for permanent storage in models)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
 
-# --- CLOUDINARY BLOCK KAR DIYA ---
+# WhiteNoise Storage for fast CSS/JS
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -119,12 +121,18 @@ STORAGES = {
     },
 }
 
-# Media URL ko default rakho
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / "media"
-
 # --- FACEBOOK & CKEDITOR ---
-FB_PAGE_ID = "108286920828619"
-FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_LONG_LIVED_TOKEN_HERE")
-CKEDITOR_UPLOAD_PATH = "uploads/" 
+FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "108286920828619")
+FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_TOKEN_HERE")
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+# CKEDITOR settings for better display
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        'width': '100%',
+    },
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
