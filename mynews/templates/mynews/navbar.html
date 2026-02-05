@@ -48,16 +48,13 @@
                     <ul class="dropdown-menu border-0 shadow-lg" style="max-height: 350px; overflow-y: auto;">
                         <li><a class="dropdown-item fw-bold border-bottom text-primary" href="{% url 'district_news' 'UP-National' %}">यूपी राष्ट्रीय</a></li>
                         
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'lucknow' %}">लखनऊ</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'kanpur' %}">कानपुर</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'varanasi' %}">वाराणसी</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'gorakhpur' %}">गोरखपुर</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'prayagraj' %}">प्रयागराज</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'ayodhya' %}">अयोध्या</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'agra' %}">आगरा</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'bareilly' %}">बरेली</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'meerut' %}">मेरठ</a></li>
-                        <li><a class="dropdown-item" href="{% url 'district_news' 'jhansi' %}">झांसी</a></li>
+                        {% if dynamic_up_cities %}
+                            {% for city in dynamic_up_cities %}
+                                <li><a class="dropdown-item" href="{% url 'district_news' city.id %}">{{ city.name }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><span class="dropdown-item text-muted" style="font-size: 0.75rem;">खबरें जल्द आ रही हैं...</span></li>
+                        {% endif %}
                     </ul>
                 </li>
 
