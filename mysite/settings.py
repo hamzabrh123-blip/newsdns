@@ -6,9 +6,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-# Production mein hamesha False rahega (Render Environment Variable se uthayega)
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-up-halchal-123-aDc-439-082")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -19,14 +18,13 @@ ALLOWED_HOSTS = [
     "newsdns.onrender.com"
 ]
 
-# --- SSL & CSRF Fix ---
+# --- SSL & CSRF Fix (Render Production ke liye) ---
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# Isme wildcards (*) add kar diye hain taaki Render par error na aaye
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com", 
     "https://www.uttarworld.com", 
@@ -34,23 +32,25 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com" 
 ]
 
-# --- APPS ---
+# --- INSTALLED APPS ---
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic", # Static files ke liye best
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
+    "cloudinary",
+    "cloudinary_storage",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Static handling
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,8 +72,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                
-                # Custom processors
                 "mynews.context_processors.important_news",
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.active_cities_processor",
@@ -84,55 +82,52 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE ---
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-        )
-    }
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# --- DATABASE (Render Postgres) ---
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+    )
+}
 
-# --- STATIC & MEDIA ---
+# --- STATIC & MEDIA (Cloudinary + Whitenoise) ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Ensure this path is correct based on your project structure
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Media Handling (Now using ImgBB for permanent storage in models)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / "media"
+# Cloudinary Settings (Variables Render se aa rahe hain)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
 
-# WhiteNoise Storage for fast CSS/JS
+# Default storage for media files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# --- FACEBOOK & CKEDITOR ---
-FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "108286920828619")
-FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "YOUR_TOKEN_HERE")
+# --- EMAIL SETTINGS (Render Variables) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' # Ya jo bhi aapka provider ho
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+# --- FACEBOOK & IMGBB (Render Variables) ---
+FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
+FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
+FB_GROUP_1_ID = os.environ.get("FB_GROUP_1_ID")
+FB_GROUP_2_ID = os.environ.get("FB_GROUP_2_ID")
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
-# CKEDITOR settings for better display
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'full',
-        'height': 300,
-        'width': '100%',
-    },
-}
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
