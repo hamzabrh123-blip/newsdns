@@ -1,29 +1,19 @@
-{% extends 'mynews/base.html' %}
-{% load static %}
-
-{% block title %}{{ news.title }} | Uttar World News{% endblock %}
-
-{% block social_meta %}
-<meta name="description" content="{{ meta_description }}">
-<link rel="canonical" href="{{ request.build_absolute_uri }}">
-
-<meta property="og:type" content="article">
-<meta property="og:title" content="{{ news.title }}">
-<meta property="og:description" content="{{ meta_description }}">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}">
-{% endblock %}
-
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
     :root { --news-red: #d32f2f; --text-dark: #1a1a1a; }
-    body { background-color: #fff; color: var(--text-dark); }
+    body { background-color: #f4f7f6; color: var(--text-dark); } /* Background thoda grey kiya taaki white card chamke */
+
+    /* Premium Card Wrapper */
+    .content-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Soft shadow for depth */
+        padding: 40px;
+        margin-bottom: 30px;
+        border: 1px solid #eaeaea;
+    }
 
     /* Typography */
     .article-title { 
@@ -40,19 +30,17 @@
     .author-box { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0; }
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 3px; }
 
-    /* Premium Middle Cards */
-    .news-wall-section { background: #fdfdfd; padding: 40px 0; border-top: 2px solid #f1f1f1; }
+    /* Related News Cards */
     .news-card { transition: 0.3s; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; height: 100%; background: #fff; }
     .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-    .news-card img { height: 180px; width: 100%; object-fit: cover; }
     
     /* Sticky Side Share */
     .sticky-share { position: sticky; top: 120px; z-index: 10; }
     .share-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: white !important; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
     @media (max-width: 768px) {
+        .content-card { padding: 20px; border-radius: 0; } /* Mobile par full width */
         .article-title { font-size: 1.8rem; }
-        .article-content { font-size: 1.15rem; }
     }
 </style>
 
@@ -67,42 +55,43 @@
         </div>
 
         <div class="col-lg-7">
-            <nav aria-label="breadcrumb" class="mb-2">
+            <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb small p-0 m-0 bg-transparent">
                     <li class="breadcrumb-item"><a href="/" class="text-danger text-decoration-none">HOME</a></li>
-                    <li class="breadcrumb-item active">{{ news.category|upper }}</li>
+                    <li class="breadcrumb-item active text-uppercase">{{ news.category }}</li>
                 </ol>
             </nav>
 
-            <span class="cat-badge mb-3 d-inline-block">{{ news.district|default:"UTTAR PRADESH" }}</span>
-            <h1 class="article-title">{{ news.title }}</h1>
+            <div class="content-card">
+                <span class="cat-badge mb-3 d-inline-block">{{ news.district|default:"UTTAR PRADESH" }}</span>
+                <h1 class="article-title">{{ news.title }}</h1>
 
-            <div class="author-box d-flex align-items-center mb-4">
-                <img src="https://ui-avatars.com/api/?name=Uttar+World&background=d32f2f&color=fff" class="rounded-circle me-3" width="50">
-                <div>
-                    <p class="mb-0 fw-bold">By Uttar World Desk</p>
-                    <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | <i class="far fa-clock"></i> {{ news.date|date:"h:i A" }}</small>
+                <div class="author-box d-flex align-items-center mb-4">
+                    <img src="https://ui-avatars.com/api/?name=Uttar+World&background=d32f2f&color=fff" class="rounded-circle me-3" width="50">
+                    <div>
+                        <p class="mb-0 fw-bold">By Uttar World Desk</p>
+                        <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | <i class="far fa-clock"></i> {{ news.date|date:"h:i A" }}</small>
+                    </div>
                 </div>
+
+                <figure class="mb-4">
+                    <img src="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}" class="w-100 rounded shadow-sm">
+                    <figcaption class="mt-2 small text-muted font-italic border-start border-danger border-3 ps-2">
+                        Source: Uttar World News Portal
+                    </figcaption>
+                </figure>
+
+                <div class="article-content">
+                    {{ news.content|safe }}
+                </div>
+
+                {% if v_id %}
+                <div class="ratio ratio-16x9 my-5 shadow-lg rounded overflow-hidden">
+                    <iframe src="https://www.youtube.com/embed/{{ v_id }}" allowfullscreen></iframe>
+                </div>
+                {% endif %}
             </div>
-
-            <figure class="mb-4">
-                <img src="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}" class="w-100 rounded shadow-sm">
-                <figcaption class="mt-2 small text-muted font-italic border-start border-danger border-3 ps-2">
-                    Source: Uttar World News Portal
-                </figcaption>
-            </figure>
-
-            <div class="article-content mb-5">
-                {{ news.content|safe }}
-            </div>
-
-            {% if v_id %}
-            <div class="ratio ratio-16x9 my-5 shadow-lg rounded overflow-hidden">
-                <iframe src="https://www.youtube.com/embed/{{ v_id }}" allowfullscreen></iframe>
-            </div>
-            {% endif %}
-
-            <div class="bg-light p-4 rounded-3 text-center mb-5 border">
+            <div class="bg-white p-4 rounded-4 text-center mb-5 border shadow-sm">
                 <h5 class="fw-bold mb-3">खबर पसंद आई? अपनों के साथ साझा करें</h5>
                 <div class="d-flex justify-content-center gap-2">
                     <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" class="btn btn-success px-4 rounded-pill"><i class="fab fa-whatsapp me-2"></i>WhatsApp</a>
@@ -110,42 +99,22 @@
                 </div>
             </div>
 
-            <div class="news-wall-section">
+            <div class="news-wall-section mt-4">
                 <h3 class="fw-bold mb-4 border-bottom pb-2">सम्बन्धित और ताज़ा खबरें</h3>
                 <div class="row g-4">
                     {% for r in related_news %}
                     <div class="col-md-6">
-                        <div class="news-card card h-100">
+                        <div class="news-card card">
                             <a href="{% url 'news_detail' r.url_city r.slug %}" class="text-decoration-none">
-                                <img src="{% if r.image %}{{ r.image.url }}{% else %}{{ r.image_url }}{% endif %}" 
-                                     class="card-img-top" 
-                                     onerror="this.src='https://via.placeholder.com/400x250?text=Uttar+World'">
+                                <img src="{% if r.image %}{{ r.image.url }}{% else %}{{ r.image_url }}{% endif %}" class="card-img-top">
                                 <div class="card-body">
-                                    <span class="text-danger fw-bold small mb-1 d-block">{{ r.district|upper }}</span>
-                                    <h5 class="card-title text-dark fw-bold" style="font-size: 1.1rem; line-height: 1.4;">
-                                        {{ r.title|truncatechars:70 }}
-                                    </h5>
-                                    <p class="text-muted small mt-2 mb-0">
-                                        <i class="far fa-clock"></i> {{ r.date|timesince }} पहले
-                                    </p>
+                                    <span class="text-danger fw-bold small mb-1 d-block text-uppercase">{{ r.district }}</span>
+                                    <h5 class="card-title text-dark fw-bold" style="font-size: 1.1rem;">{{ r.title|truncatechars:70 }}</h5>
                                 </div>
                             </a>
                         </div>
                     </div>
                     {% endfor %}
-                </div>
-
-                <div class="mt-5 p-4 bg-dark text-white rounded-4 shadow">
-                    <h4 class="fw-bold mb-4 text-warning">बड़ी खबरें: भारत और दुनिया</h4>
-                    <div class="row g-3">
-                        {% for item in bharat_sidebar %}
-                        <div class="col-md-6 border-bottom border-secondary pb-2">
-                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-white text-decoration-none small">
-                                <i class="fas fa-chevron-right text-warning me-2"></i>{{ item.title }}
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
             </div>
         </div>
@@ -153,25 +122,7 @@
         <div class="col-lg-4 ps-lg-5">
             <div class="sticky-top" style="top: 100px;">
                 {% include 'mynews/sidebar.html' %}
-                
-                <div class="mt-4 p-3 bg-light rounded border">
-                    <h6 class="fw-bold border-bottom pb-2">Trending Zones</h6>
-                    <div class="d-flex flex-wrap gap-2 pt-2">
-                        <a href="/UP-National/" class="badge bg-white text-dark border p-2 text-decoration-none">उत्तर प्रदेश</a>
-                        <a href="/Int-MiddleEast/" class="badge bg-white text-dark border p-2 text-decoration-none">मिडिल ईस्ट</a>
-                        <a href="/Sports/" class="badge bg-white text-dark border p-2 text-decoration-none">खेल समाचार</a>
-                        <a href="/Market/" class="badge bg-white text-dark border p-2 text-decoration-none">बाज़ार भाव</a>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-function copyUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link Copied!");
-}
-</script>
-{% endblock %}
