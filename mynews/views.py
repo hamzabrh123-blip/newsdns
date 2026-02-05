@@ -4,20 +4,22 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from .models import News
 from django.utils.html import strip_tags
+from django.db.models import Case, When, Value, IntegerField
 
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- SIDEBAR LOGIC ---
+# --- SIDEBAR LOGIC (Updated with UP News) ---
 def get_common_sidebar_data():
     return {
         "bazaar_sidebar": News.objects.filter(district="Market").order_by("-date")[:5],
-        "bharat_sidebar": News.objects.filter(district="UP-National").order_by("-date")[:10],
+        "bharat_sidebar": News.objects.filter(district="UP-National").order_by("-date")[:5],
+        "up_sidebar": News.objects.exclude(district__in=["Market", "Sports", "UP-National"]).exclude(district__startswith="Int-").order_by("-date")[:10], # Sirf UP ke Districts
         "world_sidebar": News.objects.filter(district__startswith="Int-").order_by("-date")[:5],
         "sports_sidebar": News.objects.filter(district="Sports").order_by("-date")[:5],
     }
 
-# --- 1. HOME PAGE ---
+# --- 1. HOME PAGE (Fixed Grid & Ordering) ---
 def home(request):
     try:
         query = request.GET.get("q")
@@ -26,14 +28,21 @@ def home(request):
             page_obj = Paginator(news_list, 40).get_page(request.GET.get("page"))
             return render(request, "mynews/home.html", {"page_obj": page_obj, **get_common_sidebar_data()})
         
-        all_important = News.objects.filter(is_important=True).order_by("-date")
+        # LOGIC: International news ko priority do, phir baaki important news
+        all_important = News.objects.filter(is_important=True).annotate(
+            priority=Case(
+                When(district__startswith="Int-", then=Value(1)), # International ko No. 1 rakho
+                default=Value(2),
+                output_field=IntegerField(),
+            )
+        ).order_by("priority", "-date")
         
         context = {
-            "top_3_highlights": all_important[:3],
+            "top_5_highlights": all_important[:5], # Ab 5 news aayengi grid ke liye
             "politics_news": News.objects.filter(district="UP-National").order_by("-date")[:4],
             "market_news": News.objects.filter(district="Market").order_by("-date")[:4],
-            "sports_news": News.objects.filter(district="Sports").order_by("-date")[:4], # Fixed here
-            "other_news": all_important[3:23],
+            "sports_news": News.objects.filter(district="Sports").order_by("-date")[:4],
+            "other_news": all_important[5:25], # Grid ke baad ki news
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **get_common_sidebar_data()
         }
@@ -41,6 +50,8 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse("Home Page Error", status=500)
+        
+# --- Baaki saare functions (news_detail, district_news, etc.) pehle jaise hi rahenge ---
         
 # --- 2. NEWS DETAIL (With FB Meta) ---
 def news_detail(request, url_city, slug): 
