@@ -5,18 +5,17 @@
 
 {% block social_meta %}
 <meta name="description" content="{{ meta_description }}">
-<meta name="keywords" content="{{ meta_keywords }}">
 <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ news.title }}">
 <meta property="og:description" content="{{ meta_description }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{{ news.image.url }}{% endif %}">
+<meta property="og:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{{ news.image.url }}{% endif %}">
+<meta name="twitter:image" content="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}">
 {% endblock %}
 
 {% block content %}
@@ -26,7 +25,6 @@
     :root { --news-red: #d32f2f; --text-dark: #1a1a1a; }
     body { background-color: #fff; color: var(--text-dark); }
 
-    /* Typography */
     .article-title { 
         font-family: 'Noto Serif Devanagari', serif; 
         font-weight: 800; font-size: 2.6rem; 
@@ -36,18 +34,11 @@
         font-family: 'Noto Serif Devanagari', serif; 
         font-size: 1.3rem; line-height: 1.9; color: #333; 
     }
-
-    /* Meta & Badges */
     .author-box { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0; }
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 3px; }
-
-    /* Space Filler & Grids */
     .news-wall-section { background: #fdfdfd; padding: 40px 0; border-top: 2px solid #f1f1f1; }
     .horizontal-card { transition: 0.3s; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 0 !important; }
     .horizontal-card:hover { background: #f9f9f9; }
-    .thumb-img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; }
-
-    /* Sticky Side Share */
     .sticky-share { position: sticky; top: 120px; z-index: 10; }
     .share-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: white !important; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
@@ -87,7 +78,7 @@
             </div>
 
             <figure class="mb-4">
-                <img src="{% if news.image_url %}{{ news.image_url }}{% else %}{{ news.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
+                <img src="{% if news.image %}{{ news.image.url }}{% else %}{{ news.image_url }}{% endif %}" class="w-100 rounded shadow-sm">
                 <figcaption class="mt-2 small text-muted font-italic border-start border-danger border-3 ps-2">
                     Source: Uttar World News Portal
                 </figcaption>
@@ -119,7 +110,7 @@
                         <div class="card horizontal-card h-100">
                             <div class="row g-0">
                                 <div class="col-4">
-                                    <img src="{{ r.image_url|default:r.image.url }}" class="img-fluid rounded" style="height: 100px; width: 100%; object-fit: cover;">
+                                    <img src="{% if r.image %}{{ r.image.url }}{% else %}{{ r.image_url }}{% endif %}" class="img-fluid rounded" style="height: 100px; width: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/150x100?text=News'">
                                 </div>
                                 <div class="col-8 ps-3">
                                     <h6 class="fw-bold small mb-1">
