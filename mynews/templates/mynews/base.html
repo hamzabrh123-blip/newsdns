@@ -32,6 +32,7 @@
             background-repeat: repeat;
             background-size: auto;
         }
+        
         @media (max-width: 768px) {
             body { background-attachment: scroll; }
             #google_translate_element { margin: 10px 0; display: block; text-align: center; }
@@ -40,6 +41,23 @@
         .navbar { position: sticky !important; top: 0; z-index: 9999 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         main { flex: 1; }
+
+        /* Admin/Staff Button Styling */
+        .admin-btn {
+            font-size: 0.85rem;
+            color: #888 !important;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 15px;
+        }
+        .admin-btn:hover {
+            color: #fff !important;
+            background: #d32f2f;
+            border-color: #d32f2f;
+        }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -80,26 +98,25 @@
                 <div class="col-md-2">
                     <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">कैटेगरी</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'national_news' %}" class="text-secondary text-decoration-none footer-link">देश</a></li>
-                        <li class="mb-2"><a href="{% url 'international_news' %}" class="text-secondary text-decoration-none footer-link">दुनिया</a></li>
-                        <li class="mb-2"><a href="{% url 'bollywood' %}" class="text-secondary text-decoration-none footer-link">मनोरंजन</a></li>
-                        <li class="mb-2"><a href="{% url 'technology' %}" class="text-secondary text-decoration-none footer-link">टेक्नोलॉजी</a></li>
+                        <li class="mb-2"><a href="{% url 'national_news' %}" class="text-secondary text-decoration-none">देश</a></li>
+                        <li class="mb-2"><a href="{% url 'international_news' %}" class="text-secondary text-decoration-none">दुनिया</a></li>
+                        <li class="mb-2"><a href="{% url 'bollywood' %}" class="text-secondary text-decoration-none">मनोरंजन</a></li>
+                        <li class="mb-2"><a href="{% url 'technology' %}" class="text-secondary text-decoration-none">टेक्नोलॉजी</a></li>
                     </ul>
                 </div>
 
                 <div class="col-md-3">
                     <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">सूचना</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'about_us' %}" class="text-secondary text-decoration-none footer-link">हमारे बारे में</a></li>
-                        <li class="mb-2"><a href="{% url 'contact_us' %}" class="text-secondary text-decoration-none footer-link">संपर्क करें</a></li>
-                        <li class="mb-2"><a href="{% url 'privacy_policy' %}" class="text-secondary text-decoration-none footer-link">Privacy Policy</a></li>
-                        <li class="mb-2"><a href="{% url 'disclaimer' %}" class="text-secondary text-decoration-none footer-link">Disclaimer</a></li>
+                        <li class="mb-2"><a href="{% url 'about_us' %}" class="text-secondary text-decoration-none">हमारे बारे में</a></li>
+                        <li class="mb-2"><a href="{% url 'contact_us' %}" class="text-secondary text-decoration-none">संपर्क करें</a></li>
+                        <li class="mb-2"><a href="{% url 'privacy_policy' %}" class="text-secondary text-decoration-none">Privacy Policy</a></li>
                     </ul>
                 </div>
 
                 <div class="col-md-3">
                     <h5 class="text-white mb-3 border-bottom border-danger pb-2 d-inline-block">संपर्क</h5>
-                    <p class="text-secondary mb-2 small"><i class="fas fa-map-marker-alt text-danger me-2"></i> बहराइच - 271801, उत्तर प्रदेश</p>
+                    <p class="text-secondary mb-2 small"><i class="fas fa-map-marker-alt text-danger me-2"></i> बहराइच, उत्तर प्रदेश</p>
                     <p class="text-secondary mb-2 small"><i class="fas fa-envelope text-danger me-2"></i> info@uttarworld.com</p>
                 </div>
             </div>
@@ -107,11 +124,16 @@
             <hr style="border-color: #333; margin: 40px 0 20px;">
 
             <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0 text-secondary small">&copy; 2026 <strong>Uttar World News</strong>. All Rights Reserved.</p>
+                <div class="col-md-7 text-center text-md-start">
+                    <p class="mb-0 text-secondary small">
+                        &copy; 2026 <strong>Uttar World News</strong>. All Rights Reserved.
+                        <a href="/control-panel/" class="admin-btn">
+                           <i class="fas fa-lock me-1"></i> Staff Login
+                        </a>
+                    </p>
                 </div>
-                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
-                    <small class="text-muted small">Designed with <i class="fas fa-heart text-danger"></i> for Uttar Pradesh</small>
+                <div class="col-md-5 text-center text-md-end mt-2 mt-md-0">
+                    <small class="text-muted small">Proprietary Custom News Engine | v2.0</small>
                 </div>
             </div>
         </div>
@@ -123,8 +145,8 @@
 <script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
-    pageLanguage: 'hi', // Asli bhasha Hindi hai
-    includedLanguages: 'en,ta,te,kn,ml,pa,gu,mr,bn,ur,fr,es,ar', // In bhashao mein badlega
+    pageLanguage: 'hi',
+    includedLanguages: 'en,ta,te,kn,ml,pa,gu,mr,bn,ur',
     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');
