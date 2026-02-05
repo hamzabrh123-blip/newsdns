@@ -4,30 +4,38 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from .models import News
 from django.utils.html import strip_tags
-from django.db.models import Case, When, Value, IntegerField
 
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
+# --- Common Data for Sidebar & Navbar ---
 def get_common_sidebar_data():
     return {
-        "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
-        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
         "up_sidebar": News.objects.filter(category="UP").order_by("-date")[:10],
+        "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
         "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
+        "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "sports_sidebar": News.objects.filter(category="Sports").order_by("-date")[:5],
+        # Yahan humne dynamic_up_cities ko list bana diya hai taaki Navbar crash na ho
+        "dynamic_up_cities": [
+            {'id': 'lucknow', 'name': 'लखनऊ'},
+            {'id': 'kanpur', 'name': 'कानपुर'},
+            {'id': 'varanasi', 'name': 'वाराणसी'},
+            {'id': 'prayagraj', 'name': 'प्रयागराज'},
+            {'id': 'gorakhpur', 'name': 'गोरखपुर'},
+            {'id': 'ayodhya', 'name': 'अयोध्या'},
+        ]
     }
 
+# --- 1. HOME PAGE ---
 def home(request):
     try:
-        # Simple Search logic
         query = request.GET.get("q")
         if query:
             news_list = News.objects.filter(title__icontains=query).order_by("-date")
             page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
             return render(request, "mynews/home.html", {"page_obj": page_obj, **get_common_sidebar_data()})
         
-        # News for main sections
         all_important = News.objects.filter(is_important=True).order_by("-date")
         
         context = {
@@ -42,9 +50,10 @@ def home(request):
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        # Error dikhane ke liye taaki aap pakad sako galti kahan hai
-        return HttpResponse(f"Galti mil gayi: {e}", status=500)
+        # Agar abhi bhi error aaye toh ye line screen par dikha degi exactly kahan galti hai
+        return HttpResponse(f"System Error: {e}", status=500)
 
+# --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug): 
     news = get_object_or_404(News, slug=slug, url_city=url_city)
     v_id = None
@@ -54,18 +63,24 @@ def news_detail(request, url_city, slug):
         
     context = {
         "news": news, 
-        "related_news": News.objects.filter(category=news.category).exclude(id=news.id).order_by("-date")[:6], 
+        "related_news": News.objects.filter(category=news.category).exclude(id=news.id).order_by("-date")[:6],
         "v_id": v_id,
         "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
 
+# --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
+    # Category ya District dono ke liye kaam karega
     news_list = News.objects.filter(district__iexact=district).order_by("-date")
+    if not news_list.exists():
+        news_list = News.objects.filter(category__iexact=district).order_by("-date")
+        
     page_obj = Paginator(news_list, 15).get_page(request.GET.get('page'))
     return render(request, "mynews/district_news.html", {"district": district, "page_obj": page_obj, **get_common_sidebar_data()})
 
+# --- SEO FILES ---
 def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
