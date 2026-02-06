@@ -12,7 +12,7 @@ application = get_wsgi_application()
 try:
     print("Bhai, Migration shuru ho rahi hai...")
     call_command('migrate', '--run-syncdb', '--noinput')
-    print("Bhai, Table V5 ban gayi!")
+    print("Bhai, Table V6 ban gayi!")
 except Exception as e:
     print(f"Migration mein error: {e}")
 
