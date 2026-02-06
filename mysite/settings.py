@@ -84,23 +84,13 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 
 
 
-# --- database (Direct Hardcoded & Optimized for Supabase Pooler) ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.lnbzfuxggmxixiibixnt',
-        'PASSWORD': 'eY64rdQPm1KcAkGr', 
-        'HOST': 'aws-1-ap-south-1.pooler.supabase.com',
-        'PORT': '6543',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'client_encoding': 'UTF8',
-            'connect_timeout': 10,
-        },
-        'DISABLE_SERVER_SIDE_CURSORS': True, # Transaction pooling ke liye must hai
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
+DATABASES['default']['OPTIONS'] = {'sslmode': 'require', 'client_encoding': 'UTF8'}
+DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 
 # --- STATIC & MEDIA ---
