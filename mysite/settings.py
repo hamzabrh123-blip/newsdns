@@ -86,10 +86,7 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Niche wala code Render ke DATABASE_URL ko use karega.
 # Agar PC par ho aur error aaye, toh 'default' line ko badal kar sqlite wali kar dena.
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-    )
+    'default': dj_database_url.parse('postgresql://postgres.lnbzfuxggmxixiibixnt:Halchal%402026%23Db@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require')
 }
 
 # PC PAR MIGRATION KE LIYE ISKO USE KAREIN (COMMENTED):
