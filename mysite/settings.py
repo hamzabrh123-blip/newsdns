@@ -89,13 +89,14 @@ DATABASES = {
         default=os.environ.get('DATABASE_URL')
     )
 }
-# Ye lines niche pakka honi chahiye
+
 DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
-    'client_encoding': 'UTF8', # Ye line encoding error bhagayegi
+    'client_encoding': 'UTF8', 
 }
-DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
+# 5432 ke liye isse False kardo ya hata do
+DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = False
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
