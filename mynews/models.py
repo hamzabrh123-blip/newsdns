@@ -63,7 +63,7 @@ class News(models.Model):
     meta_keywords = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = 'mynews_news_v4'  # Ye line Supabase mein fresh table banayegi aur error khatam karegi
+        db_table = 'mynews_news_v5'  # Ye line Supabase mein fresh table banayegi aur error khatam karegi
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
