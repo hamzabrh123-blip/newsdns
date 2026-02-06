@@ -89,7 +89,11 @@ DATABASES = {
         default=os.environ.get('DATABASE_URL')
     )
 }
-DATABASES['default']['OPTIONS'] = {'sslmode': 'require', 'client_encoding': 'UTF8'}
+# Ye lines niche pakka honi chahiye
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
+    'client_encoding': 'UTF8', # Ye line encoding error bhagayegi
+}
 DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 
