@@ -82,18 +82,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (Render Postgres + Local Support) ---
 
-#DATABASES = {
-  #  'default': dj_database_url.parse('postgresql://postgres.lnbzfuxggmxixiibixnt:Halchal%402026%23Db@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require')
-#}
 
+# --- database ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'uttarworld_final_live.sqlite3',  # Ek naya unique naam
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
+
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
