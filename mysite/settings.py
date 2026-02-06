@@ -86,18 +86,11 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
     )
 }
-
-# Session Pooler (5432) ke liye ye kaafi hai
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
-}
-
-# DISABLE_SERVER_SIDE_CURSORS ko False rakho ya hata do (Session mode mein True nahi chahiye)
-DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = False
-
+# Sirf itna kaafi hai simple setup ke liye
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
