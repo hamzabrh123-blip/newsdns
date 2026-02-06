@@ -90,12 +90,12 @@ DATABASES = {
     )
 }
 
+# Session Pooler (5432) ke liye ye kaafi hai
 DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
-    'client_encoding': 'UTF8', 
 }
 
-# 5432 ke liye isse False kardo ya hata do
+# DISABLE_SERVER_SIDE_CURSORS ko False rakho ya hata do (Session mode mein True nahi chahiye)
 DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = False
 
 # --- STATIC & MEDIA ---
