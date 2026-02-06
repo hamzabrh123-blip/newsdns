@@ -83,19 +83,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "mysite.wsgi.application"
 
 # --- DATABASE (Render Postgres + Local Support) ---
-# Niche wala code Render ke DATABASE_URL ko use karega.
-# Agar PC par ho aur error aaye, toh 'default' line ko badal kar sqlite wali kar dena.
-DATABASES = {
-    'default': dj_database_url.parse('postgresql://postgres.lnbzfuxggmxixiibixnt:Halchal%402026%23Db@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require')
-}
 
-# PC PAR MIGRATION KE LIYE ISKO USE KAREIN (COMMENTED):
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+#DATABASES = {
+  #  'default': dj_database_url.parse('postgresql://postgres.lnbzfuxggmxixiibixnt:Halchal%402026%23Db@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require')
+#}
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'uttarworld_final_live.sqlite3',  # Ek naya unique naam
+    }
+}
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
