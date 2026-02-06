@@ -93,6 +93,11 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD'),
         'HOST': os.environ.get('DB_HOST'),
         'PORT': os.environ.get('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+        # Transaction pooling ke liye ye line dalo
+        'DISABLE_SERVER_SIDE_CURSORS': True, 
     }
 }
 
