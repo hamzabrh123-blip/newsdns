@@ -60,9 +60,10 @@ class News(models.Model):
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
-    
-    # Ye line Render ka error fixed karegi
     meta_keywords = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'mynews_news_v2'  # Ye line Supabase mein fresh table banayegi aur error khatam karegi
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
