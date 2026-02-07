@@ -24,7 +24,7 @@ class News(models.Model):
         ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
         ('Firozabad', 'फिरोजाबाद', 'UP'), ('Gautam-Buddha-Nagar', 'नोएडा', 'UP'), 
         ('Ghaziabad', 'गाजियाबाद', 'UP'), ('Ghazipur', 'गाजीपुर', 'UP'), ('Gonda', 'गोंडा', 'UP'), 
-        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरपुर', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
+        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरpur', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
         ('Hardoi', 'हरदोई', 'UP'), ('Hathras', 'हाथरास', 'UP'), ('Jalaun', 'जालौन', 'UP'), 
         ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
@@ -73,16 +73,36 @@ class News(models.Model):
     def get_image_url(self):
         if self.image_url:
             return self.image_url
+        if self.image:
+            return self.image.url
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
+        # 1. District aur Category Logic (UP/Local News)
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
                     self.category = cat
                     break
+        
+        # 2. Category Logic (Technology, Sports, National etc.)
+        else:
+            # Agar district nahi hai, toh check karo kya ye Special Category hai
+            # Loop chala kar category match karte hain
+            found = False
+            for eng, hin, cat in self.LOCATION_DATA:
+                if self.category == eng or self.category == hin:
+                    self.url_city = eng.lower()
+                    self.category = cat if cat else eng
+                    found = True
+                    break
+            
+            # Agar category dropdown mein Technology select hai par loop ne nahi pakda
+            if not found and self.category:
+                self.url_city = slugify(self.category)
 
+        # 3. Image Processing (Watermark & WebP)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -104,15 +124,17 @@ class News(models.Model):
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=50)
                 output.seek(0)
-                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                # Purani file save karke Link upload
+                file_name = f"{uuid.uuid4().hex[:10]}.webp"
+                self.image = ContentFile(output.read(), name=file_name)
                 
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None
             except Exception as e:
-                print(f"Bhai Error: {e}")
+                print(f"Bhai Image Error: {e}")
 
+        # 4. Slug Logic
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -120,6 +142,7 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
+        # 5. Facebook Post Logic
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -130,7 +153,12 @@ class News(models.Model):
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+                try:
+                    graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+                except:
+                    graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
+            else:
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB Error: {e}")
