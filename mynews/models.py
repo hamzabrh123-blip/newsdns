@@ -1,4 +1,4 @@
-import uuid, io, re
+import uuid, io
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -50,7 +50,6 @@ class News(models.Model):
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    # यहाँ LOCATION_DATA को बिना News. के इस्तेमाल करें
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
@@ -64,7 +63,7 @@ class News(models.Model):
     meta_keywords = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # 1. District/Category Logic
+        # 1. Logic for District/Category
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -76,21 +75,19 @@ class News(models.Model):
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Image Logic: सिर्फ तभी जब नयी इमेज अपलोड हुई हो
-        # __original_image चेक लगाने के लिए आपको init में सेट करना पड़ता है, 
-        # अभी के लिए simple रखते हैं।
+        # 3. Image Logic: Loop रोकने के लिए check
+        # अगर image नयी है और अभी तक webp नहीं बनी है
         if self.image and hasattr(self.image, 'file') and not self.image.name.endswith('.webp'):
             try:
                 self.process_image_and_upload()
             except Exception as e:
                 print(f"Image Error: {e}")
 
-        super().save(*args, **kwargs)
+        # Final Save
+        super(News, self).save(*args, **kwargs)
         
-        # 4. FB Post: Save होने के बाद
+        # 4. FB Post: Save होने के बाद (Try-Except जरूरी है)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            # यहाँ सीधा कॉल करने के बजाय, आप एक thread भी यूज़ कर सकते हैं
-            # पर अभी के लिए try-except बेस्ट है।
             try:
                 self.post_to_facebook()
             except Exception as e:
@@ -102,7 +99,7 @@ class News(models.Model):
             img = img.convert("RGB")
         img.thumbnail((1000, 1000), Image.LANCZOS)
 
-        # Watermark
+        # Watermark Logic
         watermark_path = finders.find('watermark.png')
         if watermark_path:
             try:
@@ -119,18 +116,19 @@ class News(models.Model):
         webp_io = io.BytesIO()
         img.save(webp_io, format='WEBP', quality=70)
         
-        # JPG for FB
+        # JPG for ImgBB/FB
         jpg_io = io.BytesIO()
         img.save(jpg_io, format='JPEG', quality=80)
         
-        # सेव करने का सुरक्षित तरीका ताकि लूप न बने
+        # Loop रोकने के लिए: सीधे Field की value बदलना, save() मेथड नहीं
         new_name = f"{uuid.uuid4().hex[:10]}.webp"
         self.image.save(new_name, ContentFile(webp_io.getvalue()), save=False)
 
-        # ImgBB Upload
+        # ImgBB Upload (Optional but failsafe)
         try:
             link = upload_to_imgbb(ContentFile(jpg_io.getvalue(), name="fb.jpg"))
-            if link: self.image_url = link
+            if link:
+                self.image_url = link
         except: pass
 
     def post_to_facebook(self):
@@ -145,7 +143,7 @@ class News(models.Model):
             else:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
             
-            # recursive save रोकने के लिए update()
+            # Recursive save रोकने के लिए .update() बेस्ट है
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB API Error: {e}")
