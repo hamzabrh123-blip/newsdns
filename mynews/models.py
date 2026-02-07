@@ -1,4 +1,4 @@
-import uuid, io
+import uuid, io, re
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -62,8 +62,20 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'mynews_news'
+
+    def get_absolute_url(self):
+        city = self.url_city if self.url_city else "news"
+        return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
+
+    @property
+    def get_image_url(self):
+        if self.image_url:
+            return self.image_url
+        return "/static/default.png"
+
     def save(self, *args, **kwargs):
-        # 1. Logic for District/Category
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -71,79 +83,57 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Slug Logic
+        if self.image and hasattr(self.image, 'file'):
+            try:
+                img = Image.open(self.image)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img.thumbnail((1200, 1200), Image.LANCZOS)
+
+                watermark_path = finders.find('watermark.png')
+                if watermark_path:
+                    watermark = Image.open(watermark_path).convert("RGBA")
+                    base_side = min(img.width, img.height)
+                    target_width = int(base_side * 0.20) 
+                    w_ratio = target_width / float(watermark.size[0])
+                    target_height = int(float(watermark.size[1]) * float(w_ratio))
+                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
+                    position = (img.width - target_width - 20, img.height - target_height - 20)
+                    img.paste(watermark, position, watermark)
+
+                output = io.BytesIO()
+                img.save(output, format='WEBP', quality=50)
+                output.seek(0)
+                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                
+                uploaded_link = upload_to_imgbb(self.image)
+                if uploaded_link:
+                    self.image_url = uploaded_link
+                    self.image = None
+            except Exception as e:
+                print(f"Bhai Error: {e}")
+
         if not self.slug:
-            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
+            latin_title = unidecode(self.title)
+            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
+            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Image Logic: Loop रोकने के लिए check
-        # अगर image नयी है और अभी तक webp नहीं बनी है
-        if self.image and hasattr(self.image, 'file') and not self.image.name.endswith('.webp'):
-            try:
-                self.process_image_and_upload()
-            except Exception as e:
-                print(f"Image Error: {e}")
-
-        # Final Save
-        super(News, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         
-        # 4. FB Post: Save होने के बाद (Try-Except जरूरी है)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            try:
-                self.post_to_facebook()
-            except Exception as e:
-                print(f"Facebook Post Error: {e}")
-
-    def process_image_and_upload(self):
-        img = Image.open(self.image)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-        img.thumbnail((1000, 1000), Image.LANCZOS)
-
-        # Watermark Logic
-        watermark_path = finders.find('watermark.png')
-        if watermark_path:
-            try:
-                watermark = Image.open(watermark_path).convert("RGBA")
-                base_side = min(img.width, img.height)
-                target_width = int(base_side * 0.20)
-                w_ratio = target_width / float(watermark.size[0])
-                target_height = int(float(watermark.size[1]) * float(w_ratio))
-                watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
-                img.paste(watermark, (img.width - target_width - 20, img.height - target_height - 20), watermark)
-            except: pass
-
-        # WEBP for Portal
-        webp_io = io.BytesIO()
-        img.save(webp_io, format='WEBP', quality=70)
-        
-        # JPG for ImgBB/FB
-        jpg_io = io.BytesIO()
-        img.save(jpg_io, format='JPEG', quality=80)
-        
-        # Loop रोकने के लिए: सीधे Field की value बदलना, save() मेथड नहीं
-        new_name = f"{uuid.uuid4().hex[:10]}.webp"
-        self.image.save(new_name, ContentFile(webp_io.getvalue()), save=False)
-
-        # ImgBB Upload (Optional but failsafe)
-        try:
-            link = upload_to_imgbb(ContentFile(jpg_io.getvalue(), name="fb.jpg"))
-            if link:
-                self.image_url = link
-        except: pass
+            self.post_to_facebook()
 
     def post_to_facebook(self):
-        import facebook
         try:
+            import facebook
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
-            
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            else:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
-            
-            # Recursive save रोकने के लिए .update() बेस्ट है
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
-            print(f"FB API Error: {e}")
+            print(f"FB Error: {e}")
+
+    def __str__(self):
+        return self.title
