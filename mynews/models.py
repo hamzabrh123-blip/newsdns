@@ -50,7 +50,7 @@ class News(models.Model):
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
+    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in News.LOCATION_DATA if hasattr(News, 'LOCATION_DATA')], blank=True, null=True)
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
@@ -62,23 +62,8 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
-    class Meta:
-        db_table = 'mynews_news'
-
-    def get_absolute_url(self):
-        city = self.url_city if self.url_city else "news"
-        return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
-
-    @property
-    def get_image_url(self):
-        if self.image_url:
-            return self.image_url
-        if self.image:
-            return self.image.url
-        return "/static/default.png"
-
     def save(self, *args, **kwargs):
-        # District and Category Logic
+        # 1. District and Category Logic
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -86,57 +71,71 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # Image Processing with Watermark
-        if self.image and hasattr(self.image, 'file'):
-            try:
-                img = Image.open(self.image)
-                if img.mode in ("RGBA", "P"):
-                    img = img.convert("RGB")
-                img.thumbnail((1200, 1200), Image.LANCZOS)
-
-                watermark_path = finders.find('watermark.png')
-                if watermark_path:
-                    watermark = Image.open(watermark_path).convert("RGBA")
-                    base_side = min(img.width, img.height)
-                    target_width = int(base_side * 0.20) 
-                    w_ratio = target_width / float(watermark.size[0])
-                    target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
-                    position = (img.width - target_width - 20, img.height - target_height - 20)
-                    img.paste(watermark, position, watermark)
-
-                # --- STEP 1: Portal ke liye WEBP (Fast loading) ---
-                webp_output = io.BytesIO()
-                img.save(webp_output, format='WEBP', quality=60)
-                webp_output.seek(0)
-                self.image = ContentFile(webp_output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
-
-                # --- STEP 2: FB/ImgBB ke liye JPG (Better compatibility) ---
-                jpg_output = io.BytesIO()
-                img.save(jpg_output, format='JPEG', quality=75)
-                jpg_output.seek(0)
-                temp_jpg = ContentFile(jpg_output.read(), name="temp_fb.jpg")
-
-                uploaded_link = upload_to_imgbb(temp_jpg)
-                if uploaded_link:
-                    self.image_url = uploaded_link
-                
-            except Exception as e:
-                print(f"Image Save Error: {e}")
-
-        # Slug Logic
+        # 2. Slug Logic (Title change होने पर ही नया slug न बने, इसलिए check लगाया है)
         if not self.slug:
             latin_title = unidecode(self.title)
-            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
-            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(latin_title)[:60]}-{str(uuid.uuid4())[:6]}"
 
+        # 3. Image Processing (Try-Except के साथ ताकि Error 500 न आए)
+        if self.image and hasattr(self.image, 'file'):
+            try:
+                self.process_image_and_upload()
+            except Exception as e:
+                print(f"Image logic failed but continuing save: {e}")
+
+        # Pehle database me save karlo
         super().save(*args, **kwargs)
         
-        # Facebook Auto-Post
+        # 4. Facebook Auto-Post (Post save होने के बाद)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            self.post_to_facebook()
+            try:
+                self.post_to_facebook()
+            except Exception as e:
+                print(f"FB logic failed: {e}")
 
-   def post_to_facebook(self):
+    def process_image_and_upload(self):
+        """इमेज प्रोसेसिंग और ImgBB अपलोड को अलग फंक्शन में डाला"""
+        img = Image.open(self.image)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        
+        img.thumbnail((1000, 1000), Image.LANCZOS) # थोड़ा छोटा साइज
+
+        # Watermark logic
+        watermark_path = finders.find('watermark.png')
+        if watermark_path:
+            try:
+                watermark = Image.open(watermark_path).convert("RGBA")
+                base_side = min(img.width, img.height)
+                target_width = int(base_side * 0.20) 
+                w_ratio = target_width / float(watermark.size[0])
+                target_height = int(float(watermark.size[1]) * float(w_ratio))
+                watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
+                position = (img.width - target_width - 20, img.height - target_height - 20)
+                img.paste(watermark, position, watermark)
+            except:
+                pass
+
+        # WEBP for Portal
+        webp_output = io.BytesIO()
+        img.save(webp_output, format='WEBP', quality=70)
+        webp_output.seek(0)
+        
+        # JPG for Facebook/ImgBB
+        jpg_output = io.BytesIO()
+        img.save(jpg_output, format='JPEG', quality=80)
+        jpg_output.seek(0)
+
+        # File update
+        file_name = f"{uuid.uuid4().hex[:10]}.webp"
+        self.image.save(file_name, ContentFile(webp_output.read()), save=False)
+
+        # ImgBB Upload
+        uploaded_link = upload_to_imgbb(ContentFile(jpg_output.read(), name="temp_fb.jpg"))
+        if uploaded_link:
+            self.image_url = uploaded_link
+
+    def post_to_facebook(self):
         """फेसबुक पोस्टिंग logic"""
         import facebook
         graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
