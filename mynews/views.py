@@ -78,18 +78,45 @@ def news_detail(request, url_city, slug):
     }
     return render(request, "mynews/news_detail.html", context)
 
-# --- 3. DISTRICT/CATEGORY VIEW ---
+# --- 3. DISTRICT/CATEGORY VIEW (ERROR-PROOF VERSION) ---
 def district_news(request, district):
-    # iexact se capital/small ka tension khatam
-    news_list = News.objects.filter(Q(district__iexact=district) | Q(category__iexact=district)).order_by("-date")
-    
-    page_obj = Paginator(news_list, 15).get_page(request.GET.get('page'))
-    return render(request, "mynews/district_news.html", {
-        "district": district, 
-        "page_obj": page_obj, 
-        **get_common_sidebar_data()
-    })
+    try:
+        # iexact se 'Technology' aur 'technology' dono handle honge
+        # filter query ko Q ke saath robust banaya gaya hai
+        news_list = News.objects.filter(
+            Q(district__iexact=district) | Q(category__iexact=district)
+        ).order_by("-date")
+        
+        # Pagination logic with fail-safe
+        paginator = Paginator(news_list, 15)
+        page_number = request.GET.get('page')
+        
+        try:
+            page_obj = paginator.get_page(page_number)
+        except Exception:
+            # Agar page number invalid ho toh pehla page dikhao
+            page_obj = paginator.get_page(1)
 
+        # Common data (sidebar etc.) fetch karo
+        common_data = get_common_sidebar_data()
+
+        context = {
+            "district": district, 
+            "page_obj": page_obj, 
+            "news_count": news_list.count(), # Check karne ke liye ki news mili ya nahi
+            **common_data
+        }
+        
+        return render(request, "mynews/district_news.html", context)
+
+    except Exception as e:
+        # Agar kuch bhi galat ho, toh 500 error ke bajaye error message ke sath page dikhao
+        logger.error(f"Critical View Error for {district}: {e}")
+        return render(request, "mynews/district_news.html", {
+            "district": district,
+            "error_msg": "Is category mein abhi koi news uplabdth nahi hai.",
+            **get_common_sidebar_data()
+        })
 # --- 4. SEO & LEGAL ---
 def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
