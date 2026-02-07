@@ -1,7 +1,7 @@
 import re, logging
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse # JsonResponse joda gaya hai
 from .models import News
 from django.utils.html import strip_tags
 from django.db.models import Q
@@ -9,20 +9,32 @@ from django.db.models import Q
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- Common Data Function (FIXED) ---
+# --- 0. NEW: API FOR PC SCRIPT (No Load on Render) ---
+def fb_news_api(request):
+    """
+    Ye function tumhare PC ki script ko news ka data dega.
+    """
+    # Sirf 10 latest news jo abhi tak share nahi hui (is_fb_posted=False)
+    news_list = News.objects.filter(status='Published', is_fb_posted=False).order_by('-date')[:10]
+    data = []
+    for n in news_list:
+        data.append({
+            'id': n.id,
+            'title': n.title,
+            'url': f"{SITE_URL}/{n.url_city}/{n.slug}/"
+        })
+    return JsonResponse(data, safe=False)
+
+# --- Common Data Function ---
 def get_common_sidebar_data():
-    # Database se wo districts lo jinme news hai
     used_districts = News.objects.exclude(district__isnull=True).values_list('district', flat=True).distinct()
-    
     dynamic_cities = []
-    # LOCATION_DATA se match karke Hindi name nikalna
     for eng, hin, cat in News.LOCATION_DATA:
         if eng in used_districts:
             dynamic_cities.append({'id': eng, 'name': hin})
     
-    # Do baar return nahi, sirf ek final dictionary
     return {
-        "up_sidebar": News.objects.filter(category="UP").order_by("-date")[:10],
+        "up_sidebar": News.objects.filter(category__icontains="UP").order_by("-date")[:10],
         "bharat_sidebar": News.objects.filter(category="National").order_by("-date")[:5],
         "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
@@ -45,7 +57,7 @@ def home(request):
         
         context = {
             "top_5_highlights": all_important[:5],
-            "up_news": News.objects.filter(category="UP").order_by("-date")[:4],
+            "up_news": News.objects.filter(category__icontains="UP").order_by("-date")[:4],
             "national_news": News.objects.filter(category="National").order_by("-date")[:3],
             "world_news": News.objects.filter(category="International").order_by("-date")[:3],
             "sports_news": News.objects.filter(category="Sports").order_by("-date")[:3],
@@ -58,12 +70,9 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"System Check: {str(e)}", status=200)
 
-# --- 2. NEWS DETAIL (CLEANED) ---
+# --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug): 
-    # Slug se news nikalna
     news = get_object_or_404(News, slug=slug)
-    
-    # YouTube Video ID extraction
     v_id = None
     if news.youtube_url:
         match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", news.youtube_url)
@@ -79,45 +88,31 @@ def news_detail(request, url_city, slug):
     }
     return render(request, "mynews/news_detail.html", context)
 
-# --- 3. DISTRICT/CATEGORY VIEW (ERROR-PROOF VERSION) ---
+# --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
     try:
-        # iexact se 'Technology' aur 'technology' dono handle honge
-        # filter query ko Q ke saath robust banaya gaya hai
         news_list = News.objects.filter(
-            Q(district__iexact=district) | Q(category__iexact=district)
+            Q(district__iexact=district) | Q(category__iexact=district) | Q(url_city__iexact=district)
         ).order_by("-date")
         
-        # Pagination logic with fail-safe
         paginator = Paginator(news_list, 15)
-        page_number = request.GET.get('page')
-        
-        try:
-            page_obj = paginator.get_page(page_number)
-        except Exception:
-            # Agar page number invalid ho toh pehla page dikhao
-            page_obj = paginator.get_page(1)
-
-        # Common data (sidebar etc.) fetch karo
-        common_data = get_common_sidebar_data()
+        page_obj = paginator.get_page(request.GET.get('page'))
 
         context = {
             "district": district, 
             "page_obj": page_obj, 
-            "news_count": news_list.count(), # Check karne ke liye ki news mili ya nahi
-            **common_data
+            "news_count": news_list.count(),
+            **get_common_sidebar_data()
         }
-        
         return render(request, "mynews/district_news.html", context)
-
     except Exception as e:
-        # Agar kuch bhi galat ho, toh 500 error ke bajaye error message ke sath page dikhao
-        logger.error(f"Critical View Error for {district}: {e}")
+        logger.error(f"View Error for {district}: {e}")
         return render(request, "mynews/district_news.html", {
             "district": district,
-            "error_msg": "Is category mein abhi koi news uplabdth nahi hai.",
+            "error_msg": "Abhi koi news uplabdth nahi hai.",
             **get_common_sidebar_data()
         })
+
 # --- 4. SEO & LEGAL ---
 def sitemap_xml(request):
     items = News.objects.exclude(slug__isnull=True).order_by('-date')[:500]
