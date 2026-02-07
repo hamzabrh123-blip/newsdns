@@ -8,14 +8,6 @@ from unidecode import unidecode
 from django.urls import reverse
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.contrib.staticfiles import finders
-from .utils import upload_to_imgbb 
-
-# Facebook logic safe rakhein
-try:
-    import facebook
-except ImportError:
-    facebook = None
 
 class News(models.Model):
     LOCATION_DATA = [
@@ -27,11 +19,11 @@ class News(models.Model):
         ('Basti', 'बस्ती', 'Basti'), ('Bhadohi', 'भदोही', 'Bhadohi'), ('Bijnor', 'बिजनौर', 'Bijnor'), 
         ('Budaun', 'बदायूँ', 'Budaun'), ('Bulandshahr', 'बुलंदशहर', 'Bulandshahr'), ('Chandauli', 'चंदौली', 'Chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'Chitrakoot'), ('Deoria', 'देवरिया', 'Deoria'), ('Etah', 'एटा', 'Etah'), 
-        ('Etawah', 'इटावा', 'Etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'Farrukhabad'), ('Fatehpur', 'फतेहpur', 'Fatehpur'), 
+        ('Etawah', 'इटावा', 'Etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'Farrukhabad'), ('Fatehpur', 'फतेहपुर', 'Fatehpur'), 
         ('Firozabad', 'फिरोजाबाद', 'Firozabad'), ('Gautam-Buddha-Nagar', 'नोएडा', 'Gautam-Buddha-Nagar'), 
         ('Ghaziabad', 'गाजियाबाद', 'Ghaziabad'), ('Ghazipur', 'गाजीपुर', 'Ghazipur'), ('Gonda', 'गोंडा', 'Gonda'), 
         ('Gorakhpur', 'गोरखपुर', 'Gorakhpur'), ('Hamirpur', 'हमीरपुर', 'Hamirpur'), ('Hapur', 'हापुड़', 'Hapur'), 
-        ('Hardoi', 'हरदोई', 'Hardoi'), ('Hathras', 'हाथराas', 'Hathras'), ('Jalaun', 'जालौन', 'Jalaun'), 
+        ('Hardoi', 'हरदोई', 'Hardoi'), ('Hathras', 'हाथरास', 'Hathras'), ('Jalaun', 'जालौन', 'Jalaun'), 
         ('Jaunpur', 'जाँयपुर', 'Jaunpur'), ('Jhansi', 'झाँसी', 'Jhansi'), ('Kannauj', 'कन्नौज', 'Kannauj'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'Kanpur-Dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'Kanpur-Nagar'), 
         ('Kasganj', 'कासगंज', 'Kasganj'), ('Kaushambi', 'कौशाम्बी', 'Kaushambi'), ('Kushinagar', 'कुशीनगर', 'Kushinagar'), 
@@ -70,84 +62,43 @@ class News(models.Model):
     class Meta:
         db_table = 'mynews_news'
 
-    def get_absolute_url(self):
-        city = self.url_city if self.url_city else "news"
-        return f"/{city}/{self.slug}/"
-
     def save(self, *args, **kwargs):
-        # 1. TECHNOLOGY & CATEGORY LOGIC
-        # Priority 1: Check if District is selected
-        if self.district:
-            for eng, hin, cat_val in self.LOCATION_DATA:
+        # 1. TECHNOLOGY & DISTRICT LOGIC
+        # Priority 1: Agar Technology chuna hai
+        if self.category and ('technology' in self.category.lower() or 'टेक्नोलॉजी' in self.category):
+            self.url_city = 'technology'
+            self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
+        
+        # Priority 2: Agar District chuna hai
+        elif self.district:
+            for eng, hin, cat_v in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
                     self.category = f"{hin} ({eng.upper()})"
                     break
-        # Priority 2: Check if Category is Technology or others
-        elif self.category:
-            cat_clean = self.category.lower().strip()
-            if 'technology' in cat_clean or 'टेक्नोलॉजी' in cat_clean:
-                self.url_city = 'technology'
-                self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
-            else:
-                for eng, hin, cat_val in self.LOCATION_DATA:
-                    if self.category == eng or self.category == hin:
-                        self.url_city = eng.lower()
-                        self.category = f"{hin} ({eng.upper()})"
-                        break
         
         if not self.url_city:
             self.url_city = "news"
 
-        # 2. SLUG LOGIC
+        # 2. SLUG
         if not self.slug:
             self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. IMAGE PROCESSING (Total Safe)
-        if self.image and hasattr(self.image, 'file') and not self.image_url:
+        # 3. FAST IMAGE (No external API call during save)
+        if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode != 'RGB': img = img.convert('RGB')
-                img.thumbnail((1200, 1200), Image.LANCZOS)
+                img.thumbnail((800, 800))
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=60)
+                img.save(output, format='WEBP', quality=70)
                 output.seek(0)
-                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
-                
-                # ImgBB Upload
-                try:
-                    up_link = upload_to_imgbb(self.image)
-                    if up_link: self.image_url = up_link
-                except: pass
-            except: pass
-
-        # SABSE PEHLE SAVE (TAAKI 500 NA AAYE)
-        super().save(*args, **kwargs)
-        
-        # 4. FACEBOOK (AFTER SAVE)
-        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            try:
-                self.post_to_facebook()
+                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:8]}.webp")
             except:
                 pass
 
-    def post_to_facebook(self):
-        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN') or not settings.FB_ACCESS_TOKEN:
-            return
-        try:
-            graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-            post_url = f"https://uttarworld.com/{self.url_city}/{self.slug}/"
-            msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
-            
-            if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            else:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
-            
-            # Direct update taaki save loop na bane
-            self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-        except:
-            pass
+        # 4. INSTANT SAVE (Iske baad 500 error nahi aa sakta)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
