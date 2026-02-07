@@ -63,7 +63,7 @@ class News(models.Model):
     meta_keywords = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = 'mynews_news'  # Ye line Supabase mein fresh table banayegi aur error khatam karegi
+        db_table = 'mynews_news'
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
@@ -73,9 +73,12 @@ class News(models.Model):
     def get_image_url(self):
         if self.image_url:
             return self.image_url
+        if self.image:
+            return self.image.url
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
+        # District and Category Logic
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -83,6 +86,7 @@ class News(models.Model):
                     self.category = cat
                     break
 
+        # Image Processing with Watermark
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -101,18 +105,26 @@ class News(models.Model):
                     position = (img.width - target_width - 20, img.height - target_height - 20)
                     img.paste(watermark, position, watermark)
 
-                output = io.BytesIO()
-                img.save(output, format='WEBP', quality=50)
-                output.seek(0)
-                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
-                
-                uploaded_link = upload_to_imgbb(self.image)
+                # --- STEP 1: Portal ke liye WEBP (Fast loading) ---
+                webp_output = io.BytesIO()
+                img.save(webp_output, format='WEBP', quality=60)
+                webp_output.seek(0)
+                self.image = ContentFile(webp_output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+
+                # --- STEP 2: FB/ImgBB ke liye JPG (Better compatibility) ---
+                jpg_output = io.BytesIO()
+                img.save(jpg_output, format='JPEG', quality=75)
+                jpg_output.seek(0)
+                temp_jpg = ContentFile(jpg_output.read(), name="temp_fb.jpg")
+
+                uploaded_link = upload_to_imgbb(temp_jpg)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                   
+                
             except Exception as e:
-                print(f"Bhai Error: {e}")
+                print(f"Image Save Error: {e}")
 
+        # Slug Logic
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -120,6 +132,7 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
+        # Facebook Auto-Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -129,11 +142,40 @@ class News(models.Model):
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            
+            # Priority 1: Photo post
             if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+                try:
+                    graph.put_object(
+                        parent_object=settings.FB_PAGE_ID, 
+                        connection_name='photos', 
+                        url=self.image_url, 
+                        caption=msg
+                    )
+                except Exception as e:
+                    print(f"FB Photo post failed, trying link post: {e}")
+                    # Priority 2: Link post if photo fails
+                    graph.put_object(
+                        parent_object=settings.FB_PAGE_ID, 
+                        connection_name='feed', 
+                        message=msg, 
+                        link=post_url
+                    )
+            else:
+                # Priority 3: Simple link post
+                graph.put_object(
+                    parent_object=settings.FB_PAGE_ID, 
+                    connection_name='feed', 
+                    message=msg, 
+                    link=post_url
+                )
+            
+            # Agar error nahi aaya, toh update status
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+            print("FB Post Success!")
+            
         except Exception as e:
-            print(f"FB Error: {e}")
+            print(f"Bhai Asli FB Error Ye Hai: {e}")
 
     def __str__(self):
         return self.title
