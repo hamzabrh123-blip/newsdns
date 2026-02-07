@@ -17,20 +17,22 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
 {% block social_meta %}
-<meta name="description" content="{% if meta_description %}{{ meta_description }}{% else %}Uttar World News brings latest news updates from Uttar Pradesh and India.{% endif %}">
+<meta name="description" content="{% if news.meta_description %}{{ news.meta_description }}{% else %}{{ news.description|striptags|truncatewords:20 }}{% endif %}">
 
 <meta property="og:type" content="article">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="{% if og_title %}{{ og_title }}{% else %}Uttar World News | Truth Above All{% endif %}">
-<meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% else %}Get the latest breaking news from India and around the world.{% endif %}">
 
-{# FB Image Fix: Agar news ki apni image hai toh wo dikhegi, nahi toh default logo #}
-<meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
+{# News Title Fix: Isse news ki headline FB par dikhegi #}
+<meta property="og:title" content="{% if news.title %}{{ news.title }}{% else %}Uttar World News | Truth Above All{% endif %}">
+<meta property="og:description" content="{% if news.meta_description %}{{ news.meta_description }}{% else %}Get the latest breaking news from India and around the world.{% endif %}">
+
+{# Image Fix: Local path priority aur ibb.co se bachne ke liye #}
+<meta property="og:image" content="{% if news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% elif news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
 <meta property="fb:app_id" content="741916956166104">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{% if og_title %}{{ og_title }}{% else %}Uttar World News{% endif %}">
-<meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
+<meta name="twitter:title" content="{{ news.title }}">
+<meta name="twitter:image" content="{% if news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}https://uttarworld.com{% static 'logo.png' %}{% endif %}">
 {% endblock %}
 
 {% block extra_head %}{% endblock %}
