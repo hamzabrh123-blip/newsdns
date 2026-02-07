@@ -11,7 +11,7 @@ from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
-# Facebook library ko safely import karo
+# Facebook SDK ko safely handle karne ke liye (Error 500 se bachne ke liye)
 try:
     import facebook
 except ImportError:
@@ -73,109 +73,90 @@ class News(models.Model):
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
-        return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
+        try:
+            return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
+        except:
+            return f"/{city}/{self.slug}/"
 
     @property
     def get_image_url(self):
-        if self.image_url:
-            return self.image_url
-        if self.image:
-            return self.image.url
+        if self.image_url: return self.image_url
+        if self.image: return self.image.url
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. Logic for Districts & Special Categories (Safe Search)
+        # 1. TECHNOLOGY FIX: Priority checking
         target = self.district if self.district else self.category
         
         if target:
-            found = False
-            for eng, hin, cat in self.LOCATION_DATA:
-                # Direct match check
-                if target == eng or target == hin:
-                    self.url_city = eng.lower()
-                    self.category = f"{hin} ({eng.upper()})" # AB 'UP' nahi, 'Agra' dikhega
-                    found = True
-                    break
-            
-            if not found:
-                self.url_city = slugify(str(target))
+            target_str = str(target).strip()
+            # Technology ke liye special check (Page fix)
+            if target_str.lower() in ['technology', 'टेक्नोलॉजी', 'technology (technology)']:
+                self.url_city = 'technology'
+                self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
+            else:
+                found = False
+                for eng, hin, cat_val in self.LOCATION_DATA:
+                    if target_str == eng or target_str == hin:
+                        self.url_city = eng.lower()
+                        self.category = f"{hin} ({eng.upper()})"
+                        found = True
+                        break
+                if not found:
+                    self.url_city = slugify(target_str)
         else:
-            # Kuch bhi nahi hai toh default
             self.url_city = "news"
 
-        # 2. Image Processing (Protected with Try)
-        if self.image and hasattr(self.image, 'file'):
+        # 2. IMAGE PROCESSING (Wrapped to prevent 500 error)
+        if self.image and hasattr(self.image, 'file') and not self.image_url:
             try:
                 img = Image.open(self.image)
-                if img.mode in ("RGBA", "P"):
-                    img = img.convert("RGB")
+                if img.mode in ("RGBA", "P"): img = img.convert("RGB")
                 img.thumbnail((1200, 1200), Image.LANCZOS)
-
-                watermark_path = finders.find('watermark.png')
-                if watermark_path:
-                    watermark = Image.open(watermark_path).convert("RGBA")
-                    base_side = min(img.width, img.height)
-                    target_width = int(base_side * 0.20) 
-                    w_ratio = target_width / float(watermark.size[0])
-                    target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
-                    position = (img.width - target_width - 20, img.height - target_height - 20)
-                    img.paste(watermark, position, watermark)
-
+                
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=50)
                 output.seek(0)
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                # Link upload logic
-                uploaded_link = upload_to_imgbb(self.image)
-                if uploaded_link:
-                    self.image_url = uploaded_link
-            except Exception as e:
-                print(f"Bhai Image Optimization Failed: {e}")
+                # ImgBB Upload (Silent failure to avoid 500)
+                try:
+                    up_link = upload_to_imgbb(self.image)
+                    if up_link: self.image_url = up_link
+                except: pass
+            except: pass
 
-        # 3. Slug Logic (Sanitized)
+        # 3. SLUG LOGIC
         if not self.slug:
-            latin_title = unidecode(str(self.title))
-            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
-            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # PEHLE SAVE KARO (TAAKI 500 NA AAYE)
+        # PEHLE DATABASE ME SAVE KARO (IMPORTANT)
         super().save(*args, **kwargs)
         
-        # 4. Facebook Logic (AFTER SAVE)
+        # 4. FACEBOOK SHARE (Bina news roke, background logic)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             try:
                 self.post_to_facebook()
-            except:
-                pass
+            except Exception as e:
+                print(f"FB Flow Error: {e}")
 
     def post_to_facebook(self):
-        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN'):
-            return
+        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN'): return
         try:
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-            post_url = f"https://uttarworld.com{self.get_absolute_url()}"
+            # URL Builder (Bina reverse crash ke)
+            post_url = f"https://uttarworld.com/{self.url_city}/{self.slug}/"
             msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
             
             if self.image_url:
-                graph.put_object(
-                    parent_object=settings.FB_PAGE_ID, 
-                    connection_name='photos', 
-                    url=self.image_url, 
-                    caption=msg
-                )
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
             else:
-                graph.put_object(
-                    parent_object=settings.FB_PAGE_ID, 
-                    connection_name='feed', 
-                    message=msg, 
-                    link=post_url
-                )
-            # Database update bina save() trigger kiye
-            self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
+            
+            # Use update() to avoid triggering save() again (Prevents 500 loop)
+            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
-            print(f"FB Error: {e}")
+            print(f"FB API Error: {e}")
 
     def __str__(self):
         return self.title
