@@ -9,19 +9,23 @@ from django.db.models import Q
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- 0. NEW: API FOR PC SCRIPT (No Load on Render) ---
+# --- 0. UPDATED: API FOR BULK PC SCRIPT ---
 def fb_news_api(request):
     """
-    Ye function tumhare PC ki script ko news ka data dega.
+    Ye function Admin ke tick ka wait nahi karega.
+    Seedha latest 20 Published news phenk dega.
     """
-    # Sirf 10 latest news jo abhi tak share nahi hui (is_fb_posted=False)
-    news_list = News.objects.filter(status='Published', is_fb_posted=False).order_by('-date')[:10]
+    # Filter hataya (is_fb_posted wala) taaki Bulk mein sab utha sake
+    news_list = News.objects.filter(status='Published').order_by('-date')[:20]
+    
     data = []
     for n in news_list:
+        # City handling (agar null ho toh 'news' use karega)
+        city = n.url_city if n.url_city else 'news'
         data.append({
             'id': n.id,
             'title': n.title,
-            'url': f"{SITE_URL}/{n.url_city}/{n.slug}/"
+            'url': f"{SITE_URL.rstrip('/')}/{city}/{n.slug}/"
         })
     return JsonResponse(data, safe=False)
 
