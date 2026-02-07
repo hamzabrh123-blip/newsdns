@@ -91,8 +91,12 @@ def news_detail(request, url_city, slug):
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
     try:
+        # Ab ye district, category aur url_city teeno mein dhoondega
+        # Isse 'technology' wala masla 100% solve ho jayega
         news_list = News.objects.filter(
-            Q(district__iexact=district) | Q(category__iexact=district) | Q(url_city__iexact=district)
+            Q(district__iexact=district) | 
+            Q(category__icontains=district) | 
+            Q(url_city__iexact=district)
         ).order_by("-date")
         
         paginator = Paginator(news_list, 15)
