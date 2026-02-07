@@ -136,46 +136,21 @@ class News(models.Model):
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
-    def post_to_facebook(self):
+   def post_to_facebook(self):
+        """फेसबुक पोस्टिंग logic"""
+        import facebook
+        graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
+        post_url = f"https://uttarworld.com{self.get_absolute_url()}"
+        msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+        
         try:
-            import facebook
-            graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-            post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-            msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
-            
-            # Priority 1: Photo post
             if self.image_url:
-                try:
-                    graph.put_object(
-                        parent_object=settings.FB_PAGE_ID, 
-                        connection_name='photos', 
-                        url=self.image_url, 
-                        caption=msg
-                    )
-                except Exception as e:
-                    print(f"FB Photo post failed, trying link post: {e}")
-                    # Priority 2: Link post if photo fails
-                    graph.put_object(
-                        parent_object=settings.FB_PAGE_ID, 
-                        connection_name='feed', 
-                        message=msg, 
-                        link=post_url
-                    )
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
             else:
-                # Priority 3: Simple link post
-                graph.put_object(
-                    parent_object=settings.FB_PAGE_ID, 
-                    connection_name='feed', 
-                    message=msg, 
-                    link=post_url
-                )
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
             
-            # Agar error nahi aaya, toh update status
+            # Use update to avoid recursion
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-            print("FB Post Success!")
-            
         except Exception as e:
-            print(f"Bhai Asli FB Error Ye Hai: {e}")
-
-    def __str__(self):
-        return self.title
+            print(f"FB Error: {e}")
+            raise e
