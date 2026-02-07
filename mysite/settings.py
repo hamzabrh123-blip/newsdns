@@ -6,8 +6,9 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
+# Render par Environment Variable mein DEBUG=True rakhoge toh hi True hoga, varna False.
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-SECRET_KEY = os.environ.get("SECRET_KEY", "your-fallback-secret-key")
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
+    "whitenoise.runserver_nostatic", # Static files fix
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Whitenoise top par honi chahiye
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,7 +73,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # Context Processors Fixed
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.news_data_processor", 
             ],
@@ -82,28 +82,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-
-
+# --- DATABASE (Render PostgreSQL) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
     )
 }
-# Sirf itna kaafi hai simple setup ke liye
+
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Ensure the static directory exists
 STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 
-# Cloudinary Settings
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
-
-# --- IMPORTANT: Static Storage Fix (No Manifest) ---
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
@@ -115,6 +107,16 @@ STORAGES = {
 
 WHITENOISE_MANIFEST_STRICT = False
 
+# --- CKEDITOR CONFIG (For Better UI) ---
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 400,
+        'width': '100%',
+    },
+}
+
 # --- EMAIL SETTINGS ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -123,12 +125,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# --- SOCIAL & TOOLS ---
+# --- SOCIAL & FB TOOLS (Render Environment Variables) ---
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
 FB_GROUP_1_ID = os.environ.get("FB_GROUP_1_ID")
 FB_GROUP_2_ID = os.environ.get("FB_GROUP_2_ID")
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
-CKEDITOR_UPLOAD_PATH = "uploads/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
