@@ -1,4 +1,5 @@
 import uuid, io, re
+import facebook
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -12,33 +13,34 @@ from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
+    # Aapne jaisa kaha: 'UP' hata kar har jagah District ka naam English mein kar diya hai
     LOCATION_DATA = [
-        ('Agra', 'आगरा', 'UP'), ('Aligarh', 'अलीगढ़', 'UP'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'UP'), 
-        ('Amethi', 'अमेठी', 'UP'), ('Amroha', 'अमरोहा', 'UP'), ('Auraiya', 'औरैया', 'UP'), 
-        ('Ayodhya', 'अयोध्या', 'UP'), ('Azamgarh', 'आजमगढ़', 'UP'), ('Baghpat', 'बागपत', 'UP'), 
-        ('Bahraich', 'बहराइच', 'UP'), ('Ballia', 'बलिया', 'UP'), ('Balrampur', 'बालरामपुर', 'UP'), 
-        ('Banda', 'बांदा', 'UP'), ('Barabanki', 'बाराबंकी', 'UP'), ('Bareilly', 'बरेली', 'UP'), 
-        ('Basti', 'बस्ती', 'UP'), ('Bhadohi', 'भदोही', 'UP'), ('Bijnor', 'बिजनौर', 'UP'), 
-        ('Budaun', 'बदायूँ', 'UP'), ('Bulandshahr', 'बुलंदशहर', 'UP'), ('Chandauli', 'चंदौली', 'UP'), 
-        ('Chitrakoot', 'चित्रकूट', 'UP'), ('Deoria', 'देवरिया', 'UP'), ('Etah', 'एटा', 'UP'), 
-        ('Etawah', 'इटावा', 'UP'), ('Farrukhabad', 'फर्रुखाबाद', 'UP'), ('Fatehpur', 'फतेहपुर', 'UP'), 
-        ('Firozabad', 'फिरोजाबाद', 'UP'), ('Gautam-Buddha-Nagar', 'नोएडा', 'UP'), 
-        ('Ghaziabad', 'गाजियाबाद', 'UP'), ('Ghazipur', 'गाजीपुर', 'UP'), ('Gonda', 'गोंडा', 'UP'), 
-        ('Gorakhpur', 'गोरखपुर', 'UP'), ('Hamirpur', 'हमीरpur', 'UP'), ('Hapur', 'हापुड़', 'UP'), 
-        ('Hardoi', 'हरदोई', 'UP'), ('Hathras', 'हाथरास', 'UP'), ('Jalaun', 'जालौन', 'UP'), 
-        ('Jaunpur', 'जाँयपुर', 'UP'), ('Jhansi', 'झाँसी', 'UP'), ('Kannauj', 'कन्नौज', 'UP'), 
-        ('Kanpur-Dehat', 'कानपुर देहात', 'UP'), ('Kanpur-Nagar', 'कानपुर नगर', 'UP'), 
-        ('Kasganj', 'कासगंज', 'UP'), ('Kaushambi', 'कौशाम्बी', 'UP'), ('Kushinagar', 'कुशीनगर', 'UP'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'UP'), ('Lalitpur', 'ललितपुर', 'UP'), 
-        ('Lucknow', 'लखनऊ', 'UP'), ('Maharajganj', 'महराजगंज', 'UP'), ('Mahoba', 'महोबा', 'UP'), 
-        ('Mainpuri', 'मैनपुरी', 'UP'), ('Mathura', 'मथुरा', 'UP'), ('Mau', 'मऊ', 'UP'), 
-        ('Meerut', 'मेरठ', 'UP'), ('Mirzapur', 'मिर्जापुर', 'UP'), ('Moradabad', 'मुरादाबाद', 'UP'), 
-        ('Muzaffarnagar', 'मुजफ्फरनगर', 'UP'), ('Pilibhit', 'पीलीभीत', 'UP'), ('Pratapgarh', 'प्रतापगढ़', 'UP'), 
-        ('Prayagraj', 'प्रयागराज', 'UP'), ('Rae-Bareli', 'रायबरेली', 'UP'), ('Rampur', 'रामपुर', 'UP'), 
-        ('Saharanpur', 'सहारनपुर', 'UP'), ('Sambhal', 'सम्भल', 'UP'), ('Sant-Kabir-Nagar', 'संत कबीर नगर', 'UP'), 
-        ('Shahjahanpur', 'शाहजहांपुर', 'UP'), ('Shamli', 'शामली', 'UP'), ('Shravasti', 'श्रावस्ती', 'UP'), 
-        ('Siddharthnagar', 'सिद्धार्थनगर', 'UP'), ('Sitapur', 'सीतापुर', 'UP'), ('Sonbhadra', 'सोनभद्र', 'UP'), 
-        ('Sultanpur', 'सुलतानपुर', 'UP'), ('Unnao', 'उन्नाव', 'UP'), ('Varanasi', 'वाराणसी', 'UP'),
+        ('Agra', 'आगरा', 'Agra'), ('Aligarh', 'अलीगढ़', 'Aligarh'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'Ambedkar-Nagar'), 
+        ('Amethi', 'अमेठी', 'Amethi'), ('Amroha', 'अमरोहा', 'Amroha'), ('Auraiya', 'औरैया', 'Auraiya'), 
+        ('Ayodhya', 'अयोध्या', 'Ayodhya'), ('Azamgarh', 'आजमगढ़', 'Azamgarh'), ('Baghpat', 'बागपत', 'Baghpat'), 
+        ('Bahraich', 'बहराइच', 'Bahraich'), ('Ballia', 'बलिया', 'Ballia'), ('Balrampur', 'बालरामपुर', 'Balrampur'), 
+        ('Banda', 'बांदा', 'Banda'), ('Barabanki', 'बाराबंकी', 'Barabanki'), ('Bareilly', 'बरेली', 'Bareilly'), 
+        ('Basti', 'बस्ती', 'Basti'), ('Bhadohi', 'भदोही', 'Bhadohi'), ('Bijnor', 'बिजनौर', 'Bijnor'), 
+        ('Budaun', 'बदायूँ', 'Budaun'), ('Bulandshahr', 'बुलंदशहर', 'Bulandshahr'), ('Chandauli', 'चंदौली', 'Chandauli'), 
+        ('Chitrakoot', 'चित्रकूट', 'Chitrakoot'), ('Deoria', 'देवरिया', 'Deoria'), ('Etah', 'एटा', 'Etah'), 
+        ('Etawah', 'इटावा', 'Etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'Farrukhabad'), ('Fatehpur', 'फतेहपुर', 'Fatehpur'), 
+        ('Firozabad', 'फिरोजाबाद', 'Firozabad'), ('Gautam-Buddha-Nagar', 'नोएडा', 'Gautam-Buddha-Nagar'), 
+        ('Ghaziabad', 'गाजियाबाद', 'Ghaziabad'), ('Ghazipur', 'गाजीपुर', 'Ghazipur'), ('Gonda', 'गोंडा', 'Gonda'), 
+        ('Gorakhpur', 'गोरखपुर', 'Gorakhpur'), ('Hamirpur', 'हमीरपुर', 'Hamirpur'), ('Hapur', 'हापुड़', 'Hapur'), 
+        ('Hardoi', 'हरदोई', 'Hardoi'), ('Hathras', 'हाथरास', 'Hathras'), ('Jalaun', 'जालौन', 'Jalaun'), 
+        ('Jaunpur', 'जाँयपुर', 'Jaunpur'), ('Jhansi', 'झाँसी', 'Jhansi'), ('Kannauj', 'कन्नौज', 'Kannauj'), 
+        ('Kanpur-Dehat', 'कानपुर देहात', 'Kanpur-Dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'Kanpur-Nagar'), 
+        ('Kasganj', 'कासगंज', 'Kasganj'), ('Kaushambi', 'कौशाम्बी', 'Kaushambi'), ('Kushinagar', 'कुशीनगर', 'Kushinagar'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'Lakhimpur-Kheri'), ('Lalitpur', 'ललितपुर', 'Lalitpur'), 
+        ('Lucknow', 'लखनऊ', 'Lucknow'), ('Maharajganj', 'महराजगंज', 'Maharajganj'), ('Mahoba', 'महोबा', 'Mahoba'), 
+        ('Mainpuri', 'मैनपुरी', 'Mainpuri'), ('Mathura', 'मथुरा', 'Mathura'), ('Mau', 'मऊ', 'Mau'), 
+        ('Meerut', 'मेरठ', 'Meerut'), ('Mirzapur', 'मिर्जापुर', 'Mirzapur'), ('Moradabad', 'मुरादाबाद', 'Moradabad'), 
+        ('Muzaffarnagar', 'मुजफ्फरनगर', 'Muzaffarnagar'), ('Pilibhit', 'पीलीभीत', 'Pilibhit'), ('Pratapgarh', 'प्रतापगढ़', 'Pratapgarh'), 
+        ('Prayagraj', 'प्रयागराज', 'Prayagraj'), ('Rae-Bareli', 'रायबरेली', 'Rae-Bareli'), ('Rampur', 'रामपुर', 'Rampur'), 
+        ('Saharanpur', 'सहारनपुर', 'Saharanpur'), ('Sambhal', 'सम्भल', 'Sambhal'), ('Sant-Kabir-Nagar', 'संत कबीर नगर', 'Sant-Kabir-Nagar'), 
+        ('Shahjahanpur', 'शाहजहांपुर', 'Shahjahanpur'), ('Shamli', 'शामली', 'Shamli'), ('Shravasti', 'श्रावस्ती', 'Shravasti'), 
+        ('Siddharthnagar', 'सिद्धार्थनगर', 'Siddharthnagar'), ('Sitapur', 'सीतापुर', 'Sitapur'), ('Sonbhadra', 'सोनभद्र', 'Sonbhadra'), 
+        ('Sultanpur', 'सुलतानपुर', 'Sultanpur'), ('Unnao', 'उन्नाव', 'Unnao'), ('Varanasi', 'वाराणसी', 'Varanasi'),
         
         ('Delhi', 'दिल्ली', 'National'), ('National', 'राष्ट्रीय खबर', 'National'),
         ('International', 'अंतर्राष्ट्रीय', 'International'), ('Sports', 'खेल समाचार', 'Sports'),
@@ -78,31 +80,23 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. District aur Category Logic (UP/Local News)
-        if self.district:
-            for eng, hin, cat in self.LOCATION_DATA:
-                if self.district == eng:
-                    self.url_city = eng.lower()
-                    self.category = cat
-                    break
+        # 1. Logic for Districts & Special Categories
+        target_field = self.district if self.district else self.category
         
-        # 2. Category Logic (Technology, Sports, National etc.)
-        else:
-            # Agar district nahi hai, toh check karo kya ye Special Category hai
-            # Loop chala kar category match karte hain
+        if target_field:
             found = False
             for eng, hin, cat in self.LOCATION_DATA:
-                if self.category == eng or self.category == hin:
+                if target_field == eng or target_field == hin:
                     self.url_city = eng.lower()
-                    self.category = cat if cat else eng
+                    # Badge ke liye: आगरा (AGRA) format
+                    self.category = f"{hin} ({eng.upper()})"
                     found = True
                     break
             
-            # Agar category dropdown mein Technology select hai par loop ne nahi pakda
-            if not found and self.category:
-                self.url_city = slugify(self.category)
-
-        # 3. Image Processing (Watermark & WebP)
+            if not found:
+                self.url_city = slugify(target_field)
+        
+        # 2. Image Processing
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -124,9 +118,7 @@ class News(models.Model):
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=50)
                 output.seek(0)
-                # Purani file save karke Link upload
-                file_name = f"{uuid.uuid4().hex[:10]}.webp"
-                self.image = ContentFile(output.read(), name=file_name)
+                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
@@ -134,7 +126,7 @@ class News(models.Model):
             except Exception as e:
                 print(f"Bhai Image Error: {e}")
 
-        # 4. Slug Logic
+        # 3. Slug Logic
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
@@ -142,23 +134,22 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
-        # 5. Facebook Post Logic
+        # 4. Facebook Logic
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
         try:
-            import facebook
+            if not settings.FB_ACCESS_TOKEN: return
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            
             if self.image_url:
-                try:
-                    graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-                except:
-                    graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
             else:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
+            
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB Error: {e}")
