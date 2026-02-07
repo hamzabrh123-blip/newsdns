@@ -50,7 +50,7 @@ class News(models.Model):
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in News.LOCATION_DATA if hasattr(News, 'LOCATION_DATA')], blank=True, null=True)
+    district = models.CharField( max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
