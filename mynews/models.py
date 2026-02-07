@@ -50,7 +50,8 @@ class News(models.Model):
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
-    district = models.CharField( max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
+    # यहाँ LOCATION_DATA को बिना News. के इस्तेमाल करें
+    district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True) 
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
@@ -63,7 +64,7 @@ class News(models.Model):
     meta_keywords = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # 1. District and Category Logic
+        # 1. District/Category Logic
         if self.district:
             for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
@@ -71,85 +72,80 @@ class News(models.Model):
                     self.category = cat
                     break
 
-        # 2. Slug Logic (Title change होने पर ही नया slug न बने, इसलिए check लगाया है)
+        # 2. Slug Logic
         if not self.slug:
-            latin_title = unidecode(self.title)
-            self.slug = f"{slugify(latin_title)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Image Processing (Try-Except के साथ ताकि Error 500 न आए)
-        if self.image and hasattr(self.image, 'file'):
+        # 3. Image Logic: सिर्फ तभी जब नयी इमेज अपलोड हुई हो
+        # __original_image चेक लगाने के लिए आपको init में सेट करना पड़ता है, 
+        # अभी के लिए simple रखते हैं।
+        if self.image and hasattr(self.image, 'file') and not self.image.name.endswith('.webp'):
             try:
                 self.process_image_and_upload()
             except Exception as e:
-                print(f"Image logic failed but continuing save: {e}")
+                print(f"Image Error: {e}")
 
-        # Pehle database me save karlo
         super().save(*args, **kwargs)
         
-        # 4. Facebook Auto-Post (Post save होने के बाद)
+        # 4. FB Post: Save होने के बाद
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+            # यहाँ सीधा कॉल करने के बजाय, आप एक thread भी यूज़ कर सकते हैं
+            # पर अभी के लिए try-except बेस्ट है।
             try:
                 self.post_to_facebook()
             except Exception as e:
-                print(f"FB logic failed: {e}")
+                print(f"Facebook Post Error: {e}")
 
     def process_image_and_upload(self):
-        """इमेज प्रोसेसिंग और ImgBB अपलोड को अलग फंक्शन में डाला"""
         img = Image.open(self.image)
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
-        
-        img.thumbnail((1000, 1000), Image.LANCZOS) # थोड़ा छोटा साइज
+        img.thumbnail((1000, 1000), Image.LANCZOS)
 
-        # Watermark logic
+        # Watermark
         watermark_path = finders.find('watermark.png')
         if watermark_path:
             try:
                 watermark = Image.open(watermark_path).convert("RGBA")
                 base_side = min(img.width, img.height)
-                target_width = int(base_side * 0.20) 
+                target_width = int(base_side * 0.20)
                 w_ratio = target_width / float(watermark.size[0])
                 target_height = int(float(watermark.size[1]) * float(w_ratio))
                 watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
-                position = (img.width - target_width - 20, img.height - target_height - 20)
-                img.paste(watermark, position, watermark)
-            except:
-                pass
+                img.paste(watermark, (img.width - target_width - 20, img.height - target_height - 20), watermark)
+            except: pass
 
         # WEBP for Portal
-        webp_output = io.BytesIO()
-        img.save(webp_output, format='WEBP', quality=70)
-        webp_output.seek(0)
+        webp_io = io.BytesIO()
+        img.save(webp_io, format='WEBP', quality=70)
         
-        # JPG for Facebook/ImgBB
-        jpg_output = io.BytesIO()
-        img.save(jpg_output, format='JPEG', quality=80)
-        jpg_output.seek(0)
-
-        # File update
-        file_name = f"{uuid.uuid4().hex[:10]}.webp"
-        self.image.save(file_name, ContentFile(webp_output.read()), save=False)
+        # JPG for FB
+        jpg_io = io.BytesIO()
+        img.save(jpg_io, format='JPEG', quality=80)
+        
+        # सेव करने का सुरक्षित तरीका ताकि लूप न बने
+        new_name = f"{uuid.uuid4().hex[:10]}.webp"
+        self.image.save(new_name, ContentFile(webp_io.getvalue()), save=False)
 
         # ImgBB Upload
-        uploaded_link = upload_to_imgbb(ContentFile(jpg_output.read(), name="temp_fb.jpg"))
-        if uploaded_link:
-            self.image_url = uploaded_link
+        try:
+            link = upload_to_imgbb(ContentFile(jpg_io.getvalue(), name="fb.jpg"))
+            if link: self.image_url = link
+        except: pass
 
     def post_to_facebook(self):
-        """फेसबुक पोस्टिंग logic"""
         import facebook
-        graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-        post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-        msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
-        
         try:
+            graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
+            post_url = f"https://uttarworld.com{self.get_absolute_url()}"
+            msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
             else:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
             
-            # Use update to avoid recursion
+            # recursive save रोकने के लिए update()
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
-            print(f"FB Error: {e}")
-            raise e
+            print(f"FB API Error: {e}")
