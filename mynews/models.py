@@ -1,13 +1,9 @@
-import uuid, io
-from PIL import Image
+import uuid
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unidecode import unidecode
-from django.urls import reverse
-from django.conf import settings
-from django.core.files.base import ContentFile
 
 class News(models.Model):
     LOCATION_DATA = [
@@ -54,8 +50,6 @@ class News(models.Model):
     youtube_url = models.URLField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
-    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
-    is_fb_posted = models.BooleanField(default=False)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
@@ -63,41 +57,32 @@ class News(models.Model):
         db_table = 'mynews_news'
 
     def save(self, *args, **kwargs):
-        # 1. TECHNOLOGY & DISTRICT LOGIC
-        # Priority 1: Agar Technology chuna hai
-        if self.category and ('technology' in self.category.lower() or 'टेक्नोलॉजी' in self.category):
-            self.url_city = 'technology'
-            self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
+        # 1. TECHNOLOGY FIX (Pehle Category check)
+        is_tech = False
+        if self.category:
+            c_val = str(self.category).lower()
+            if 'technology' in c_val or 'टेक्नोलॉजी' in c_val:
+                self.url_city = 'technology'
+                self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
+                is_tech = True
         
-        # Priority 2: Agar District chuna hai
-        elif self.district:
+        # 2. DISTRICT LOGIC (Sirf agar technology nahi hai tab)
+        if not is_tech and self.district:
             for eng, hin, cat_v in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
                     self.category = f"{hin} ({eng.upper()})"
                     break
         
+        # Default City
         if not self.url_city:
             self.url_city = "news"
 
-        # 2. SLUG
+        # 3. SLUG LOGIC
         if not self.slug:
             self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. FAST IMAGE (No external API call during save)
-        if self.image and hasattr(self.image, 'file'):
-            try:
-                img = Image.open(self.image)
-                if img.mode != 'RGB': img = img.convert('RGB')
-                img.thumbnail((800, 800))
-                output = io.BytesIO()
-                img.save(output, format='WEBP', quality=70)
-                output.seek(0)
-                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:8]}.webp")
-            except:
-                pass
-
-        # 4. INSTANT SAVE (Iske baad 500 error nahi aa sakta)
+        # 4. FINAL SAVE (Zero heavy processing)
         super().save(*args, **kwargs)
 
     def __str__(self):
