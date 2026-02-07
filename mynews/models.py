@@ -1,4 +1,4 @@
-import uuid, io, re
+import uuid, io
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -11,7 +11,7 @@ from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
-# Facebook SDK ko safely handle karne ke liye (Error 500 se bachne ke liye)
+# Facebook logic safe rakhein
 try:
     import facebook
 except ImportError:
@@ -27,11 +27,11 @@ class News(models.Model):
         ('Basti', 'बस्ती', 'Basti'), ('Bhadohi', 'भदोही', 'Bhadohi'), ('Bijnor', 'बिजनौर', 'Bijnor'), 
         ('Budaun', 'बदायूँ', 'Budaun'), ('Bulandshahr', 'बुलंदशहर', 'Bulandshahr'), ('Chandauli', 'चंदौली', 'Chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'Chitrakoot'), ('Deoria', 'देवरिया', 'Deoria'), ('Etah', 'एटा', 'Etah'), 
-        ('Etawah', 'इटावा', 'Etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'Farrukhabad'), ('Fatehpur', 'फतेहपुर', 'Fatehpur'), 
+        ('Etawah', 'इटावा', 'Etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'Farrukhabad'), ('Fatehpur', 'फतेहpur', 'Fatehpur'), 
         ('Firozabad', 'फिरोजाबाद', 'Firozabad'), ('Gautam-Buddha-Nagar', 'नोएडा', 'Gautam-Buddha-Nagar'), 
         ('Ghaziabad', 'गाजियाबाद', 'Ghaziabad'), ('Ghazipur', 'गाजीपुर', 'Ghazipur'), ('Gonda', 'गोंडा', 'Gonda'), 
         ('Gorakhpur', 'गोरखपुर', 'Gorakhpur'), ('Hamirpur', 'हमीरपुर', 'Hamirpur'), ('Hapur', 'हापुड़', 'Hapur'), 
-        ('Hardoi', 'हरदोई', 'Hardoi'), ('Hathras', 'हाथरास', 'Hathras'), ('Jalaun', 'जालौन', 'Jalaun'), 
+        ('Hardoi', 'हरदोई', 'Hardoi'), ('Hathras', 'हाथराas', 'Hathras'), ('Jalaun', 'जालौन', 'Jalaun'), 
         ('Jaunpur', 'जाँयपुर', 'Jaunpur'), ('Jhansi', 'झाँसी', 'Jhansi'), ('Kannauj', 'कन्नौज', 'Kannauj'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'Kanpur-Dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'Kanpur-Nagar'), 
         ('Kasganj', 'कासगंज', 'Kasganj'), ('Kaushambi', 'कौशाम्बी', 'Kaushambi'), ('Kushinagar', 'कुशीनगर', 'Kushinagar'), 
@@ -45,7 +45,6 @@ class News(models.Model):
         ('Shahjahanpur', 'शाहजहांपुर', 'Shahjahanpur'), ('Shamli', 'शामली', 'Shamli'), ('Shravasti', 'श्रावस्ती', 'Shravasti'), 
         ('Siddharthnagar', 'सिद्धार्थनगर', 'Siddharthnagar'), ('Sitapur', 'सीतापुर', 'Sitapur'), ('Sonbhadra', 'सोनभद्र', 'Sonbhadra'), 
         ('Sultanpur', 'सुलतानपुर', 'Sultanpur'), ('Unnao', 'उन्नाव', 'Unnao'), ('Varanasi', 'वाराणसी', 'Varanasi'),
-        
         ('Delhi', 'दिल्ली', 'National'), ('National', 'राष्ट्रीय खबर', 'National'),
         ('International', 'अंतर्राष्ट्रीय', 'International'), ('Sports', 'खेल समाचार', 'Sports'),
         ('Bollywood', 'बॉलीवुड', 'Entertainment'), ('Technology', 'टेक्नोलॉजी', 'Technology'), 
@@ -73,78 +72,70 @@ class News(models.Model):
 
     def get_absolute_url(self):
         city = self.url_city if self.url_city else "news"
-        try:
-            return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
-        except:
-            return f"/{city}/{self.slug}/"
-
-    @property
-    def get_image_url(self):
-        if self.image_url: return self.image_url
-        if self.image: return self.image.url
-        return "/static/default.png"
+        return f"/{city}/{self.slug}/"
 
     def save(self, *args, **kwargs):
-        # 1. TECHNOLOGY FIX: Priority checking
-        target = self.district if self.district else self.category
-        
-        if target:
-            target_str = str(target).strip()
-            # Technology ke liye special check (Page fix)
-            if target_str.lower() in ['technology', 'टेक्नोलॉजी', 'technology (technology)']:
+        # 1. TECHNOLOGY & CATEGORY LOGIC
+        # Priority 1: Check if District is selected
+        if self.district:
+            for eng, hin, cat_val in self.LOCATION_DATA:
+                if self.district == eng:
+                    self.url_city = eng.lower()
+                    self.category = f"{hin} ({eng.upper()})"
+                    break
+        # Priority 2: Check if Category is Technology or others
+        elif self.category:
+            cat_clean = self.category.lower().strip()
+            if 'technology' in cat_clean or 'टेक्नोलॉजी' in cat_clean:
                 self.url_city = 'technology'
                 self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
             else:
-                found = False
                 for eng, hin, cat_val in self.LOCATION_DATA:
-                    if target_str == eng or target_str == hin:
+                    if self.category == eng or self.category == hin:
                         self.url_city = eng.lower()
                         self.category = f"{hin} ({eng.upper()})"
-                        found = True
                         break
-                if not found:
-                    self.url_city = slugify(target_str)
-        else:
+        
+        if not self.url_city:
             self.url_city = "news"
 
-        # 2. IMAGE PROCESSING (Wrapped to prevent 500 error)
+        # 2. SLUG LOGIC
+        if not self.slug:
+            self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
+
+        # 3. IMAGE PROCESSING (Total Safe)
         if self.image and hasattr(self.image, 'file') and not self.image_url:
             try:
                 img = Image.open(self.image)
-                if img.mode in ("RGBA", "P"): img = img.convert("RGB")
+                if img.mode != 'RGB': img = img.convert('RGB')
                 img.thumbnail((1200, 1200), Image.LANCZOS)
-                
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=50)
+                img.save(output, format='WEBP', quality=60)
                 output.seek(0)
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                # ImgBB Upload (Silent failure to avoid 500)
+                # ImgBB Upload
                 try:
                     up_link = upload_to_imgbb(self.image)
                     if up_link: self.image_url = up_link
                 except: pass
             except: pass
 
-        # 3. SLUG LOGIC
-        if not self.slug:
-            self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
-
-        # PEHLE DATABASE ME SAVE KARO (IMPORTANT)
+        # SABSE PEHLE SAVE (TAAKI 500 NA AAYE)
         super().save(*args, **kwargs)
         
-        # 4. FACEBOOK SHARE (Bina news roke, background logic)
+        # 4. FACEBOOK (AFTER SAVE)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             try:
                 self.post_to_facebook()
-            except Exception as e:
-                print(f"FB Flow Error: {e}")
+            except:
+                pass
 
     def post_to_facebook(self):
-        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN'): return
+        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN') or not settings.FB_ACCESS_TOKEN:
+            return
         try:
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-            # URL Builder (Bina reverse crash ke)
             post_url = f"https://uttarworld.com/{self.url_city}/{self.slug}/"
             msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
             
@@ -153,10 +144,10 @@ class News(models.Model):
             else:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
             
-            # Use update() to avoid triggering save() again (Prevents 500 loop)
-            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-        except Exception as e:
-            print(f"FB API Error: {e}")
+            # Direct update taaki save loop na bane
+            self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+        except:
+            pass
 
     def __str__(self):
         return self.title
