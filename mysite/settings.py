@@ -45,8 +45,6 @@ INSTALLED_APPS = [
     "mynews",
     "ckeditor",
     "ckeditor_uploader",
-    "cloudinary",
-    "cloudinary_storage",
 ]
 
 MIDDLEWARE = [
