@@ -53,11 +53,15 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
+    # --- FB Automation Fields (Dhakka lagane ke liye zaroori) ---
+    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
+    is_fb_posted = models.BooleanField(default=False)
+
     class Meta:
         db_table = 'mynews_news'
 
     def save(self, *args, **kwargs):
-        # 1. TECHNOLOGY FIX (Pehle Category check)
+        # 1. TECHNOLOGY FIX
         is_tech = False
         if self.category:
             c_val = str(self.category).lower()
@@ -66,7 +70,7 @@ class News(models.Model):
                 self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
                 is_tech = True
         
-        # 2. DISTRICT LOGIC (Sirf agar technology nahi hai tab)
+        # 2. DISTRICT LOGIC
         if not is_tech and self.district:
             for eng, hin, cat_v in self.LOCATION_DATA:
                 if self.district == eng:
@@ -82,7 +86,7 @@ class News(models.Model):
         if not self.slug:
             self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 4. FINAL SAVE (Zero heavy processing)
+        # 4. FINAL SAVE
         super().save(*args, **kwargs)
 
     def __str__(self):
