@@ -48,6 +48,7 @@ def home(request):
             "up_news": News.objects.filter(category="UP").order_by("-date")[:4],
             "national_news": News.objects.filter(category="National").order_by("-date")[:3],
             "world_news": News.objects.filter(category="International").order_by("-date")[:3],
+            "sports_news": News.objects.filter(category="Sports").order_by("-date")[:3],
             "other_news": Paginator(News.objects.all().order_by("-date"), 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
