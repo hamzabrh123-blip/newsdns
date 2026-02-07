@@ -4,20 +4,23 @@ from . import views
 urlpatterns = [
     path("", views.home, name="home"),
 
-    # 1. Universal Category Route (Ise DETAIL se upar rakho taaki clash na ho)
+    # API for PC Script (Ise top par rakho)
+    path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
+
+    # 1. Technology Fix (Direct Path)
+    path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
+    path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
+
+    # 2. Universal Category Route
     path("category/<str:district>/", views.district_news, name="district_news"),
 
-    # 2. Sabhi Purane Names (Template Compatibility)
+    # 3. Purane Names (Compatibility)
     path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
     path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
     path("news/int/", views.district_news, {'district': 'International'}, name="international"),
-    path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
     path("news/sports/", views.district_news, {'district': 'Sports'}, name="sports"),
     path("news/bollywood/", views.district_news, {'district': 'Bollywood'}, name="bollywood"),
     path("news/market/", views.district_news, {'district': 'Market'}, name="market"),
-
-    # 3. News Detail Page (Ise niche rakho kyunki ye sabse flexible hai)
-    path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 
     # 4. Utilities & SEO
     path("robots.txt", views.robots_txt, name="robots_txt"),
@@ -27,4 +30,7 @@ urlpatterns = [
     path("about-us/", views.about_us, name="about_us"),
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
+
+    # 5. Detail Page (Hamesha Last Mein)
+    path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 ]
