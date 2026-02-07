@@ -70,6 +70,7 @@ def news_detail(request, url_city, slug):
         
     context = {
         "news": news, 
+        "og_title": news.title,
         "related_news": News.objects.filter(category=news.category).exclude(id=news.id).order_by("-date")[:6],
         "v_id": v_id,
         "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
