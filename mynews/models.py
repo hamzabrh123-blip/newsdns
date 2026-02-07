@@ -1,5 +1,4 @@
 import uuid, io, re
-import facebook
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField 
@@ -12,8 +11,13 @@ from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
+# Facebook library ko safely import karo
+try:
+    import facebook
+except ImportError:
+    facebook = None
+
 class News(models.Model):
-    # Aapne jaisa kaha: 'UP' hata kar har jagah District ka naam English mein kar diya hai
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'Agra'), ('Aligarh', 'अलीगढ़', 'Aligarh'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'Ambedkar-Nagar'), 
         ('Amethi', 'अमेठी', 'Amethi'), ('Amroha', 'अमरोहा', 'Amroha'), ('Auraiya', 'औरैया', 'Auraiya'), 
@@ -80,23 +84,26 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. Logic for Districts & Special Categories
-        target_field = self.district if self.district else self.category
+        # 1. Logic for Districts & Special Categories (Safe Search)
+        target = self.district if self.district else self.category
         
-        if target_field:
+        if target:
             found = False
             for eng, hin, cat in self.LOCATION_DATA:
-                if target_field == eng or target_field == hin:
+                # Direct match check
+                if target == eng or target == hin:
                     self.url_city = eng.lower()
-                    # Badge ke liye: आगरा (AGRA) format
-                    self.category = f"{hin} ({eng.upper()})"
+                    self.category = f"{hin} ({eng.upper()})" # AB 'UP' nahi, 'Agra' dikhega
                     found = True
                     break
             
             if not found:
-                self.url_city = slugify(target_field)
-        
-        # 2. Image Processing
+                self.url_city = slugify(str(target))
+        else:
+            # Kuch bhi nahi hai toh default
+            self.url_city = "news"
+
+        # 2. Image Processing (Protected with Try)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -120,37 +127,53 @@ class News(models.Model):
                 output.seek(0)
                 self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
+                # Link upload logic
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
             except Exception as e:
-                print(f"Bhai Image Error: {e}")
+                print(f"Bhai Image Optimization Failed: {e}")
 
-        # 3. Slug Logic
+        # 3. Slug Logic (Sanitized)
         if not self.slug:
-            latin_title = unidecode(self.title)
+            latin_title = unidecode(str(self.title))
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
+        # PEHLE SAVE KARO (TAAKI 500 NA AAYE)
         super().save(*args, **kwargs)
         
-        # 4. Facebook Logic
+        # 4. Facebook Logic (AFTER SAVE)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            self.post_to_facebook()
+            try:
+                self.post_to_facebook()
+            except:
+                pass
 
     def post_to_facebook(self):
+        if not facebook or not hasattr(settings, 'FB_ACCESS_TOKEN'):
+            return
         try:
-            if not settings.FB_ACCESS_TOKEN: return
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-            msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
             
             if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+                graph.put_object(
+                    parent_object=settings.FB_PAGE_ID, 
+                    connection_name='photos', 
+                    url=self.image_url, 
+                    caption=msg
+                )
             else:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
-            
-            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+                graph.put_object(
+                    parent_object=settings.FB_PAGE_ID, 
+                    connection_name='feed', 
+                    message=msg, 
+                    link=post_url
+                )
+            # Database update bina save() trigger kiye
+            self.__class__.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB Error: {e}")
 
