@@ -109,7 +109,7 @@ class News(models.Model):
                 uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None
+                   
             except Exception as e:
                 print(f"Bhai Error: {e}")
 
