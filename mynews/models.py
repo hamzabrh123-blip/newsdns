@@ -11,6 +11,7 @@ from django.contrib.staticfiles import finders
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
+    # LOCATION_DATA mein 3 values hain (English, Hindi, Slug)
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'agra'), ('Aligarh', 'अलीगढ़', 'aligarh'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'ambedkar-nagar'), 
         ('Amethi', 'अमेठी', 'amethi'), ('Amroha', 'अमरोहा', 'amroha'), ('Auraiya', 'औरैया', 'auraiya'), 
@@ -20,7 +21,7 @@ class News(models.Model):
         ('Basti', 'बस्ती', 'basti'), ('Bhadohi', 'भदोही', 'bhadohi'), ('Bijnor', 'बिजनौर', 'bijnor'), 
         ('Budaun', 'बदायूँ', 'budaun'), ('Bulandshahr', 'बुलंदशहर', 'bulandshahr'), ('Chandauli', 'चंदौली', 'chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'chitrakoot'), ('Deoria', 'देवरिया', 'deoria'), ('Etah', 'एटा', 'etah'), 
-        ('Etawah', 'इटावा', 'etawah'), ('Farrukhabad', 'फर्रुखाabad', 'farrukhabad'), ('Fatehpur', 'फतेहपुर', 'fatehpur'), 
+        ('Etawah', 'इटावा', 'etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'farrukhabad'), ('Fatehpur', 'फतेहपुर', 'fatehpur'), 
         ('Firozabad', 'फिरोजाबाद', 'firozabad'), ('Gautam-Buddha-Nagar', 'नोएडा', 'gautam-buddha-nagar'), 
         ('Ghaziabad', 'गाजियाबाद', 'ghaziabad'), ('Ghazipur', 'गाजीपुर', 'ghazipur'), ('Gonda', 'गोंडा', 'gonda'), 
         ('Gorakhpur', 'गोरखपुर', 'gorakhpur'), ('Hamirpur', 'हमीरपुर', 'hamirpur'), ('Hapur', 'हापुड़', 'hapur'), 
@@ -65,34 +66,28 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
-    # DEKH BHAI: Ye yahan se class ke ANDAR hai (4 spaces ka gap hai)
     def save(self, *args, **kwargs):
-        if not self.date:
-            self.date = now()
-
+        # YAHAN FIX HAI: for loop mein 3 values (eng, hin, s) leni padengi
         if self.district:
-            for eng, hin, city_slug in self.LOCATION_DATA:
+            for eng, hin, s in self.LOCATION_DATA: 
                 if self.district == eng:
                     self.url_city = eng.lower()
-                    self.category = hin
+                    self.category = hin  # Ab district name category banega
                     break
 
+        if not self.slug:
+            try:
+                self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
+            except:
+                self.slug = f"news-{str(uuid.uuid4())[:10]}"
+
+        # Image check (Try-Except taaki process na phate)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
-
-                watermark_path = finders.find('watermark.png')
-                if watermark_path:
-                    wm = Image.open(watermark_path).convert("RGBA")
-                    w_size = int(min(img.width, img.height) * 0.20)
-                    w_ratio = w_size / float(wm.size[0])
-                    h_size = int(float(wm.size[1]) * float(w_ratio))
-                    wm = wm.resize((w_size, h_size), Image.Resampling.LANCZOS)
-                    img.paste(wm, (img.width - w_size - 20, img.height - h_size - 20), wm)
-                    wm.close()
-
+                
                 output = io.BytesIO()
                 img.save(output, format='JPEG', quality=80)
                 output.seek(0)
@@ -104,14 +99,7 @@ class News(models.Model):
                     self.image = None
                 img.close()
             except Exception as e:
-                print(f"Image Error: {e}")
-
-        if not self.slug:
-            try:
-                clean_text = unidecode(self.title)
-                self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
-            except Exception:
-                self.slug = f"news-{str(uuid.uuid4())[:12]}"
+                print(f"Image processing error: {e}")
 
         super(News, self).save(*args, **kwargs)
 
