@@ -56,6 +56,28 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-9">
+             <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4 class="section-title">देश (National)</h4>
+                    {% for item in national_news|slice:":4" %}
+                    <div class="d-flex mb-3 border-bottom pb-2">
+                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <h4 class="section-title">दुनिया (World)</h4>
+                    {% for item in world_news|slice:":4" %}
+                    <div class="d-flex mb-3 border-bottom pb-2">
+                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
             
             <h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
             <div class="row">
@@ -71,26 +93,7 @@
                 {% endfor %}
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <h4 class="section-title">देश (National)</h4>
-                    {% for item in national_news|slice:":3" %}
-                    <div class="d-flex mb-3 border-bottom pb-2">
-                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6">
-                    <h4 class="section-title">दुनिया (World)</h4>
-                    {% for item in world_news|slice:":3" %}
-                    <div class="d-flex mb-3 border-bottom pb-2">
-                        <img src="{{ item.image_url }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" class="me-3">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+            
 
             <h4 class="section-title">बाज़ार और खेल (Market & Sports)</h4>
             <div class="row">
