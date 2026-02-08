@@ -65,12 +65,12 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
-    def save(self, *args, **kwargs):
-        # 1. Date fix for AdSense
+def save(self, *args, **kwargs):
+        # 1. Date Fix (AdSense ke liye zaroori hai bhai)
         if not self.date:
             self.date = now()
 
-        # 2. Location/Category Logic
+        # 2. Category & City Logic (Ye news dikhane ke liye chahiye)
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -78,49 +78,49 @@ class News(models.Model):
                     self.category = hin
                     break
         
-        # 3. Watermark Only (No Resize, No WebP format change)
+        # 3. WATERMARK + IMGBB (Only this, no extra drama)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
-                # Keep original format
-                fmt = img.format if img.format else 'JPEG'
                 
+                # RGBA to RGB (Crash se bachne ke liye)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
 
+                # Watermark Lagana
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
-                    # Watermark size set to 20% of image
+                    # Image ka 20% size ka watermark
                     w_size = int(min(img.width, img.height) * 0.20)
                     w_ratio = w_size / float(watermark.size[0])
                     h_size = int(float(watermark.size[1]) * float(w_ratio))
                     watermark = watermark.resize((w_size, h_size), Image.Resampling.LANCZOS)
                     
+                    # Position: Bottom Right
                     img.paste(watermark, (img.width - w_size - 20, img.height - h_size - 20), watermark)
+                    watermark.close() # RAM khali karo
 
+                # Save to Buffer (No WebP, original quality)
                 output = io.BytesIO()
-                img.save(output, format=fmt)
+                img.save(output, format='JPEG', quality=90)
                 output.seek(0)
-                
-                # Direct Upload to ImgBB
-                self.image = ContentFile(output.read(), name=self.image.name)
-                uploaded_link = upload_to_imgbb(self.image)
+                img.close() # RAM khali karo
+
+                # ImgBB par bhejo
+                temp_file = ContentFile(output.read(), name=self.image.name)
+                uploaded_link = upload_to_imgbb(temp_file)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None 
+                    self.image = None # Local space khali
             except Exception as e:
-                print(f"Image Save Error: {e}")
+                print(f"Error: {e}")
 
-        # 4. Bulletproof Slug logic
+        # 4. Slug (Simple wala)
         if not self.slug:
             try:
-                clean_text = unidecode(self.title)
-                self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+                self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
             except:
                 self.slug = f"news-{str(uuid.uuid4())[:8]}"
 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
