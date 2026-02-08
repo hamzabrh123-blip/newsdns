@@ -44,19 +44,19 @@
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Delhi' %}">दिल्ली / NCR</a></li>
                     </ul>
                 </li>
+                
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white px-2" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
-                    <ul class="dropdown-menu border-0 shadow-lg" style="max-height: 350px; overflow-y: auto;">
-                        
-                        {% if dynamic_up_cities %}
-                            {% for city in dynamic_up_cities %}
-                                <li><a class="dropdown-item" href="{% url 'district_news' city.id %}">{{ city.name }}</a></li>
-                            {% endfor %}
-                        {% else %}
-                            <li><span class="dropdown-item text-muted" style="font-size: 0.75rem;">खबरें जल्द आ रही हैं...</span></li>
-                        {% endif %}
-                    </ul>
+                        <ul class="dropdown-menu border-0 shadow-lg" style="max-height: 350px; overflow-y: auto;">
+                            {% if dynamic_up_cities %}
+                                {% for city in dynamic_up_cities %}
+                                    <li><a class="dropdown-item" href="{% url 'district_news' city.id %}">{{ city.name }}</a></li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="dropdown-item text-muted" style="font-size: 0.75rem;">शहर चुनिए...</span></li>
+                            {% endif %}
+                        </ul>
                 </li>
 
                 <li class="nav-item">
