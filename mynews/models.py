@@ -55,6 +55,8 @@ class News(models.Model):
     youtube_url = models.URLField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
+    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
+    is_fb_posted = models.BooleanField(default=False)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
@@ -65,53 +67,71 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
+    @property
+    def get_image_url(self):
+        if self.image_url:
+            return self.image_url
+        return "/static/default.png"
+
     def save(self, *args, **kwargs):
-        # 1. District Fix
         if self.district:
-            for eng, hin, city_slug in self.LOCATION_DATA:
+            for eng, hin, cat in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
-                    self.category = hin
+                    self.category = cat
                     break
 
-        # 2. Watermark Logic
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
+                img.thumbnail((1200, 1200), Image.LANCZOS)
 
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
-                    wm = Image.open(watermark_path).convert("RGBA")
-                    w_size = int(min(img.width, img.height) * 0.20)
-                    w_ratio = w_size / float(wm.size[0])
-                    h_size = int(float(wm.size[1]) * float(w_ratio))
-                    wm = wm.resize((w_size, h_size), Image.Resampling.LANCZOS)
-                    img.paste(wm, (img.width - w_size - 20, img.height - h_size - 20), wm)
-                    wm.close()
+                    watermark = Image.open(watermark_path).convert("RGBA")
+                    base_side = min(img.width, img.height)
+                    target_width = int(base_side * 0.20) 
+                    w_ratio = target_width / float(watermark.size[0])
+                    target_height = int(float(watermark.size[1]) * float(w_ratio))
+                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
+                    position = (img.width - target_width - 20, img.height - target_height - 20)
+                    img.paste(watermark, position, watermark)
 
                 output = io.BytesIO()
-                img.save(output, format='JPEG', quality=80)
+                img.save(output, format='WEBP', quality=50)
                 output.seek(0)
+                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                temp_file = ContentFile(output.read(), name=self.image.name)
-                uploaded_link = upload_to_imgbb(temp_file)
+                uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None
-                img.close()
             except Exception as e:
-                print(f"Image Error: {e}")
+                print(f"Bhai Error: {e}")
 
-        # 3. Slug logic
         if not self.slug:
-            try:
-                self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
-            except:
-                self.slug = f"news-{str(uuid.uuid4())[:10]}"
+            latin_title = unidecode(self.title)
+            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
+            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
-        super(News, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
+        
+        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+            self.post_to_facebook()
+
+    def post_to_facebook(self):
+        try:
+            import facebook
+            graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
+            post_url = f"https://uttarworld.com{self.get_absolute_url()}"
+            msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            if self.image_url:
+                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+        except Exception as e:
+            print(f"FB Error: {e}")
 
     def __str__(self):
         return self.title
