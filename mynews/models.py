@@ -65,7 +65,7 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
-    # DHYAN DE: def save ab class ke andar hai (4 spaces aage)
+    # AB DEKH BHAI: Ye 'def save' class ke andar hai
     def save(self, *args, **kwargs):
         if not self.date:
             self.date = now()
@@ -99,16 +99,15 @@ class News(models.Model):
                 img.close()
 
                 temp_file = ContentFile(output.read(), name=self.image.name)
-                # ImgBB upload ko try-except mein rakha hai RAM bachane ke liye
                 try:
                     uploaded_link = upload_to_imgbb(temp_file)
                     if uploaded_link:
                         self.image_url = uploaded_link
                         self.image = None
                 except:
-                    self.image = temp_file # Fail ho to local save
-            except Exception as e:
-                print(f"Error: {e}")
+                    self.image = temp_file 
+            except Exception:
+                pass
 
         if not self.slug:
             try:
