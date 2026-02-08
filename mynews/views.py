@@ -33,8 +33,14 @@ def fb_news_api(request):
 def get_common_sidebar_data():
     used_districts = News.objects.exclude(district__isnull=True).values_list('district', flat=True).distinct()
     dynamic_cities = []
-    for eng, hin, cat in News.LOCATION_DATA:
-        if eng in used_districts:
+    
+    # In Categories ko UP dropdown mein nahi dikhana hai
+    exclude_from_up = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
+
+    for eng, hin, cat_slug in News.LOCATION_DATA:
+        # 1. Check karo ki district news mein use hua hai
+        # 2. Aur wo 'exclude_from_up' list mein nahi hai
+        if eng in used_districts and eng not in exclude_from_up:
             dynamic_cities.append({'id': eng, 'name': hin})
     
     return {
@@ -43,9 +49,8 @@ def get_common_sidebar_data():
         "world_sidebar": News.objects.filter(category="International").order_by("-date")[:5],
         "bazaar_sidebar": News.objects.filter(category="Market").order_by("-date")[:5],
         "sports_sidebar": News.objects.filter(category="Sports").order_by("-date")[:5],
-        "dynamic_up_cities": dynamic_cities,
+        "dynamic_up_cities": dynamic_cities, # Ab isme sirf UP ke zile honge
     }
-
 # --- 1. HOME PAGE ---
 def home(request):
     try:
