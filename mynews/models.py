@@ -40,7 +40,7 @@ class News(models.Model):
         ('Sultanpur', 'सुलतानपुर', 'sultanpur'), ('Unnao', 'उन्नाव', 'unnao'), ('Varanasi', 'वाराणसी', 'varanasi'),
         ('Delhi', 'दिल्ली', 'delhi'), ('National', 'राष्ट्रीय खबर', 'national'),
         ('International', 'अंतर्राष्ट्रीय', 'international'), ('Sports', 'खेल समाचार', 'sports'),
-        ('Bollywood', 'बॉलीवुड', 'bollywood'), ('Technology', 'टेक्नोलॉजी', 'technology'), 
+        ('Bollywood', 'बॉलीवुड', 'bollywood'),('Hollywood', 'हॉलीवुड', 'Hollywood'), ('Technology', 'टेक्नोलॉजी', 'technology'), 
         ('Market', 'मार्केट भाव', 'market'),
     ]
 
