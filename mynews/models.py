@@ -66,27 +66,25 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
-    def save(self, *args, **kwargs):
-        # Category set karna (Ab city ka naam hi category banega)
+def save(self, *args, **kwargs):
+        # 1. Category Fix (Yahan galti thi - 3 values unpack karni hain)
         if self.district:
-            for eng, hin in self.LOCATION_DATA:
+            for eng, hin, city_slug in self.LOCATION_DATA: # Yahan city_slug add kiya
                 if self.district == eng:
                     self.url_city = eng.lower()
                     self.category = hin
                     break
 
-        # Watermark + ImgBB (Lite Version)
+        # 2. Watermark + ImgBB (Lite Version)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
 
-                # Watermark logic
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     wm = Image.open(watermark_path).convert("RGBA")
-                    # Image size ke hisaab se 20% watermark
                     w_size = int(min(img.width, img.height) * 0.20)
                     w_ratio = w_size / float(wm.size[0])
                     h_size = int(float(wm.size[1]) * float(w_ratio))
@@ -94,30 +92,27 @@ class News(models.Model):
                     img.paste(wm, (img.width - w_size - 20, img.height - h_size - 20), wm)
                     wm.close()
 
-                # Memory safe saving
                 output = io.BytesIO()
                 img.save(output, format='JPEG', quality=80)
                 output.seek(0)
-                img.close()
-
-                # ImgBB Upload
+                
+                # Direct Upload
                 temp_file = ContentFile(output.read(), name=self.image.name)
                 uploaded_link = upload_to_imgbb(temp_file)
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None
+                img.close()
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Image Error: {e}")
 
-        # Slug logic
+        # 3. Slug logic (Safe side)
         if not self.slug:
             try:
+                # Agar unidecode phata toh title se slug nahi banega, seedha UUID jayega
                 clean_text = unidecode(self.title)
                 self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
-            except:
-                self.slug = f"news-{str(uuid.uuid4())[:8]}"
+            except Exception:
+                self.slug = f"news-{str(uuid.uuid4())[:12]}"
 
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
+        super(News, self).save(*args, **kwargs)
