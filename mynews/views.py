@@ -62,9 +62,9 @@ def home(request):
         context = {
             "top_5_highlights": all_important[:5],
             "up_news": News.objects.filter(category__icontains="UP").order_by("-date")[:4],
-            "national_news": News.objects.filter(category="National").order_by("-date")[:3],
-            "world_news": News.objects.filter(category="International").order_by("-date")[:3],
-            "sports_news": News.objects.filter(category="Sports").order_by("-date")[:3],
+            "national_news": News.objects.filter(category="National").order_by("-date")[:4],
+            "world_news": News.objects.filter(category="International").order_by("-date")[:4],
+            "sports_news": News.objects.filter(category="Sports").order_by("-date")[:4],
             "other_news": Paginator(News.objects.all().order_by("-date"), 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
