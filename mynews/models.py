@@ -1,9 +1,13 @@
 import uuid
+import requests
+import base64
+import io
 from django.db import models
 from ckeditor.fields import RichTextField 
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unidecode import unidecode
+from PIL import Image
 
 class News(models.Model):
     LOCATION_DATA = [
@@ -11,7 +15,7 @@ class News(models.Model):
         ('Amethi', 'अमेठी', 'Amethi'), ('Amroha', 'अमरोहा', 'Amroha'), ('Auraiya', 'औरैया', 'Auraiya'), 
         ('Ayodhya', 'अयोध्या', 'Ayodhya'), ('Azamgarh', 'आजमगढ़', 'Azamgarh'), ('Baghpat', 'बागपत', 'Baghpat'), 
         ('Bahraich', 'बहराइच', 'Bahraich'), ('Ballia', 'बलिया', 'Ballia'), ('Balrampur', 'बालरामपुर', 'Balrampur'), 
-        ('Banda', 'बांदा', 'Banda'), ('Barabanki', 'बाराबanki', 'Barabanki'), ('Bareilly', 'बरेली', 'Bareilly'), 
+        ('Banda', 'बांदा', 'Banda'), ('Barabanki', 'बाराबंकी', 'Barabanki'), ('Bareilly', 'बरेली', 'Bareilly'), 
         ('Basti', 'बस्ती', 'Basti'), ('Bhadohi', 'भदोही', 'Bhadohi'), ('Bijnor', 'बिजनौर', 'Bijnor'), 
         ('Budaun', 'बदायूँ', 'Budaun'), ('Bulandshahr', 'बुलंदशहर', 'Bulandshahr'), ('Chandauli', 'चंदौली', 'Chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'Chitrakoot'), ('Deoria', 'देवरिया', 'Deoria'), ('Etah', 'एटा', 'Etah'), 
@@ -51,46 +55,81 @@ class News(models.Model):
     date = models.DateTimeField(default=now)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
-    meta_keywords = models.TextField(blank=True, null=True)
-
+    
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'mynews_news'
 
+    def apply_watermark(self, input_image):
+        try:
+            # Image open karo
+            base_image = Image.open(input_image).convert("RGBA")
+            # Logo path - Ensure karo static folder mein ye file ho
+            logo_path = "static/images/logo.png" 
+            watermark = Image.open(logo_path).convert("RGBA")
+            
+            base_w, base_h = base_image.size
+            # Logo size adjustment (20% of image width)
+            watermark.thumbnail((base_w // 5, base_h // 5), Image.Resampling.LANCZOS)
+            w_w, w_h = watermark.size
+            
+            # Position: Bottom Right
+            position = (base_w - w_w - 20, base_h - w_h - 20)
+            
+            transparent = Image.new('RGBA', base_image.size, (0,0,0,0))
+            transparent.paste(base_image, (0,0))
+            transparent.paste(watermark, position, mask=watermark)
+            
+            return transparent.convert("RGB")
+        except Exception as e:
+            print(f"Watermark error: {e}")
+            return None
+
     def save(self, *args, **kwargs):
-        # 1. TECHNOLOGY FIX
+        # 1. SLUG & CITY LOGIC
+        if not self.slug:
+            self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
+        
         is_tech = False
         if self.category:
             c_val = str(self.category).lower()
             if 'technology' in c_val or 'टेक्नोलॉजी' in c_val:
-                self.url_city = 'technology'
-                self.category = 'टेक्नोलॉजी (TECHNOLOGY)'
-                is_tech = True
-        
-        # 2. DISTRICT LOGIC
+                self.url_city, self.category, is_tech = 'technology', 'टेक्नोलॉजी (TECHNOLOGY)', True
+
         if not is_tech and self.district:
             for eng, hin, cat_v in self.LOCATION_DATA:
                 if self.district == eng:
-                    self.url_city = eng.lower()
-                    self.category = f"{hin} ({eng.upper()})"
+                    self.url_city, self.category = eng.lower(), f"{hin} ({eng.upper()})"
                     break
         
-        # Default City
-        if not self.url_city:
-            self.url_city = "news"
+        if not self.url_city: self.url_city = "news"
 
-        # 3. SLUG LOGIC
-        if not self.slug:
-            self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
-
-        # 4. IMAGE URL AUTOMATION FIX (ASLI SOLUTION)
-        # Agar image upload hui hai, toh uska pura link image_url box mein daal do
+        # 2. WATERMARK + IMGBB LOGIC
+        # Agar image upload hui hai aur image_url box khali hai
         if self.image and not self.image_url:
-            self.image_url = f"https://uttarworld.com/media/{self.image.name}"
+            try:
+                # Logo lagao
+                marked_img = self.apply_watermark(self.image)
+                if marked_img:
+                    # Memory mein image taiyar karo
+                    buffer = io.BytesIO()
+                    marked_img.save(buffer, format="JPEG", quality=85)
+                    img_str = base64.b64encode(buffer.getvalue())
 
-        # 5. FINAL SAVE
+                    # ImgBB Upload
+                    api_key = "YAHAN_APNI_IMGBB_API_KEY_DALO" # <--- ZAROORI!
+                    response = requests.post(
+                        "https://api.imgbb.com/1/upload",
+                        data={"key": api_key, "image": img_str}
+                    )
+                    res = response.json()
+                    if res['status'] == 200:
+                        self.image_url = res['data']['url']
+            except Exception as e:
+                print(f"ImgBB Error: {e}")
+
         super().save(*args, **kwargs)
 
     def __str__(self):
