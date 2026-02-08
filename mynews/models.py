@@ -11,7 +11,7 @@ class News(models.Model):
         ('Amethi', 'अमेठी', 'Amethi'), ('Amroha', 'अमरोहा', 'Amroha'), ('Auraiya', 'औरैया', 'Auraiya'), 
         ('Ayodhya', 'अयोध्या', 'Ayodhya'), ('Azamgarh', 'आजमगढ़', 'Azamgarh'), ('Baghpat', 'बागपत', 'Baghpat'), 
         ('Bahraich', 'बहराइच', 'Bahraich'), ('Ballia', 'बलिया', 'Ballia'), ('Balrampur', 'बालरामपुर', 'Balrampur'), 
-        ('Banda', 'बांदा', 'Banda'), ('Barabanki', 'बाराबंकी', 'Barabanki'), ('Bareilly', 'बरेली', 'Bareilly'), 
+        ('Banda', 'बांदा', 'Banda'), ('Barabanki', 'बाराबanki', 'Barabanki'), ('Bareilly', 'बरेली', 'Bareilly'), 
         ('Basti', 'बस्ती', 'Basti'), ('Bhadohi', 'भदोही', 'Bhadohi'), ('Bijnor', 'बिजनौर', 'Bijnor'), 
         ('Budaun', 'बदायूँ', 'Budaun'), ('Bulandshahr', 'बुलंदशहर', 'Bulandshahr'), ('Chandauli', 'चंदौली', 'Chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'Chitrakoot'), ('Deoria', 'देवरिया', 'Deoria'), ('Etah', 'एटा', 'Etah'), 
@@ -53,7 +53,6 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     meta_keywords = models.TextField(blank=True, null=True)
 
-    # --- FB Automation Fields (Dhakka lagane ke liye zaroori) ---
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
 
@@ -86,7 +85,12 @@ class News(models.Model):
         if not self.slug:
             self.slug = f"{slugify(unidecode(str(self.title)))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 4. FINAL SAVE
+        # 4. IMAGE URL AUTOMATION FIX (ASLI SOLUTION)
+        # Agar image upload hui hai, toh uska pura link image_url box mein daal do
+        if self.image and not self.image_url:
+            self.image_url = f"https://uttarworld.com/media/{self.image.name}"
+
+        # 5. FINAL SAVE
         super().save(*args, **kwargs)
 
     def __str__(self):
