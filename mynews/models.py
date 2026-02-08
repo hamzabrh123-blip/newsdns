@@ -11,39 +11,38 @@ from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # 'UP' hata diya hai, ab sirf city name hai
+    # Ab isme 3 values hain: (English, Hindi, URL_Slug)
     LOCATION_DATA = [
-        ('Agra', 'आगरा'), ('Aligarh', 'अलीगढ़'), ('Ambedkar-Nagar', 'अम्बेडकर नगर'), 
-        ('Amethi', 'अमेठी'), ('Amroha', 'अमरोहा'), ('Auraiya', 'औरैया'), 
-        ('Ayodhya', 'अयोध्या'), ('Azamgarh', 'आजमगढ़'), ('Baghpat', 'बागपत'), 
-        ('Bahraich', 'बहराइच'), ('Ballia', 'बलिया'), ('Balrampur', 'बालरामपुर'), 
-        ('Banda', 'बांदा'), ('Barabanki', 'बाराबंकी'), ('Bareilly', 'बरेली'), 
-        ('Basti', 'बस्ती'), ('Bhadohi', 'भदोही'), ('Bijnor', 'बिजनौर'), 
-        ('Budaun', 'बदायूँ'), ('Bulandshahr', 'बुलंदशहर'), ('Chandauli', 'चंदौली'), 
-        ('Chitrakoot', 'चित्रकूट'), ('Deoria', 'देवरिया'), ('Etah', 'एटा'), 
-        ('Etawah', 'इटावा'), ('Farrukhabad', 'फर्रुखाबाद'), ('Fatehpur', 'फतेहपुर'), 
-        ('Firozabad', 'फिरोजाबाद'), ('Gautam-Buddha-Nagar', 'नोएडा'), 
-        ('Ghaziabad', 'गाजियाबाद'), ('Ghazipur', 'गाजीपुर'), ('Gonda', 'गोंडा'), 
-        ('Gorakhpur', 'गोरखपुर'), ('Hamirpur', 'हमीरपुर'), ('Hapur', 'हापुड़'), 
-        ('Hardoi', 'हरदोई'), ('Hathras', 'हाथरास'), ('Jalaun', 'जालौन'), 
-        ('Jaunpur', 'जाँयपुर'), ('Jhansi', 'झाँसी'), ('Kannauj', 'कन्नौज'), 
-        ('Kanpur-Dehat', 'कानपुर देहात'), ('Kanpur-Nagar', 'कानपुर नगर'), 
-        ('Kasganj', 'कासगंज'), ('Kaushambi', 'कौशाम्बी'), ('Kushinagar', 'कुशीनगर'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी'), ('Lalitpur', 'ललितपुर'), 
-        ('Lucknow', 'लखनऊ'), ('Maharajganj', 'महराजगंज'), ('Mahoba', 'महोबा'), 
-        ('Mainpuri', 'मैनपुरी'), ('Mathura', 'मथुरा'), ('Mau', 'मऊ'), 
-        ('Meerut', 'मेरठ'), ('Mirzapur', 'मिर्जापुर'), ('Moradabad', 'मुरादाबाद'), 
-        ('Muzaffarnagar', 'मुजफ्फरनगर'), ('Pilibhit', 'पीलीभीत'), ('Pratapgarh', 'प्रतापगढ़'), 
-        ('Prayagraj', 'प्रयागराज'), ('Rae-Bareli', 'रायबरेली'), ('Rampur', 'रामपुर'), 
-        ('Saharanpur', 'सहारनपुर'), ('Sambhal', 'सम्भल'), ('Sant-Kabir-Nagar', 'संत कबीर नगर'), 
-        ('Shahjahanpur', 'शाहजहांपुर'), ('Shamli', 'शामली'), ('Shravasti', 'श्रावस्ती'), 
-        ('Siddharthnagar', 'सिद्धार्थनगर'), ('Sitapur', 'सीतापुर'), ('Sonbhadra', 'सोनभद्र'), 
-        ('Sultanpur', 'सुलतानपुर'), ('Unnao', 'उन्नाव'), ('Varanasi', 'वाराणसी'),
-        
-        ('Delhi', 'दिल्ली'), ('National', 'राष्ट्रीय खबर'),
-        ('International', 'अंतर्राष्ट्रीय'), ('Sports', 'खेल समाचार'),
-        ('Bollywood', 'बॉलीवुड'), ('Technology', 'टेक्नोलॉजी'), 
-        ('Market', 'मार्केट भाव'),
+        ('Agra', 'आगरा', 'agra'), ('Aligarh', 'अलीगढ़', 'aligarh'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'ambedkar-nagar'), 
+        ('Amethi', 'अमेठी', 'amethi'), ('Amroha', 'अमरोहा', 'amroha'), ('Auraiya', 'औरैया', 'auraiya'), 
+        ('Ayodhya', 'अयोध्या', 'ayodhya'), ('Azamgarh', 'आजमगढ़', 'azamgarh'), ('Baghpat', 'बागपत', 'baghpat'), 
+        ('Bahraich', 'बहराइच', 'bahraich'), ('Ballia', 'बलिया', 'ballia'), ('Balrampur', 'बालरामपुर', 'balrampur'), 
+        ('Banda', 'बांदा', 'banda'), ('Barabanki', 'बाराबंकी', 'barabanki'), ('Bareilly', 'बरेली', 'bareilly'), 
+        ('Basti', 'बस्ती', 'basti'), ('Bhadohi', 'भदोही', 'bhadohi'), ('Bijnor', 'बिजनौर', 'bijnor'), 
+        ('Budaun', 'बदायूँ', 'budaun'), ('Bulandshahr', 'बुलंदशहर', 'bulandshahr'), ('Chandauli', 'चंदौली', 'chandauli'), 
+        ('Chitrakoot', 'चित्रकूट', 'chitrakoot'), ('Deoria', 'देवरिया', 'deoria'), ('Etah', 'एटा', 'etah'), 
+        ('Etawah', 'इटावा', 'etawah'), ('Farrukhabad', 'फर्रुखाबाद', 'farrukhabad'), ('Fatehpur', 'फतेहपुर', 'fatehpur'), 
+        ('Firozabad', 'फिरोजाबाद', 'firozabad'), ('Gautam-Buddha-Nagar', 'नोएडा', 'gautam-buddha-nagar'), 
+        ('Ghaziabad', 'गाजियाबाद', 'ghaziabad'), ('Ghazipur', 'गाजीपुर', 'ghazipur'), ('Gonda', 'गोंडा', 'gonda'), 
+        ('Gorakhpur', 'गोरखपुर', 'gorakhpur'), ('Hamirpur', 'हमीरपुर', 'hamirpur'), ('Hapur', 'हापुड़', 'hapur'), 
+        ('Hardoi', 'हरदोई', 'hardoi'), ('Hathras', 'हाथरास', 'hathras'), ('Jalaun', 'जालौन', 'jalaun'), 
+        ('Jaunpur', 'जाँयपुर', 'jaunpur'), ('Jhansi', 'झाँसी', 'jhansi'), ('Kannauj', 'कन्नौज', 'kannauj'), 
+        ('Kanpur-Dehat', 'कानपुर देहात', 'kanpur-dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'kanpur-nagar'), 
+        ('Kasganj', 'कासगंज', 'kasganj'), ('Kaushambi', 'कौशाम्बी', 'kaushambi'), ('Kushinagar', 'कुशीनगर', 'kushinagar'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'lakhimpur-kheri'), ('Lalitpur', 'ललितपुर', 'lalitpur'), 
+        ('Lucknow', 'लखनऊ', 'lucknow'), ('Maharajganj', 'महराजगंज', 'maharajganj'), ('Mahoba', 'महोबा', 'mahoba'), 
+        ('Mainpuri', 'मैनपुरी', 'mainpuri'), ('Mathura', 'मथुरा', 'mathura'), ('Mau', 'मऊ', 'mau'), 
+        ('Meerut', 'मेरठ', 'meerut'), ('Mirzapur', 'मिर्जापुर', 'mirzapur'), ('Moradabad', 'मुरादाबाद', 'moradabad'), 
+        ('Muzaffarnagar', 'मुजफ्फरनगर', 'muzaffarnagar'), ('Pilibhit', 'पीलीभीत', 'pilibhit'), ('Pratapgarh', 'प्रतापगढ़', 'pratapgarh'), 
+        ('Prayagraj', 'प्रयागराज', 'prayagraj'), ('Rae-Bareli', 'रायबरेली', 'rae-bareli'), ('Rampur', 'रामपुर', 'rampur'), 
+        ('Saharanpur', 'सहारनपुर', 'saharanpur'), ('Sambhal', 'सम्भल', 'sambhal'), ('Sant-Kabir-Nagar', 'संत कबीर नगर', 'sant-kabir-nagar'), 
+        ('Shahjahanpur', 'शाहजहांपुर', 'shahjahanpur'), ('Shamli', 'शामली', 'shamli'), ('Shravasti', 'श्रावस्ती', 'shravasti'), 
+        ('Siddharthnagar', 'सिद्धार्थनगर', 'siddharthnagar'), ('Sitapur', 'सीतापुर', 'sitapur'), ('Sonbhadra', 'सोनभद्र', 'sonbhadra'), 
+        ('Sultanpur', 'सुलतानपुर', 'sultanpur'), ('Unnao', 'उन्नाव', 'unnao'), ('Varanasi', 'वाराणसी', 'varanasi'),
+        ('Delhi', 'दिल्ली', 'delhi'), ('National', 'राष्ट्रीय खबर', 'national'),
+        ('International', 'अंतर्राष्ट्रीय', 'international'), ('Sports', 'खेल समाचार', 'sports'),
+        ('Bollywood', 'बॉलीवुड', 'bollywood'), ('Technology', 'टेक्नोलॉजी', 'technology'), 
+        ('Market', 'मार्केट भाव', 'market') ,
     ]
 
     title = models.CharField(max_length=250)
@@ -68,52 +67,44 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 1. District and City Logic (No 'UP' clutter)
+        # 3 values unpack: English, Hindi, Slug
         if self.district:
-            for eng, hin in self.LOCATION_DATA:
+            for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
-                    self.url_city = eng.lower()
+                    self.url_city = city_slug
                     self.category = hin
                     break
         
-        # 2. Watermark and ImgBB Logic
+        # Watermark aur ImgBB logic
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
 
-                # Watermark logic
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
-                    # Logo size relative to image
                     base_side = min(img.width, img.height)
                     target_width = int(base_side * 0.20) 
                     w_ratio = target_width / float(watermark.size[0])
                     target_height = int(float(watermark.size[1]) * float(w_ratio))
                     watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                    
-                    # Bottom-Right placement
                     position = (img.width - target_width - 20, img.height - target_height - 20)
                     img.paste(watermark, position, watermark)
 
-                # Memory buffer for ImgBB
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=70)
+                img.save(output, format='WEBP', quality=75)
                 output.seek(0)
-                
                 temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                # Direct ImgBB upload
                 uploaded_link = upload_to_imgbb(temp_file)
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None # Local storage bachane ke liye
+                    self.image = None 
             except Exception as e:
-                print(f"Bhai Error: {e}")
+                print(f"Error: {e}")
 
-        # 3. Slug logic
         if not self.slug:
             clean_text = unidecode(self.title)
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
