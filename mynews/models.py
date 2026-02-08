@@ -11,7 +11,6 @@ from django.core.files.base import ContentFile
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
-    # Ab isme 3 values hain: (English, Hindi, URL_Slug)
     LOCATION_DATA = [
         ('Agra', 'आगरा', 'agra'), ('Aligarh', 'अलीगढ़', 'aligarh'), ('Ambedkar-Nagar', 'अम्बेडकर नगर', 'ambedkar-nagar'), 
         ('Amethi', 'अमेठी', 'amethi'), ('Amroha', 'अमरोहा', 'amroha'), ('Auraiya', 'औरैया', 'auraiya'), 
@@ -67,7 +66,11 @@ class News(models.Model):
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        # 3 values unpack: English, Hindi, Slug
+        # 1. Date fix for AdSense
+        if not self.date:
+            self.date = now()
+
+        # 2. Location/Category Logic
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -75,39 +78,47 @@ class News(models.Model):
                     self.category = hin
                     break
         
-        # Watermark aur ImgBB logic
+        # 3. Watermark Only (No Resize, No WebP format change)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
+                # Keep original format
+                fmt = img.format if img.format else 'JPEG'
+                
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
 
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
-                    base_side = min(img.width, img.height)
-                    target_width = int(base_side * 0.20) 
-                    w_ratio = target_width / float(watermark.size[0])
-                    target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                    position = (img.width - target_width - 20, img.height - target_height - 20)
-                    img.paste(watermark, position, watermark)
+                    # Watermark size set to 20% of image
+                    w_size = int(min(img.width, img.height) * 0.20)
+                    w_ratio = w_size / float(watermark.size[0])
+                    h_size = int(float(watermark.size[1]) * float(w_ratio))
+                    watermark = watermark.resize((w_size, h_size), Image.Resampling.LANCZOS)
+                    
+                    img.paste(watermark, (img.width - w_size - 20, img.height - h_size - 20), watermark)
 
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=75)
+                img.save(output, format=fmt)
                 output.seek(0)
-                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                uploaded_link = upload_to_imgbb(temp_file)
+                # Direct Upload to ImgBB
+                self.image = ContentFile(output.read(), name=self.image.name)
+                uploaded_link = upload_to_imgbb(self.image)
                 if uploaded_link:
                     self.image_url = uploaded_link
                     self.image = None 
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Image Save Error: {e}")
 
+        # 4. Bulletproof Slug logic
         if not self.slug:
-            clean_text = unidecode(self.title)
-            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+            try:
+                clean_text = unidecode(self.title)
+                self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+            except:
+                self.slug = f"news-{str(uuid.uuid4())[:8]}"
 
         super().save(*args, **kwargs)
 
