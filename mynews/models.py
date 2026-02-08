@@ -65,12 +65,11 @@ class News(models.Model):
         city = self.url_city if self.url_city else "news"
         return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
 
-def save(self, *args, **kwargs):
-        # 1. Date Fix (AdSense ke liye zaroori hai bhai)
+    # DHYAN DE: def save ab class ke andar hai (4 spaces aage)
+    def save(self, *args, **kwargs):
         if not self.date:
             self.date = now()
 
-        # 2. Category & City Logic (Ye news dikhane ke liye chahiye)
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -78,45 +77,39 @@ def save(self, *args, **kwargs):
                     self.category = hin
                     break
         
-        # 3. WATERMARK + IMGBB (Only this, no extra drama)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
-                
-                # RGBA to RGB (Crash se bachne ke liye)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
 
-                # Watermark Lagana
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
                     watermark = Image.open(watermark_path).convert("RGBA")
-                    # Image ka 20% size ka watermark
                     w_size = int(min(img.width, img.height) * 0.20)
                     w_ratio = w_size / float(watermark.size[0])
                     h_size = int(float(watermark.size[1]) * float(w_ratio))
                     watermark = watermark.resize((w_size, h_size), Image.Resampling.LANCZOS)
-                    
-                    # Position: Bottom Right
                     img.paste(watermark, (img.width - w_size - 20, img.height - h_size - 20), watermark)
-                    watermark.close() # RAM khali karo
+                    watermark.close()
 
-                # Save to Buffer (No WebP, original quality)
                 output = io.BytesIO()
-                img.save(output, format='JPEG', quality=90)
+                img.save(output, format='JPEG', quality=85)
                 output.seek(0)
-                img.close() # RAM khali karo
+                img.close()
 
-                # ImgBB par bhejo
                 temp_file = ContentFile(output.read(), name=self.image.name)
-                uploaded_link = upload_to_imgbb(temp_file)
-                if uploaded_link:
-                    self.image_url = uploaded_link
-                    self.image = None # Local space khali
+                # ImgBB upload ko try-except mein rakha hai RAM bachane ke liye
+                try:
+                    uploaded_link = upload_to_imgbb(temp_file)
+                    if uploaded_link:
+                        self.image_url = uploaded_link
+                        self.image = None
+                except:
+                    self.image = temp_file # Fail ho to local save
             except Exception as e:
                 print(f"Error: {e}")
 
-        # 4. Slug (Simple wala)
         if not self.slug:
             try:
                 self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
@@ -124,3 +117,6 @@ def save(self, *args, **kwargs):
                 self.slug = f"news-{str(uuid.uuid4())[:8]}"
 
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
