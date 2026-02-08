@@ -119,7 +119,7 @@ class News(models.Model):
                     img_str = base64.b64encode(buffer.getvalue())
 
                     # ImgBB Upload
-                    api_key = "YAHAN_APNI_IMGBB_API_KEY_DALO" # <--- ZAROORI!
+                    api_key = "IMGBB_API_KEY" # <--- ZAROORI!
                     response = requests.post(
                         "https://api.imgbb.com/1/upload",
                         data={"key": api_key, "image": img_str}
