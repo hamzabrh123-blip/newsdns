@@ -57,14 +57,21 @@ def home(request):
             page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
             return render(request, "mynews/home.html", {"page_obj": page_obj, **common_data})
         
-        all_important = News.objects.filter(is_important=True).order_by("-date")
+        # --- TOP HEADLINES FIXED (Model Field: show_in_highlights) ---
+        # Ab ye is_important (Breaking) se nahi, show_in_highlights (Tick) se chalega
+        top_highlights = News.objects.filter(show_in_highlights=True).order_by("-date")[:5]
         
         context = {
-            "top_5_highlights": all_important[:5],
+            "top_5_highlights": top_highlights, # Admin panel se tick wali news aayengi
             "up_news": News.objects.filter(category__icontains="UP").order_by("-date")[:4],
             "national_news": News.objects.filter(category="National").order_by("-date")[:4],
             "world_news": News.objects.filter(category="International").order_by("-date")[:4],
             "sports_news": News.objects.filter(category="Sports").order_by("-date")[:4],
+            
+            # --- Ye do naye sections tere template ke liye ---
+            "bollywood_news": News.objects.filter(district="Bollywood").order_by("-date")[:4],
+            "technology_news": News.objects.filter(district="Technology").order_by("-date")[:4],
+            
             "other_news": Paginator(News.objects.all().order_by("-date"), 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -73,7 +80,7 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"System Check: {str(e)}", status=200)
-
+        
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug): 
     news = get_object_or_404(News, slug=slug)
