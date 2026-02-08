@@ -8,6 +8,7 @@ from unidecode import unidecode
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
+from django.conf import settings  # Facebook settings ke liye
 from .utils import upload_to_imgbb 
 
 class News(models.Model):
@@ -40,8 +41,8 @@ class News(models.Model):
         ('Sultanpur', 'सुलतानपुर', 'sultanpur'), ('Unnao', 'उन्नाव', 'unnao'), ('Varanasi', 'वाराणसी', 'varanasi'),
         ('Delhi', 'दिल्ली', 'delhi'), ('National', 'राष्ट्रीय खबर', 'national'),
         ('International', 'अंतर्राष्ट्रीय', 'international'), ('Sports', 'खेल समाचार', 'sports'),
-        ('Bollywood', 'बॉलीवुड', 'bollywood'),('Hollywood', 'हॉलीवुड', 'Hollywood'), ('Technology', 'टेक्नोलॉजी', 'technology'), 
-        ('Market', 'मार्केट भाव', 'market'),
+        ('Bollywood', 'बॉलीवुड', 'bollywood'), ('Hollywood', 'हॉलीवुड', 'Hollywood'), 
+        ('Technology', 'टेक्नोलॉजी', 'technology'), ('Market', 'मार्केट भाव', 'market'),
     ]
 
     title = models.CharField(max_length=250)
@@ -58,6 +59,10 @@ class News(models.Model):
     share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook post?")
     is_fb_posted = models.BooleanField(default=False)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
+    
+    # --- YAHAN SET KIYA HAI TOP 5 HIGHLIGHTS ---
+    show_in_highlights = models.BooleanField(default=False, verbose_name="Top 5 Highlights?")
+    
     meta_keywords = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -74,19 +79,21 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
+        # 1. District/Category Sync Logic
         if self.district:
-            for eng, hin, cat in self.LOCATION_DATA:
+            for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
-                    self.category = cat
+                    self.category = hin # Yahan 'hin' (Hindi naam) save hoga
                     break
 
+        # 2. Image, Watermark and ImgBB Upload
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
-                img.thumbnail((1200, 1200), Image.LANCZOS)
+                img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
 
                 watermark_path = finders.find('watermark.png')
                 if watermark_path:
@@ -95,29 +102,37 @@ class News(models.Model):
                     target_width = int(base_side * 0.20) 
                     w_ratio = target_width / float(watermark.size[0])
                     target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    watermark = watermark.resize((target_width, target_height), Image.LANCZOS)
+                    watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
                     position = (img.width - target_width - 20, img.height - target_height - 20)
                     img.paste(watermark, position, watermark)
+                    watermark.close()
 
                 output = io.BytesIO()
-                img.save(output, format='WEBP', quality=50)
+                # WEBP format for better SEO and speed
+                img.save(output, format='WEBP', quality=60)
                 output.seek(0)
-                self.image = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                uploaded_link = upload_to_imgbb(self.image)
+                # Temp file to upload
+                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                uploaded_link = upload_to_imgbb(temp_file)
+                
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None
+                    self.image = None # Local storage bachane ke liye
+                img.close()
             except Exception as e:
-                print(f"Bhai Error: {e}")
+                print(f"Bhai Image Processing Error: {e}")
 
+        # 3. Slug Creation
         if not self.slug:
             latin_title = unidecode(self.title)
+            # Clean text for cleaner URLs
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
         
+        # 4. Facebook Sharing Logic
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
@@ -129,6 +144,7 @@ class News(models.Model):
             msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
             if self.image_url:
                 graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
+            # Update without triggering save again to avoid recursion
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
         except Exception as e:
             print(f"FB Error: {e}")
