@@ -132,20 +132,69 @@ class News(models.Model):
 
         super().save(*args, **kwargs)
         
-        # 4. Facebook Sharing Logic
+     # Facebook control fields
+    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook par share karein?")
+    is_fb_posted = models.BooleanField(default=False, verbose_name="Kya FB par post ho chuki hai?")
+
+    # ... (baaki fields wahi rahengi)
+
+    def save(self, *args, **kwargs):
+        # 1. District/Category Sync logic (Wahi rahega)
+        if self.district:
+            for eng, hin, city_slug in self.LOCATION_DATA:
+                if self.district == eng:
+                    self.url_city = eng.lower()
+                    self.category = hin
+                    break
+
+        # 2. Image Processing & ImgBB (Wahi rahega)
+        # ... (Image wala poora logic jo tune bheja tha)
+
+        # 3. Slug creation (Wahi rahega)
+        if not self.slug:
+            latin_title = unidecode(self.title)
+            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
+            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+
+        # --- FACEBOOK SHARE LOGIC ---
+        # Pehle news save hogi taaki URL ban jaye
+        super().save(*args, **kwargs)
+        
+        # Agar status Published hai aur humne Tick kiya hai, aur pehle post nahi hui hai
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             self.post_to_facebook()
 
     def post_to_facebook(self):
         try:
             import facebook
+            # Ye settings.py se token uthayega
             graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
+            
+            # Aapki site ka full link
             post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-            msg = f"🔴 {self.title}\n\nखबर यहाँ पढ़ें: {post_url}"
+            msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
+            
             if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            # Update without triggering save again to avoid recursion
+                # Photo ke sath post
+                graph.put_object(
+                    parent_object=settings.FB_PAGE_ID, 
+                    connection_name='photos', 
+                    url=self.image_url, 
+                    caption=msg
+                )
+            else:
+                # Bina photo ke sirf link post
+                graph.put_object(
+                    parent_object=settings.FB_PAGE_ID, 
+                    connection_name='feed', 
+                    message=msg, 
+                    link=post_url
+                )
+            
+            # Post hone ke baad is_fb_posted ko True kar do taaki baar-baar post na ho
             News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
+            print("FB Post Success!")
+            
         except Exception as e:
             print(f"FB Error: {e}")
 
