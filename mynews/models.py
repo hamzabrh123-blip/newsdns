@@ -16,7 +16,7 @@ class News(models.Model):
         ('Amethi', 'अमेठी', 'amethi'), ('Amroha', 'अमरोहा', 'amroha'), ('Auraiya', 'औरैया', 'auraiya'), 
         ('Ayodhya', 'अयोध्या', 'ayodhya'), ('Azamgarh', 'आजमगढ़', 'azamgarh'), ('Baghpat', 'बागपत', 'baghpat'), 
         ('Bahraich', 'बहराइच', 'bahraich'), ('Ballia', 'बलिया', 'ballia'), ('Balrampur', 'बालरामपुर', 'balrampur'), 
-        ('Banda', 'बांदा', 'banda'), ('Barabanki', 'बाराबanki', 'barabanki'), ('Bareilly', 'बरेली', 'bareilly'), 
+        ('Banda', 'बांदा', 'banda'), ('Barabanki', 'बाराबंकी', 'barabanki'), ('Bareilly', 'बरेली', 'bareilly'), 
         ('Basti', 'बस्ती', 'basti'), ('Bhadohi', 'भदोही', 'bhadohi'), ('Bijnor', 'बिजनौर', 'bijnor'), 
         ('Budaun', 'बदायूँ', 'budaun'), ('Bulandshahr', 'बुलंदशहर', 'bulandshahr'), ('Chandauli', 'चंदौली', 'chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'chitrakoot'), ('Deoria', 'देवरिया', 'deoria'), ('Etah', 'एटा', 'etah'), 
@@ -85,14 +85,12 @@ class News(models.Model):
             latin_title = unidecode(self.title)
             self.slug = f"{slugify(latin_title)[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 2. Simplified Image Logic (RAM Bachane ke liye)
+        # 2. Watermark only logic (Minimal RAM usage)
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
-                
-                img.thumbnail((800, 800), Image.Resampling.LANCZOS)
 
                 # Watermark Block
                 try:
@@ -109,25 +107,24 @@ class News(models.Model):
                 except:
                     pass
 
+                # Save to Buffer and Upload
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=60)
                 output.seek(0)
-                
                 temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
                 try:
                     uploaded_link = upload_to_imgbb(temp_file)
                     if uploaded_link:
                         self.image_url = uploaded_link
-                except Exception as e:
-                    print(f"ImgBB Failed: {e}")
+                except:
+                    pass
                 
                 img.close()
                 output.close()
-            except Exception as e:
-                print(f"Image Error: {e}")
+            except:
+                pass
 
-        # 3. Final Save
         super(News, self).save(*args, **kwargs)
         gc.collect()
 
