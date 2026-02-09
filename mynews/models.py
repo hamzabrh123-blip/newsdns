@@ -1,4 +1,4 @@
-import uuid, io
+import uuid, io, os
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField
@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from unidecode import unidecode
 from django.urls import reverse
 from django.core.files.base import ContentFile
-from django.contrib.staticfiles import finders
+from django.conf import settings
 from .utils import upload_to_imgbb
 
 class News(models.Model):
@@ -25,7 +25,7 @@ class News(models.Model):
         ('Ghaziabad', 'गाजियाबाद', 'ghaziabad'), ('Ghazipur', 'गाजीपुर', 'ghazipur'), ('Gonda', 'गोंडा', 'gonda'), 
         ('Gorakhpur', 'गोरखपुर', 'gorakhpur'), ('Hamirpur', 'हमीरपुर', 'hamirpur'), ('Hapur', 'हापुड़', 'hapur'), 
         ('Hardoi', 'हरदोई', 'hardoi'), ('Hathras', 'हाथरास', 'hathras'), ('Jalaun', 'जालौन', 'jalaun'), 
-        ('Jaunpur', 'जौनपुर', 'jaunpur'), ('Jhansi', 'झाँसी', 'jhansi'), ('Kannauj', 'कन्नौज', 'kannauj'), 
+        ('Jaunpur', 'जूनपुर', 'jaunpur'), ('Jhansi', 'झाँसी', 'jhansi'), ('Kannauj', 'कन्नौज', 'kannauj'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'kanpur-dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'kanpur-nagar'), 
         ('Kasganj', 'कासगंज', 'kasganj'), ('Kaushambi', 'कौशाम्बी', 'kaushambi'), ('Kushinagar', 'कुशीनगर', 'kushinagar'), 
         ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'lakhimpur-kheri'), ('Lalitpur', 'ललितपुर', 'lalitpur'), 
@@ -53,10 +53,7 @@ class News(models.Model):
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     youtube_url = models.URLField(blank=True, null=True)
-    
-    # Timezone fix: isse admin panel mein date dikhegi aur India ka time aayega
     date = models.DateTimeField(default=now) 
-    
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     show_in_highlights = models.BooleanField(default=False, verbose_name="Top 5 Highlights?")
@@ -84,7 +81,14 @@ class News(models.Model):
                     self.category = hin
                     break
 
-        # 2. Image Processing & Watermark
+        # 2. Slug creation
+        if not self.slug:
+            latin_title = unidecode(self.title)
+            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
+            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+
+        # 3. Image Processing & Watermark
+        # Production (Render) par watermark ka sahi raasta:
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -92,17 +96,18 @@ class News(models.Model):
                     img = img.convert("RGB")
                 img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
 
-                watermark_path = finders.find('watermark.png')
-                if watermark_path:
-                    watermark = Image.open(watermark_path).convert("RGBA")
-                    base_side = min(img.width, img.height)
-                    target_width = int(base_side * 0.20) 
-                    w_ratio = target_width / float(watermark.size[0])
-                    target_height = int(float(watermark.size[1]) * float(w_ratio))
-                    watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                    position = (img.width - target_width - 20, img.height - target_height - 20)
-                    img.paste(watermark, position, watermark)
-                    watermark.close()
+                # वाटरमार्क ढूँढने का पक्का तरीका
+                watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
+                
+                if os.path.exists(watermark_path):
+                    with Image.open(watermark_path).convert("RGBA") as watermark:
+                        base_side = min(img.width, img.height)
+                        target_width = int(base_side * 0.20) 
+                        w_ratio = target_width / float(watermark.size[0])
+                        target_height = int(float(watermark.size[1]) * float(w_ratio))
+                        watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
+                        position = (img.width - target_width - 20, img.height - target_height - 20)
+                        img.paste(watermark, position, watermark)
 
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=60)
@@ -113,16 +118,10 @@ class News(models.Model):
                 
                 if uploaded_link:
                     self.image_url = uploaded_link
-                    self.image = None
+                    # self.image = None को यहाँ से हटा दिया है ताकि 500 Error न आए
                 img.close()
             except Exception as e:
-                print(f"Image Error: {e}")
-
-        # 3. Slug creation
-        if not self.slug:
-            latin_title = unidecode(self.title)
-            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
-            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+                print(f"Image Processing Error: {e}")
 
         super().save(*args, **kwargs)
 
