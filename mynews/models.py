@@ -8,7 +8,6 @@ from unidecode import unidecode
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
-from django.conf import settings
 from .utils import upload_to_imgbb
 
 class News(models.Model):
@@ -54,14 +53,13 @@ class News(models.Model):
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     youtube_url = models.URLField(blank=True, null=True)
-    date = models.DateTimeField(auto_now_add=True)
+    
+    # Timezone fix: isse admin panel mein date dikhegi aur India ka time aayega
+    date = models.DateTimeField(default=now) 
+    
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     show_in_highlights = models.BooleanField(default=False, verbose_name="Top 5 Highlights?")
-    
-    share_now_to_fb = models.BooleanField(default=False, verbose_name="Facebook par share karein?")
-    is_fb_posted = models.BooleanField(default=False, verbose_name="Kya FB par post ho chuki hai?")
-    
     meta_keywords = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -78,6 +76,7 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
+        # 1. District Sync Logic
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -85,6 +84,7 @@ class News(models.Model):
                     self.category = hin
                     break
 
+        # 2. Image Processing & Watermark
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
@@ -116,34 +116,15 @@ class News(models.Model):
                     self.image = None
                 img.close()
             except Exception as e:
-                print(f"Bhai Image Processing Error: {e}")
+                print(f"Image Error: {e}")
 
+        # 3. Slug creation
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
         super().save(*args, **kwargs)
-        
-        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            self.post_to_facebook()
-
-    def post_to_facebook(self):
-        try:
-            import facebook
-            graph = facebook.GraphAPI(access_token=settings.FB_ACCESS_TOKEN)
-            post_url = f"https://uttarworld.com{self.get_absolute_url()}"
-            msg = f"🔴 {self.title}\n\nपूरी खबर यहाँ पढ़ें: {post_url}"
-            
-            if self.image_url:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='photos', url=self.image_url, caption=msg)
-            else:
-                graph.put_object(parent_object=settings.FB_PAGE_ID, connection_name='feed', message=msg, link=post_url)
-            
-            News.objects.filter(pk=self.pk).update(is_fb_posted=True, share_now_to_fb=False)
-            print("FB Post Success!")
-        except Exception as e:
-            print(f"FB Error: {e}")
 
     def __str__(self):
         return self.title
