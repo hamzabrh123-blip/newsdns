@@ -3,12 +3,12 @@ import re
 import base64
 import os
 import logging
+import gc # Garbage collector for RAM safety
 
 logger = logging.getLogger(__name__)
 
 # --- SIDEBAR LOGIC ---
 def get_common_sidebar_data():
-    # Circular import se bachne ke liye import andar hi rehne do
     try:
         from mynews.models import News
         return {
@@ -32,20 +32,29 @@ def upload_to_imgbb(image_field):
 
     url = "https://api.imgbb.com/1/upload"
     try:
+        # Image ko binary mode mein read karna (Memory bachaane ke liye)
         image_field.open()
-        image_data = base64.b64encode(image_field.read())
+        raw_data = image_field.read()
+        image_data = base64.b64encode(raw_data)
         image_field.close()
 
         payload = {
             "key": api_key,
             "image": image_data,
         }
-        # Timeout kam kiya hai taaki memory block na ho
-        response = requests.post(url, data=payload, timeout=30)
         
+        # Requests ke time timeout ko 20-30 sec rakhna sahi hai
+        response = requests.post(url, data=payload, timeout=25)
+        
+        # Memory saaf karna
+        del raw_data
+        del image_data
+        gc.collect()
+
         if response.status_code == 200:
             return response.json()['data']['url']
         else:
+            logger.error(f"ImgBB Response Fail: {response.text}")
             return None
     except Exception as e:
         logger.error(f"ImgBB Error: {e}")
