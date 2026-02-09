@@ -4,8 +4,8 @@ from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    # 1. Bahar ki list mein kya-kya dikhega
-    list_display = ('title', 'district', 'status', 'is_important', 'show_in_highlights', 'share_now_to_fb', 'is_fb_posted', 'date')
+    # 1. Bahar ki list mein kya-kya dikhega (Facebook fields hata di hain)
+    list_display = ('title', 'district', 'status', 'is_important', 'show_in_highlights', 'date')
     
     # 2. Side mein filter karne ke liye
     list_filter = ('status', 'district', 'category', 'date', 'is_important', 'show_in_highlights')
@@ -14,10 +14,10 @@ class NewsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'content')
     
     # 4. Bina edit page khole bahar se hi tick karne ke liye
-    list_editable = ('is_important', 'show_in_highlights', 'share_now_to_fb', 'status')
+    list_editable = ('is_important', 'show_in_highlights', 'status')
     
     list_per_page = 20
-    readonly_fields = ('category', 'url_city', 'is_fb_posted')
+    readonly_fields = ('category', 'url_city')
 
     # Title ko bada aur stylish dikhane ke liye
     formfield_overrides = {
@@ -30,7 +30,7 @@ class NewsAdmin(admin.ModelAdmin):
         },
     }
 
-    # Admin panel ka structure (Layout)
+    # Admin panel ka structure (Layout) - Sharing wala section hata diya hai
     fieldsets = (
         ('मुख्य जानकारी (Title & Content)', {
             'fields': ('title', 'status', 'content'),
@@ -41,9 +41,9 @@ class NewsAdmin(admin.ModelAdmin):
         ('मीडिया (Image & Video)', {
             'fields': (('image', 'image_url'), 'youtube_url'),
         }),
-        ('स्पेशल फीचर्स (Highlights & Sharing)', {
-            'fields': (('is_important', 'show_in_highlights'), ('share_now_to_fb', 'is_fb_posted')),
-            'description': 'यहीं से आप फेसबुक पर शेयर और टॉप 5 हाइलाइट्स सेट कर सकते हैं।',
+        ('स्पेशल फीचर्स (Highlights)', {
+            'fields': (('is_important', 'show_in_highlights'),),
+            'description': 'यहीं से आप ब्रेकिंग न्यूज़ और टॉप 5 हाइलाइट्स सेट कर सकते हैं।',
         }),
         ('एडवांस्ड सेटिंग्स (SEO)', {
             'fields': ('slug', 'date', 'meta_keywords'), 
