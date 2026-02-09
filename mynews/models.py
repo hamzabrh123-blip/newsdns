@@ -1,4 +1,4 @@
-import uuid, io, os
+import uuid, io, os, gc
 from PIL import Image
 from django.db import models
 from ckeditor.fields import RichTextField
@@ -72,8 +72,9 @@ class News(models.Model):
             return self.image_url
         return "/static/default.png"
 
+# --- Niche wala save method poora replace kar dein ---
     def save(self, *args, **kwargs):
-        # 1. District Sync Logic
+        # 1. District Sync & Slug Logic
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -81,49 +82,62 @@ class News(models.Model):
                     self.category = hin
                     break
 
-        # 2. Slug creation
         if not self.slug:
             latin_title = unidecode(self.title)
             clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
             self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Image Processing & Watermark
-        # Production (Render) par watermark ka sahi raasta:
+        # 2. Safe Image Processing
         if self.image and hasattr(self.image, 'file'):
             try:
-                img = Image.open(self.image)
-                if img.mode in ("RGBA", "P"):
-                    img = img.convert("RGB")
-                img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+                with Image.open(self.image) as img:
+                    if img.mode in ("RGBA", "P"):
+                        img = img.convert("RGB")
+                    
+                    # Thumbnail for speed
+                    img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
 
-                # वाटरमार्क ढूँढने का पक्का तरीका
-                watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
-                
-                if os.path.exists(watermark_path):
-                    with Image.open(watermark_path).convert("RGBA") as watermark:
-                        base_side = min(img.width, img.height)
-                        target_width = int(base_side * 0.20) 
-                        w_ratio = target_width / float(watermark.size[0])
-                        target_height = int(float(watermark.size[1]) * float(w_ratio))
-                        watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                        position = (img.width - target_width - 20, img.height - target_height - 20)
-                        img.paste(watermark, position, watermark)
+                    # --- WATERMARK PATH FIX ---
+                    # Aapke bataye gaye raste ke hisaab se:
+                    watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
+                    
+                    if os.path.exists(watermark_path):
+                        with Image.open(watermark_path).convert("RGBA") as watermark:
+                            base_side = min(img.width, img.height)
+                            target_width = int(base_side * 0.20)
+                            w_ratio = target_width / float(watermark.size[0])
+                            target_height = int(float(watermark.size[1]) * float(w_ratio))
+                            watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
+                            
+                            position = (img.width - target_width - 20, img.height - target_height - 20)
+                            img.paste(watermark, position, watermark)
+                    else:
+                        print(f"Watermark not found at: {watermark_path}")
 
-                output = io.BytesIO()
-                img.save(output, format='WEBP', quality=60)
-                output.seek(0)
-                
-                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
-                uploaded_link = upload_to_imgbb(temp_file)
-                
-                if uploaded_link:
-                    self.image_url = uploaded_link
-                    # self.image = None को यहाँ से हटा दिया है ताकि 500 Error न आए
-                img.close()
+                    # Convert to WEBP
+                    output = io.BytesIO()
+                    img.save(output, format='WEBP', quality=75)
+                    output.seek(0)
+                    
+                    temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                    
+                    # ImgBB Upload
+                    try:
+                        uploaded_link = upload_to_imgbb(temp_file)
+                        if uploaded_link:
+                            self.image_url = uploaded_link
+                            # Note: self.image = None yahan nahi karenge, 
+                            # varna 500 error ka risk rehta hai.
+                    except Exception as upload_err:
+                        print(f"ImgBB Error: {upload_err}")
+                    
+                    output.close()
             except Exception as e:
-                print(f"Image Processing Error: {e}")
+                print(f"General Image Error: {e}")
 
+        # 3. Final Save to Database
         super().save(*args, **kwargs)
+        gc.collect()
 
     def __str__(self):
         return self.title
