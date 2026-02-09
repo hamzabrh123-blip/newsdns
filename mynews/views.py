@@ -74,14 +74,18 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse("System Update in Progress...", status=200)
 
-# --- 2. NEWS DETAIL ---
+# --- 2. NEWS DETAIL (UPDATED) ---
 def news_detail(request, url_city, slug): 
     news = get_object_or_404(News, slug=slug)
     v_id = None
+    
     if news.youtube_url:
-        match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", news.youtube_url)
-        v_id = match.group(1) if match else None
-        
+        # यह Regex Shorts, Normal, और youtu.be तीनों के लिए काम करेगा
+        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+        match = re.search(regex, news.youtube_url)
+        if match:
+            v_id = match.group(1)
+
     context = {
         "news": news, 
         "og_title": news.title,
