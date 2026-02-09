@@ -6,10 +6,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-# --- DEBUG SETTINGS (PC par kaam ke liye isse True rakho) ---
-#DEBUG = True
-#SECRET_KEY = 'django-insecure-test-key'
-
+# Render पर 'True' तभी करना जब एरर देखना हो, वरना 'False' ही रहने दें
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
@@ -43,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic", # Static files fix
+    "whitenoise.runserver_nostatic", 
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -52,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Whitenoise top par honi chahiye
+    "whitenoise.middleware.WhiteNoiseMiddleware", 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,13 +80,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (Render Variables se DATABASE_URL uthayega) ---
+# --- DATABASE (Render DATABASE_URL) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
     )
 }
+
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -98,6 +96,7 @@ STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Whitenoise configuration for Render
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -109,23 +108,21 @@ STORAGES = {
 
 WHITENOISE_MANIFEST_STRICT = False
 
-# --- CKEDITOR CONFIG (For Better UI) ---
+# --- CKEDITOR CONFIG (Clean & Fast) ---
 CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = "pillow" # Explicitly use pillow
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
-        'toolbar': 'Basic',  # यहाँ 'full' था, उसे 'Basic' कर दिया
+        'toolbar': 'Custom',
         'height': 300,
         'width': '100%',
-        'toolbar_Basic': [
-            ['Source'],
-            ['Bold', 'Italic', 'Underline', 'Strike'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
             ['Link', 'Unlink'],
-            ['Format', 'FontSize'],
-            ['TextColor', 'BGColor'],
-            ['RemoveFormat', 'Maximize']
+            ['Format', 'FontSize', 'TextColor', 'BGColor'],
+            ['RemoveFormat', 'Maximize', 'Source']
         ],
         'removePlugins': 'elementspath,resize,flash,smiley,iframe',
     },
@@ -139,16 +136,14 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# --- SOCIAL & FB TOOLS (Render Environment Variables) ---
+# --- KEYS ---
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
-FB_GROUP_1_ID = os.environ.get("FB_GROUP_1_ID")
-FB_GROUP_2_ID = os.environ.get("FB_GROUP_2_ID")
-IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- INTERNATIONALIZATION SETTINGS ---
+# --- I18N SETTINGS ---
 LANGUAGE_CODE = 'hi'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
