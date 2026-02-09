@@ -6,7 +6,6 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-# Render पर 'True' तभी करना जब एरर देखना हो, वरना 'False' ही रहने दें
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
@@ -80,11 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (Render DATABASE_URL) ---
+# --- DATABASE (SSL FIX FOR RENDER) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
+        ssl_require=True # <-- Yeh line sabse zaruri hai Render ke liye
     )
 }
 
@@ -96,7 +96,6 @@ STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Whitenoise configuration for Render
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -108,9 +107,9 @@ STORAGES = {
 
 WHITENOISE_MANIFEST_STRICT = False
 
-# --- CKEDITOR CONFIG (Clean & Fast) ---
+# --- CKEDITOR CONFIG ---
 CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_IMAGE_BACKEND = "pillow" # Explicitly use pillow
+CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
@@ -128,7 +127,7 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-# --- EMAIL SETTINGS ---
+# --- EMAIL & KEYS ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -136,7 +135,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# --- KEYS ---
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
