@@ -134,9 +134,9 @@ IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- INTERNATIONALIZATION ---
-# यह हिस्सा समय और भाषा को इंडिया के हिसाब से सेट करेगा
-LANGUAGE_CODE = "hi"
-TIME_ZONE = "Asia/Kolkata"
+# --- INTERNATIONALIZATION SETTINGS ---
+LANGUAGE_CODE = 'hi'
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
