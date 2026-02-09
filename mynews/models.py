@@ -73,8 +73,8 @@ class News(models.Model):
         return "/static/default.png"
 
 # --- Niche wala save method poora replace kar dein ---
-    def save(self, *args, **kwargs):
-        # 1. District Sync & Slug Logic
+def save(self, *args, **kwargs):
+        # 1. District & Slug Logic (Safe)
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -84,23 +84,21 @@ class News(models.Model):
 
         if not self.slug:
             latin_title = unidecode(self.title)
-            clean_text = latin_title.replace('ii', 'i').replace('ss', 's').replace('aa', 'a').replace('ee', 'e')
-            self.slug = f"{slugify(clean_text)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(latin_title)[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 2. Safe Image Processing
+        # 2. Simplified Image Logic (RAM Bachane ke liye)
         if self.image and hasattr(self.image, 'file'):
             try:
-                with Image.open(self.image) as img:
-                    if img.mode in ("RGBA", "P"):
-                        img = img.convert("RGB")
-                    
-                    # Thumbnail for speed
-                    img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+                # Sirf tabhi processing karo jab image upload ho
+                img = Image.open(self.image)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                
+                img.thumbnail((800, 800), Image.Resampling.LANCZOS)
 
-                    # --- WATERMARK PATH FIX ---
-                    # Aapke bataye gaye raste ke hisaab se:
+                # Watermark Block - Isse 500 Error nahi aayega ab
+                try:
                     watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
-                    
                     if os.path.exists(watermark_path):
                         with Image.open(watermark_path).convert("RGBA") as watermark:
                             base_side = min(img.width, img.height)
@@ -108,36 +106,33 @@ class News(models.Model):
                             w_ratio = target_width / float(watermark.size[0])
                             target_height = int(float(watermark.size[1]) * float(w_ratio))
                             watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                            
-                            position = (img.width - target_width - 20, img.height - target_height - 20)
+                            position = (img.width - target_width - 15, img.height - target_height - 15)
                             img.paste(watermark, position, watermark)
-                    else:
-                        print(f"Watermark not found at: {watermark_path}")
+                except:
+                    pass # Watermark fail hua toh news save ho jaye
 
-                    # Convert to WEBP
-                    output = io.BytesIO()
-                    img.save(output, format='WEBP', quality=75)
-                    output.seek(0)
-                    
-                    temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
-                    
-                    # ImgBB Upload
-                    try:
-                        uploaded_link = upload_to_imgbb(temp_file)
-                        if uploaded_link:
-                            self.image_url = uploaded_link
-                            # Note: self.image = None yahan nahi karenge, 
-                            # varna 500 error ka risk rehta hai.
-                    except Exception as upload_err:
-                        print(f"ImgBB Error: {upload_err}")
-                    
-                    output.close()
+                # Save to Buffer
+                output = io.BytesIO()
+                img.save(output, format='WEBP', quality=60)
+                output.seek(0)
+                
+                # Temp File Creation
+                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
+                
+                # ImgBB Upload (Try-Except is very important here)
+                try:
+                    uploaded_link = upload_to_imgbb(temp_file)
+                    if uploaded_link:
+                        self.image_url = uploaded_link
+                        # Is line ko comment kar raha hoon debugging ke liye
+                        # self.image = None 
+                except Exception as e:
+                    print(f"ImgBB Failed: {e}")
+                
+                img.close()
             except Exception as e:
-                print(f"General Image Error: {e}")
+                print(f"Image Error: {e}")
 
-        # 3. Final Save to Database
-        super().save(*args, **kwargs)
+        # 3. Last Line - Iske bina 500 pakka hai
+        super(News, self).save(*args, **kwargs)
         gc.collect()
-
-    def __str__(self):
-        return self.title
