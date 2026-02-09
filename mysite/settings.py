@@ -7,11 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
 # --- DEBUG SETTINGS (PC par kaam ke liye isse True rakho) ---
-DEBUG = True
-SECRET_KEY = 'django-insecure-test-key'
+#DEBUG = True
+#SECRET_KEY = 'django-insecure-test-key'
 
-#DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-#SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -83,24 +83,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (PC par SQLite, Render par PostgreSQL) ---
-if DEBUG:
-    # PC par kaam karne ke liye
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    # Online Render par chalne ke liye
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-        )
-    }
-
+# --- DATABASE (Render Variables se DATABASE_URL uthayega) ---
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+    )
+}
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
