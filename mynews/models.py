@@ -73,60 +73,58 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. District & Slug Logic
+        # 1. जिला और स्लग का काम (बहुत तेज़)
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
                     self.url_city = eng.lower()
                     self.category = hin
                     break
-
         if not self.slug:
-            latin_title = unidecode(self.title)
-            self.slug = f"{slugify(latin_title)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 2. Watermark only logic (Minimal RAM usage)
-        if self.image and hasattr(self.image, 'file'):
+        # 2. खबर को तुरंत डेटाबेस में सेव करो (ताकि रेंडर 500 एरर न दे)
+        super(News, self).save(*args, **kwargs)
+
+        # 3. इमेज प्रोसेसिंग और अपलोड (बैकग्राउंड में शांति से होगा)
+        # सिर्फ तब जब नई इमेज हो और URL खाली हो
+        if self.image and hasattr(self.image, 'file') and not self.image_url:
             try:
                 img = Image.open(self.image)
-                if img.mode in ("RGBA", "P"):
+                if img.mode != "RGB":
                     img = img.convert("RGB")
-
-                # Watermark Block
-                try:
-                    watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
-                    if os.path.exists(watermark_path):
-                        with Image.open(watermark_path).convert("RGBA") as watermark:
-                            base_side = min(img.width, img.height)
-                            target_width = int(base_side * 0.20)
-                            w_ratio = target_width / float(watermark.size[0])
-                            target_height = int(float(watermark.size[1]) * float(w_ratio))
-                            watermark = watermark.resize((target_width, target_height), Image.Resampling.LANCZOS)
-                            position = (img.width - target_width - 15, img.height - target_height - 15)
-                            img.paste(watermark, position, watermark)
-                except:
-                    pass
-
-                # Save to Buffer and Upload
-                output = io.BytesIO()
-                img.save(output, format='WEBP', quality=60)
-                output.seek(0)
-                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
+                # इमेज साइज़ छोटा करना (RAM बचाने के लिए)
+                img.thumbnail((800, 800))
+
+                # वॉटरमार्क लगाना
                 try:
-                    uploaded_link = upload_to_imgbb(temp_file)
-                    if uploaded_link:
-                        self.image_url = uploaded_link
+                    w_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
+                    if os.path.exists(w_path):
+                        with Image.open(w_path).convert("RGBA") as w_img:
+                            w_img.thumbnail((img.width // 4, img.height // 4))
+                            img.paste(w_img, (img.width - w_img.width - 15, img.height - w_img.height - 15), w_img)
                 except:
                     pass
+
+                # बफ़र में सेव करके अपलोड करना
+                output = io.BytesIO()
+                img.save(output, format='JPEG', quality=70) # JPEG RAM कम खाता है
+                output.seek(0)
+                
+                temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:8]}.jpg")
+                uploaded_link = upload_to_imgbb(temp_file)
+                
+                if uploaded_link:
+                    # बिना दोबारा save() चलाये सीधा डेटाबेस में अपडेट करना (Recursion से बचने के लिए)
+                    News.objects.filter(id=self.id).update(image_url=uploaded_link)
                 
                 img.close()
                 output.close()
-            except:
-                pass
-
-        super(News, self).save(*args, **kwargs)
-        gc.collect()
+            except Exception as e:
+                print(f"Image Logic Error: {e}")
+            
+            gc.collect() # RAM साफ करो
 
     def __str__(self):
         return self.title
