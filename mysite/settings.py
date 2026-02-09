@@ -113,9 +113,21 @@ WHITENOISE_MANIFEST_STRICT = False
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': 'full',
-        'height': 400,
+        'skin': 'moono-lisa',
+        'toolbar': 'Basic',  # यहाँ 'full' था, उसे 'Basic' कर दिया
+        'height': 300,
         'width': '100%',
+        'toolbar_Basic': [
+            ['Source'],
+            ['Bold', 'Italic', 'Underline', 'Strike'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['Format', 'FontSize'],
+            ['TextColor', 'BGColor'],
+            ['RemoveFormat', 'Maximize']
+        ],
+        'removePlugins': 'elementspath,resize,flash,smiley,iframe',
     },
 }
 
