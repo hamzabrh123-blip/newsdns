@@ -28,7 +28,7 @@ class News(models.Model):
         ('Jaunpur', 'जूनपुर', 'jaunpur'), ('Jhansi', 'झाँसी', 'jhansi'), ('Kannauj', 'कन्नौज', 'kannauj'), 
         ('Kanpur-Dehat', 'कानपुर देहात', 'kanpur-dehat'), ('Kanpur-Nagar', 'कानपुर नगर', 'kanpur-nagar'), 
         ('Kasganj', 'कासगंज', 'kasganj'), ('Kaushambi', 'कौशाम्बी', 'kaushambi'), ('Kushinagar', 'कुशीनगर', 'kushinagar'), 
-        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'lakhimpur-kheri'), ('Lalitpur', 'ललितपुर', 'lalitpur'), 
+        ('Lakhimpur-Kheri', 'लखीमपुर खीरी', 'lakhimpur-kheri'), ('Lalitpur', 'लalitpur', 'lalitpur'), 
         ('Lucknow', 'लखनऊ', 'lucknow'), ('Maharajganj', 'महराजगंज', 'maharajganj'), ('Mahoba', 'महोबा', 'mahoba'), 
         ('Mainpuri', 'मैनपुरी', 'mainpuri'), ('Mathura', 'मथुरा', 'mathura'), ('Mau', 'मऊ', 'mau'), 
         ('Meerut', 'मेरठ', 'meerut'), ('Mirzapur', 'मिर्जापुर', 'mirzapur'), ('Moradabad', 'मुरादाबाद', 'moradabad'), 
@@ -45,7 +45,7 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=250)
-    status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Draft')
+    status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Published')
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
@@ -58,6 +58,10 @@ class News(models.Model):
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     show_in_highlights = models.BooleanField(default=False, verbose_name="Top 5 Highlights?")
     meta_keywords = models.TextField(blank=True, null=True)
+    
+    # --- ये दो फील्ड्स DB स्कीमा से मैच करने के लिए ज़रूरी हैं ---
+    share_now_to_fb = models.BooleanField(default=False, verbose_name="Share to FB?")
+    is_fb_posted = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'mynews_news'
@@ -73,7 +77,7 @@ class News(models.Model):
         return "/static/default.png"
 
     def save(self, *args, **kwargs):
-        # 1. जिला और स्लग का काम (बहुत तेज़)
+        # 1. जिला और स्लग
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -83,21 +87,20 @@ class News(models.Model):
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 2. खबर को तुरंत डेटाबेस में सेव करो (ताकि रेंडर 500 एरर न दे)
+        # 2. सेव
         super(News, self).save(*args, **kwargs)
 
-        # 3. इमेज प्रोसेसिंग और अपलोड (बैकग्राउंड में शांति से होगा)
-        # सिर्फ तब जब नई इमेज हो और URL खाली हो
-        if self.image and hasattr(self.image, 'file') and not self.image_url:
+        # 3. इमेज प्रोसेसिंग (सिर्फ तब जब इमेज फाइल हो)
+        if self.image and not self.image_url:
             try:
-                img = Image.open(self.image)
+                # यहाँ हमने चेक किया कि image के पास file है या नहीं
+                img = Image.open(self.image.path if hasattr(self.image, 'path') else self.image)
                 if img.mode != "RGB":
                     img = img.convert("RGB")
                 
-                # इमेज साइज़ छोटा करना (RAM बचाने के लिए)
                 img.thumbnail((800, 800))
 
-                # वॉटरमार्क लगाना
+                # वॉटरमार्क (Optional)
                 try:
                     w_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
                     if os.path.exists(w_path):
@@ -107,24 +110,22 @@ class News(models.Model):
                 except:
                     pass
 
-                # बफ़र में सेव करके अपलोड करना
                 output = io.BytesIO()
-                img.save(output, format='JPEG', quality=70) # JPEG RAM कम खाता है
+                img.save(output, format='JPEG', quality=70)
                 output.seek(0)
                 
                 temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:8]}.jpg")
                 uploaded_link = upload_to_imgbb(temp_file)
                 
                 if uploaded_link:
-                    # बिना दोबारा save() चलाये सीधा डेटाबेस में अपडेट करना (Recursion से बचने के लिए)
                     News.objects.filter(id=self.id).update(image_url=uploaded_link)
                 
                 img.close()
                 output.close()
             except Exception as e:
-                print(f"Image Logic Error: {e}")
+                print(f"Image Error: {e}")
             
-            gc.collect() # RAM साफ करो
+            gc.collect()
 
     def __str__(self):
         return self.title
