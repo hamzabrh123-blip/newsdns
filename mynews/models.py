@@ -1,7 +1,7 @@
 import uuid, io
 from PIL import Image
 from django.db import models
-from ckeditor.fields import RichTextField 
+from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unidecode import unidecode
@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
 from django.conf import settings  # Facebook settings ke liye
-from .utils import upload_to_imgbb 
+from .utils import upload_to_imgbb
 
 class News(models.Model):
     LOCATION_DATA = [
@@ -50,11 +50,11 @@ class News(models.Model):
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
-    content = RichTextField(blank=True) 
+    content = RichTextField(blank=True)
     image = models.ImageField(upload_to="news_pics/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     youtube_url = models.URLField(blank=True, null=True)
-    date = models.DateTimeField(default=now)
+    date = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
     show_in_highlights = models.BooleanField(default=False, verbose_name="Top 5 Highlights?")
