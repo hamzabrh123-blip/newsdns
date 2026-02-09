@@ -3,6 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from .models import News
+from .constants import LOCATION_DATA
+from .constants import LOCATION_DATA
 from django.utils.html import strip_tags
 from django.db.models import Q
 
