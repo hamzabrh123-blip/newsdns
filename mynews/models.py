@@ -16,7 +16,7 @@ class News(models.Model):
         ('Amethi', 'अमेठी', 'amethi'), ('Amroha', 'अमरोहा', 'amroha'), ('Auraiya', 'औरैया', 'auraiya'), 
         ('Ayodhya', 'अयोध्या', 'ayodhya'), ('Azamgarh', 'आजमगढ़', 'azamgarh'), ('Baghpat', 'बागपत', 'baghpat'), 
         ('Bahraich', 'बहराइच', 'bahraich'), ('Ballia', 'बलिया', 'ballia'), ('Balrampur', 'बालरामपुर', 'balrampur'), 
-        ('Banda', 'बांदा', 'banda'), ('Barabanki', 'बाराबंकी', 'barabanki'), ('Bareilly', 'बरेली', 'bareilly'), 
+        ('Banda', 'बांदा', 'banda'), ('Barabanki', 'बाराबanki', 'barabanki'), ('Bareilly', 'बरेली', 'bareilly'), 
         ('Basti', 'बस्ती', 'basti'), ('Bhadohi', 'भदोही', 'bhadohi'), ('Bijnor', 'बिजनौर', 'bijnor'), 
         ('Budaun', 'बदायूँ', 'budaun'), ('Bulandshahr', 'बुलंदशहर', 'bulandshahr'), ('Chandauli', 'चंदौली', 'chandauli'), 
         ('Chitrakoot', 'चित्रकूट', 'chitrakoot'), ('Deoria', 'देवरिया', 'deoria'), ('Etah', 'एटा', 'etah'), 
@@ -72,9 +72,8 @@ class News(models.Model):
             return self.image_url
         return "/static/default.png"
 
-# --- Niche wala save method poora replace kar dein ---
-def save(self, *args, **kwargs):
-        # 1. District & Slug Logic (Safe)
+    def save(self, *args, **kwargs):
+        # 1. District & Slug Logic
         if self.district:
             for eng, hin, city_slug in self.LOCATION_DATA:
                 if self.district == eng:
@@ -89,14 +88,13 @@ def save(self, *args, **kwargs):
         # 2. Simplified Image Logic (RAM Bachane ke liye)
         if self.image and hasattr(self.image, 'file'):
             try:
-                # Sirf tabhi processing karo jab image upload ho
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
                 
                 img.thumbnail((800, 800), Image.Resampling.LANCZOS)
 
-                # Watermark Block - Isse 500 Error nahi aayega ab
+                # Watermark Block
                 try:
                     watermark_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
                     if os.path.exists(watermark_path):
@@ -109,30 +107,29 @@ def save(self, *args, **kwargs):
                             position = (img.width - target_width - 15, img.height - target_height - 15)
                             img.paste(watermark, position, watermark)
                 except:
-                    pass # Watermark fail hua toh news save ho jaye
+                    pass
 
-                # Save to Buffer
                 output = io.BytesIO()
                 img.save(output, format='WEBP', quality=60)
                 output.seek(0)
                 
-                # Temp File Creation
                 temp_file = ContentFile(output.read(), name=f"{uuid.uuid4().hex[:10]}.webp")
                 
-                # ImgBB Upload (Try-Except is very important here)
                 try:
                     uploaded_link = upload_to_imgbb(temp_file)
                     if uploaded_link:
                         self.image_url = uploaded_link
-                        # Is line ko comment kar raha hoon debugging ke liye
-                        # self.image = None 
                 except Exception as e:
                     print(f"ImgBB Failed: {e}")
                 
                 img.close()
+                output.close()
             except Exception as e:
                 print(f"Image Error: {e}")
 
-        # 3. Last Line - Iske bina 500 pakka hai
+        # 3. Final Save
         super(News, self).save(*args, **kwargs)
         gc.collect()
+
+    def __str__(self):
+        return self.title
