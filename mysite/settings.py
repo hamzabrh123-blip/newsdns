@@ -6,6 +6,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
+# Render par DEBUG False hona chahiye, local pe True
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic", 
+    "whitenoise.runserver_nostatic",  # Static files handling
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -48,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", 
+    "whitenoise.middleware.WhiteNoiseMiddleware", # WhiteNoise for Static
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -70,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Dono functions yahan hain taaki error na aaye
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.news_data_processor", 
             ],
@@ -84,7 +86,7 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True # <-- Yeh line sabse zaruri hai Render ke liye
+        ssl_require=True if not DEBUG else False
     )
 }
 
@@ -96,6 +98,7 @@ STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# File Storage settings (Render delete fix is handled by ImgBB in models)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -135,13 +138,14 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
+# API Keys from Environment Variables
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- I18N SETTINGS ---
+# --- I18N SETTINGS (Hindi & India Time) ---
 LANGUAGE_CODE = 'hi'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
