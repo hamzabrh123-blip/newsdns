@@ -7,14 +7,15 @@ import gc
 import io
 from PIL import Image
 from django.conf import settings
-from django.core.files.base import ContentFile
+from django.apps import apps # <--- Ye zaroori hai loop todne ke liye
 
 logger = logging.getLogger(__name__)
 
-# --- SIDEBAR LOGIC ---
+# --- SIDEBAR LOGIC (FIXED) ---
 def get_common_sidebar_data():
     try:
-        from mynews.models import News
+        # Circular import se bachne ke liye apps.get_model use karo
+        News = apps.get_model('mynews', 'News') 
         return {
             "bazaar_sidebar": News.objects.filter(category="Market", status='Published').order_by("-date")[:5],
             "bharat_sidebar": News.objects.filter(category="National", status='Published').order_by("-date")[:10],
@@ -27,107 +28,78 @@ def get_common_sidebar_data():
         logger.error(f"Sidebar Data Error: {e}")
         return {}
 
-# --- IMAGE PROCESSING (WATERMARK) & IMGBB LOGIC ---
+# --- IMAGE PROCESSING & IMGBB (MEMORY SAFE) ---
 def process_and_upload_to_imgbb(instance):
-    """Image को watermark करना और ImgBB पर अपलोड करना (Memory Efficient)"""
     if not instance.image or instance.image_url:
         return None
 
     api_key = os.environ.get("IMGBB_API_KEY")
     if not api_key:
-        logger.error("ImgBB API Key missing!")
         return None
 
     try:
-        # 1. Image Processing
         img = Image.open(instance.image)
         if img.mode != "RGB":
             img = img.convert("RGB")
         
-        # Resize if too big
         img.thumbnail((1200, 1200))
 
-        # Watermark add karna
+        # Watermark
         try:
             w_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
             if os.path.exists(w_path):
                 with Image.open(w_path).convert("RGBA") as w_img:
-                    # Watermark size set karein (Image ka 25%)
                     w_img.thumbnail((img.width // 4, img.height // 4))
-                    # Bottom-right corner mein paste karein
                     img.paste(w_img, (img.width - w_img.width - 20, img.height - w_img.height - 20), w_img)
-        except Exception as we:
-            logger.warning(f"Watermark skip hua: {we}")
+        except: pass
 
-        # 2. Binary Conversion for Upload
         output = io.BytesIO()
         img.save(output, format='JPEG', quality=85)
-        raw_data = output.getvalue()
-        image_data = base64.b64encode(raw_data)
+        image_data = base64.b64encode(output.getvalue())
 
-        # 3. ImgBB Upload
-        payload = {
-            "key": api_key,
-            "image": image_data,
-        }
+        payload = {"key": api_key, "image": image_data}
         response = requests.post("https://api.imgbb.com/1/upload", data=payload, timeout=25)
         
-        # Cleanup Memory
-        output.close()
+        # Memory cleanup
         img.close()
-        del raw_data
-        del image_data
+        output.close()
         gc.collect()
 
         if response.status_code == 200:
             return response.json()['data']['url']
         return None
-
     except Exception as e:
-        logger.error(f"Image Processing/Upload Error: {e}")
+        logger.error(f"ImgBB Error: {e}")
         return None
 
-# --- FACEBOOK AUTO-POST LOGIC ---
+# --- FACEBOOK AUTO-POST (FIXED URL) ---
 def post_to_facebook(instance):
-    """Published news को Facebook Page पर शेयर करना"""
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
 
     if not access_token or not page_id:
-        logger.error("FB Credentials missing!")
         return False
 
-    # Full news URL prepare karna
-    site_url = "https://uttarworld.com"
-    news_link = f"{site_url}{instance.get_absolute_url()}"
-    
-    msg = f"{instance.title}\n\nपूरी खबर पढ़ें: {news_link}"
-    
-    payload = {
-        'message': msg,
-        'link': news_link,
-        'access_token': access_token
-    }
-
+    # Agar get_absolute_url nahi hai toh slug use karo
     try:
+        news_link = f"https://uttarworld.com/news/{instance.slug}/"
+        msg = f"{instance.title}\n\nपूरी खबर पढ़ें: {news_link}"
+        
+        payload = {
+            'message': msg,
+            'link': news_link,
+            'access_token': access_token
+        }
+        
         fb_url = f"https://graph.facebook.com/v18.0/{page_id}/feed"
         response = requests.post(fb_url, data=payload, timeout=20)
-        
-        if response.status_code == 200:
-            logger.info(f"FB Post Success: {instance.id}")
-            return True
-        else:
-            logger.error(f"FB API Error: {response.text}")
-            return False
+        return response.status_code == 200
     except Exception as e:
-        logger.error(f"FB Connection Error: {e}")
+        logger.error(f"FB Error: {e}")
         return False
 
-# --- VIDEO ID EXTRACTION (Supports Shorts & Normal) ---
 def extract_video_id(url):
-    if not url:
-        return None
-    # Updated regex for YouTube Shorts
+    if not url: return None
     regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
     match = re.search(regex, url)
     return match.group(1) if match else None
