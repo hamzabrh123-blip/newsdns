@@ -30,18 +30,19 @@ def get_common_sidebar_data():
     used_districts = published.values_list('district', flat=True).distinct()
     dynamic_cities = []
 
-    exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
+    # Ye wo categories hain jinhe sidebar ke UP Districts list mein nahi dikhana
+    exclude_keys = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
 
     for eng, hin, cat_slug in LOCATION_DATA:
-        if eng in used_districts and eng not in exclude_cats:
+        if eng in used_districts and eng not in exclude_keys:
             dynamic_cities.append({'id': eng, 'name': hin})
 
     return {
         "up_sidebar": published.order_by("-date")[:10],
-        "bharat_sidebar": published.filter(category__iexact="National")[:5],
-        "world_sidebar": published.filter(category__iexact="International")[:5],
-        "bazaar_sidebar": published.filter(category__iexact="Market")[:5],
-        "sports_sidebar": published.filter(category__iexact="Sports")[:5],
+        "bharat_sidebar": published.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:5],
+        "world_sidebar": published.filter(Q(category__icontains="अंतर्राष्ट्रीय") | Q(district="International"))[:5],
+        "bazaar_sidebar": published.filter(Q(category__icontains="मार्केट") | Q(district="Market"))[:5],
+        "sports_sidebar": published.filter(Q(category__icontains="खेल") | Q(district="Sports"))[:5],
         "dynamic_up_cities": dynamic_cities,
     }
 
@@ -51,28 +52,34 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # In Categories ko UP News me nahi dikhana hai
-        exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Technology', 'Market']
+        # Inhe UP section se bahar nikalne ke liye Hindi + English dono labels
+        exclude_cats = [
+            'National', 'International', 'Sports', 'Bollywood', 'Technology', 'Market',
+            'राष्ट्रीय खबर', 'अंतर्राष्ट्रीय', 'खेल समाचार', 'बॉलीवुड', 'मार्केट भाव', 'टेक्नोलॉजी'
+        ]
         
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
             
-            # exclude use karne se ab UP section me sirf Districts ki news aayegi
-            "up_news": all_news.exclude(category__in=exclude_cats)[:4], 
+            # UP News Section: Badi categories hata kar sirf districts dikhao
+            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:6], 
             
-            "national_news": all_news.filter(category__iexact="National")[:4],
-            "world_news": all_news.filter(category__iexact="International")[:4],
-            "sports_news": all_news.filter(category__iexact="Sports")[:4],
-            "bazaar_news": all_news.filter(category__iexact="Market")[:4],
-            "bollywood_news": all_news.filter(Q(district__iexact="Bollywood") | Q(category__iexact="Bollywood"))[:4],
-            "technology_news": all_news.filter(Q(district__iexact="Technology") | Q(category__iexact="Technology"))[:4],
+            # Smart Filtering: Hindi aur English dono check karega taaki sections khali na rahein
+            "national_news": all_news.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:4],
+            "world_news": all_news.filter(Q(category__icontains="अंतर्राष्ट्रीय") | Q(district="International"))[:4],
+            "sports_news": all_news.filter(Q(category__icontains="खेल") | Q(district="Sports"))[:4],
+            "bazaar_news": all_news.filter(Q(category__icontains="मार्केट") | Q(district="Market"))[:4],
+            "bollywood_news": all_news.filter(Q(category__icontains="बॉलीवुड") | Q(district="Bollywood"))[:4],
+            "technology_news": all_news.filter(Q(category__icontains="टेक्नोलॉजी") | Q(district="Technology"))[:4],
+            
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
         }
         return render(request, "mynews/home.html", context)
     except Exception as e:
-        return HttpResponse(f"System Update in Progress... Error: {e}")
+        logger.error(f"Home Error: {e}")
+        return HttpResponse(f"System Update in Progress... Error details: {e}")
 
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
@@ -95,12 +102,18 @@ def news_detail(request, url_city, slug):
 
 # --- 3. DISTRICT / CATEGORY ---
 def district_news(request, district):
+    # Search in District ID, Hindi Name, or URL Slug
     news_list = News.objects.filter(status='Published').filter(
         Q(district__iexact=district) | Q(category__icontains=district) | Q(url_city__iexact=district)
     ).order_by("-date")
+    
     page_obj = Paginator(news_list, 15).get_page(request.GET.get('page'))
+    
     return render(request, "mynews/district_news.html", {
-        "district": district, "page_obj": page_obj, "news_count": news_list.count(), **get_common_sidebar_data()
+        "district": district, 
+        "page_obj": page_obj, 
+        "news_count": news_list.count(), 
+        **get_common_sidebar_data()
     })
 
 # --- SEO & LEGAL ---
