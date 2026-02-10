@@ -13,7 +13,6 @@ class News(models.Model):
     
     category = models.CharField(max_length=100, blank=True, null=True, editable=False)
     url_city = models.CharField(max_length=100, blank=True, null=True, editable=False)
-    
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     
     content = RichTextField(blank=True)
@@ -33,46 +32,46 @@ class News(models.Model):
         verbose_name_plural = "News"
 
     def save(self, *args, **kwargs):
-        # 1. ✅ Safe Automatic Category & City Logic
+        # 1. District Logic
         if self.district:
             for item in LOCATION_DATA:
-                try:
-                    # Sirf tabhi assign karo jab list mein 3 items milen
-                    if len(item) >= 3:
-                        eng, hin, city_slug = item[0], item[1], item[2]
-                        if self.district == eng:
-                            self.url_city = city_slug
-                            self.category = hin
-                            break
-                except Exception:
-                    continue
+                if len(item) >= 3 and self.district == item[0]:
+                    self.category = item[1]
+                    self.url_city = item[2]
+                    break
         
-        # 2. ✅ Auto Slug Generation
+        # 2. Slug Logic
         if not self.slug:
-            clean_title = unidecode(self.title)
-            self.slug = f"{slugify(clean_title)[:60]}-{str(uuid.uuid4())[:6]}"
+            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
+        # 3. Pehle Base Save Karo (Iske bina ID nahi milti)
         super(News, self).save(*args, **kwargs)
 
-        # 3. ✅ Background Tasks (Safe Update)
+        # 4. ImgBB & Facebook (ALAG SE AUR SAFE)
         try:
-            update_fields = []
+            needs_update = False
             
+            # Sirf Image Upload
             if self.image and not self.image_url:
-                link = process_and_upload_to_imgbb(self)
-                if link:
-                    self.image_url = link
-                    update_fields.append('image_url')
+                img_link = process_and_upload_to_imgbb(self)
+                if img_link:
+                    self.image_url = img_link
+                    needs_update = True
 
+            # Sirf Facebook Share (Isse alag rakha hai)
             if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
                 if post_to_facebook(self):
                     self.is_fb_posted = True
-                    update_fields.append('is_fb_posted')
+                    needs_update = True
 
-            if update_fields:
-                News.objects.filter(id=self.id).update(**{f: getattr(self, f) for f in update_fields})
-        except Exception as e:
-            print(f"Background Task Error: {e}")
+            # Agar kuch change hua toh simple update chalao
+            if needs_update:
+                News.objects.filter(id=self.id).update(
+                    image_url=self.image_url, 
+                    is_fb_posted=self.is_fb_posted
+                )
+        except Exception:
+            pass # Site nahi rukni chahiye chahe FB fail ho jaye
 
     def __str__(self):
         return self.title
