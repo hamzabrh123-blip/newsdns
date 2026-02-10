@@ -11,8 +11,8 @@ class News(models.Model):
     title = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Published')
     
-    category = models.CharField(max_length=100, blank=True, null=True, editable=False)
-    url_city = models.CharField(max_length=100, blank=True, null=True, editable=False)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    url_city = models.CharField(max_length=100, blank=True, null=True)
     
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     
@@ -33,36 +33,33 @@ class News(models.Model):
         verbose_name_plural = "News"
 
     def save(self, *args, **kwargs):
-        # 1. District se Category/City slug uthao
+        # 1. District se Category/City logic
         if self.district:
+            selected_district = str(self.district).strip()
             for item in LOCATION_DATA:
-                if item[0] == self.district:
+                if str(item[0]).strip() == selected_district:
                     self.category = item[1]
                     self.url_city = item[2]
                     break
         
-        # 2. Slug logic (Sirf Nayi Post ke liye)
+        # 2. Slug logic
         if not self.id and not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Pehle Base Save (Zaroori hai)
+        # 3. Pehle Base Save karo taaki ID mil jaye
         super(News, self).save(*args, **kwargs)
 
-        # 4. ImgBB & FB Share Logic (Safe Update - No 500 Error)
-        try:
-            # self.__class__ use karne se circular import error nahi aata
-            news_obj = self.__class__.objects.filter(id=self.id)
-            
-            if self.image and not self.image_url:
-                link = process_and_upload_to_imgbb(self)
-                if link:
-                    news_obj.update(image_url=link)
+        # 4. Image Upload Logic (Loop-safe update)
+        if self.image and not self.image_url:
+            link = process_and_upload_to_imgbb(self)
+            if link:
+                self.__class__.objects.filter(id=self.id).update(image_url=link)
+                self.image_url = link # Instance update taaki FB ko mile
 
-            if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-                if post_to_facebook(self):
-                    news_obj.update(is_fb_posted=True)
-        except Exception as e:
-            print(f"Background logic error: {e}")
+        # 5. FB Share Logic (Tere original style mein)
+        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+            if post_to_facebook(self):
+                self.__class__.objects.filter(id=self.id).update(is_fb_posted=True)
 
     def __str__(self):
         return self.title
