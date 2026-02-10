@@ -6,70 +6,51 @@ import gc
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    # 1. Bahar ki list me ab thumbnail dikhega
-    list_display = ('display_thumb', 'title', 'district', 'status', 'share_now_to_fb', 'is_fb_posted', 'date')
-    
-    # 2. Side filters
-    list_filter = ('status', 'district', 'category', 'date', 'is_important', 'show_in_highlights', 'share_now_to_fb')
-    
-    # 3. Search Bar
-    search_fields = ('title', 'content')
-    
-    # 4. Direct edit from list
-    list_editable = ('status', 'share_now_to_fb')
-    
-    list_per_page = 20
-    
-    # System generated fields (Read-only)
-    readonly_fields = ('category', 'url_city', 'image_url', 'is_fb_posted', 'display_large_img')
+# 1. Bahar ki list
+list_display = ('display_thumb', 'title', 'district', 'status', 'share_now_to_fb', 'date')
 
-    # UI Design for Title box
-    formfield_overrides = {
-        models.CharField: {
-            'widget': admin.widgets.AdminTextInputWidget(
-                attrs={
-                    'style': 'width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #b91d1d; border-radius: 5px;'
-                }
-            )
-        },
-    }
+# 2. Filters
+list_filter = ('status', 'district', 'category', 'date', 'share_now_to_fb')
 
-    # Layout Sections
-    fieldsets = (
-        ('Main Info', {
-            'fields': ('title', 'status', 'content'),
-        }),
-        ('Location', {
-            'fields': (('district', 'category', 'url_city'),),
-        }),
-        ('Media', {
-            'fields': (('image', 'display_large_img'), 'image_url', 'youtube_url'),
-        }),
-        ('Social & Highlights', {
-            'fields': (('is_important', 'show_in_highlights'), ('share_now_to_fb', 'is_fb_posted')),
-        }),
-        ('SEO', {
-            'fields': ('slug', 'date', 'meta_keywords'), 
-            'classes': ('collapse',),
-        }),
-    )
+# 3. Search
+search_fields = ('title', 'content')
 
-    # Functions to show images
-    def display_thumb(self, obj):
-        if obj.image_url:
-            return format_html('<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" />', obj.image_url)
-        return "No Pic"
-    display_thumb.short_description = "Pic"
+# 4. Direct Edit from list
+list_editable = ('status', 'share_now_to_fb')
 
-    def display_large_img(self, obj):
-        if obj.image_url:
-            return format_html('<img src="{}" style="max-width: 300px; border: 2px solid #b91d1d; border-radius: 10px;" />', obj.image_url)
-        return "No Preview"
-    display_large_img.short_description = "Live Preview"
+# 5. READONLY FIELDS (Yahan dhyan dena, sirf wahi cheezen hain jo auto-generate hoti hain)
+readonly_fields = ('image_url', 'is_fb_posted', 'display_large_img')
 
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        gc.collect()
+# 6. LAYOUT (Ab Title aur Content editable rahenge)
+fieldsets = (
+    ('News Content', {
+        'fields': ('title', 'status', 'content'),
+    }),
+    ('Location & Category', {
+        'fields': (('district', 'category', 'url_city'),),
+    }),
+    ('Media', {
+        'fields': (('image', 'display_large_img'), 'image_url', 'youtube_url'),
+    }),
+    ('Settings', {
+        'fields': (('is_important', 'show_in_highlights'), ('share_now_to_fb', 'is_fb_posted')),
+    }),
+    ('SEO', {
+        'fields': ('slug', 'date', 'meta_keywords'), 
+        'classes': ('collapse',),
+    }),
+)
 
-admin.site.site_header = "Uttar World Administration"
-admin.site.index_title = "Welcome to News Dashboard"
+def display_thumb(self, obj):
+    if obj.image_url:
+        return format_html('<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" />', obj.image_url)
+    return "No Pic"
+
+def display_large_img(self, obj):
+    if obj.image_url:
+        return format_html('<img src="{}" style="max-width: 300px; border-radius: 10px;" />', obj.image_url)
+    return "No Preview"
+
+def save_model(self, request, obj, form, change):
+    super().save_model(request, obj, form, change)
+    gc.collect()
