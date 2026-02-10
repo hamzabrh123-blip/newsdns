@@ -1,35 +1,35 @@
 from .models import News
-from .constants import LOCATION_DATA   # ✅ यही missing था
-
-def site_visits(request):
-    return {'site_visits': 0}
+from .constants import UP_DISTRICTS, BIG_CATEGORIES # Dono ko alag import karo
 
 def news_data_processor(request):
-    # ब्रेकिंग न्यूज़
-    breaking_news = News.objects.filter(
-        is_important=True,
-        status='Published'
-    ).order_by('-date')[:20]
+    # 1. Published news uthao
+    published_news = News.objects.filter(status='Published')
 
-    # जिन जिलों की न्यूज़ मौजूद है
-    active_districts = set(
-        News.objects.exclude(district__isnull=True)
-        .values_list('district', flat=True)
-        .distinct()
-    )
+    # 2. Breaking News
+    breaking_news = published_news.filter(is_important=True).order_by('-date')[:20]
+
+    # 3. Check karo kaunse 'district' fields DB mein bhare hue hain
+    active_keys = set(published_news.exclude(district__isnull=True).values_list('district', flat=True).distinct())
 
     dynamic_up_cities = []
+    dynamic_big_categories = []
 
-    # ✅ अब News.LOCATION_DATA नहीं, सीधे LOCATION_DATA
-    for eng, hin, city_slug in LOCATION_DATA:
-        if eng in active_districts:
+    # 4. UP Districts Dropdown ke liye (Sirf UP ke shehar)
+    for eng, hin, city_slug in UP_DISTRICTS:
+        if eng in active_keys:
             dynamic_up_cities.append({
-                'id': eng,
-                'name': hin,
-                'slug': city_slug
+                'id': eng, 'name': hin, 'slug': city_slug
+            })
+
+    # 5. Badi Categories Dropdown ke liye (National, Sports, etc.)
+    for eng, hin, cat_slug in BIG_CATEGORIES:
+        if eng in active_keys:
+            dynamic_big_categories.append({
+                'id': eng, 'name': hin, 'slug': cat_slug
             })
 
     return {
         'important_news': breaking_news,
-        'dynamic_up_cities': dynamic_up_cities,
+        'dynamic_up_cities': dynamic_up_cities,          # Pehla Dropdown: Shehar
+        'dynamic_big_categories': dynamic_big_categories, # Doosra Dropdown: Badi News
     }
