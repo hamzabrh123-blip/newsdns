@@ -1,4 +1,3 @@
-<!-------mynews/includes/static_head.html--------->
 {% load static %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,26 +16,30 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
 {% block social_meta %}
-    {# 1. Description Fix: news.content (model field) use kiya hai #}
+    {# 1. SEO Description: News content se tags hata kar 160 characters tak #}
     <meta name="description" content="{% if news %}{{ news.content|striptags|truncatechars:160 }}{% else %}Uttar World News: Latest breaking news from India and around the world.{% endif %}">
 
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="fb:app_id" content="741916956166104">
+    <meta property="og:site_name" content="Uttar World News">
 
-    {# 2. Dynamic Title: News hai toh title, warna Site Name #}
+    {# 2. Dynamic Title: Headline ko 70 characters tak limit kiya hai FB ke liye #}
     <meta property="og:title" content="{% if news %}{{ news.title|truncatechars:70 }}{% else %}Uttar World News | Truth Above All{% endif %}">
     
     <meta property="og:description" content="{% if news %}{{ news.content|striptags|truncatechars:160 }}{% else %}Get the latest breaking news from India and around the world.{% endif %}">
 
-    {# 3. Image Logic: Priority: ImgBB Link > Local Media > Logo #}
-    <meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}https://uttarworld.com/static/logo.png{% endif %}">
+    {# 3. PERMANENT IMAGE FIX: Pehle ImgBB ka link (image_url), agar wo nahi hai tabhi site logo #}
+    {# Humne yahan se local media path hata diya hai taaki FB confuse na ho #}
+    <meta property="og:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com/static/logo.png{% endif %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
-    {# Twitter Cards #}
+    {# Twitter Cards: Yahan bhi sirf ImgBB link ko priority #}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% if news %}{{ news.title }}{% else %}Uttar World News{% endif %}">
+    <meta name="twitter:title" content="{% if news %}{{ news.title|truncatechars:70 }}{% else %}Uttar World News{% endif %}">
     <meta name="twitter:description" content="{% if news %}{{ news.content|striptags|truncatechars:160 }}{% else %}Latest news update from Uttar World.{% endif %}">
-    <meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}https://uttarworld.com/static/logo.png{% endif %}">
+    <meta name="twitter:image" content="{% if news.image_url %}{{ news.image_url }}{% else %}https://uttarworld.com/static/logo.png{% endif %}">
 {% endblock %}
 
 {% block extra_head %}{% endblock %}
