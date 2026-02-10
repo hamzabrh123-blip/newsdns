@@ -1,24 +1,18 @@
 from django.contrib import admin
 from django import forms
 from .models import News
+from .constants import LOCATION_DATA
 from django.utils.html import format_html
 import gc
 
-# --- CATEGORY CHOICES (Dropdown ke liye) ---
-CATEGORY_CHOICES = [
-    ('National', 'National (देश)'),
-    ('International', 'International (दुनिया)'),
-    ('Sports', 'Sports (खेल)'),
-    ('Market', 'Market (बाज़ार)'),
-    ('Bollywood', 'Bollywood (मनोरंजन)'),
-    ('Technology', 'Technology (तकनीक)'),
-    ('Crime', 'Crime (जुर्म)'),
-    ('Other', 'Other (अन्य)'),
-]
+# Constants से डेटा निकालकर Dropdown के लिए तैयार करना
+# हम English Name (item[0]) को Value और Hindi Name (item[1]) को Label बनाएंगे
+CATEGORY_CHOICES = [(item[0], f"{item[1]} ({item[0]})") for item in LOCATION_DATA]
 
-# --- Admin Form to add Dropdowns ---
 class NewsAdminForm(forms.ModelForm):
-    category = forms.ChoiceField(choices=CATEGORY_CHOICES)
+    # Category और District दोनों के लिए Dropdown बना दिया है
+    category = forms.ChoiceField(choices=CATEGORY_CHOICES, help_text="Constants.py से चुनो")
+    district = forms.ChoiceField(choices=CATEGORY_CHOICES, help_text="जिला चुनो")
     
     class Meta:
         model = News
@@ -26,12 +20,13 @@ class NewsAdminForm(forms.ModelForm):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    form = NewsAdminForm  # Yeh line dropdown enable karegi
+    form = NewsAdminForm
     
-    list_display = ('display_thumb', 'title', 'district', 'category', 'status', 'share_now_to_fb', 'date')
-    list_filter = ('status', 'district', 'category', 'date', 'share_now_to_fb')
+    # List view में क्या-क्या दिखेगा
+    list_display = ('display_thumb', 'title', 'district', 'category', 'status', 'date')
+    list_filter = ('status', 'district', 'category', 'date')
     search_fields = ('title', 'content')
-    list_editable = ('status', 'share_now_to_fb', 'category') # Ab list se bhi edit hoga!
+    list_editable = ('status', 'category', 'district') # लिस्ट से ही तुरंत बदलो
     
     readonly_fields = ('image_url', 'is_fb_posted', 'display_large_img')
     
@@ -44,7 +39,7 @@ class NewsAdmin(admin.ModelAdmin):
     )
 
     def display_thumb(self, obj):
-        # Yahan humne upload ki hui image aur link dono ko check kiya hai
+        # Image Upload की है या URL दिया है, दोनों चेक करेगा
         img_src = obj.image.url if obj.image else obj.image_url
         if img_src:
             return format_html('<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" />', img_src)
@@ -57,5 +52,6 @@ class NewsAdmin(admin.ModelAdmin):
         return "No Preview"
 
     def save_model(self, request, obj, form, change):
+        # मेमोरी साफ रखने के लिए
         super().save_model(request, obj, form, change)
         gc.collect()
