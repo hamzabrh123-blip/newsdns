@@ -41,22 +41,28 @@ class News(models.Model):
                     self.url_city = item[2]
                     break
         
-        # 2. Slug logic (Sirf tab jab slug na ho)
-        if not self.slug:
+        # 2. Slug logic (Sirf Nayi Post ke liye)
+        if not self.id and not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. Simple Save
+        # 3. Pehle Base Save (Zaroori hai)
         super(News, self).save(*args, **kwargs)
 
-        # 4. ImgBB & FB Share Logic (Pahle jaisa)
-        if self.image and not self.image_url:
-            link = process_and_upload_to_imgbb(self)
-            if link:
-                News.objects.filter(id=self.id).update(image_url=link)
+        # 4. ImgBB & FB Share Logic (Safe Update - No 500 Error)
+        try:
+            # self.__class__ use karne se circular import error nahi aata
+            news_obj = self.__class__.objects.filter(id=self.id)
+            
+            if self.image and not self.image_url:
+                link = process_and_upload_to_imgbb(self)
+                if link:
+                    news_obj.update(image_url=link)
 
-        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            if post_to_facebook(self):
-                News.objects.filter(id=self.id).update(is_fb_posted=True)
+            if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+                if post_to_facebook(self):
+                    news_obj.update(is_fb_posted=True)
+        except Exception as e:
+            print(f"Background logic error: {e}")
 
     def __str__(self):
         return self.title
