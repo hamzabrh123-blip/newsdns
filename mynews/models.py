@@ -4,7 +4,6 @@ from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unidecode import unidecode
-from django.urls import reverse
 from .constants import LOCATION_DATA 
 from .utils import process_and_upload_to_imgbb, post_to_facebook
 
@@ -30,36 +29,35 @@ class News(models.Model):
         db_table = 'mynews_news'
         verbose_name_plural = "News"
 
-    def get_absolute_url(self):
-        city = self.url_city if self.url_city else "news"
-        return reverse('news_detail', kwargs={'url_city': city, 'slug': self.slug})
-
     def save(self, *args, **kwargs):
-        # 1. ऑटोमेटिक जिला और स्लग सेट करना
+        # 1. Auto Category & City Logic
         if self.district:
             for eng, hin, city_slug in LOCATION_DATA:
                 if self.district == eng:
-                    self.url_city = eng.lower()
+                    self.url_city = city_slug # ✅ Ab sahi slug jayega
                     self.category = hin
                     break
         
         if not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 2. पहले बेसिक डेटा सेव करें
         super(News, self).save(*args, **kwargs)
 
-        # 3. इमेज प्रोसेसिंग (Watermark + ImgBB) - सिर्फ तब जब URL न हो
+        # 2. Background Tasks (Image & FB)
+        update_fields = []
         if self.image and not self.image_url:
-            uploaded_link = process_and_upload_to_imgbb(self)
-            if uploaded_link:
-                # सीधे DB अपडेट करें ताकि दोबारा save() कॉल न हो (Recursion से बचाव)
-                News.objects.filter(id=self.id).update(image_url=uploaded_link)
+            link = process_and_upload_to_imgbb(self)
+            if link:
+                self.image_url = link
+                update_fields.append('image_url')
 
-        # 4. फेसबुक ऑटो-पोस्ट (Published न्यूज़ के लिए)
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             if post_to_facebook(self):
-                News.objects.filter(id=self.id).update(is_fb_posted=True)
+                self.is_fb_posted = True
+                update_fields.append('is_fb_posted')
+
+        if update_fields:
+            News.objects.filter(id=self.id).update(**{f: getattr(self, f) for f in update_fields})
 
     def __str__(self):
         return self.title
