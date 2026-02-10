@@ -5,24 +5,26 @@ from .constants import UP_DISTRICTS, OTHER_CATEGORIES
 from django.utils.html import format_html
 import gc
 
-# 1. Custom Form
 class NewsAdminForm(forms.ModelForm):
+    # UP Districts Dropdown
     up_city = forms.ChoiceField(
         choices=[('', '---------')] + [(x[0], x[1]) for x in UP_DISTRICTS],
         required=False,
-        label="UP के जिले"
+        label="UP के जिले (Select for Local News)"
     )
+    # Other Categories Dropdown
     big_cat = forms.ChoiceField(
         choices=[('', '---------')] + [(x[0], x[1]) for x in OTHER_CATEGORIES],
         required=False,
-        label="बड़ी कैटेगरी"
+        label="बड़ी कैटेगरी (Select for National/Sports etc.)"
     )
 
     class Meta:
         model = News
         fields = '__all__'
+        # 🚨 District ko hidden widget bana do taaki ye background mein save ho sake
         widgets = {
-            'district': forms.HiddenInput(), # 🚨 Zaroori: Background mein data lene ke liye
+            'district': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -42,12 +44,12 @@ class NewsAdminForm(forms.ModelForm):
         if up_city and big_cat:
             raise forms.ValidationError("Bhai, dono dropdown mat chuno! Sirf ek select karo.")
         
-        # 🚨 FIX: Data ko wapas district field mein force feed karna
+        # 🚨 District field mein data force-feed karo
         if up_city:
             cleaned_data['district'] = up_city
         elif big_cat:
             cleaned_data['district'] = big_cat
-            
+        
         return cleaned_data
 
 @admin.register(News)
@@ -64,7 +66,7 @@ class NewsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('News Content', {'fields': ('title', 'status', 'content')}),
         ('Selection (Dono mein se ek chuno)', {
-            # 🚨 Zaroori: 'district' ko yahan hona chahiye warna wo save nahi hoga
+            # 🚨 DISTRICT FIELD KO YAHAN FIELDSET MEIN HONA ZAROORI HAI
             'fields': (('up_city', 'big_cat'), 'district'), 
             'description': 'Sirf ek select karein.'
         }),
@@ -84,7 +86,7 @@ class NewsAdmin(admin.ModelAdmin):
         return "No Preview"
 
     def save_model(self, request, obj, form, change):
-        # 🚨 Manual override taaki form se district model mein chala jaye
+        # 🚨 Form se district value manually uthakar object mein daalo
         obj.district = form.cleaned_data.get('district')
         super().save_model(request, obj, form, change)
         gc.collect()
