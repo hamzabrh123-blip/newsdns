@@ -11,11 +11,9 @@ class News(models.Model):
     title = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Published')
     
-    # ✅ Automatic Fields: Inhe admin mein type karne ki zaroorat nahi hai
     category = models.CharField(max_length=100, blank=True, null=True, editable=False)
     url_city = models.CharField(max_length=100, blank=True, null=True, editable=False)
     
-    # ✅ Sirf iska dropdown dikhega admin mein
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     
     content = RichTextField(blank=True)
@@ -35,40 +33,46 @@ class News(models.Model):
         verbose_name_plural = "News"
 
     def save(self, *args, **kwargs):
-        # 1. ✅ Automatic Category & City Logic
-        # Jab tum district chunoge, ye apne aap Category (Hindi) aur City Slug set kar dega
+        # 1. ✅ Safe Automatic Category & City Logic
         if self.district:
-            for eng, hin, city_slug in LOCATION_DATA:
-                if self.district == eng:
-                    self.url_city = city_slug
-                    self.category = hin
-                    break
+            for item in LOCATION_DATA:
+                try:
+                    # Sirf tabhi assign karo jab list mein 3 items milen
+                    if len(item) >= 3:
+                        eng, hin, city_slug = item[0], item[1], item[2]
+                        if self.district == eng:
+                            self.url_city = city_slug
+                            self.category = hin
+                            break
+                except Exception:
+                    continue
         
         # 2. ✅ Auto Slug Generation
         if not self.slug:
-            self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
+            clean_title = unidecode(self.title)
+            self.slug = f"{slugify(clean_title)[:60]}-{str(uuid.uuid4())[:6]}"
 
         super(News, self).save(*args, **kwargs)
 
-        # 3. ✅ Background Tasks (Image & FB)
-        # update_fields isliye taaki save() baar baar na chale (Infinite loop fix)
-        update_fields = []
-        
-        # Upload to ImgBB if local image exists
-        if self.image and not self.image_url:
-            link = process_and_upload_to_imgbb(self)
-            if link:
-                self.image_url = link
-                update_fields.append('image_url')
+        # 3. ✅ Background Tasks (Safe Update)
+        try:
+            update_fields = []
+            
+            if self.image and not self.image_url:
+                link = process_and_upload_to_imgbb(self)
+                if link:
+                    self.image_url = link
+                    update_fields.append('image_url')
 
-        # Facebook Posting Logic
-        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-            if post_to_facebook(self):
-                self.is_fb_posted = True
-                update_fields.append('is_fb_posted')
+            if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+                if post_to_facebook(self):
+                    self.is_fb_posted = True
+                    update_fields.append('is_fb_posted')
 
-        if update_fields:
-            News.objects.filter(id=self.id).update(**{f: getattr(self, f) for f in update_fields})
+            if update_fields:
+                News.objects.filter(id=self.id).update(**{f: getattr(self, f) for f in update_fields})
+        except Exception as e:
+            print(f"Background Task Error: {e}")
 
     def __str__(self):
         return self.title
