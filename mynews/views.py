@@ -24,16 +24,16 @@ def fb_news_api(request):
         })
     return JsonResponse(data, safe=False)
 
-# --- Common Sidebar Data (ISKO AISE HI REHNE DENA) ---
+# --- Common Sidebar Data ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published')
     used_districts = published.values_list('district', flat=True).distinct()
     dynamic_cities = []
 
-    exclude_from_up = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
+    exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
 
     for eng, hin, cat_slug in LOCATION_DATA:
-        if eng in used_districts and eng not in exclude_from_up:
+        if eng in used_districts and eng not in exclude_cats:
             dynamic_cities.append({'id': eng, 'name': hin})
 
     return {
@@ -51,9 +51,15 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
+        # In Categories ko UP News me nahi dikhana hai
+        exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Technology', 'Market']
+        
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
-            "up_news": all_news[:4], 
+            
+            # exclude use karne se ab UP section me sirf Districts ki news aayegi
+            "up_news": all_news.exclude(category__in=exclude_cats)[:4], 
+            
             "national_news": all_news.filter(category__iexact="National")[:4],
             "world_news": all_news.filter(category__iexact="International")[:4],
             "sports_news": all_news.filter(category__iexact="Sports")[:4],
@@ -97,7 +103,7 @@ def district_news(request, district):
         "district": district, "page_obj": page_obj, "news_count": news_list.count(), **get_common_sidebar_data()
     })
 
-# (Baaki sitemap, robots, ads functions yahan niche waise hi rahenge...)
+# --- SEO & LEGAL ---
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
