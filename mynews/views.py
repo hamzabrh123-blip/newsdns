@@ -11,12 +11,10 @@ from .constants import LOCATION_DATA
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-
 # --- API FOR BULK PC SCRIPT ---
 def fb_news_api(request):
     news_list = News.objects.filter(status='Published').order_by('-date')[:20]
     data = []
-
     for n in news_list:
         city = n.url_city if n.url_city else 'news'
         data.append({
@@ -24,171 +22,94 @@ def fb_news_api(request):
             'title': n.title,
             'url': f"{SITE_URL.rstrip('/')}/{city}/{n.slug}/"
         })
-
     return JsonResponse(data, safe=False)
 
-
-# --- Common Sidebar Data ---
+# --- Common Sidebar Data (ISKO AISE HI REHNE DENA) ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published')
-
     used_districts = published.values_list('district', flat=True).distinct()
     dynamic_cities = []
 
-    exclude_from_up = [
-        'National', 'International', 'Sports', 'Bollywood',
-        'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States'
-    ]
+    exclude_from_up = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
 
     for eng, hin, cat_slug in LOCATION_DATA:
         if eng in used_districts and eng not in exclude_from_up:
-            dynamic_cities.append({
-                'id': eng,
-                'name': hin
-            })
+            dynamic_cities.append({'id': eng, 'name': hin})
 
     return {
         "up_sidebar": published.order_by("-date")[:10],
-        "bharat_sidebar": published.filter(category="National")[:5],
-        "world_sidebar": published.filter(category="International")[:5],
-        "bazaar_sidebar": published.filter(category="Market")[:5],
-        "sports_sidebar": published.filter(category="Sports")[:5],
+        "bharat_sidebar": published.filter(category__iexact="National")[:5],
+        "world_sidebar": published.filter(category__iexact="International")[:5],
+        "bazaar_sidebar": published.filter(category__iexact="Market")[:5],
+        "sports_sidebar": published.filter(category__iexact="Sports")[:5],
         "dynamic_up_cities": dynamic_cities,
     }
-
 
 # --- 1. HOME PAGE ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
-        query = request.GET.get("q")
-
-        published_news = News.objects.filter(status='Published').order_by("-date")
-
-        if query:
-            news_list = published_news.filter(title__icontains=query)
-            page_obj = Paginator(news_list, 20).get_page(request.GET.get("page"))
-            return render(request, "mynews/home.html", {
-                "page_obj": page_obj,
-                **common_data
-            })
-
-        top_highlights = News.objects.filter(
-            show_in_highlights=True,
-            status='Published'
-        ).order_by("-date")[:5]
-
+        all_news = News.objects.filter(status='Published').order_by("-date")
+        
         context = {
-            "top_5_highlights": top_highlights,
-            "up_news": published_news[:4],
-            "national_news": published_news.filter(category="National")[:4],
-            "world_news": published_news.filter(category="International")[:4],
-            "sports_news": published_news.filter(category="Sports")[:4],
-            "bollywood_news": published_news.filter(
-                Q(district="Bollywood") | Q(category="Bollywood")
-            )[:4],
-            "technology_news": published_news.filter(
-                Q(district="Technology") | Q(category="Technology")
-            )[:4],
-            "other_news": Paginator(published_news, 10).get_page(
-                request.GET.get('page')
-            ),
+            "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
+            "up_news": all_news[:4], 
+            "national_news": all_news.filter(category__iexact="National")[:4],
+            "world_news": all_news.filter(category__iexact="International")[:4],
+            "sports_news": all_news.filter(category__iexact="Sports")[:4],
+            "bazaar_news": all_news.filter(category__iexact="Market")[:4],
+            "bollywood_news": all_news.filter(Q(district__iexact="Bollywood") | Q(category__iexact="Bollywood"))[:4],
+            "technology_news": all_news.filter(Q(district__iexact="Technology") | Q(category__iexact="Technology"))[:4],
+            "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
         }
-
         return render(request, "mynews/home.html", context)
-
     except Exception as e:
-        logger.error(f"Home Error: {e}")
-        return HttpResponse("System Update in Progress...", status=200)
-
+        return HttpResponse(f"System Update in Progress... Error: {e}")
 
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = None
-
     if news.youtube_url:
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
-        if match:
-            v_id = match.group(1)
+        if match: v_id = match.group(1)
 
     context = {
         "news": news,
         "og_title": news.title,
-        "related_news": News.objects.filter(
-            category=news.category,
-            status='Published'
-        ).exclude(id=news.id).order_by("-date")[:6],
+        "related_news": News.objects.filter(category=news.category, status='Published').exclude(id=news.id).order_by("-date")[:6],
         "v_id": v_id,
         "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
         **get_common_sidebar_data()
     }
-
     return render(request, "mynews/news_detail.html", context)
-
 
 # --- 3. DISTRICT / CATEGORY ---
 def district_news(request, district):
     news_list = News.objects.filter(status='Published').filter(
-        Q(district__iexact=district) |
-        Q(category__icontains=district) |
-        Q(url_city__iexact=district)
+        Q(district__iexact=district) | Q(category__icontains=district) | Q(url_city__iexact=district)
     ).order_by("-date")
-
     page_obj = Paginator(news_list, 15).get_page(request.GET.get('page'))
-
     return render(request, "mynews/district_news.html", {
-        "district": district,
-        "page_obj": page_obj,
-        "news_count": news_list.count(),
-        **get_common_sidebar_data()
+        "district": district, "page_obj": page_obj, "news_count": news_list.count(), **get_common_sidebar_data()
     })
 
-
-# --- 4. SEO & LEGAL ---
+# (Baaki sitemap, robots, ads functions yahan niche waise hi rahenge...)
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
-
-    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for n in items:
         city = n.url_city if n.url_city else 'news'
-        xml += f'<url><loc>{SITE_URL.rstrip("/")}/{city}/{n.slug}/</loc>'
-        xml += f'<lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>\n'
-
+        xml += f'<url><loc>{SITE_URL.rstrip("/")}/{city}/{n.slug}/</loc><lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>\n'
     xml += '</urlset>'
     return HttpResponse(xml, content_type="application/xml")
 
-
-def robots_txt(request):
-    return HttpResponse(
-        f"User-Agent: *\nAllow: /\nSitemap: {SITE_URL.rstrip('/')}/sitemap.xml",
-        content_type="text/plain"
-    )
-
-
-def ads_txt(request):
-    return HttpResponse(
-        "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0",
-        content_type="text/plain"
-    )
-
-
-def privacy_policy(request):
-    return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
-
-
-def about_us(request):
-    return render(request, "mynews/about_us.html", get_common_sidebar_data())
-
-
-def contact_us(request):
-    return render(request, "mynews/contact_us.html", get_common_sidebar_data())
-
-
-def disclaimer(request):
-    return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+def robots_txt(request): return HttpResponse(f"User-Agent: *\nAllow: /\nSitemap: {SITE_URL.rstrip('/')}/sitemap.xml", content_type="text/plain")
+def ads_txt(request): return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+def privacy_policy(request): return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
+def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
+def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
+def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
