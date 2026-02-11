@@ -86,30 +86,37 @@ def home(request):
 
 # --- 2. NEWS DETAIL (Video Fix ke saath) ---
 def news_detail(request, url_city, slug):
-    # Status='Published' ka dhyan rakhna taaki sirf live news dikhe
-    news = get_object_or_404(News, slug=slug)
+
+    # Sirf Published news hi mile
+    news = get_object_or_404(
+        News,
+        slug=slug,
+        status='Published'
+    )
+
     v_id = None
-    
+
     if news.youtube_url:
-        # Ye Regex har tarah ke direct link (Shorts, Mobile, Watch, Embed) ko handle karega
-        # Isme humne extra parameters (?si=, &feature= etc.) ko filter karne ka logic daal diya hai
-        regex = r"(?:v=|\/v\/|embed\/|youtu\.be\/|shorts\/|watch\?v=|\?v=)([a-zA-Z0-9_-]{11})"
+        regex = r"(?:v=|youtu\.be/|shorts/|embed/)([a-zA-Z0-9_-]{11})"
         match = re.search(regex, news.youtube_url)
+
         if match:
             v_id = match.group(1)
-            # Extra Safety: Agar ID 11 digit ki nahi hai toh player error dega, isliye check zaroori hai
-            if len(v_id) != 11:
-                v_id = None
 
     context = {
         "news": news,
-        "v_id": v_id,  # Ab yahan sirf 11 bhashon ki ID jayegi (Direct Link se nikali hui)
+        "v_id": v_id,
         "og_title": news.title,
-        "og_image": news.image_url, # Facebook banner ke liye zaroori
-        "related_news": News.objects.filter(category=news.category, status='Published').exclude(id=news.id).order_by("-date")[:6],
+        "og_image": news.image.url if news.image else "",
+        "related_news": News.objects.filter(
+            category=news.category,
+            status='Published'
+        ).exclude(id=news.id).order_by("-date")[:6],
+
         "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
         **get_common_sidebar_data()
     }
+
     return render(request, "mynews/news_detail.html", context)
 
 
