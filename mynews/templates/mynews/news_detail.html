@@ -97,10 +97,13 @@
                 </div>
 
                 {% if v_id %}
-                <div class="ratio ratio-16x9 my-4 shadow rounded overflow-hidden">
-                    <iframe src="https://www.youtube.com/embed/{{ v_id }}" title="YouTube video player" frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                </div>
+                    <div class="ratio {% if 'shorts' in news.youtube_url %}ratio-9x16{% else %}ratio-16x9{% endif %} my-4 shadow rounded overflow-hidden mx-auto" 
+                             style="{% if 'shorts' in news.youtube_url %}max-width: 320px; border: 4px solid #000;{% else %}max-width: 100%;{% endif %}">
+        
+                        <iframe src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1&showinfo=0" title="Uttar World Video Player" 
+                                 frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                            allowfullscreen></iframe>
+                    </div>
                 {% endif %}
             </div>
 
