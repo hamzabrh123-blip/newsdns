@@ -97,15 +97,38 @@
                 </div>
 
                 {% if v_id %}
-                    <div class="ratio {% if 'shorts' in news.youtube_url %}ratio-9x16{% else %}ratio-16x9{% endif %} my-4 shadow rounded overflow-hidden mx-auto" 
-                             style="{% if 'shorts' in news.youtube_url %}max-width: 320px; border: 4px solid #000;{% else %}max-width: 100%;{% endif %}">
-        
-                        <iframe src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1&showinfo=0" title="Uttar World Video Player" 
-                                 frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                            allowfullscreen></iframe>
+                <div id="video-wrapper" class="my-4 shadow rounded overflow-hidden mx-auto" style="display:none;">
+                    <div id="player-frame" class="ratio">
+                        <iframe 
+                            src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1" 
+                            title="Uttar World Video Player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen 
+                            style="width:100%; height:100%;">
+                        </iframe>
                     </div>
+                </div>
+
+                <script>
+                    (function() {
+                        var rawUrl = "{{ news.youtube_url }}";
+                        var wrapper = document.getElementById('video-wrapper');
+                        var frame = document.getElementById('player-frame');
+
+                        // Check layout based on URL
+                        if (rawUrl.includes('/shorts/')) {
+                            wrapper.style.maxWidth = "320px"; 
+                            frame.classList.add('ratio-9x16'); 
+                        } else {
+                            wrapper.style.maxWidth = "100%"; 
+                            frame.classList.add('ratio-16x9');
+                        }
+                        wrapper.style.display = 'block';
+                    })();
+                </script>
                 {% endif %}
-            </div>
+                </div>
 
             <div class="bg-white p-3 rounded shadow-sm text-center mb-5 border">
                 <p class="small fw-bold text-muted mb-2">खबर साझा करें</p>
