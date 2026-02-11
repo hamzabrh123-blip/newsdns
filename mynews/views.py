@@ -90,25 +90,22 @@ def news_detail(request, url_city, slug):
     v_id = None
     
     if news.youtube_url:
-        # Naya aur zyada powerful Regex jo shorts, embed aur si= parameters ko handle karega
-        regex = r"(?:v=|\/v\/|embed\/|youtu\.be\/|shorts\/|watch\?v=)([a-zA-Z0-9_-]{11})"
+        # Ye regex har tarah ke link se ID nikaal lega (Watch, Shorts, Embed, Mobile)
+        # Tu chahe https://www.youtube.com/watch?v=abc... daal ya https://youtu.be/abc...
+        regex = r"(?:v=|\/v\/|embed\/|youtu\.be\/|shorts\/|watch\?v=|\?v=)([a-zA-Z0-9_-]{11})"
         match = re.search(regex, news.youtube_url)
         if match:
             v_id = match.group(1)
-            # Extra safety: Agar ID 11 characters ki nahi hai toh error de sakta hai
-            if len(v_id) != 11:
-                v_id = None 
 
     context = {
         "news": news,
+        "v_id": v_id,  # Ab yahan sirf 11 bhashon ki ID jayegi
         "og_title": news.title,
         "related_news": News.objects.filter(category=news.category, status='Published').exclude(id=news.id).order_by("-date")[:6],
-        "v_id": v_id,
         "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
 
 
 
