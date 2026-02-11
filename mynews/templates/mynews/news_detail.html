@@ -96,38 +96,50 @@
                     {{ news.content|safe }}
                 </div>
 
-                {% if v_id %}
-                <div id="video-wrapper" class="my-4 shadow rounded overflow-hidden mx-auto" style="display:none;">
-                    <div id="player-frame" class="ratio">
-                        <iframe 
-                            src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1" 
-                            title="Uttar World Video Player" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen 
-                            style="width:100%; height:100%;">
-                        </iframe>
-                    </div>
-                </div>
+       <div id="video-container" class="my-4 shadow rounded overflow-hidden mx-auto" style="display:none;">
+    <div id="player-frame" class="ratio">
+        </div>
+</div>
 
-                <script>
-                    (function() {
-                        var rawUrl = "{{ news.youtube_url }}";
-                        var wrapper = document.getElementById('video-wrapper');
-                        var frame = document.getElementById('player-frame');
+<script>
+    (function() {
+        // 1. Seedha News ka URL uthao jo tune admin mein bhara hai
+        var rawUrl = "{{ news.youtube_url }}"; 
+        
+        if (rawUrl && rawUrl !== "None" && rawUrl !== "") {
+            // 2. Har tarah ke YouTube link (Shorts/Watch/Mobile) ke liye Master Regex
+            var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+            var match = rawUrl.match(regExp);
+            var videoId = (match && match[2].length == 11) ? match[2] : null;
 
-                        // Check layout based on URL
-                        if (rawUrl.includes('/shorts/')) {
-                            wrapper.style.maxWidth = "320px"; 
-                            frame.classList.add('ratio-9x16'); 
-                        } else {
-                            wrapper.style.maxWidth = "100%"; 
-                            frame.classList.add('ratio-16x9');
-                        }
-                        wrapper.style.display = 'block';
-                    })();
-                </script>
-                {% endif %}
+            if (videoId) {
+                var container = document.getElementById('video-container');
+                var frame = document.getElementById('player-frame');
+
+                // 3. Shorts vs Normal check (Layout fix)
+                if (rawUrl.includes('/shorts/')) {
+                    container.style.maxWidth = "320px"; 
+                    frame.classList.add('ratio-9x16'); 
+                } else {
+                    container.style.maxWidth = "100%"; 
+                    frame.classList.add('ratio-16x9');
+                }
+
+                // 4. Iframe inject karo
+                container.style.display = 'block';
+                frame.innerHTML = `
+                    <iframe 
+                        src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
+                        title="Uttar World Video" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        style="width:100%; height:100%;">
+                    </iframe>`;
+            }
+        }
+    })();
+</script>
                 </div>
 
             <div class="bg-white p-3 rounded shadow-sm text-center mb-5 border">
