@@ -62,7 +62,7 @@ def home(request):
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
             
             # UP News Section: Badi categories hata kar sirf districts dikhao
-            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:6], 
+            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:8], 
             
             # Smart Filtering: Hindi aur English dono check karega taaki sections khali na rahein
             "national_news": all_news.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:4],
@@ -81,14 +81,23 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"System Update in Progress... Error details: {e}")
 
-# --- 2. NEWS DETAIL ---
+
+
+
+# --- 2. NEWS DETAIL (Video Fix ke saath) ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = None
+    
     if news.youtube_url:
-        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+        # Naya aur zyada powerful Regex jo shorts, embed aur si= parameters ko handle karega
+        regex = r"(?:v=|\/v\/|embed\/|youtu\.be\/|shorts\/|watch\?v=)([a-zA-Z0-9_-]{11})"
         match = re.search(regex, news.youtube_url)
-        if match: v_id = match.group(1)
+        if match:
+            v_id = match.group(1)
+            # Extra safety: Agar ID 11 characters ki nahi hai toh error de sakta hai
+            if len(v_id) != 11:
+                v_id = None 
 
     context = {
         "news": news,
@@ -99,6 +108,9 @@ def news_detail(request, url_city, slug):
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
+
+
+
 
 # --- 3. DISTRICT / CATEGORY ---
 def district_news(request, district):
