@@ -1,13 +1,22 @@
 from django import template
+import re
 
 register = template.Library()
 
 @register.filter
 def yt_embed(url):
     """
-    Converts YouTube watch URL to embed URL
-    Example: https://www.youtube.com/watch?v=abc123 -> https://www.youtube.com/embed/abc123
+    Converts any YouTube URL (watch, shorts, youtu.be) to embed format
     """
-    if 'watch?v=' in url:
-        return url.replace('watch?v=', 'embed/')
-    return url
+
+    if not url:
+        return ""
+
+    # Extract 11 character video ID
+    match = re.search(r"(?:v=|youtu\.be/|shorts/|embed/)([a-zA-Z0-9_-]{11})", url)
+
+    if match:
+        video_id = match.group(1)
+        return f"https://www.youtube.com/embed/{video_id}?rel=0"
+
+    return ""
