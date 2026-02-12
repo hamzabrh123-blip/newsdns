@@ -62,7 +62,7 @@ def home(request):
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
             
             # UP News Section: Badi categories hata kar sirf districts dikhao
-            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:8], 
+            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:80], 
             
             # Smart Filtering: Hindi aur English dono check karega taaki sections khali na rahein
             "national_news": all_news.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:4],
