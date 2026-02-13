@@ -41,20 +41,48 @@ def fb_news_api(request):
 def get_common_sidebar_data():
     published = published_news()
     
-    # List for dynamic city dropdown
+    # 1. UP SIDEBAR: Jo UP category ya kisi bhi District se juda ho
+    up_sidebar = published.filter(
+        Q(category__icontains="uttar") | 
+        Q(category__icontains="up") | 
+        Q(district__isnull=False)
+    ).exclude(category__icontains="national").exclude(category__icontains="international")[:8]
+
+    # 2. WORLD SIDEBAR: International news
+    world_sidebar = published.filter(
+        Q(category__icontains="international") | 
+        Q(category__icontains="world") | 
+        Q(category__icontains="duniya")
+    )[:5]
+
+    # 3. BAZAAR SIDEBAR: Market/Business
+    bazaar_sidebar = published.filter(
+        Q(category__icontains="market") | 
+        Q(category__icontains="bazaar") | 
+        Q(category__icontains="business")
+    )[:5]
+
+    # 4. SPORTS SIDEBAR: Khel
+    sports_sidebar = published.filter(
+        Q(category__icontains="sports") | 
+        Q(category__icontains="khel")
+    )[:5]
+
+    # --- DYNAMIC CITIES LOGIC ---
     exclude_keys = ["National", "International", "Sports", "Bollywood", "Hollywood", "Technology", "Market", "Entertainment"]
     used_districts = published.values_list("district", flat=True).distinct()
 
     dynamic_cities = []
     for eng, hin, cat_slug in LOCATION_DATA:
+        # Agar district use hua hai aur wo main categories mein nahi hai
         if eng in used_districts and eng not in exclude_keys:
             dynamic_cities.append({"id": eng.strip(), "name": hin})
 
     return {
-        "up_sidebar": published.filter(category__icontains="uttar")[:8],
-        "world_sidebar": published.filter(category__icontains="international")[:5],
-        "bazaar_sidebar": published.filter(category__icontains="market")[:5],
-        "sports_sidebar": published.filter(category__icontains="sports")[:5],
+        "up_sidebar": up_sidebar,
+        "world_sidebar": world_sidebar,
+        "bazaar_sidebar": bazaar_sidebar,
+        "sports_sidebar": sports_sidebar,
         "dynamic_up_cities": dynamic_cities,
         "dynamic_big_categories": [
             {"id": "National", "name": "देश"},
