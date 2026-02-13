@@ -12,7 +12,8 @@
         </h5>
         {% for item in world_sidebar %}
         <div class="sidebar-post">
-            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
+            <img src="{% if item.image %}{{ item.image.url }}{% elif item.image_url %}{{ item.image_url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                 alt="{{ item.title }}" class="sidebar-thumb">
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
@@ -27,11 +28,12 @@
         </h5>
         {% for item in up_sidebar %}
         <div class="sidebar-post">
-            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
+            <img src="{% if item.image %}{{ item.image.url }}{% elif item.image_url %}{{ item.image_url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                 alt="{{ item.title }}" class="sidebar-thumb">
             <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link text-dark">{{ item.title|truncatechars:50 }}</a>
         </div>
         {% endfor %}
-        <a href="{% url 'district_news' 'Uttar-Pradesh' %}" class="view-link text-primary">पूरा उत्तर प्रदेश देखें →</a>
+        <a href="{% url 'district_news' 'Lucknow' %}" class="view-link text-primary">पूरा उत्तर प्रदेश देखें →</a>
     </div>
     {% endif %}
 
@@ -50,21 +52,6 @@
         <div class="text-end mt-2">
             <a href="{% url 'district_news' 'Market' %}" class="view-link text-danger fw-bold">ताज़ा भाव →</a>
         </div>
-    </div>
-    {% endif %}
-
-    {% if sports_sidebar %}
-    <div class="sidebar-block mb-4">
-        <h5 class="sidebar-heading text-dark border-start border-4 border-success ps-2">
-            <i class="fas fa-trophy text-success me-2"></i>खेल जगत (Sports)
-        </h5>
-        {% for item in sports_sidebar %}
-        <div class="sidebar-post">
-            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}" class="sidebar-thumb">
-            <a href="{% url 'news_detail' item.url_city item.slug %}" class="post-link">{{ item.title|truncatechars:50 }}</a>
-        </div>
-        {% endfor %}
-        <a href="{% url 'district_news' 'Sports' %}" class="view-link text-success">सभी खेल समाचार →</a>
     </div>
     {% endif %}
 
