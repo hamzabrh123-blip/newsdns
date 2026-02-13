@@ -4,22 +4,28 @@ from . import views
 urlpatterns = [
     path("", views.home, name="home"),
 
-    # API for PC Script (Ise top par rakho)
+    # API for PC Script
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
-    # 1. Technology Fix (Direct Path)
+    # --- NAYE SECTION PAGES (ALAG LOGIC WALE) ---
+    path("desh/", views.national_view, name="national_page"),
+    path("videsh/", views.world_view, name="world_page"),
+    path("uttar-pradesh/", views.up_news_view, name="up_news_page"),
+    path("manoranjan/", views.ent_view, name="ent_page"),
+
+    # 1. Technology Fix
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
     path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
 
     # 2. Universal Category Route
     path("category/<str:district>/", views.district_news, name="district_news"),
 
-    # 3. Purane Names (Compatibility)
-    path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
-    path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
-    path("news/int/", views.district_news, {'district': 'International'}, name="international"),
+    # 3. Purane Names (For SEO Compatibility)
+    path("news/national/", views.national_view, name="national_news"), # Ab ye naye view par jayega
+    path("news/international/", views.world_view, name="international_news"),
+    path("news/int/", views.world_view, name="international"),
     path("news/sports/", views.district_news, {'district': 'Sports'}, name="sports"),
-    path("news/bollywood/", views.district_news, {'district': 'Bollywood'}, name="bollywood"),
+    path("news/bollywood/", views.ent_view, name="bollywood"),
     path("news/market/", views.district_news, {'district': 'Market'}, name="market"),
 
     # 4. Utilities & SEO
