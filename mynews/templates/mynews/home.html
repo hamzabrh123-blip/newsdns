@@ -38,6 +38,7 @@
     @media (max-width: 992px) { .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; } .hero-big { grid-row: span 1; } .container-fluid { padding: 0 15px; } }
 </style>
 
+{% if other_news.number == 1 %}
 <div class="container-fluid mt-3">
     <div class="hero-grid">
         {% for item in top_5_highlights %}
@@ -53,11 +54,13 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-9">
             
+            {% if other_news.number == 1 %}
             <div class="row mt-4">
                 <div class="col-md-6">
                     <h4 class="section-title">देश (National)</h4>
@@ -140,6 +143,23 @@
                     </div>
                     {% endfor %}
                 </div>
+            </div>
+            {% endif %}
+            <h4 class="section-title">{% if other_news.number == 1 %}ताज़ा खबरें{% else %}और खबरें - पेज {{ other_news.number }}{% endif %}</h4>
+            <div class="row">
+                {% for item in other_news %}
+                <div class="col-md-4 mb-4">
+                    <div class="clean-card">
+                        <a href="{% url 'news_detail' item.url_city item.slug %}">
+                            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="news">
+                        </a>
+                        <div class="card-body-custom">
+                            <span class="news-tag">{{ item.category }}</span>
+                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">{{ item.title|truncatechars:65 }}</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
 
             <nav class="mt-5">
