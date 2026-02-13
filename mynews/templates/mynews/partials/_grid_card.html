@@ -1,0 +1,14 @@
+<div class="col-md-4 mb-4">
+    <div class="news-card">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb">
+            <img src="{% if item.image %}{{ item.image.url }}{% else %}/static/logo.png{% endif %}" alt="{{ item.title }}">
+        </a>
+        <div class="body">
+            <div class="meta mb-2">
+                <span class="text-danger"><i class="fas fa-location-dot"></i> {{ item.district|default:"News" }}</span>
+                <span>{{ item.date|date:"d M" }}</span>
+            </div>
+            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="title">{{ item.title|truncatechars:75 }}</a>
+        </div>
+    </div>
+</div>
