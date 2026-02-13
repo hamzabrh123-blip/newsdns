@@ -1,47 +1,116 @@
 {% load static %}
+
 <style>
-    .sidebar-container { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
-    .side-card { display: flex; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f9f9f9; align-items: center; }
-    .side-card:last-child { border-bottom: none; }
-    .side-img { width: 75px; height: 55px; object-fit: cover; border-radius: 5px; flex-shrink: 0; background: #eee; }
-    .side-title { font-size: 0.85rem; font-weight: 700; color: #333; text-decoration: none; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .side-title:hover { color: #d32f2f; }
-    .side-label { font-size: 1rem; font-weight: 800; border-left: 4px solid #d32f2f; padding-left: 10px; margin: 20px 0 15px; text-transform: uppercase; }
+.sidebar-container {
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:10px;
+    padding:15px;
+}
+
+.side-card {
+    display:flex;
+    gap:10px;
+    margin-bottom:12px;
+    padding-bottom:10px;
+    border-bottom:1px solid #f3f3f3;
+    align-items:center;
+}
+
+.side-card:last-child { border-bottom:none; }
+
+.side-img {
+    width:75px;
+    height:55px;
+    object-fit:cover;
+    border-radius:5px;
+    flex-shrink:0;
+    background:#eee;
+}
+
+.side-title {
+    font-size:0.85rem;
+    font-weight:700;
+    color:#333;
+    text-decoration:none;
+    line-height:1.3;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.side-title:hover { color:#d32f2f; }
+
+.side-label {
+    font-size:1rem;
+    font-weight:800;
+    border-left:4px solid #d32f2f;
+    padding-left:10px;
+    margin:20px 0 15px;
+    text-transform:uppercase;
+}
 </style>
 
 <aside class="sidebar-container shadow-sm">
+
+    <!-- AD -->
     <div class="mb-4 text-center">
         <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
     </div>
 
+
+    <!-- WORLD -->
     {% if world_sidebar %}
     <h5 class="side-label">दुनिया (World)</h5>
     {% for item in world_sidebar %}
     <div class="side-card">
-        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="side-img">
-        <a href="{% url 'news_detail' item.url_city item.slug %}" class="side-title">{{ item.title }}</a>
-    </div>
-    {% endfor %}
-    {% endif %}
-
-    {% if up_sidebar %}
-    <h5 class="side-label" style="border-color: #007bff;">उत्तर प्रदेश</h5>
-    {% for item in up_sidebar %}
-    <div class="side-card">
-        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="side-img">
-        <a href="{% url 'news_detail' item.url_city item.slug %}" class="side-title">{{ item.title }}</a>
-    </div>
-    {% endfor %}
-    {% endif %}
-
-    {% if bazaar_sidebar %}
-    <h5 class="side-label" style="border-color: #28a745;">बाज़ार (Market)</h5>
-    {% for item in bazaar_sidebar %}
-    <div class="side-card">
-        <a href="{% url 'news_detail' item.url_city item.slug %}" class="side-title" style="font-size: 0.8rem;">
-            <i class="fas fa-chevron-right text-success me-1"></i> {{ item.title }}
+        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
+             class="side-img">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}"
+           class="side-title">
+            {{ item.title }}
         </a>
     </div>
+    {% empty %}
+    <p>World news available nahi hai.</p>
     {% endfor %}
     {% endif %}
+
+
+    <!-- UP -->
+    {% if up_sidebar %}
+    <h5 class="side-label" style="border-color:#007bff;">उत्तर प्रदेश</h5>
+    {% for item in up_sidebar %}
+    <div class="side-card">
+        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
+             class="side-img">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}"
+           class="side-title">
+            {{ item.title }}
+        </a>
+    </div>
+    {% empty %}
+    <p>UP news available nahi hai.</p>
+    {% endfor %}
+    {% endif %}
+
+
+    <!-- MARKET -->
+    {% if bazaar_sidebar %}
+    <h5 class="side-label" style="border-color:#28a745;">बाज़ार (Market)</h5>
+    {% for item in bazaar_sidebar %}
+    <div class="side-card">
+        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
+             class="side-img">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}"
+           class="side-title">
+            {{ item.title }}
+        </a>
+    </div>
+    {% empty %}
+    <p>Market news available nahi hai.</p>
+    {% endfor %}
+    {% endif %}
+
 </aside>
