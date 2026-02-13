@@ -70,14 +70,15 @@ def get_common_sidebar_data():
 def home(request):
     try:
         common_data = get_common_sidebar_data()
-        all_news = published_news()
+        # Sabse pehle published news uthao
+        all_news = News.objects.filter(status__iexact="Published").order_by("-date")
 
-        # Search
+        # Search filter
         query = request.GET.get("q")
         if query:
             all_news = all_news.filter(Q(title__icontains=query.strip()) | Q(content__icontains=query.strip()))
 
-        # Pagination
+        # Pagination (Latest News ke liye)
         page_number = request.GET.get("page", 1)
         paginator = Paginator(all_news, 12)
         other_news_page = paginator.get_page(page_number)
@@ -88,28 +89,59 @@ def home(request):
             **common_data
         }
 
+        # Dashboard sections sirf pehle page par dikhenge
         if str(page_number) == "1":
-            # Categories to exclude from UP News section
-            exclude_cats = ["National", "International", "Market", "Sports", "Bollywood", "Hollywood", "Entertainment"]
+            # 1. TOP 12 HIGHLIGHTS (Aaj Tak Hero Grid)
+            highlights = all_news.filter(show_in_highlights=True)[:12]
             
-            # UP News logic: Jo specifically in categories mein nahi hai, wo UP news hai
-            up_news_filter = all_news.exclude(category__in=exclude_cats).exclude(district__in=exclude_cats)
+            # Agar highlights kam hain, toh latest news se fill up karo
+            if highlights.count() < 4:
+                highlights = all_news[:12]
+
+            # 2. NATIONAL NEWS (Bharat)
+            # Aaj Tak style: Isme sirf desh ki khabrein aayengi
+            national = all_news.filter(
+                Q(category__icontains="National") | 
+                Q(category__icontains="India") | 
+                Q(category__icontains="Bharat")
+            )[:4]
+
+            # 3. WORLD NEWS (Duniya)
+            world = all_news.filter(
+                Q(category__icontains="International") | 
+                Q(category__icontains="World") | 
+                Q(category__icontains="Duniya")
+            )[:4]
+
+            # 4. UP NEWS (Uttar Pradesh)
+            # Isme hum specifically UP aur cities ko target kar rahe hain
+            up_news_list = all_news.filter(
+                Q(category__icontains="UP") | 
+                Q(category__icontains="Uttar") |
+                Q(district__isnull=False) # Districts wali sari news UP section me
+            ).exclude(category__icontains="National").exclude(category__icontains="International").distinct()[:12]
+
+            # 5. ENTERTAINMENT (Bollywood)
+            entertainment = all_news.filter(
+                Q(category__icontains="Bollywood") | 
+                Q(category__icontains="Entertainment") |
+                Q(category__icontains="Cinema")
+            )[:6]
 
             context.update({
-                "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
-                "national_news": all_news.filter(category__icontains="national")[:4],
-                "world_news": all_news.filter(category__icontains="international")[:4],
-                "up_news": up_news_filter[:12],
-                "entertainment_news": all_news.filter(Q(category__icontains="bollywood") | Q(category__icontains="hollywood"))[:6],
-                "bazaar_news": all_news.filter(category__icontains="market")[:4],
+                "top_5_highlights": highlights,
+                "national_news": national,
+                "world_news": world,
+                "up_news": up_news_list,
+                "entertainment_news": entertainment,
+                "bazaar_news": all_news.filter(category__icontains="Market")[:4],
             })
 
         return render(request, "mynews/home.html", context)
 
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse("Server Updating... Please Refresh.")
-
+        return HttpResponse("Updating Portal... Please Refresh.")
 # ---------------------------------------------------
 # 4. NEWS DETAIL
 # ---------------------------------------------------
