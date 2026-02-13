@@ -9,11 +9,28 @@ from .constants import LOCATION_DATA
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
 
-# --- Common Data for Sidebar & Navbar ---
+# --- 1. FB API (ERROR FIX) ---
+# Iska naam vahi hai jo tumhari urls.py maang rahi hai
+def fb_news_api(request):
+    try:
+        news_list = News.objects.filter(status='Published').order_by('-date')[:20]
+        data = []
+        for n in news_list:
+            city = n.url_city if n.url_city else 'news'
+            data.append({
+                'id': n.id,
+                'title': n.title,
+                'url': f"{SITE_URL.rstrip('/')}/{city}/{n.slug}/"
+            })
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+# --- 2. COMMON DATA HELPER ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published').order_by("-date")
     
-    # Districts sidebar list
+    # Categories to exclude from City Dropdown
     exclude_keys = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Entertainment']
     used_districts = published.values_list('district', flat=True).distinct()
     
@@ -36,18 +53,16 @@ def get_common_sidebar_data():
         ]
     }
 
-# --- HOME PAGE ---
+# --- 3. HOME PAGE ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # Search handling
         query = request.GET.get('q')
         if query:
             all_news = all_news.filter(Q(title__icontains=query) | Q(content__icontains=query))
 
-        # Pagination
         page_number = request.GET.get('page', 1)
         paginator = Paginator(all_news, 12) 
         other_news_page = paginator.get_page(page_number)
@@ -58,13 +73,11 @@ def home(request):
             **common_data
         }
 
-        # Page 1 logic: Clean Sections
         if str(page_number) == '1':
             context.update({
                 "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
                 "national_news": all_news.filter(category="National")[:4],
                 "world_news": all_news.filter(category="International")[:4],
-                # UP News specifically filters only UP category
                 "up_news": all_news.filter(category="Uttar-Pradesh")[:12],
                 "entertainment_news": all_news.filter(category__in=['Bollywood', 'Hollywood'])[:6],
                 "bazaar_news": all_news.filter(category="Market")[:4],
@@ -73,9 +86,9 @@ def home(request):
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse("Server Updating... Refresh karein.")
+        return HttpResponse("Server Updating... Please Refresh.")
 
-# --- NEWS DETAIL ---
+# --- 4. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug, status='Published')
     v_id = None
@@ -91,7 +104,7 @@ def news_detail(request, url_city, slug):
     }
     return render(request, "mynews/news_detail.html", context)
 
-# --- DISTRICT/CATEGORY PAGE ---
+# --- 5. DISTRICT/CATEGORY PAGE ---
 def district_news(request, district):
     news_list = News.objects.filter(status='Published').filter(
         Q(district__iexact=district) | Q(category__iexact=district) | Q(url_city__iexact=district)
@@ -102,7 +115,7 @@ def district_news(request, district):
         "district": district, "page_obj": page_obj, "news_count": news_list.count(), **get_common_sidebar_data()
     })
 
-# --- SEO & FEEDS ---
+# --- 6. SEO & LEGAL ---
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
