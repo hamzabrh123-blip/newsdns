@@ -98,15 +98,13 @@ def get_common_sidebar_data():
 def home(request):
     try:
         common_data = get_common_sidebar_data()
-        # Sabse pehle published news uthao
-        all_news = News.objects.filter(status__iexact="Published").order_by("-date")
+        all_news = published_news()
 
-        # Search filter
+        # Search Logic
         query = request.GET.get("q")
         if query:
             all_news = all_news.filter(Q(title__icontains=query.strip()) | Q(content__icontains=query.strip()))
 
-        # Pagination (Latest News ke liye)
         page_number = request.GET.get("page", 1)
         paginator = Paginator(all_news, 12)
         other_news_page = paginator.get_page(page_number)
@@ -117,59 +115,34 @@ def home(request):
             **common_data
         }
 
-        # Dashboard sections sirf pehle page par dikhenge
         if str(page_number) == "1":
-            # 1. TOP 12 HIGHLIGHTS (Aaj Tak Hero Grid)
+            # 1. Highlights: Top 12 without ticker
             highlights = all_news.filter(show_in_highlights=True)[:12]
+            if not highlights.exists(): highlights = all_news[:12]
+
+            # 2. National News
+            national = all_news.filter(Q(category__icontains="nation") | Q(category__icontains="india"))[:4]
             
-            # Agar highlights kam hain, toh latest news se fill up karo
-            if highlights.count() < 4:
-                highlights = all_news[:12]
+            # 3. World News
+            world = all_news.filter(Q(category__icontains="internat") | Q(category__icontains="world"))[:4]
 
-            # 2. NATIONAL NEWS (Bharat)
-            # Aaj Tak style: Isme sirf desh ki khabrein aayengi
-            national = all_news.filter(
-                Q(category__icontains="National") | 
-                Q(category__icontains="India") | 
-                Q(category__icontains="Bharat")
-            )[:4]
-
-            # 3. WORLD NEWS (Duniya)
-            world = all_news.filter(
-                Q(category__icontains="International") | 
-                Q(category__icontains="World") | 
-                Q(category__icontains="Duniya")
-            )[:4]
-
-            # 4. UP NEWS (Uttar Pradesh)
-            # Isme hum specifically UP aur cities ko target kar rahe hain
+            # 4. UP News (Specifically regional, excludes National/World)
             up_news_list = all_news.filter(
-                Q(category__icontains="UP") | 
-                Q(category__icontains="Uttar") |
-                Q(district__isnull=False) # Districts wali sari news UP section me
-            ).exclude(category__icontains="National").exclude(category__icontains="International").distinct()[:12]
-
-            # 5. ENTERTAINMENT (Bollywood)
-            entertainment = all_news.filter(
-                Q(category__icontains="Bollywood") | 
-                Q(category__icontains="Entertainment") |
-                Q(category__icontains="Cinema")
-            )[:6]
+                Q(category__icontains="up") | Q(category__icontains="uttar") | Q(district__isnull=False)
+            ).exclude(category__icontains="nation").exclude(category__icontains="internat")[:12]
 
             context.update({
                 "top_5_highlights": highlights,
                 "national_news": national,
                 "world_news": world,
                 "up_news": up_news_list,
-                "entertainment_news": entertainment,
-                "bazaar_news": all_news.filter(category__icontains="Market")[:4],
+                "entertainment_news": all_news.filter(Q(category__icontains="bollywood") | Q(category__icontains="enterta"))[:6],
             })
 
         return render(request, "mynews/home.html", context)
-
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse("Updating Portal... Please Refresh.")
+        return HttpResponse("Updating Layout...")
 # ---------------------------------------------------
 # 4. NEWS DETAIL
 # ---------------------------------------------------
