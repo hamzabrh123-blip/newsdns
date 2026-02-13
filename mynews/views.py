@@ -122,7 +122,7 @@ def home(request):
                     all_news.filter(category__icontains="international")[:4],
 
                 "up_news":
-                    all_news.filter(category__icontains="uttar")[:12],
+                    all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:12],
 
                 "entertainment_news":
                     all_news.filter(
