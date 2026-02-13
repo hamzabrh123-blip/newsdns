@@ -44,7 +44,7 @@
         {% for item in top_5_highlights %}
         <div class="hero-item {% if forloop.first %}hero-big{% endif %}" data-aos="fade-in">
             <a href="{% url 'news_detail' item.url_city item.slug %}">
-                <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
+                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
                 <div class="hero-content">
                     <span class="badge bg-danger mb-2">{{ item.district }} | {{ item.date|date:"d M" }}</span>
                     {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:55 }}</h4> {% endif %}
@@ -66,7 +66,7 @@
                     <h4 class="section-title">देश (National)</h4>
                     {% for item in national_news %}
                     <div class="d-flex side-card p-2 mb-3 shadow-sm">
-                        <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 110px; height: 80px; object-fit: cover; border-radius: 6px;" class="me-3">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 110px; height: 80px; object-fit: cover; border-radius: 6px;" class="me-3">
                         <div class="flex-grow-1">
                             <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title d-block" style="font-size: 0.9rem;">{{ item.title|truncatechars:70 }}</a>
                             <small class="news-date">{{ item.date|date:"d M, Y" }}</small>
@@ -79,7 +79,7 @@
                     <h4 class="section-title">दुनिया (World)</h4>
                     {% for item in world_news %}
                     <div class="d-flex side-card p-2 mb-3 shadow-sm">
-                        <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 110px; height: 80px; object-fit: cover; border-radius: 6px;" class="me-3">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 110px; height: 80px; object-fit: cover; border-radius: 6px;" class="me-3">
                         <div class="flex-grow-1">
                             <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title d-block" style="font-size: 0.9rem;">{{ item.title|truncatechars:70 }}</a>
                             <small class="news-date">{{ item.date|date:"d M, Y" }}</small>
@@ -95,7 +95,7 @@
                 <div class="col-md-3 mb-4">
                     <div class="clean-card">
                         <a href="{% url 'news_detail' item.url_city item.slug %}">
-                            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="news">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="news">
                         </a>
                         <div class="card-body-custom">
                             <span class="news-tag">{{ item.district }}</span>
@@ -112,7 +112,7 @@
                 <div class="col-md-4 mb-4">
                     <div class="clean-card border-0 shadow">
                         <a href="{% url 'news_detail' item.url_city item.slug %}">
-                            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="height: 200px;">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="height: 200px;">
                         </a>
                         <div class="card-body-custom">
                             <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">{{ item.title|truncatechars:75 }}</a>
@@ -134,9 +134,9 @@
                 </div>
                 <div class="col-md-6">
                     <h4 class="section-title">खेल (Sports)</h4>
-                    {% for item in sports_news %}
+                    {% for item in sports_sidebar|slice:":4" %}
                     <div class="d-flex side-card p-2 mb-3 shadow-sm">
-                        <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 90px; height: 65px; object-fit: cover; border-radius: 5px;" class="me-3">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 90px; height: 65px; object-fit: cover; border-radius: 5px;" class="me-3">
                         <div class="flex-grow-1">
                             <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.9rem;">{{ item.title }}</a>
                         </div>
@@ -145,13 +145,14 @@
                 </div>
             </div>
             {% endif %}
+
             <h4 class="section-title">{% if other_news.number == 1 %}ताज़ा खबरें{% else %}और खबरें - पेज {{ other_news.number }}{% endif %}</h4>
             <div class="row">
                 {% for item in other_news %}
                 <div class="col-md-4 mb-4">
                     <div class="clean-card">
                         <a href="{% url 'news_detail' item.url_city item.slug %}">
-                            <img src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="news">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="news">
                         </a>
                         <div class="card-body-custom">
                             <span class="news-tag">{{ item.category }}</span>
@@ -167,9 +168,7 @@
                     {% if other_news.has_previous %}
                     <li class="page-item"><a class="page-link text-danger" href="?page={{ other_news.previous_page_number }}">Prev</a></li>
                     {% endif %}
-        
                     <li class="page-item active"><span class="page-link bg-danger border-danger">{{ other_news.number }}</span></li>
-        
                     {% if other_news.has_next %}
                     <li class="page-item"><a class="page-link text-danger" href="?page={{ other_news.next_page_number }}">Next</a></li>
                     {% endif %}
