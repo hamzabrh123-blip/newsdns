@@ -53,42 +53,37 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # In categories ko UP section se bahar nikalna hai
-        exclude_cats = [
-            'National', 'International', 'Sports', 'Bollywood', 'Hollywood', 
-            'Technology', 'Market', 'Entertainment', 'राष्ट्रीय खबर', 'अंतर्राष्ट्रीय'
-        ]
+        # Current page number check karo
+        page_number = request.GET.get('page', 1)
+        
+        # Paginator for 'Other News' section
+        paginator = Paginator(all_news, 12) # Ek page par 12 news
+        other_news_page = paginator.get_page(page_number)
+        
+        exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
         
         context = {
-            "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
+            # Ye sections sirf Page 1 par dikhao taaki "Next" karne par duplicate na lage
+            "top_5_highlights": all_news.filter(show_in_highlights=True)[:5] if page_number == 1 or page_number == '1' else None,
             
-            # UP News Section: Badi categories hata kar sirf districts dikhao
-            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:32], 
+            "national_news": all_news.filter(category="National")[:4],
+            "world_news": all_news.filter(category="International")[:4],
+            "up_news": all_news.exclude(category__in=exclude_cats)[:12], # Local news section
             
-            # 1. National Section
-            "national_news": all_news.filter(Q(category="National") | Q(district="National"))[:4],
+            "entertainment_news": all_news.filter(category__in=['Bollywood', 'Hollywood'])[:6],
+            "bazaar_news": all_news.filter(category="Market")[:4],
+            "sports_news": all_news.filter(category="Sports")[:4],
             
-            # 2. International Section (Ab National isme nahi aayega)
-            "world_news": all_news.filter(Q(category="International") | Q(district="International"))[:4],
+            # Ye hai tumhara main pagination variable
+            "other_news": other_news_page, 
             
-            # 3. Entertainment (Bollywood + Hollywood Merge)
-            "entertainment_news": all_news.filter(Q(category__in=['Bollywood', 'Hollywood', 'Entertainment']))[:6],
-            
-            # 4. Market / Bazaar Section
-            "bazaar_news": all_news.filter(Q(category="Market") | Q(district="Market"))[:4],
-            
-            # 5. Sports & Tech
-            "sports_news": all_news.filter(Q(category="Sports") | Q(district="Sports"))[:4],
-            "technology_news": all_news.filter(Q(category="Technology") | Q(district="Technology"))[:4],
-            
-            "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
         }
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse(f"System Update in Progress...")
+        return HttpResponse("System Update in Progress...")
 
 # --- 2. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
