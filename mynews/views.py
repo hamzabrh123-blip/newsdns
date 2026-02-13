@@ -63,23 +63,19 @@ def home(request):
         exclude_cats = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
         
         context = {
-            # Ye sections sirf Page 1 par dikhao taaki "Next" karne par duplicate na lage
-            "top_5_highlights": all_news.filter(show_in_highlights=True)[:5] if page_number == 1 or page_number == '1' else None,
-            
-            "national_news": all_news.filter(category="National")[:4],
-            "world_news": all_news.filter(category="International")[:4],
-            "up_news": all_news.exclude(category__in=exclude_cats)[:12], # Local news section
-            
-            "entertainment_news": all_news.filter(category__in=['Bollywood', 'Hollywood'])[:6],
-            "bazaar_news": all_news.filter(category="Market")[:4],
-            "sports_news": all_news.filter(category="Sports")[:4],
-            
-            # Ye hai tumhara main pagination variable
-            "other_news": other_news_page, 
-            
-            "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
-            **common_data
-        }
+                    # Agar page 1 hai toh sab dikhao, agar page 2+ hai toh sirf Pagination wali list dikhao
+                    "top_5_highlights": all_news.filter(show_in_highlights=True)[:5] if page_number in [1, '1'] else None,
+                    "national_news": all_news.filter(category="National")[:4] if page_number in [1, '1'] else None,
+                    "world_news": all_news.filter(category="International")[:4] if page_number in [1, '1'] else None,
+                    "up_news": all_news.exclude(category__in=exclude_cats)[:12] if page_number in [1, '1'] else None,
+                    "entertainment_news": all_news.filter(category__in=['Bollywood', 'Hollywood'])[:6] if page_number in [1, '1'] else None,
+                    "bazaar_news": all_news.filter(category="Market")[:4] if page_number in [1, '1'] else None,
+    
+                    # Ye hamesha dikhega aur badlega
+                    "other_news": other_news_page, 
+                    "page_number": int(page_number), # Template mein condition lagane ke liye
+                    **common_data
+                }
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
