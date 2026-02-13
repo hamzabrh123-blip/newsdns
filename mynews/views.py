@@ -108,26 +108,29 @@ def home(request):
 
         # Only show section blocks on first page
         if str(page_number) == "1":
-            context.update({
-                "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
 
+            context.update({
+                "top_5_highlights":
+                    all_news.filter(show_in_highlights=True)[:5],
+
+                # FIXED FILTERS (icontains instead of iexact)
                 "national_news":
-                    all_news.filter(category__iexact="National")[:4],
+                    all_news.filter(category__icontains="national")[:4],
 
                 "world_news":
-                    all_news.filter(category__iexact="International")[:4],
+                    all_news.filter(category__icontains="international")[:4],
 
                 "up_news":
-                    all_news.filter(category__iexact="Uttar-Pradesh")[:12],
+                    all_news.filter(category__icontains="uttar")[:12],
 
                 "entertainment_news":
                     all_news.filter(
-                        Q(category__iexact="Bollywood") |
-                        Q(category__iexact="Hollywood")
+                        Q(category__icontains="bollywood") |
+                        Q(category__icontains="hollywood")
                     )[:6],
 
                 "bazaar_news":
-                    all_news.filter(category__iexact="Market")[:4],
+                    all_news.filter(category__icontains="market")[:4],
             })
 
         return render(request, "mynews/home.html", context)
