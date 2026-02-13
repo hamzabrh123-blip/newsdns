@@ -1,187 +1,172 @@
-{% extends 'mynews/base.html' %}
-{% load static %}
+import re
+import logging
+from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
+from .models import News
+from .constants import LOCATION_DATA
 
-{% block content %}
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+logger = logging.getLogger(__name__)
+SITE_URL = "https://uttarworld.com"
 
-<style>
-.container-fluid { padding: 0 40px; }
-body { background-color: #f4f7f6 !important; font-family: 'Poppins','Mukta',sans-serif; }
+# ---------------------------------------------------
+# HELPER: Published News Only
+# ---------------------------------------------------
+def published_news():
+    return News.objects.filter(status__iexact="Published").order_by("-date")
 
-/* 12 Column Highlights Grid */
-.hero-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 220px;
-    gap: 12px;
-    margin-bottom: 40px;
-}
-.hero-item { position: relative; overflow: hidden; background: #000; border-radius: 12px; height: 100%; }
-.hero-item img { width: 100%; height: 100%; object-fit: cover; opacity: .7; transition: .5s; }
-.hero-item:hover img { transform: scale(1.05); opacity: .85; }
-.hero-content {
-    position: absolute; bottom: 0; left: 0;
-    padding: 15px;
-    background: linear-gradient(to top, rgba(0,0,0,.95), transparent);
-    width: 100%; color: #fff;
-}
-/* Pehla item bada dikhega professional look ke liye */
-.hero-big { grid-column: span 2; grid-row: span 2; }
+# ---------------------------------------------------
+# 1. FB API
+# ---------------------------------------------------
+def fb_news_api(request):
+    try:
+        news_list = published_news()[:20]
+        data = []
+        for n in news_list:
+            city = (n.url_city or "news").strip()
+            data.append({
+                "id": n.id,
+                "title": n.title,
+                "url": f"{SITE_URL.rstrip('/')}/{city}/{n.slug.strip()}/"
+            })
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        logger.error(f"FB API Error: {e}")
+        return JsonResponse({"error": "Server Error"}, status=500)
 
-.clean-card {
-    background:#fff; border-radius:12px; border:1px solid #eef0f2;
-    margin-bottom:20px; overflow:hidden; height:100%;
-    display:flex; flex-direction:column; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-.clean-card img { width:100%; height:160px; object-fit:cover; }
-.card-body-custom { padding:12px; flex-grow:1; }
-.news-title {
-    font-size:.95rem; font-weight:800; color:#1a1a1a;
-    line-height:1.4; text-decoration:none!important;
-}
-.news-date { font-size: 11px; color: #6c757d; margin-top: 5px; display: block; }
+# ---------------------------------------------------
+# 2. SIDEBAR DATA
+# ---------------------------------------------------
+def get_common_sidebar_data():
+    published = published_news()
+    
+    # List for dynamic city dropdown
+    exclude_keys = ["National", "International", "Sports", "Bollywood", "Hollywood", "Technology", "Market", "Entertainment"]
+    used_districts = published.values_list("district", flat=True).distinct()
 
-.section-title {
-    border-left:6px solid #d32f2f; padding:8px 15px;
-    font-weight:900; margin:35px 0 20px; background:#f0f0f0;
-}
+    dynamic_cities = []
+    for eng, hin, cat_slug in LOCATION_DATA:
+        if eng in used_districts and eng not in exclude_keys:
+            dynamic_cities.append({"id": eng.strip(), "name": hin})
 
-@media (max-width:992px){
-    .hero-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 180px; }
-    .hero-big { grid-column: span 2; }
-    .container-fluid { padding: 0 15px; }
-}
-</style>
+    return {
+        "up_sidebar": published.filter(category__icontains="uttar")[:8],
+        "world_sidebar": published.filter(category__icontains="international")[:5],
+        "bazaar_sidebar": published.filter(category__icontains="market")[:5],
+        "sports_sidebar": published.filter(category__icontains="sports")[:5],
+        "dynamic_up_cities": dynamic_cities,
+        "dynamic_big_categories": [
+            {"id": "National", "name": "देश"},
+            {"id": "International", "name": "दुनिया"},
+            {"id": "Sports", "name": "खेल"},
+            {"id": "Market", "name": "बाज़ार"},
+        ],
+    }
 
-{% if page_number == 1 %}
-<div class="container-fluid mt-3">
-    <h4 class="section-title">प्रमुख सुर्खियां</h4>
-    <div class="hero-grid">
-        {% for item in top_5_highlights %}
-        <div class="hero-item {% if forloop.first %}hero-big{% endif %}">
-            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
-                <div class="hero-content">
-                    <span class="badge bg-danger mb-1">{{ item.district }}</span>
-                    {% if forloop.first %}
-                        <h2 style="font-size: 1.5rem;">{{ item.title }}</h2>
-                    {% else %}
-                        <h6 style="font-size: 0.9rem;">{{ item.title|truncatechars:55 }}</h6>
-                    {% endif %}
-                    <small style="font-size: 10px; opacity: 0.8;"><i class="far fa-calendar-alt"></i> {{ item.date|date:"d M, Y" }}</small>
-                </div>
-            </a>
-        </div>
-        {% empty %}
-        <p>Highlights available nahi hai.</p>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
+# ---------------------------------------------------
+# 3. HOME PAGE
+# ---------------------------------------------------
+def home(request):
+    try:
+        common_data = get_common_sidebar_data()
+        all_news = published_news()
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-9">
+        # Search
+        query = request.GET.get("q")
+        if query:
+            all_news = all_news.filter(Q(title__icontains=query.strip()) | Q(content__icontains=query.strip()))
 
-            {% if page_number == 1 %}
-            <h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
-            <div class="row">
-                {% for item in up_news %}
-                <div class="col-md-4 mb-4">
-                    <div class="clean-card">
-                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
-                        </a>
-                        <div class="card-body-custom">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-danger fw-bold" style="font-size:11px;">{{ item.district }}</span>
-                                <span class="news-date" style="margin:0;">{{ item.date|date:"d M" }}</span>
-                            </div>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title d-block">
-                                {{ item.title|truncatechars:60 }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+        # Pagination
+        page_number = request.GET.get("page", 1)
+        paginator = Paginator(all_news, 12)
+        other_news_page = paginator.get_page(page_number)
 
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <h4 class="section-title">देश (National)</h4>
-                    {% for item in national_news %}
-                    <div class="d-flex bg-white p-2 mb-3 border rounded shadow-sm">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
-                             style="width:80px;height:60px;object-fit:cover;" class="rounded me-3">
-                        <div>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title" style="font-size:13px;">
-                                {{ item.title|truncatechars:50 }}
-                            </a>
-                            <span class="news-date">{{ item.date|date:"d M, Y" }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+        context = {
+            "other_news": other_news_page,
+            "page_number": int(page_number),
+            **common_data
+        }
 
-                <div class="col-md-6">
-                    <h4 class="section-title">दुनिया (World)</h4>
-                    {% for item in world_news %}
-                    <div class="d-flex bg-white p-2 mb-3 border rounded shadow-sm">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
-                             style="width:80px;height:60px;object-fit:cover;" class="rounded me-3">
-                        <div>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title" style="font-size:13px;">
-                                {{ item.title|truncatechars:50 }}
-                            </a>
-                            <span class="news-date">{{ item.date|date:"d M, Y" }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
+        if str(page_number) == "1":
+            # Categories to exclude from UP News section
+            exclude_cats = ["National", "International", "Market", "Sports", "Bollywood", "Hollywood", "Entertainment"]
+            
+            # UP News logic: Jo specifically in categories mein nahi hai, wo UP news hai
+            up_news_filter = all_news.exclude(category__in=exclude_cats).exclude(district__in=exclude_cats)
 
-            <h4 class="section-title">ताज़ा खबरें</h4>
-            <div class="row">
-                {% for item in other_news %}
-                <div class="col-md-4 mb-4">
-                    <div class="clean-card">
-                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
-                        </a>
-                        <div class="card-body-custom">
-                            <span class="news-date mb-1">{{ item.date|date:"d M, Y" }}</span>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title">
-                                {{ item.title|truncatechars:65 }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            context.update({
+                "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
+                "national_news": all_news.filter(category__icontains="national")[:4],
+                "world_news": all_news.filter(category__icontains="international")[:4],
+                "up_news": up_news_filter[:12],
+                "entertainment_news": all_news.filter(Q(category__icontains="bollywood") | Q(category__icontains="hollywood"))[:6],
+                "bazaar_news": all_news.filter(category__icontains="market")[:4],
+            })
 
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if other_news.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ other_news.previous_page_number }}">Prev</a></li>
-                    {% endif %}
-                    <li class="page-item active"><span class="page-link bg-danger border-danger">{{ other_news.number }}</span></li>
-                    {% if other_news.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ other_news.next_page_number }}">Next</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
+        return render(request, "mynews/home.html", context)
 
-        <div class="col-lg-3">
-            <div class="sticky-top" style="top:20px;">
-                {% include "mynews/sidebar.html" %}
-            </div>
-        </div>
-    </div>
-</div>
+    except Exception as e:
+        logger.error(f"Home Error: {e}")
+        return HttpResponse("Server Updating... Please Refresh.")
 
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>AOS.init({duration:800,once:true});</script>
+# ---------------------------------------------------
+# 4. NEWS DETAIL
+# ---------------------------------------------------
+def news_detail(request, url_city, slug):
+    news = get_object_or_404(News, slug__iexact=slug.strip(), status__iexact="Published")
+    
+    v_id = None
+    if news.youtube_url:
+        match = re.search(r"(?:v=|youtu\.be/|shorts/|embed/|live/|^)([a-zA-Z0-9_-]{11})", news.youtube_url)
+        if match:
+            v_id = match.group(1)
 
-{% endblock %}
+    context = {
+        "news": news,
+        "v_id": v_id,
+        "related_news": published_news().filter(category__iexact=news.category).exclude(id=news.id)[:6],
+        **get_common_sidebar_data()
+    }
+    return render(request, "mynews/news_detail.html", context)
+
+# ---------------------------------------------------
+# 5. DISTRICT / CATEGORY PAGE
+# ---------------------------------------------------
+def district_news(request, district):
+    dist_name = district.strip()
+    news_list = published_news().filter(
+        Q(district__iexact=dist_name) | Q(category__iexact=dist_name) | Q(url_city__iexact=dist_name)
+    )
+    
+    page_obj = Paginator(news_list, 15).get_page(request.GET.get("page"))
+
+    return render(request, "mynews/district_news.html", {
+        "district": dist_name,
+        "page_obj": page_obj,
+        "news_count": news_list.count(),
+        **get_common_sidebar_data()
+    })
+
+# ---------------------------------------------------
+# 6. SEO & LEGAL
+# ---------------------------------------------------
+def sitemap_xml(request):
+    items = published_news()[:500]
+    xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    for n in items:
+        city = (n.url_city or "news").strip()
+        xml += f'<url><loc>{SITE_URL}/{city}/{n.slug.strip()}/</loc><lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>'
+    xml += "</urlset>"
+    return HttpResponse(xml, content_type="application/xml")
+
+def robots_txt(request):
+    return HttpResponse(f"User-Agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml", content_type="text/plain")
+
+def ads_txt(request):
+    return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+
+def privacy_policy(request): return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
+def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
+def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
+def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
