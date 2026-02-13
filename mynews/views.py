@@ -66,12 +66,13 @@ def get_common_sidebar_data():
             })
 
     return {
-        "up_sidebar": published.filter(category__iexact="Uttar-Pradesh")[:8],
-        "world_sidebar": published.filter(category__iexact="International")[:5],
-        "bazaar_sidebar": published.filter(category__iexact="Market")[:5],
-        "sports_sidebar": published.filter(category__iexact="Sports")[:5],
-        "dynamic_up_cities": dynamic_cities,
-        "dynamic_big_categories": [
+                "up_sidebar": published.filter(category__icontains="uttar")[:8],
+                "world_sidebar": published.filter(category__icontains="international")[:5],
+                "bazaar_sidebar": published.filter(category__icontains="market")[:5],
+                "sports_sidebar": published.filter(category__icontains="sports")[:5],
+
+                "dynamic_up_cities": dynamic_cities,
+                "dynamic_big_categories": [
             {"id": "National", "name": "देश"},
             {"id": "International", "name": "दुनिया"},
             {"id": "Sports", "name": "खेल"},
