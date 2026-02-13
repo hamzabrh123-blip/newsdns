@@ -5,129 +5,201 @@
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
-    .container-fluid { padding: 0 40px; }
-    body { background-color: #f4f7f6 !important; font-family: 'Poppins', 'Mukta', sans-serif; }
-    
-    /* Hero Grid Fix */
-    .hero-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 250px 250px; gap: 12px; margin-bottom: 40px; }
-    .hero-item { position: relative; overflow: hidden; background: #000; border-radius: 12px; height: 100%; }
-    .hero-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.75; transition: 0.5s; }
-    .hero-item:hover img { transform: scale(1.05); opacity: 0.9; }
-    .hero-content { position: absolute; bottom: 0; left: 0; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); width: 100%; z-index: 2; color: #fff; }
-    .hero-big { grid-column: 1 / 2; grid-row: 1 / 3; }
+.container-fluid { padding: 0 40px; }
+body { background-color: #f4f7f6 !important; font-family: 'Poppins','Mukta',sans-serif; }
 
-    /* News Cards */
-    .clean-card { background: #fff; border-radius: 12px; border: 1px solid #eef0f2; margin-bottom: 20px; overflow: hidden; height: 100%; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    .clean-card img { width: 100%; height: 160px; object-fit: cover; }
-    .card-body-custom { padding: 12px; flex-grow: 1; }
-    .news-title { font-size: 0.95rem; font-weight: 800; color: #1a1a1a; line-height: 1.4; text-decoration: none !important; }
+.hero-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 250px 250px;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+.hero-item { position: relative; overflow: hidden; background: #000; border-radius: 12px; height: 100%; }
+.hero-item img { width: 100%; height: 100%; object-fit: cover; opacity: .75; transition: .5s; }
+.hero-item:hover img { transform: scale(1.05); opacity: .9; }
+.hero-content {
+    position: absolute; bottom: 0; left: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,.95), transparent);
+    width: 100%; color: #fff;
+}
+.hero-big { grid-column: 1 / 2; grid-row: 1 / 3; }
 
-    .section-title { border-left: 6px solid #d32f2f; padding: 8px 15px; font-weight: 900; color: #1a1a1a; margin: 35px 0 20px; background: #f0f0f0; border-radius: 0 5px 5px 0; }
+.clean-card {
+    background:#fff;
+    border-radius:12px;
+    border:1px solid #eef0f2;
+    margin-bottom:20px;
+    overflow:hidden;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+}
+.clean-card img { width:100%; height:160px; object-fit:cover; }
+.card-body-custom { padding:12px; flex-grow:1; }
+.news-title {
+    font-size:.95rem;
+    font-weight:800;
+    color:#1a1a1a;
+    line-height:1.4;
+    text-decoration:none!important;
+}
+.section-title {
+    border-left:6px solid #d32f2f;
+    padding:8px 15px;
+    font-weight:900;
+    margin:35px 0 20px;
+    background:#f0f0f0;
+}
 
-    @media (max-width: 992px) { .hero-grid { grid-template-columns: 1fr; grid-template-rows: auto; } .container-fluid { padding: 0 15px; } }
+@media (max-width:992px){
+    .hero-grid{grid-template-columns:1fr;grid-template-rows:auto;}
+    .container-fluid{padding:0 15px;}
+}
 </style>
 
-{% if other_news.number == 1 %}
+<!-- HERO SECTION -->
+{% if page_number == 1 %}
 <div class="container-fluid mt-3">
     <div class="hero-grid">
         {% for item in top_5_highlights %}
-        <div class="hero-item {% if forloop.first %}hero-big{% endif %}" data-aos="fade-in">
-            <a href="{% url 'news_detail' item.url_city item.slug %}">
-                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
+        <div class="hero-item {% if forloop.first %}hero-big{% endif %}">
+            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
                 <div class="hero-content">
                     <span class="badge bg-danger mb-2">{{ item.district }}</span>
-                    {% if forloop.first %} <h2>{{ item.title }}</h2> {% else %} <h4>{{ item.title|truncatechars:50 }}</h4> {% endif %}
+                    {% if forloop.first %}
+                        <h2>{{ item.title }}</h2>
+                    {% else %}
+                        <h4>{{ item.title|truncatechars:50 }}</h4>
+                    {% endif %}
                 </div>
             </a>
         </div>
+        {% empty %}
+        <p>Highlights available nahi hai.</p>
         {% endfor %}
     </div>
 </div>
 {% endif %}
 
+
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-9 col-md-12">
-            
-            {% if other_news.number == 1 %}
-            <h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
-            <div class="row">
-                {% for item in up_news %}
-                <div class="col-md-4 col-sm-6 mb-4">
-                    <div class="clean-card shadow-sm">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="UP News">
-                        </a>
-                        <div class="card-body-custom">
-                            <span class="text-danger fw-bold" style="font-size: 0.7rem;">{{ item.district }}</span>
-                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title d-block">{{ item.title|truncatechars:60 }}</a>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <p class="ps-3">UP News abhi available nahi hai.</p>
-                {% endfor %}
-            </div>
+<div class="row">
+<div class="col-lg-9">
 
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <h4 class="section-title">देश (National)</h4>
-                    {% for item in national_news %}
-                    <div class="d-flex align-items-center bg-white p-2 mb-3 border rounded shadow-sm">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 80px; height: 60px; object-fit: cover;" class="rounded me-3">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.85rem;">{{ item.title|truncatechars:50 }}</a>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6">
-                    <h4 class="section-title">दुनिया (World)</h4>
-                    {% for item in world_news %}
-                    <div class="d-flex align-items-center bg-white p-2 mb-3 border rounded shadow-sm">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" style="width: 80px; height: 60px; object-fit: cover;" class="rounded me-3">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title" style="font-size: 0.85rem;">{{ item.title|truncatechars:50 }}</a>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
+{% if page_number == 1 %}
 
-            <h4 class="section-title">ताज़ा खबरें</h4>
-            <div class="row">
-                {% for item in other_news %}
-                <div class="col-md-4 mb-4">
-                    <div class="clean-card shadow-sm">
-                        <a href="{% url 'news_detail' item.url_city item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="News">
-                        </a>
-                        <div class="card-body-custom">
-                            <a href="{% url 'news_detail' item.url_city item.slug %}" class="news-title">{{ item.title|truncatechars:65 }}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if other_news.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ other_news.previous_page_number }}">Prev</a></li>
-                    {% endif %}
-                    <li class="page-item active"><span class="page-link bg-danger border-danger">{{ other_news.number }}</span></li>
-                    {% if other_news.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ other_news.next_page_number }}">Next</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-
-        <div class="col-lg-3 col-md-12">
-            <div class="sticky-top" style="top: 20px; z-index: 10;">
-                {% include "mynews/sidebar.html" %}
-            </div>
+<!-- UP NEWS -->
+<h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
+<div class="row">
+{% for item in up_news %}
+<div class="col-md-4 mb-4">
+    <div class="clean-card">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
+        </a>
+        <div class="card-body-custom">
+            <span class="text-danger fw-bold" style="font-size:12px;">{{ item.district }}</span>
+            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title d-block">
+                {{ item.title|truncatechars:60 }}
+            </a>
         </div>
     </div>
 </div>
+{% empty %}
+<p>UP News available nahi hai.</p>
+{% endfor %}
+</div>
+
+<!-- NATIONAL + WORLD -->
+<div class="row mt-4">
+<div class="col-md-6">
+<h4 class="section-title">देश (National)</h4>
+{% for item in national_news %}
+<div class="d-flex bg-white p-2 mb-3 border rounded">
+<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
+     style="width:80px;height:60px;object-fit:cover;" class="rounded me-3">
+<a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title" style="font-size:14px;">
+{{ item.title|truncatechars:50 }}
+</a>
+</div>
+{% empty %}
+<p>National News available nahi hai.</p>
+{% endfor %}
+</div>
+
+<div class="col-md-6">
+<h4 class="section-title">दुनिया (World)</h4>
+{% for item in world_news %}
+<div class="d-flex bg-white p-2 mb-3 border rounded">
+<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}"
+     style="width:80px;height:60px;object-fit:cover;" class="rounded me-3">
+<a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title" style="font-size:14px;">
+{{ item.title|truncatechars:50 }}
+</a>
+</div>
+{% empty %}
+<p>World News available nahi hai.</p>
+{% endfor %}
+</div>
+</div>
+
+{% endif %}
+
+<!-- LATEST NEWS -->
+<h4 class="section-title">ताज़ा खबरें</h4>
+<div class="row">
+{% for item in other_news %}
+<div class="col-md-4 mb-4">
+<div class="clean-card">
+<a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+<img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}">
+</a>
+<div class="card-body-custom">
+<a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title">
+{{ item.title|truncatechars:65 }}
+</a>
+</div>
+</div>
+</div>
+{% empty %}
+<p>Koi news available nahi hai.</p>
+{% endfor %}
+</div>
+
+<!-- PAGINATION -->
+<nav class="mt-4">
+<ul class="pagination justify-content-center">
+{% if other_news.has_previous %}
+<li class="page-item">
+<a class="page-link" href="?page={{ other_news.previous_page_number }}">Prev</a>
+</li>
+{% endif %}
+<li class="page-item active">
+<span class="page-link bg-danger border-danger">{{ other_news.number }}</span>
+</li>
+{% if other_news.has_next %}
+<li class="page-item">
+<a class="page-link" href="?page={{ other_news.next_page_number }}">Next</a>
+</li>
+{% endif %}
+</ul>
+</nav>
+
+</div>
+
+<div class="col-lg-3">
+<div class="sticky-top" style="top:20px;">
+{% include "mynews/sidebar.html" %}
+</div>
+</div>
+
+</div>
+</div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>AOS.init({ duration: 800, once: true });</script>
+<script>AOS.init({duration:800,once:true});</script>
+
 {% endblock %}
