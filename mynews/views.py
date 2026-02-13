@@ -119,12 +119,12 @@ def home(request):
             # 2. BHARAT (National) - Sirf Desh ki khabrein
             # 'nation' keyword se National, Rashtriya sab cover hoga
             national = all_news.filter(
-                Q(category__icontains="nation") | Q(category__icontains="bharat") | Q(category__icontains="india")
+                Q(category__icontains="national") | Q(category__icontains="bharat") | Q(category__icontains="india")
             )[:4]
             
             # 3. DUNIYA (World) - Sirf Videsh ki khabrein
             world = all_news.filter(
-                Q(category__icontains="internat") | Q(category__icontains="world") | Q(category__icontains="videsh")
+                Q(category__icontains="international") | Q(category__icontains="world") | Q(category__icontains="videsh")
             )[:4]
 
             # 4. UP NEWS (Regional)
@@ -135,7 +135,7 @@ def home(request):
                 Q(category__icontains="uttar") | 
                 Q(district__isnull=False)
             ).exclude(
-                Q(category__icontains="nation") | Q(category__icontains="internat") | Q(category__icontains="world")
+                Q(category__icontains="up") | Q(category__icontains="up") | Q(category__icontains="up")
             )[:12]
 
             context.update({
