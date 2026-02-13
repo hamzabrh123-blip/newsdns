@@ -98,12 +98,7 @@ def get_common_sidebar_data():
 def home(request):
     try:
         common_data = get_common_sidebar_data()
-        all_news = published_news()
-
-        # Search Logic
-        query = request.GET.get("q")
-        if query:
-            all_news = all_news.filter(Q(title__icontains=query.strip()) | Q(content__icontains=query.strip()))
+        all_news = News.objects.filter(status__iexact="Published").order_by("-date")
 
         page_number = request.GET.get("page", 1)
         paginator = Paginator(all_news, 12)
@@ -116,33 +111,45 @@ def home(request):
         }
 
         if str(page_number) == "1":
-            # 1. Highlights: Top 12 without ticker
+            # 1. TOP HIGHLIGHTS (Wahi 12 News)
             highlights = all_news.filter(show_in_highlights=True)[:12]
-            if not highlights.exists(): highlights = all_news[:12]
+            if not highlights.exists():
+                highlights = all_news[:12]
 
-            # 2. National News
-            national = all_news.filter(Q(category__icontains="nation") | Q(category__icontains="india"))[:4]
+            # 2. BHARAT (National) - Sirf Desh ki khabrein
+            # 'nation' keyword se National, Rashtriya sab cover hoga
+            national = all_news.filter(
+                Q(category__icontains="nation") | Q(category__icontains="bharat") | Q(category__icontains="india")
+            )[:4]
             
-            # 3. World News
-            world = all_news.filter(Q(category__icontains="internat") | Q(category__icontains="world"))[:4]
+            # 3. DUNIYA (World) - Sirf Videsh ki khabrein
+            world = all_news.filter(
+                Q(category__icontains="internat") | Q(category__icontains="world") | Q(category__icontains="videsh")
+            )[:4]
 
-            # 4. UP News (Specifically regional, excludes National/World)
+            # 4. UP NEWS (Regional)
+            # Yahan humne National aur World ko STRICTLY nikaal diya hai
+            # Taaki Varanasi/Lucknow ki news National mein na ghuse
             up_news_list = all_news.filter(
-                Q(category__icontains="up") | Q(category__icontains="uttar") | Q(district__isnull=False)
-            ).exclude(category__icontains="nation").exclude(category__icontains="internat")[:12]
+                Q(category__icontains="up") | 
+                Q(category__icontains="uttar") | 
+                Q(district__isnull=False)
+            ).exclude(
+                Q(category__icontains="nation") | Q(category__icontains="internat") | Q(category__icontains="world")
+            )[:12]
 
             context.update({
                 "top_5_highlights": highlights,
                 "national_news": national,
                 "world_news": world,
                 "up_news": up_news_list,
-                "entertainment_news": all_news.filter(Q(category__icontains="bollywood") | Q(category__icontains="enterta"))[:6],
+                "entertainment_news": all_news.filter(Q(category__icontains="bollywood") | Q(category__icontains="manoranjan"))[:6],
             })
 
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse("Updating Layout...")
+        return HttpResponse("Updating Sections...")
 # ---------------------------------------------------
 # 4. NEWS DETAIL
 # ---------------------------------------------------
