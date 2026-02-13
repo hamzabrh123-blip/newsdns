@@ -1,0 +1,26 @@
+<div class="hero-container">
+    {% for item in top_5_highlights|slice:":1" %}
+    <div class="main-story">
+        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+            <img src="{% if item.image %}{{ item.image.url }}{% else %}/static/logo.png{% endif %}" alt="{{ item.title }}">
+            <div class="story-overlay">
+                <span class="badge-district"><i class="fas fa-thumbtack"></i> {{ item.district }}</span>
+                <h1>{{ item.title }}</h1>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+
+    <div class="side-stories">
+        {% for item in top_5_highlights|slice:"1:3" %}
+        <div class="small-card">
+            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+                <img src="{% if item.image %}{{ item.image.url }}{% else %}/static/logo.png{% endif %}" alt="{{ item.title }}">
+                <div class="small-card-content">
+                    <h5>{{ item.title|truncatechars:70 }}</h5>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
