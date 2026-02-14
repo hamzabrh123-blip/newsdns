@@ -30,7 +30,7 @@ def get_common_sidebar_data():
     used_districts = published.values_list('district', flat=True).distinct()
     dynamic_cities = []
 
-    # Ye wo categories hain jinhe sidebar ke UP Districts list mein nahi dikhana
+    # Sidebar categories exclusion
     exclude_keys = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
 
     for eng, hin, cat_slug in LOCATION_DATA:
@@ -46,32 +46,44 @@ def get_common_sidebar_data():
         "dynamic_up_cities": dynamic_cities,
     }
 
-# --- 1. HOME PAGE ---
+# --- 1. HOME PAGE (SECTION WISE) ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # Inhe UP section se bahar nikalne ke liye Hindi + English dono labels
-        exclude_cats = [
+        # Ye labels UP section se National/World ko bahar nikalne ke liye hain
+        exclude_labels = [
             'National', 'International', 'Sports', 'Bollywood', 'Technology', 'Market',
-            'राष्ट्रीय खबर', 'अंतर्राष्ट्रीय', 'खेल समाचार', 'बॉलीवुड', 'मार्केट भाव', 'टेक्नोलॉजी'
+            'राष्ट्रीय खबर', 'अंतर्राष्ट्रीय', 'खेल समाचार', 'Bollywood', 'मार्केट भाव', 'टेक्नोलॉजी',
+            'Bharat', 'World', 'देश / भारत', 'दुनिया / विदेश'
         ]
         
+        # Logic: UP news mein sirf wahi aayega jo National/World nahi hai
+        up_news_qs = all_news.exclude(
+            Q(category__in=exclude_labels) | 
+            Q(district__in=exclude_labels) |
+            Q(category__icontains="राष्ट्रीय") |
+            Q(category__icontains="अंतर्राष्ट्रीय")
+        )
+
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
             
-            # UP News Section: Badi categories hata kar sirf districts dikhao
-            "up_news": all_news.exclude(Q(category__in=exclude_cats) | Q(district__in=exclude_cats))[:6], 
+            # 1. UP News Section (Sirf Districts/UP news)
+            "up_news": up_news_qs[:12], 
             
-            # Smart Filtering: Hindi aur English dono check karega taaki sections khali na rahein
-            "national_news": all_news.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:4],
-            "world_news": all_news.filter(Q(category__icontains="अंतर्राष्ट्रीय") | Q(district="International"))[:4],
-            "sports_news": all_news.filter(Q(category__icontains="खेल") | Q(district="Sports"))[:4],
-            "bazaar_news": all_news.filter(Q(category__icontains="मार्केट") | Q(district="Market"))[:4],
+            # 2. National Section
+            "national_news": all_news.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National") | Q(category__icontains="Bharat"))[:4],
+            
+            # 3. World Section
+            "world_news": all_news.filter(Q(category__icontains="अंतर्राष्ट्रीय") | Q(district="International") | Q(category__icontains="World"))[:4],
+            
+            # 4. Entertainment & Others
             "bollywood_news": all_news.filter(Q(category__icontains="बॉलीवुड") | Q(district="Bollywood"))[:4],
-            "technology_news": all_news.filter(Q(category__icontains="टेक्नोलॉजी") | Q(district="Technology"))[:4],
+            "sports_news": all_news.filter(Q(category__icontains="खेल") | Q(district="Sports"))[:4],
             
+            # Pagination ke liye sari news mix chalti rahegi niche
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -100,9 +112,8 @@ def news_detail(request, url_city, slug):
     }
     return render(request, "mynews/news_detail.html", context)
 
-# --- 3. DISTRICT / CATEGORY ---
+# --- 3. DISTRICT / CATEGORY PAGE ---
 def district_news(request, district):
-    # Search in District ID, Hindi Name, or URL Slug
     news_list = News.objects.filter(status='Published').filter(
         Q(district__iexact=district) | Q(category__icontains=district) | Q(url_city__iexact=district)
     ).order_by("-date")
