@@ -11,7 +11,6 @@ class News(models.Model):
     title = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Published')
     
-    # 1. Editable True rakho taaki save ho sake
     category = models.CharField(max_length=100, blank=True, null=True)
     url_city = models.CharField(max_length=100, blank=True, null=True)
     
@@ -34,12 +33,11 @@ class News(models.Model):
         verbose_name_plural = "News"
 
     def save(self, *args, **kwargs):
-        # 1. SAFE DISTRICT LOGIC (Isse 500 Error nahi aayega)
+        # 1. DISTRICT & CATEGORY LOGIC
         if self.district:
             d_val = str(self.district).strip()
             for item in LOCATION_DATA:
                 try:
-                    # Sirf tabhi data uthao jab list mein poori values hon
                     if len(item) >= 3 and str(item[0]).strip() == d_val:
                         self.category = item[1]
                         self.url_city = item[2]
@@ -51,23 +49,31 @@ class News(models.Model):
         if not self.id and not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. SUPER SAVE (Pehle save karna MUST hai)
-        super(News, self).save(*args, **kwargs)
-
-        # 4. BACKGROUND TASKS (Photo & FB) - Isme .update() zaroori hai
-        try:
-            # .update() se loop nahi banta
-            if self.image and not self.image_url:
+        # 3. PHOTO UPLOAD LOGIC (Save से पहले ताकि image_url मिल जाए)
+        # अगर नई फोटो अपलोड हुई है और image_url खाली है
+        if self.image and not self.image_url:
+            try:
                 link = process_and_upload_to_imgbb(self)
                 if link:
-                    self.__class__.objects.filter(id=self.id).update(image_url=link)
                     self.image_url = link
+            except Exception as e:
+                print(f"Image Upload Error: {e}")
 
+        # 4. FINAL SAVE TO DATABASE
+        super(News, self).save(*args, **kwargs)
+
+        # 5. FACEBOOK SHARING LOGIC (Save के बाद)
+        try:
+            # अब यहाँ self.image_url हमेशा भरा हुआ मिलेगा अगर ImgBB सफल रहा है
             if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-                if post_to_facebook(self):
-                    self.__class__.objects.filter(id=self.id).update(is_fb_posted=True)
+                if self.image_url: # पक्का करें कि इमेज लिंक मौजूद है
+                    if post_to_facebook(self):
+                        # recursion से बचने के लिए update इस्तेमाल किया
+                        self.__class__.objects.filter(id=self.id).update(is_fb_posted=True)
+                else:
+                    print("FB Post Skipped: Image URL not ready.")
         except Exception as e:
-            print(f"Non-critical Error: {e}")
+            print(f"Facebook Posting Error: {e}")
 
     def __str__(self):
         return self.title
