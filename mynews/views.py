@@ -51,30 +51,42 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # SABSE BADI PROBLEM: Case sensitivity aur Mixed Strings
-        # Isliye hum __icontains use karenge taaki 'national' aur 'National' dono pakde jayein
-        
-        # 1. National Section (Bharat)
-        national_news = all_news.filter(
-            Q(category__icontains="राष्ट्रीय") | Q(district__icontains="National") | 
-            Q(category__icontains="National") | Q(category__icontains="Bharat")
-        )[:4]
-
-        # 2. World Section (Duniya)
+        # 1. WORLD SECTION (Gaza, Ukraine, etc.)
         world_news = all_news.filter(
-            Q(category__icontains="अंतर्राष्ट्रीय") | Q(district__icontains="International") | 
-            Q(category__icontains="World")
+            Q(category__icontains="अंतर्राष्ट्रीय") | 
+            Q(category__icontains="World") |
+            Q(district__iexact="International") |
+            Q(district__iexact="World")
         )[:4]
-
-        # 3. UP Section (SIRF DISTRICTS - Isme se National/World ko STRICTLY nikalna hai)
-        # Hum un IDs ko nikal rahe hain jo National aur World mein ja chuki hain
-        exclude_ids = list(national_news.values_list('id', flat=True)) + list(world_news.values_list('id', flat=True))
         
+        # 2. NATIONAL SECTION (Bharat, Delhi, etc.)
+        # Isme se World news ko nikalna zaroori hai
+        world_ids = world_news.values_list('id', flat=True)
+        national_news = all_news.filter(
+            Q(category__icontains="राष्ट्रीय") | 
+            Q(category__icontains="National") | 
+            Q(category__icontains="Bharat") |
+            Q(district__iexact="National")
+        ).exclude(id__in=world_ids)[:4]
+
+        # 3. UP NEWS SECTION (STRICT FILTER)
+        # Isme se National aur World dono ki IDs aur Districts nikalne padenge
+        national_ids = national_news.values_list('id', flat=True)
+        exclude_ids = list(world_ids) + list(national_ids)
+        
+        # In labels ko district aur category dono se exclude karenge
+        non_up_labels = [
+            'National', 'International', 'World', 'Bharat', 'Sports', 'Bollywood',
+            'राष्ट्रीय', 'अंतर्राष्ट्रीय', 'खेल', 'बॉलीवुड', 'Market', 'मार्केट'
+        ]
+
         up_news_qs = all_news.exclude(id__in=exclude_ids).exclude(
-            Q(category__icontains="राष्ट्रीय") | Q(category__icontains="National") |
-            Q(category__icontains="World") | Q(category__icontains="अंतर्राष्ट्रीय") |
-            Q(category__icontains="Sports") | Q(category__icontains="खेल") |
-            Q(category__icontains="Bollywood") | Q(category__icontains="बॉलीवुड")
+            # Category mein ye words nahi hone chahiye
+            Q(category__icontains="National") | Q(category__icontains="World") |
+            Q(category__icontains="राष्ट्रीय") | Q(category__icontains="अंतर्राष्ट्रीय") |
+            Q(category__icontains="Sports") | Q(category__icontains="Bollywood") |
+            # District mein bhi ye words nahi hone chahiye (UP ka matlab sirf UP ke district)
+            Q(district__in=non_up_labels) | Q(district__isnull=True)
         )
 
         context = {
@@ -91,7 +103,7 @@ def home(request):
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse(f"System Update in Progress... Error: {e}")
+        return HttpResponse(f"Server Error: {e}")
 
 # --- REST OF THE VIEWS ---
 def news_detail(request, url_city, slug):
@@ -129,3 +141,4 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
