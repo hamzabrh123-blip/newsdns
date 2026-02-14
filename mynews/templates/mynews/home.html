@@ -2,153 +2,44 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<style>
-    :root { --aj-red: #cf2030; --aj-dark: #1a1a1a; }
-    body { background-color: #f4f4f4 !important; font-family: 'Mukta', sans-serif; }
-    
-    /* Hero Section (Top 3 Stories) */
-    .hero-container { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin: 20px 0 40px; }
-    .main-story { position: relative; height: 500px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-    .main-story img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-    .main-story:hover img { transform: scale(1.05); }
-    .story-overlay { position: absolute; bottom: 0; left: 0; padding: 40px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); color: #fff; width: 100%; }
-    .story-overlay h1 { font-weight: 800; font-size: 2.4rem; line-height: 1.1; margin-top: 10px; }
-    .badge-district { background: var(--aj-red); color: #fff; padding: 5px 12px; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 12px; }
-
-    .side-stories { display: flex; flex-direction: column; gap: 15px; }
-    .small-card { position: relative; height: 242px; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .small-card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-    .small-card:hover img { transform: scale(1.05); }
-    .small-card-content { position: absolute; bottom: 0; left: 0; padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; width: 100%; }
-    .small-card-content h5 { font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1.3; }
-
-    /* Section Headers - Aaj Tak Style */
-    .section-header { border-bottom: 3px solid #ddd; margin: 40px 0 25px; display: flex; align-items: flex-end; }
-    .section-header h3 { background: var(--aj-red); color: #fff; padding: 8px 25px; font-weight: 800; margin: 0; font-size: 1.4rem; position: relative; border-radius: 5px 5px 0 0; }
-    .section-header .line { flex-grow: 1; height: 3px; background: #ddd; }
-
-    /* News Cards */
-    .news-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #eee; height: 100%; transition: 0.3s; }
-    .news-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-    .news-card .thumb { height: 180px; display: block; overflow: hidden; position: relative; }
-    .news-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .news-card .body { padding: 15px; }
-    .news-card .title { font-weight: 700; color: #222; text-decoration: none; font-size: 1.1rem; line-height: 1.4; display: block; margin-bottom: 10px; }
-    .news-card .title:hover { color: var(--aj-red); }
-    .news-card .meta { font-size: 12px; color: #777; font-weight: 600; display: flex; justify-content: space-between; }
-
-    /* Horizontal Card for National/World */
-    .h-card { display: flex; background: #fff; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 15px; transition: 0.3s; }
-    .h-card:hover { background: #fffcfc; border-color: #ffcccc; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .h-card img { width: 110px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
-    .h-card-content { margin-left: 15px; display: flex; flex-direction: column; justify-content: center; }
-    .h-card-content a { font-weight: 700; color: #333; text-decoration: none; font-size: 1rem; line-height: 1.3; }
-
-    /* Custom Scrollbar for Pro Look */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--aj-red); }
-
-    @media (max-width: 992px) { 
-        .hero-container { grid-template-columns: 1fr; } 
-        .main-story { height: 350px; }
-        .story-overlay h1 { font-size: 1.6rem; }
-        .container-fluid { padding: 0 15px !important; }
-    }
-</style>
-
 <div class="container-fluid" style="padding: 0 50px;">
     <div class="row">
         <div class="col-lg-9">
             
             {% if page_number == 1 %}
-            <div class="hero-container">
-                {% for item in top_5_highlights|slice:":1" %}
-                <div class="main-story">
-                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                        <div class="story-overlay">
-                            <span class="badge-district"><i class="fas fa-thumbtack"></i> {{ item.district }}</span>
-                            <h1>{{ item.title }}</h1>
-                        </div>
-                    </a>
-                </div>
-                {% endfor %}
+                {% include "mynews/partials/_hero_section.html" %}
 
-                <div class="side-stories">
-                    {% for item in top_5_highlights|slice:"1:3" %}
-                    <div class="small-card">
-                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                            <div class="small-card-content">
-                                <h5>{{ item.title|truncatechars:70 }}</h5>
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
+                <div class="section-header">
+                    <h3><i class="fas fa-map-marked-alt"></i> उत्तर प्रदेश</h3>
+                    <div class="line"></div>
                 </div>
-            </div>
-
-            <div class="section-header">
-                <h3><i class="fas fa-map-marked-alt"></i> उत्तर प्रदेश</h3>
-                <div class="line"></div>
-            </div>
-            <div class="row">
-                {% for item in up_news|slice:":6" %}
-                <div class="col-md-4 mb-4">
-                    <div class="news-card">
-                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                        </a>
-                        <div class="body">
-                            <div class="meta mb-2">
-                                <span class="text-danger"><i class="fas fa-location-dot"></i> {{ item.district }}</span>
-                                <span>{{ item.date|date:"d M" }}</span>
-                            </div>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="title">{{ item.title|truncatechars:75 }}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="section-header">
-                        <h3 style="background: #0056b3;"><i class="fas fa-flag"></i> भारत</h3>
-                        <div class="line"></div>
-                    </div>
-                    {% for item in national_news %}
-                    <div class="h-card">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                        <div class="h-card-content">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:65 }}</a>
-                            <small class="text-muted mt-1">{{ item.date|date:"d F" }}</small>
-                        </div>
-                    </div>
+                <div class="row">
+                    {% for item in up_news|slice:":6" %}
+                        {% include "mynews/partials/_grid_card.html" %}
                     {% endfor %}
                 </div>
 
-                <div class="col-md-6">
-                    <div class="section-header">
-                        <h3 style="background: #1e7e34;"><i class="fas fa-globe"></i> दुनिया</h3>
-                        <div class="line"></div>
-                    </div>
-                    {% for item in world_news %}
-                    <div class="h-card">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                        <div class="h-card-content">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:65 }}</a>
-                            <small class="text-muted mt-1">{{ item.date|date:"d F" }}</small>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="section-header">
+                            <h3 style="background: #0056b3;"><i class="fas fa-flag"></i> भारत</h3>
+                            <div class="line"></div>
                         </div>
+                        {% for item in national_news %}
+                            {% include "mynews/partials/_horizontal_card.html" %}
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+
+                    <div class="col-md-6">
+                        <div class="section-header">
+                            <h3 style="background: #1e7e34;"><i class="fas fa-globe"></i> दुनिया</h3>
+                            <div class="line"></div>
+                        </div>
+                        {% for item in world_news %}
+                            {% include "mynews/partials/_horizontal_card.html" %}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
             {% endif %}
 
             <div class="section-header">
@@ -157,35 +48,11 @@
             </div>
             <div class="row">
                 {% for item in other_news %}
-                <div class="col-md-4 mb-4">
-                    <div class="news-card">
-                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
-                        </a>
-                        <div class="body">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="title">{{ item.title|truncatechars:85 }}</a>
-                            <div class="meta mt-2">
-                                <span><i class="far fa-clock"></i> {{ item.date|date:"d M, Y" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    {% include "mynews/partials/_grid_card.html" %}
                 {% endfor %}
             </div>
 
-            <div class="pagination-container mt-5 mb-5 text-center">
-                <nav>
-                    <ul class="pagination justify-content-center">
-                        {% if other_news.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ other_news.previous_page_number }}">Previous</a></li>
-                        {% endif %}
-                        <li class="page-item active"><span class="page-link bg-danger border-danger">{{ other_news.number }}</span></li>
-                        {% if other_news.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ other_news.next_page_number }}">Next</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
+            {% include "mynews/partials/_pagination.html" %}
 
         </div>
 
