@@ -1,13 +1,9 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
 
-{% block title %}
-{{ district|default:"Latest" }} News | Uttar World
-{% endblock %}
+{% block title %} {{ district|default:"Latest" }} News | Uttar World {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8 col-md-8">
@@ -26,102 +22,18 @@
 
             <div class="row">
                 {% for item in page_obj %}
-                <div class="col-md-6 mb-4">
-                    <article class="card h-100 border-0 shadow-sm news-card-v2 position-relative">
-                        
-                        <div class="img-container position-relative overflow-hidden">
-                            {% if item.image_url %}
-                                <img src="{{ item.image_url }}" 
-                                     class="card-img-top news-thumb" 
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
-                            {% elif item.image %}
-                                <img src="{{ item.image.url }}" 
-                                     class="card-img-top news-thumb" 
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
-                            {% else %}
-                                <img src="{% static 'default.jpg' %}" class="card-img-top news-thumb" alt="No image">
-                            {% endif %}
-                            <div class="date-overlay shadow-sm">
-                                <span class="day">{{ item.date|date:"d" }}</span>
-                                <span class="month">{{ item.date|date:"M" }}</span>
-                            </div>
-
-                            {% if item.category %}
-                            <span class="position-absolute bottom-0 start-0 m-2 badge bg-dark opacity-75">
-                                {{ item.category }}
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold mb-2">
-                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-decoration-none text-dark hover-title lh-base">
-                                    {{ item.title|truncatechars:90 }}
-                                </a>
-                            </h5>
-
-                            <div class="card-text text-muted small mb-3 excerpt">
-                                {{ item.content|striptags|truncatechars:100 }}
-                            </div>
-
-                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    <i class="far fa-clock me-1 text-danger"></i>{{ item.date|timesince }} पहले
-                                </small>
-                                <div class="action-buttons d-flex align-items-center">
-                                    <a href="https://api.whatsapp.com/send?text={{ item.title }} - {{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city item.slug %}" 
-                                       target="_blank" class="text-success me-3 text-decoration-none">
-                                        <i class="fab fa-whatsapp fa-lg"></i>
-                                    </a>
-                                    <a href="{% url 'news_detail' item.url_city item.slug %}" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
-                                        पढ़ें <i class="fas fa-chevron-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </div>
+                    {% include "mynews/partials/_grid_card.html" %}
                 {% empty %}
-                <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
-                    <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
-                    <h5 class="text-muted fw-bold">No News Found!</h5>
-                    <p class="text-secondary small">{{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
-                    <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">Explore Home</a>
-                </div>
+                    <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
+                        <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
+                        <h5 class="text-muted fw-bold">No News Found!</h5>
+                        <p class="text-secondary small">{{ district }} के लिए अभी कोई खबर उपलब्ध नहीं है।</p>
+                        <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">Explore Home</a>
+                    </div>
                 {% endfor %}
             </div>
 
-            {% if page_obj.has_other_pages %}
-            <nav class="my-5">
-                <ul class="pagination justify-content-center custom-pagination">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}">
-                            <i class="fas fa-arrow-left"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if num == page_obj.number %}
-                            <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
-                        {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-                            <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}">
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+            {% include "mynews/partials/_pagination.html" %}
 
         </div>
 
@@ -130,15 +42,13 @@
                 {% include 'mynews/sidebar.html' %}
             </div>
         </div>
-
     </div>
 </div>
 
 <style>
-    .main-title { color: #1a1a1a; letter-spacing: -0.2px; }
+    /* Sirf is page ke specific styles yahan rakho, 
+       baaki cards ke style partial file mein daal do */
     .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
-    
-    /* Animation for Live Pulse */
     .pulse-dot {
         width: 8px; height: 8px; background: #dc3545; border-radius: 50%;
         animation: pulse 1.5s infinite;
@@ -148,24 +58,5 @@
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
-
-    /* Card Styling */
-    .news-card-v2 { border-radius: 15px; transition: all 0.3s ease; border: 1px solid #f2f2f2 !important; background: #fff; }
-    .news-card-v2:hover { transform: translateY(-7px); box-shadow: 0 12px 25px rgba(0,0,0,0.08) !important; }
-    .img-container { border-radius: 15px 15px 0 0; height: 190px; background: #f8f8f8; }
-    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-    .news-card-v2:hover .news-thumb { transform: scale(1.1); }
-
-    /* Date Overlay */
-    .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
-    .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
-    .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
-
-    .hover-title:hover { color: #d32f2f !important; }
-    .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 3.8em; line-height: 1.6; }
-
-    /* Pagination */
-    .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 10px !important; color: #444; font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
-    .custom-pagination .page-item.active .page-link { background: #d32f2f; color: #fff; }
 </style>
 {% endblock %}
