@@ -1,7 +1,0 @@
-<div class="h-card">
-    <img src="{% if item.image %}{{ item.image.url }}{% else %}/static/logo.png{% endif %}" alt="{{ item.title }}">
-    <div class="h-card-content">
-        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">{{ item.title|truncatechars:65 }}</a>
-        <small class="text-muted mt-1">{{ item.date|date:"d F" }}</small>
-    </div>
-</div>
