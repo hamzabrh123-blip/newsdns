@@ -80,18 +80,28 @@ def post_to_facebook(instance):
     if not access_token or not page_id:
         return False
 
-    # Agar get_absolute_url nahi hai toh slug use karo
     try:
         news_link = f"https://uttarworld.com/news/{instance.slug}/"
-        msg = f"{instance.title}\n\nपूरी खबर पढ़ें: {news_link}"
+        # 1. कैप्शन को छोटा और साफ़ रखें
+        msg = f"{instance.title}\n\nपूरी खबर पढ़ें यहाँ: {news_link}"
         
-        payload = {
-            'message': msg,
-            'link': news_link,
-            'access_token': access_token
-        }
+        # 2. अगर image_url है, तो सीधा 'photos' endpoint पर पोस्ट करें
+        if instance.image_url:
+            fb_url = f"https://graph.facebook.com/v18.0/{page_id}/photos"
+            payload = {
+                'url': instance.image_url, # सीधा ImgBB वाला लिंक
+                'caption': msg,            # कैप्शन में टेक्स्ट और लिंक
+                'access_token': access_token
+            }
+        else:
+            # बैकअप: अगर फोटो नहीं है तो पुराना तरीका (बिना फोटो वाली पोस्ट)
+            fb_url = f"https://graph.facebook.com/v18.0/{page_id}/feed"
+            payload = {
+                'message': msg,
+                'link': news_link,
+                'access_token': access_token
+            }
         
-        fb_url = f"https://graph.facebook.com/v18.0/{page_id}/feed"
         response = requests.post(fb_url, data=payload, timeout=20)
         return response.status_code == 200
     except Exception as e:
