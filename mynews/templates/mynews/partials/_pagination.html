@@ -1,0 +1,59 @@
+<div class="pagination-container mt-5 mb-5 text-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center custom-pagination">
+            
+            {% if other_news.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" title="First Page">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ other_news.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i> पिछला
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link current-page">
+                    {{ other_news.number }} / {{ other_news.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if other_news.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ other_news.next_page_number }}">
+                    अगला <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ other_news.paginator.num_pages }}" title="Last Page">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+</div>
+
+<style>
+    .custom-pagination .page-link {
+        color: #333;
+        border: 1px solid #ddd;
+        margin: 0 3px;
+        border-radius: 5px;
+        font-weight: 600;
+        padding: 8px 16px;
+    }
+    .custom-pagination .page-item.active .current-page {
+        background-color: #cf2030 !important; /* Tera Red Color */
+        border-color: #cf2030 !important;
+        color: #fff;
+    }
+    .custom-pagination .page-link:hover {
+        background-color: #f8f9fa;
+        color: #cf2030;
+    }
+</style>
