@@ -7,14 +7,13 @@ import gc
 import io
 from PIL import Image
 from django.conf import settings
-from django.apps import apps # <--- Ye zaroori hai loop todne ke liye
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
-# --- SIDEBAR LOGIC (FIXED) ---
+# --- SIDEBAR LOGIC ---
 def get_common_sidebar_data():
     try:
-        # Circular import se bachne ke liye apps.get_model use karo
         News = apps.get_model('mynews', 'News') 
         return {
             "bazaar_sidebar": News.objects.filter(category="Market", status='Published').order_by("-date")[:5],
@@ -28,7 +27,7 @@ def get_common_sidebar_data():
         logger.error(f"Sidebar Data Error: {e}")
         return {}
 
-# --- IMAGE PROCESSING & IMGBB (MEMORY SAFE) ---
+# --- IMAGE PROCESSING & IMGBB ---
 def process_and_upload_to_imgbb(instance):
     if not instance.image or instance.image_url:
         return None
@@ -60,7 +59,6 @@ def process_and_upload_to_imgbb(instance):
         payload = {"key": api_key, "image": image_data}
         response = requests.post("https://api.imgbb.com/1/upload", data=payload, timeout=25)
         
-        # Memory cleanup
         img.close()
         output.close()
         gc.collect()
@@ -72,40 +70,56 @@ def process_and_upload_to_imgbb(instance):
         logger.error(f"ImgBB Error: {e}")
         return None
 
-# --- FACEBOOK AUTO-POST (FIXED URL) ---
+# --- FACEBOOK PAGE & GROUP AUTO-POST (COMPLETE) ---
 def post_to_facebook(instance):
+    # Render Environment Variables
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
+    group_id = os.environ.get('FB_GROUP_1_ID') 
 
-    if not access_token or not page_id:
+    if not access_token:
+        logger.error("FB Access Token missing in Render environment")
         return False
 
     try:
         news_link = f"https://uttarworld.com/news/{instance.slug}/"
-        # 1. कैप्शन को छोटा और साफ़ रखें
-        msg = f"{instance.title}\n\nपूरी खबर पढ़ें यहाँ: {news_link}"
+        msg = f"{instance.title}\n\nपूरी खबर यहाँ पढ़ें: {news_link}"
         
-        # 2. अगर image_url है, तो सीधा 'photos' endpoint पर पोस्ट करें
+        # पेलोड - फोटो के साथ (ImgBB URL का उपयोग)
         if instance.image_url:
-            fb_url = f"https://graph.facebook.com/v18.0/{page_id}/photos"
             payload = {
-                'url': instance.image_url, # सीधा ImgBB वाला लिंक
-                'caption': msg,            # कैप्शन में टेक्स्ट और लिंक
+                'url': instance.image_url,
+                'caption': msg,
                 'access_token': access_token
             }
+            # Photos endpoint बड़े बैनर के लिए बेस्ट है
+            page_endpoint = f"https://graph.facebook.com/v18.0/{page_id}/photos"
+            group_endpoint = f"https://graph.facebook.com/v18.0/{group_id}/photos" if group_id else None
         else:
-            # बैकअप: अगर फोटो नहीं है तो पुराना तरीका (बिना फोटो वाली पोस्ट)
-            fb_url = f"https://graph.facebook.com/v18.0/{page_id}/feed"
+            # बैकअप - बिना फोटो के
             payload = {
                 'message': msg,
                 'link': news_link,
                 'access_token': access_token
             }
-        
-        response = requests.post(fb_url, data=payload, timeout=20)
-        return response.status_code == 200
+            page_endpoint = f"https://graph.facebook.com/v18.0/{page_id}/feed"
+            group_endpoint = f"https://graph.facebook.com/v18.0/{group_id}/feed" if group_id else None
+
+        # 1. फेसबुक पेज पर पोस्ट करें
+        if page_id:
+            res_page = requests.post(page_endpoint, data=payload, timeout=20)
+            logger.info(f"Page Post Response: {res_page.status_code}")
+
+        # 2. फेसबुक ग्रुप पर पोस्ट करें (चूंकि Post Approval OFF है)
+        if group_id:
+            res_group = requests.post(group_endpoint, data=payload, timeout=20)
+            logger.info(f"Group Post Response: {res_group.status_code}")
+            if res_group.status_code != 200:
+                logger.warning(f"Group Post Error Detail: {res_group.text}")
+
+        return True
     except Exception as e:
-        logger.error(f"FB Error: {e}")
+        logger.error(f"FB Full Auto-Post Error: {e}")
         return False
 
 def extract_video_id(url):
