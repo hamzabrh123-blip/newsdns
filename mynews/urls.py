@@ -5,29 +5,24 @@ urlpatterns = [
     # --- Home Page ---
     path("", views.home, name="home"),
 
-    # --- API for PC Script (Top priority) ---
+    # --- API for PC Script ---
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
-    # --- Technology Routes ---
+    # --- Category Routes (Direct) ---
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
-    path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
-
-    # --- Specific News Sections (Home/Sidebar Links Compatibility) ---
-    # ये पाथ्स आपके टेम्पलेट के href="/UP-News/" और href="/Market/" आदि को संभालेंगे
     path("UP-News/", views.district_news, {'district': 'UP News'}, name="up_news_list"),
     path("Int-MiddleEast/", views.district_news, {'district': 'International'}, name="world_news_list"),
     path("Market/", views.district_news, {'district': 'Market'}, name="market_list"),
     path("Sports/", views.district_news, {'district': 'Sports'}, name="sports_list"),
 
-    # --- National & Other Categories ---
+    # --- Compatibility Routes ---
     path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
     path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
-    path("news/int/", views.district_news, {'district': 'International'}, name="international"),
     path("news/sports/", views.district_news, {'district': 'Sports'}, name="sports"),
     path("news/bollywood/", views.district_news, {'district': 'Bollywood'}, name="bollywood"),
     path("news/market/", views.district_news, {'district': 'Market'}, name="market"),
 
-    # --- Universal Category/District Route ---
+    # --- Universal Category Route ---
     path("category/<str:district>/", views.district_news, name="district_news"),
 
     # --- Utilities & SEO ---
@@ -40,6 +35,5 @@ urlpatterns = [
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
     # --- Detail Page (Must be at the bottom) ---
-    # यह <city>/<slug>/ वाले पैटर्न को हैंडल करेगा
     path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 ]
