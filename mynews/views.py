@@ -51,7 +51,7 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # 1. World & National (Strict iexact matching - No more icontains mess)
+        # 1. World & National (Strict iexact matching)
         world_news = all_news.filter(district__iexact="International")[:4]
         national_news = all_news.filter(district__iexact="National")[:4]
 
@@ -81,16 +81,19 @@ def home(request):
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = None
+    
     if news.youtube_url:
+        # YouTube ID Extracting Regex (Handles: Normal, Embed, Shorts, and Mobile links)
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
-        if match: v_id = match.group(1)
+        if match:
+            v_id = match.group(1)
     
     context = {
         "news": news,
+        "v_id": v_id,
         "og_title": news.title,
         "related_news": News.objects.filter(district=news.district, status='Published').exclude(id=news.id).order_by("-date")[:6],
-        "v_id": v_id,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
@@ -115,9 +118,20 @@ def sitemap_xml(request):
         xml += f'<url><loc>{SITE_URL.rstrip("/")}/{n.url_city or "news"}/{n.slug}/</loc><lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod></url>\n'
     return HttpResponse(xml + '</urlset>', content_type="application/xml")
 
-def robots_txt(request): return HttpResponse(f"User-Agent: *\nAllow: /\nSitemap: {SITE_URL.rstrip('/')}/sitemap.xml", content_type="text/plain")
-def ads_txt(request): return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
-def privacy_policy(request): return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
-def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
-def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
-def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+def robots_txt(request): 
+    return HttpResponse(f"User-Agent: *\nAllow: /\nSitemap: {SITE_URL.rstrip('/')}/sitemap.xml", content_type="text/plain")
+
+def ads_txt(request): 
+    return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
+
+def privacy_policy(request): 
+    return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
+
+def about_us(request): 
+    return render(request, "mynews/about_us.html", get_common_sidebar_data())
+
+def contact_us(request): 
+    return render(request, "mynews/contact_us.html", get_common_sidebar_data())
+
+def disclaimer(request): 
+    return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
