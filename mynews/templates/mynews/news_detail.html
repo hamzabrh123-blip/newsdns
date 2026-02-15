@@ -7,169 +7,60 @@
 <style>
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
-
-    .content-card {
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        padding: 30px;
-        margin-bottom: 25px;
-    }
-
-    .article-title { 
-        font-family: 'Noto Serif Devanagari', serif; 
-        font-weight: 700; font-size: 2.2rem; 
-        line-height: 1.3; color: #000; margin-bottom: 15px; 
-    }
-
-    .article-content { 
-        font-family: 'Noto Serif Devanagari', serif; 
-        font-size: 1.2rem; line-height: 1.9; color: #333; 
-    }
-    .article-content p { margin-bottom: 1.2rem; }
-
-    .author-box { 
-        border-top: 1px solid #eee; border-bottom: 1px solid #eee; 
-        padding: 12px 0; margin-bottom: 20px;
-    }
-
-    .cat-badge { 
-        background: var(--news-red); color: white; padding: 4px 12px; 
-        font-weight: bold; font-size: 0.75rem; border-radius: 3px;
-    }
-
-    /* YouTube Responsive Fix */
-    .video-wrapper {
-        position: relative;
-        padding-bottom: 56.25%; /* 16:9 ratio */
-        height: 0;
-        overflow: hidden;
-        border-radius: 8px;
-        background: #000;
-        margin: 25px 0;
-    }
-    .video-wrapper.shorts {
-        padding-bottom: 177.77%; /* 9:16 ratio for shorts */
-        max-width: 350px;
-        margin: 25px auto;
-    }
-    .video-wrapper iframe {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        border: 0;
-    }
-
+    .content-card { background: #ffffff; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; }
+    .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.2rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
+    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.2rem; line-height: 1.9; color: #333; }
+    .cat-badge { background: var(--news-red); color: white; padding: 4px 12px; font-weight: bold; font-size: 0.75rem; border-radius: 3px; }
+    
+    /* YouTube Box */
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; margin: 25px 0; }
+    .video-wrapper.shorts { padding-bottom: 177.77%; max-width: 350px; margin: 25px auto; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    
     .news-card { transition: 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-radius: 8px; }
-    .news-card:hover { transform: translateY(-3px); }
-
-    /* Sticky Share for Desktop */
-    .sticky-share { position: sticky; top: 100px; z-index: 10; }
-    .share-btn { 
-        width: 40px; height: 40px; border-radius: 50%; 
-        display: flex; align-items: center; justify-content: center; 
-        margin-bottom: 10px; color: white !important; font-size: 1.1rem;
-    }
-
-    @media (max-width: 768px) {
-        .content-card { padding: 15px; border-radius: 0; }
-        .article-title { font-size: 1.6rem; }
-        .article-content { font-size: 1.1rem; }
-    }
+    @media (max-width: 768px) { .content-card { padding: 15px; } .article-title { font-size: 1.6rem; } }
 </style>
 
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-1 d-none d-lg-block">
-            <div class="sticky-share d-flex flex-column align-items-center">
-                <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="share-btn bg-success"><i class="fab fa-whatsapp"></i></a>
-                <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="share-btn bg-primary"><i class="fab fa-facebook-f"></i></a>
-                <a href="javascript:void(0)" onclick="copyUrl()" class="share-btn bg-dark"><i class="fas fa-link"></i></a>
+            <div class="sticky-top" style="top: 100px;">
+                <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success rounded-circle mb-2" style="width:40px; height:40px;"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary rounded-circle mb-2" style="width:40px; height:40px;"><i class="fab fa-facebook-f"></i></a>
             </div>
         </div>
 
         <div class="col-lg-7">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb small bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="/" class="text-danger text-decoration-none fw-bold">HOME</a></li>
+                    <li class="breadcrumb-item"><a href="/" class="text-danger fw-bold">HOME</a></li>
                     <li class="breadcrumb-item active text-uppercase">{{ news.category }}</li>
                 </ol>
             </nav>
 
             <div class="content-card">
-                <span class="cat-badge mb-2 d-inline-block">{{ news.district|default:"National" }}</span>
+                <span class="cat-badge mb-2 d-inline-block">{{ news.district|default:"Uttar Pradesh" }}</span>
                 <h1 class="article-title">{{ news.title }}</h1>
 
-                <div class="author-box d-flex align-items-center">
-                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40">
-                    <div>
-                        <p class="mb-0 fw-bold" style="font-size: 0.9rem;">By Uttar World Desk</p>
-                        <small class="text-muted">
-                            <i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | {{ news.date|date:"h:i A" }}
-                        </small>
-                    </div>
+                <div class="border-top border-bottom py-2 mb-4">
+                    <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y | h:i A" }}</small>
                 </div>
 
                 {% if v_id %}
-                    <div class="video-wrapper {% if 'shorts' in news.youtube_url %}shorts{% endif %}">
-                        <iframe
-                            src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1"
-                            title="YouTube video player"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
-                        </iframe>
-                    </div>
+                <div class="video-wrapper {% if 'shorts' in news.youtube_url %}shorts{% endif %}">
+                    <iframe src="https://www.youtube.com/embed/{{ v_id }}?rel=0" allowfullscreen></iframe>
+                </div>
                 {% else %}
-                    <div class="mb-4">
-                        <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                             class="w-100 rounded shadow-sm" style="max-height: 450px; object-fit: cover;"
-                             onerror="this.src='{% static 'logo.png' %}';">
-                    </div>
+                <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="w-100 rounded mb-4" style="max-height:450px; object-fit:cover;">
                 {% endif %}
 
-                <div class="article-content">
-                    {{ news.content|safe }}
-                </div>
-            </div>
-
-            <div class="bg-white p-3 rounded shadow-sm text-center mb-5 border">
-                <p class="small fw-bold text-muted mb-2">खबर साझा करें</p>
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" class="btn btn-success btn-sm px-3 rounded-pill"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>
-                    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" class="btn btn-primary btn-sm px-3 rounded-pill"><i class="fab fa-facebook-f me-1"></i>Facebook</a>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <h4 class="fw-bold mb-3 border-bottom pb-2">सम्बन्धित खबरें</h4>
-                <div class="row g-3">
-                    {% for r in related_news %}
-                    <div class="col-md-6">
-                        <div class="news-card card h-100">
-                            <a href="{% url 'news_detail' r.url_city|default:'news' r.slug %}" class="text-decoration-none">
-                                <img src="{% if r.image_url %}{{ r.image_url }}{% else %}{% static 'logo.png' %}{% endif %}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                <div class="card-body p-2">
-                                    <h6 class="card-title text-dark fw-bold mb-0" style="font-size: 0.95rem;">{{ r.title|truncatechars:65 }}</h6>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+                <div class="article-content">{{ news.content|safe }}</div>
             </div>
         </div>
 
-        <div class="col-lg-4 ps-lg-4 mt-4 mt-lg-0">
-            <div class="sticky-top" style="top: 80px;">
-                {% include "mynews/sidebar.html" %}
-            </div>
+        <div class="col-lg-4">
+            {% include "mynews/sidebar.html" %}
         </div>
     </div>
 </div>
-
-<script>
-function copyUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link Copied!");
-}
-</script>
 {% endblock %}
