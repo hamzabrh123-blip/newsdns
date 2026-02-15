@@ -2,7 +2,6 @@ import re, logging
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
-from django.utils.html import strip_tags
 from django.db.models import Q
 
 from .models import News
@@ -24,12 +23,13 @@ def fb_news_api(request):
         })
     return JsonResponse(data, safe=False)
 
-# --- Common Sidebar Data ---
+# --- Common Sidebar Data (Fixed Filters) ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published')
     used_districts = published.values_list('district', flat=True).distinct()
     dynamic_cities = []
 
+    # In keys को साइडबार के सिटी लिस्ट से दूर रखना है
     exclude_keys = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
 
     for eng, hin, cat_slug in LOCATION_DATA:
@@ -38,64 +38,36 @@ def get_common_sidebar_data():
 
     return {
         "up_sidebar": published.order_by("-date")[:10],
-        "bharat_sidebar": published.filter(Q(category__icontains="राष्ट्रीय") | Q(district="National"))[:5],
-        "world_sidebar": published.filter(Q(category__icontains="अंतर्राष्ट्रीय") | Q(district="International"))[:5],
-        "bazaar_sidebar": published.filter(Q(category__icontains="मार्केट") | Q(district="Market"))[:5],
-        "sports_sidebar": published.filter(Q(category__icontains="खेल") | Q(district="Sports"))[:5],
+        "bharat_sidebar": published.filter(district__iexact="National")[:5],
+        "world_sidebar": published.filter(district__iexact="International")[:5],
+        "bazaar_sidebar": published.filter(district__iexact="Market")[:5],
+        "sports_sidebar": published.filter(district__iexact="Sports")[:5],
         "dynamic_up_cities": dynamic_cities,
     }
 
-# --- 1. HOME PAGE (SECTION WISE FIX) ---
+# --- 1. HOME PAGE (STRICT CATEGORY FIX) ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # 1. WORLD SECTION (Gaza, Ukraine, etc.)
-        world_news = all_news.filter(
-            Q(category__icontains="अंतर्राष्ट्रीय") | 
-            Q(category__icontains="World") |
-            Q(district__iexact="International") |
-            Q(district__iexact="World")
-        )[:4]
-        
-        # 2. NATIONAL SECTION (Bharat, Delhi, etc.)
-        # Isme se World news ko nikalna zaroori hai
-        world_ids = world_news.values_list('id', flat=True)
-        national_news = all_news.filter(
-            Q(category__icontains="राष्ट्रीय") | 
-            Q(category__icontains="National") | 
-            Q(category__icontains="Bharat") |
-            Q(district__iexact="National")
-        ).exclude(id__in=world_ids)[:4]
+        # 1. World & National (Strict iexact matching - No more icontains mess)
+        world_news = all_news.filter(district__iexact="International")[:4]
+        national_news = all_news.filter(district__iexact="National")[:4]
 
-        # 3. UP NEWS SECTION (STRICT FILTER)
-        # Isme se National aur World dono ki IDs aur Districts nikalne padenge
-        national_ids = national_news.values_list('id', flat=True)
-        exclude_ids = list(world_ids) + list(national_ids)
+        # 2. UP NEWS SECTION (Exclude Non-UP Districts)
+        non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
         
-        # In labels ko district aur category dono se exclude karenge
-        non_up_labels = [
-            'National', 'International', 'World', 'Bharat', 'Sports', 'Bollywood',
-            'राष्ट्रीय', 'अंतर्राष्ट्रीय', 'खेल', 'बॉलीवुड', 'Market', 'मार्केट'
-        ]
-
-        up_news_qs = all_news.exclude(id__in=exclude_ids).exclude(
-            # Category mein ye words nahi hone chahiye
-            Q(category__icontains="National") | Q(category__icontains="World") |
-            Q(category__icontains="राष्ट्रीय") | Q(category__icontains="अंतर्राष्ट्रीय") |
-            Q(category__icontains="Sports") | Q(category__icontains="Bollywood") |
-            # District mein bhi ye words nahi hone chahiye (UP ka matlab sirf UP ke district)
-            Q(district__in=non_up_labels) | Q(district__isnull=True)
-        )
+        # UP News wahi hain jo upar ki labels mein nahi aati aur jinka district null nahi hai
+        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)
 
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
             "up_news": up_news_qs[:12], 
             "national_news": national_news,
             "world_news": world_news,
-            "bollywood_news": all_news.filter(Q(category__icontains="बॉलीवुड") | Q(district__icontains="Bollywood"))[:4],
-            "sports_news": all_news.filter(Q(category__icontains="खेल") | Q(district__icontains="Sports"))[:4],
+            "bollywood_news": all_news.filter(district__iexact="Bollywood")[:4],
+            "sports_news": all_news.filter(district__iexact="Sports")[:4],
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -105,7 +77,7 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error: {e}")
 
-# --- REST OF THE VIEWS ---
+# --- DETAIL & DISTRICT VIEWS ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = None
@@ -113,21 +85,29 @@ def news_detail(request, url_city, slug):
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
         if match: v_id = match.group(1)
+    
     context = {
         "news": news,
         "og_title": news.title,
-        "related_news": News.objects.filter(category=news.category, status='Published').exclude(id=news.id).order_by("-date")[:6],
+        "related_news": News.objects.filter(district=news.district, status='Published').exclude(id=news.id).order_by("-date")[:6],
         "v_id": v_id,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
 
 def district_news(request, district):
+    # Search in district field strictly first
     news_list = News.objects.filter(status='Published').filter(
-        Q(district__iexact=district) | Q(category__icontains=district) | Q(url_city__iexact=district)
+        Q(district__iexact=district) | Q(url_city__iexact=district)
     ).order_by("-date")
-    return render(request, "mynews/district_news.html", {"district": district, "page_obj": Paginator(news_list, 15).get_page(request.GET.get('page')), **get_common_sidebar_data()})
+    
+    return render(request, "mynews/district_news.html", {
+        "district": district, 
+        "page_obj": Paginator(news_list, 15).get_page(request.GET.get('page')), 
+        **get_common_sidebar_data()
+    })
 
+# --- UTILS (Sitemap, Robots, etc.) ---
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -141,4 +121,3 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
-
