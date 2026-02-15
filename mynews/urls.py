@@ -2,19 +2,24 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # --- Home Page ---
     path("", views.home, name="home"),
 
-    # API for PC Script (Ise top par rakho)
+    # --- API for PC Script (Top priority) ---
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
-    # 1. Technology Fix (Direct Path)
+    # --- Technology Routes ---
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
     path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
 
-    # 2. Universal Category Route
-    path("category/<str:district>/", views.district_news, name="district_news"),
+    # --- Specific News Sections (Home/Sidebar Links Compatibility) ---
+    # ये पाथ्स आपके टेम्पलेट के href="/UP-News/" और href="/Market/" आदि को संभालेंगे
+    path("UP-News/", views.district_news, {'district': 'UP News'}, name="up_news_list"),
+    path("Int-MiddleEast/", views.district_news, {'district': 'International'}, name="world_news_list"),
+    path("Market/", views.district_news, {'district': 'Market'}, name="market_list"),
+    path("Sports/", views.district_news, {'district': 'Sports'}, name="sports_list"),
 
-    # 3. Purane Names (Compatibility)
+    # --- National & Other Categories ---
     path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
     path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
     path("news/int/", views.district_news, {'district': 'International'}, name="international"),
@@ -22,7 +27,10 @@ urlpatterns = [
     path("news/bollywood/", views.district_news, {'district': 'Bollywood'}, name="bollywood"),
     path("news/market/", views.district_news, {'district': 'Market'}, name="market"),
 
-    # 4. Utilities & SEO
+    # --- Universal Category/District Route ---
+    path("category/<str:district>/", views.district_news, name="district_news"),
+
+    # --- Utilities & SEO ---
     path("robots.txt", views.robots_txt, name="robots_txt"),
     path("sitemap.xml", views.sitemap_xml, name="sitemap_xml"),
     path("ads.txt", views.ads_txt, name="ads_txt"),
@@ -31,6 +39,7 @@ urlpatterns = [
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # 5. Detail Page (Hamesha Last Mein)
+    # --- Detail Page (Must be at the bottom) ---
+    # यह <city>/<slug>/ वाले पैटर्न को हैंडल करेगा
     path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 ]
