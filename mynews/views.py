@@ -57,8 +57,6 @@ def home(request):
 
         # 2. UP NEWS SECTION (Exclude Non-UP Districts)
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
-        
-        # UP News wahi hain jo upar ki labels mein nahi aati aur jinka district null nahi hai
         up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)
 
         context = {
@@ -83,7 +81,7 @@ def news_detail(request, url_city, slug):
     v_id = None
     
     if news.youtube_url:
-        # YouTube ID Extracting Regex (Handles: Normal, Embed, Shorts, and Mobile links)
+        # Regex to handle regular, mobile, and shorts links
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
         if match:
@@ -99,7 +97,6 @@ def news_detail(request, url_city, slug):
     return render(request, "mynews/news_detail.html", context)
 
 def district_news(request, district):
-    # Search in district field strictly first
     news_list = News.objects.filter(status='Published').filter(
         Q(district__iexact=district) | Q(url_city__iexact=district)
     ).order_by("-date")
@@ -110,7 +107,7 @@ def district_news(request, district):
         **get_common_sidebar_data()
     })
 
-# --- UTILS (Sitemap, Robots, etc.) ---
+# --- UTILS (Sitemap, Robots, Ads) ---
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
