@@ -48,7 +48,12 @@
 
                 {% if v_id %}
                 <div class="video-wrapper {% if 'shorts' in news.youtube_url %}shorts{% endif %}">
-                    <iframe src="https://www.youtube.com/embed/{{ v_id }}?rel=0" allowfullscreen></iframe>
+                   <iframe 
+                            src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1&showinfo=0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen>
+                    </iframe>
                 </div>
                 {% else %}
                 <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="w-100 rounded mb-4" style="max-height:450px; object-fit:cover;">
