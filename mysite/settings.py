@@ -151,3 +151,10 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# Cloudinary Proxy Configuration
+CLOUDINARY_CLOUD_NAME = "dvoqsrkkq"
+CLOUDINARY_BASE_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/fetch/"
+
+# f_auto: फॉर्मेट (WebP/AVIF), q_auto: बेस्ट क्वालिटी, w_800: चौड़ाई
+CLOUDINARY_OPTIMIZE_PARAMS = "f_auto,q_auto,w_800/"
