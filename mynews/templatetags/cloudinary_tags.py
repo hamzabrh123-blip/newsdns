@@ -6,17 +6,21 @@ register = template.Library()
 @register.filter(name='optimize_image')
 def optimize_image(image_url):
     """
-    ImgBB या किसी भी बाहरी URL को Cloudinary के जरिए ऑप्टिमाइज़ करके भेजता है।
+    यह फ़िल्टर ImgBB के लिंक को Cloudinary के रास्ते भेजता है 
+    ताकि इमेज का साइज़ छोटा हो जाए और साइट फ़ास्ट खुले।
     """
+    # 1. अगर इमेज यूआरएल खाली है
     if not image_url:
         return "/static/logo.png"
 
+    # 2. Settings से डेटा उठाना (अगर वहां नहीं मिला तो ये डिफॉल्ट यूज़ करेगा)
     cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dvoqsrkkq')
-    base_url = getattr(settings, 'CLOUDINARY_BASE_URL', f"https://res.cloudinary.com/{cloud_name}/image/fetch/")
+    base_url = f"https://res.cloudinary.com/{cloud_name}/image/fetch/"
     params = getattr(settings, 'CLOUDINARY_OPTIMIZE_PARAMS', 'f_auto,q_auto,w_800/')
 
-    # अगर इमेज का URL http से शुरू होता है और पहले से क्लाउडिनरी का नहीं है
-    if image_url.startswith("http") and "res.cloudinary.com" not in image_url:
+    # 3. सिर्फ बाहरी इमेज (ImgBB/HTTP) को ही बदलना है
+    # अगर इमेज पहले से Cloudinary की है, तो उसे दोबारा न बदलें
+    if str(image_url).startswith("http") and "res.cloudinary.com" not in str(image_url):
         return f"{base_url}{params}{image_url}"
     
     return image_url
