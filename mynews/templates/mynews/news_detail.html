@@ -1,7 +1,6 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-
-{% block content %}
+{% load cloudinary_tags %} {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
@@ -56,7 +55,10 @@
                     </iframe>
                 </div>
                 {% else %}
-                <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="w-100 rounded mb-4" style="max-height:450px; object-fit:cover;">
+                <img src="{% if news.image_url %}{{ news.image_url|optimize_image }}{% elif news.image %}{{ news.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                     class="w-100 rounded mb-4" 
+                     style="max-height:450px; object-fit:cover;"
+                     alt="{{ news.title }}">
                 {% endif %}
 
                 <div class="article-content">{{ news.content|safe }}</div>
