@@ -1,7 +1,6 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-
-{% block title %}
+{% load cloudinary_tags %} {% block title %}
 {{ district|default:"Latest" }} News | Uttar World
 {% endblock %}
 
@@ -31,18 +30,19 @@
                         
                         <div class="img-container position-relative overflow-hidden">
                             {% if item.image_url %}
-                                <img src="{{ item.image_url }}" 
+                                <img src="{{ item.image_url|optimize_image }}" 
                                      class="card-img-top news-thumb" 
                                      alt="{{ item.title }}"
                                      loading="lazy">
                             {% elif item.image %}
-                                <img src="{{ item.image.url }}" 
+                                <img src="{{ item.image.url|optimize_image }}" 
                                      class="card-img-top news-thumb" 
                                      alt="{{ item.title }}"
                                      loading="lazy">
                             {% else %}
                                 <img src="{% static 'default.jpg' %}" class="card-img-top news-thumb" alt="No image">
                             {% endif %}
+                            
                             <div class="date-overlay shadow-sm">
                                 <span class="day">{{ item.date|date:"d" }}</span>
                                 <span class="month">{{ item.date|date:"M" }}</span>
