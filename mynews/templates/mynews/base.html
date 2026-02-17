@@ -13,9 +13,19 @@
         #google_translate_element { display: inline-block; margin-left: 15px; vertical-align: middle; }
         .goog-te-gadget-simple { background-color: #fff !important; border: 1px solid #ddd !important; padding: 5px 8px !important; border-radius: 4px !important; font-size: 13px !important; cursor: pointer !important; }
         .goog-te-banner-frame.skiptranslate { display: none !important; }
-        body { top: 0px !important; background-image: url("{% static 'bg.jpg' %}") !important; background-attachment: fixed; background-repeat: repeat; background-size: auto; }
         
-        @media (max-width: 768px) { body { background-attachment: scroll; } #google_translate_element { margin: 10px 0; display: block; text-align: center; } }
+        body { 
+            top: 0px !important; 
+            background-image: url("{% static 'bg.jpg' %}") !important; 
+            background-attachment: fixed; 
+            background-repeat: repeat; 
+            background-size: auto; 
+        }
+        
+        @media (max-width: 768px) { 
+            body { background-attachment: scroll; } 
+            #google_translate_element { margin: 10px 0; display: block; text-align: center; } 
+        }
 
         .navbar { position: sticky !important; top: 0; z-index: 9999 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
