@@ -45,17 +45,17 @@ def get_common_sidebar_data():
         "dynamic_up_cities": dynamic_cities,
     }
 
-# --- 1. HOME PAGE (STRICT CATEGORY FIX) ---
+# --- 1. HOME PAGE ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # 1. World & National (Strict iexact matching)
+        # 1. World & National
         world_news = all_news.filter(district__iexact="International")[:4]
         national_news = all_news.filter(district__iexact="National")[:4]
 
-        # 2. UP NEWS SECTION (Exclude Non-UP Districts)
+        # 2. UP NEWS SECTION
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
         up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)
 
@@ -75,13 +75,17 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error: {e}")
 
-# --- DETAIL & DISTRICT VIEWS ---
+# --- DETAIL VIEW ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = None
     
+    # Cloudinary Optimized OG Image for Social Sharing
+    raw_img = news.image_url if news.image_url else (news.image.url if news.image else None)
+    # 1200x630 is the standard for Facebook/WhatsApp sharing
+    og_image = f"https://res.cloudinary.com/dbe9v8mca/image/fetch/f_auto,q_auto,w_1200,h_630,c_fill/{raw_img}" if raw_img else None
+    
     if news.youtube_url:
-        # Regex to handle regular, mobile, and shorts links
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
         if match:
@@ -91,11 +95,13 @@ def news_detail(request, url_city, slug):
         "news": news,
         "v_id": v_id,
         "og_title": news.title,
+        "og_image": og_image,
         "related_news": News.objects.filter(district=news.district, status='Published').exclude(id=news.id).order_by("-date")[:6],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
 
+# --- DISTRICT VIEW ---
 def district_news(request, district):
     news_list = News.objects.filter(status='Published').filter(
         Q(district__iexact=district) | Q(url_city__iexact=district)
@@ -121,11 +127,12 @@ def robots_txt(request):
 def ads_txt(request): 
     return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
 
+# --- STATIC PAGES ---
 def privacy_policy(request): 
     return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
 
 def about_us(request): 
-    return render(request, "mynews/about_us.html", get_common_sidebar_data())
+    return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 
 def contact_us(request): 
     return render(request, "mynews/contact_us.html", get_common_sidebar_data())
