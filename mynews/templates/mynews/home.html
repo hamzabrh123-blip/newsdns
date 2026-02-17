@@ -1,7 +1,6 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-
-{% block content %}
+{% load cloudinary_tags %} {% block content %}
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
@@ -44,7 +43,7 @@
         {% for item in top_5_highlights %}
         <div class="hero-item {% if forloop.first %}hero-big{% endif %}" data-aos="fade-in">
             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                      alt="{{ item.title }}" onerror="this.src='{% static 'logo.png' %}';">
                 
                 <div class="hero-content">
@@ -66,7 +65,7 @@
                     <h4 class="section-title">देश (National)</h4>
                     {% for item in national_news %}
                     <div class="d-flex mb-3 border-bottom pb-2">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                        <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                              style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" 
                              onerror="this.src='{% static 'logo.png' %}';">
                         <div class="ms-3">
@@ -83,7 +82,7 @@
                     <h4 class="section-title">दुनिया (World)</h4>
                     {% for item in world_news %}
                     <div class="d-flex mb-3 border-bottom pb-2">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                        <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                              style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;"
                              onerror="this.src='{% static 'logo.png' %}';">
                         <div class="ms-3">
@@ -103,7 +102,7 @@
                 <div class="col-6 col-md-3 mb-4 px-2">
                     <div class="clean-card shadow-sm">
                         <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                            <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                                  alt="news" onerror="this.src='{% static 'logo.png' %}';">
                         </a>
                         <div class="card-body-custom">
@@ -122,7 +121,7 @@
                     <div class="clean-card">
                         <div class="row g-0">
                             <div class="col-4">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                                <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                                      class="img-fluid h-100" style="width:100%; object-fit: cover;" onerror="this.src='{% static 'logo.png' %}';">
                             </div>
                             <div class="col-8">
@@ -144,7 +143,7 @@
                 <div class="col-6 col-md-3 mb-4 px-2">
                     <div class="clean-card shadow-sm">
                         <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                            <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                                  alt="news" onerror="this.src='{% static 'logo.png' %}';">
                         </a>
                         <div class="card-body-custom text-center">
@@ -160,7 +159,7 @@
                 {% for item in other_news %}
                 <div class="col-md-6 mb-3">
                    <div class="d-flex bg-white p-2 border rounded shadow-sm h-100">
-                       <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                       <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
                             style="width:100px; height:75px; object-fit:cover;" class="rounded" onerror="this.src='{% static 'logo.png' %}';">
                        <div class="ms-3">
                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="news-title" style="font-size:0.9rem;">{{ item.title|truncatechars:60 }}</a>
