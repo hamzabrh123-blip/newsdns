@@ -49,8 +49,7 @@ class News(models.Model):
         if not self.id and not self.slug:
             self.slug = f"{slugify(unidecode(self.title))[:60]}-{str(uuid.uuid4())[:6]}"
 
-        # 3. PHOTO UPLOAD LOGIC (Save से पहले ताकि image_url मिल जाए)
-        # अगर नई फोटो अपलोड हुई है और image_url खाली है
+        # 3. PHOTO UPLOAD LOGIC
         if self.image and not self.image_url:
             try:
                 link = process_and_upload_to_imgbb(self)
@@ -62,13 +61,11 @@ class News(models.Model):
         # 4. FINAL SAVE TO DATABASE
         super(News, self).save(*args, **kwargs)
 
-        # 5. FACEBOOK SHARING LOGIC (Save के बाद)
+        # 5. FACEBOOK SHARING LOGIC
         try:
-            # अब यहाँ self.image_url हमेशा भरा हुआ मिलेगा अगर ImgBB सफल रहा है
             if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-                if self.image_url: # पक्का करें कि इमेज लिंक मौजूद है
+                if self.image_url:
                     if post_to_facebook(self):
-                        # recursion से बचने के लिए update इस्तेमाल किया
                         self.__class__.objects.filter(id=self.id).update(is_fb_posted=True)
                 else:
                     print("FB Post Skipped: Image URL not ready.")
@@ -76,4 +73,5 @@ class News(models.Model):
             print(f"Facebook Posting Error: {e}")
 
     def __str__(self):
-        return self.title
+        # Admin panel mein ab title ke sath district bhi dikhega
+        return f"{self.title} | ({self.district})"
