@@ -1,15 +1,19 @@
 from django.urls import path
 from . import views
+from .feeds import LatestNewsFeed # Feed class को इम्पोर्ट किया
 
 urlpatterns = [
     # --- Home Page ---
     path("", views.home, name="home"),
 
+    # --- RSS FEEDS (Dailyhunt, Google News के लिए) ---
+    # ये आपकी मास्टर फीड है: uttarworld.com/feed/latest/
+    path("feed/latest/", LatestNewsFeed(), name="news_feed"),
+
     # --- API for PC Script ---
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
     # --- Category Routes (Direct) ---
-    # यहाँ 'technology' नाम देना ज़रूरी है क्योंकि टेम्पलेट में यही इस्तेमाल हो रहा है
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology"),
     path("UP-News/", views.district_news, {'district': 'UP News'}, name="up_news_list"),
     path("Int-MiddleEast/", views.district_news, {'district': 'International'}, name="world_news_list"),
