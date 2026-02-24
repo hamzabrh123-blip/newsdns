@@ -86,23 +86,33 @@ def home(request):
         
 # --- DETAIL VIEW (With Random Related News) ---
 def news_detail(request, url_city, slug):
+    # 1. Fetch News
     news = get_object_or_404(News, slug=slug)
     v_id = None
     
-    # YouTube Logic
+    # 2. SEO & Social Sharing (WhatsApp/FB ke liye badi photo)
+    raw_img = news.image_url if news.image_url else (news.image.url if news.image else None)
+    # Cloudinary optimization for social preview (1200x630 standard size)
+    og_image = f"https://res.cloudinary.com/dbe9v8mca/image/fetch/f_auto,q_auto,w_1200,h_630,c_fill/{raw_img}" if raw_img else None
+    
+    # 3. YouTube Logic
     if news.youtube_url:
         regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
         match = re.search(regex, news.youtube_url)
         if match:
             v_id = match.group(1)
     
-    # RELATED NEWS: '?' lagane se har refresh par news badal jayegi
+    # 4. RANDOM RELATED NEWS (Jo aapne manga tha)
+    # Isse har refresh par niche ki news badalti rahegi
     related_random = News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6]
     
     context = {
         "news": news,
         "v_id": v_id,
+        "og_title": news.title,
+        "og_image": og_image,
         "related_news": related_random,
+        "meta_description": news.content[:160], # Search engines ke liye
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
@@ -149,3 +159,4 @@ def contact_us(request):
 
 def disclaimer(request): 
     return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
