@@ -6,18 +6,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; }
+    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; --wa-green: #25D366; --fb-blue: #1877F2; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
     
     /* Main Content Card */
     .content-card { background: #ffffff; border-radius: 12px; padding: 35px; margin-bottom: 25px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.4rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
     .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 2; color: #333; }
-    .article-content p { margin-bottom: 20px; }
     
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* Sticky Sidebar Logic */
+    /* Sticky Sidebar */
     .sticky-sidebar-wrapper { position: sticky; top: 100px; }
 
     /* YouTube Box */
@@ -25,32 +24,51 @@
     .video-wrapper.shorts { padding-bottom: 177.77%; max-width: 350px; margin: 25px auto; }
     .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
-    /* Recommended News Grid (Refresh Logic) */
+    /* Floating Share (Desktop) */
+    .share-sidebar-fixed { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-column; gap: 10px; }
+    .s-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
+    .s-btn:hover { transform: scale(1.1); color: white; }
+    .s-wa { background-color: var(--wa-green); }
+    .s-fb { background-color: var(--fb-blue); }
+
+    /* Bottom Share (Mobile) */
+    .mobile-share-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; display: none; justify-content: space-around; padding: 10px; z-index: 1001; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+
+    /* Recommended News Grid */
     .recommended-section { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e0e0e0; margin-top: 30px; }
-    .rec-card { transition: 0.3s; border: none; }
-    .rec-card:hover { transform: translateY(-5px); }
     .rec-img { height: 160px; object-fit: cover; border-radius: 8px; }
     .rec-title { font-size: 1rem; font-weight: 700; color: #1a1a1a; text-decoration: none; display: block; margin-top: 10px; line-height: 1.4; }
 
-    @media (max-width: 768px) { 
+    @media (max-width: 991px) {
+        .share-sidebar-fixed { display: none; }
+        .mobile-share-bar { display: flex; }
         .content-card { padding: 18px; } 
         .article-title { font-size: 1.7rem; }
-        .article-content { font-size: 1.15rem; }
+        body { padding-bottom: 70px; } /* Space for mobile bar */
     }
 </style>
 
+<div class="share-sidebar-fixed d-none d-lg-flex flex-column">
+    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="s-btn s-wa shadow">
+        <i class="fab fa-whatsapp fa-lg"></i>
+    </a>
+    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="s-btn s-fb shadow">
+        <i class="fab fa-facebook-f"></i>
+    </a>
+</div>
+
+<div class="mobile-share-bar">
+    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success btn-sm w-100 mx-1 py-2 shadow-sm">
+        <i class="fab fa-whatsapp me-1"></i> WhatsApp
+    </a>
+    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary btn-sm w-100 mx-1 py-2 shadow-sm">
+        <i class="fab fa-facebook-f me-1"></i> Facebook
+    </a>
+</div>
+
 <div class="container mt-4">
     <div class="row">
-        <div class="col-lg-1 d-none d-lg-block">
-            <div class="sticky-top" style="top: 120px; z-index: 5;">
-                <div class="d-flex flex-column align-items-center">
-                    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success rounded-circle mb-3 shadow" style="width:45px; height:45px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-whatsapp fa-lg"></i></a>
-                    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary rounded-circle mb-3 shadow" style="width:45px; height:45px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-facebook-f"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb small bg-transparent p-0 mb-3">
                     <li class="breadcrumb-item"><a href="/" class="text-danger fw-bold text-decoration-none">HOME</a></li>
