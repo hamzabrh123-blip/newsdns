@@ -1,6 +1,8 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-{% load cloudinary_tags %} {% block title %}
+{% load cloudinary_tags %} 
+
+{% block title %}
 {{ district|default:"Latest" }} News | Uttar World
 {% endblock %}
 
@@ -55,15 +57,15 @@
                             {% endif %}
                         </div>
 
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold mb-2">
-                                <a href="{% url 'news_detail' item.url_city item.slug %}" class="text-decoration-none text-dark hover-title lh-base">
-                                    {{ item.title|truncatechars:90 }}
+                        <div class="card-body d-flex flex-column" style="min-height: 220px;">
+                            <h5 class="card-title fw-bold mb-3">
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark hover-title lh-base" style="font-size: 1.1rem; display: block; min-height: 3.5em;">
+                                    {{ item.title }}
                                 </a>
                             </h5>
 
                             <div class="card-text text-muted small mb-3 excerpt">
-                                {{ item.content|striptags|truncatechars:100 }}
+                                {{ item.content|striptags|truncatechars:120 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -71,11 +73,11 @@
                                     <i class="far fa-clock me-1 text-danger"></i>{{ item.date|timesince }} पहले
                                 </small>
                                 <div class="action-buttons d-flex align-items-center">
-                                    <a href="https://api.whatsapp.com/send?text={{ item.title }} - {{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city item.slug %}" 
+                                    <a href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20-%20{{ request.build_absolute_uri|slice:':-1' }}{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
                                        target="_blank" class="text-success me-3 text-decoration-none">
                                         <i class="fab fa-whatsapp fa-lg"></i>
                                     </a>
-                                    <a href="{% url 'news_detail' item.url_city item.slug %}" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
                                         पढ़ें <i class="fas fa-chevron-right ms-1"></i>
                                     </a>
                                 </div>
@@ -138,7 +140,7 @@
     .main-title { color: #1a1a1a; letter-spacing: -0.2px; }
     .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
     
-    /* Animation for Live Pulse */
+    /* Live Pulse */
     .pulse-dot {
         width: 8px; height: 8px; background: #dc3545; border-radius: 50%;
         animation: pulse 1.5s infinite;
@@ -162,9 +164,9 @@
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
 
     .hover-title:hover { color: #d32f2f !important; }
-    .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 3.8em; line-height: 1.6; }
+    .excerpt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 3em; line-height: 1.5; }
 
-    /* Pagination */
+    /* Pagination Styling */
     .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 10px !important; color: #444; font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
     .custom-pagination .page-item.active .page-link { background: #d32f2f; color: #fff; }
 </style>
