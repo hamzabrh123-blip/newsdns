@@ -11,69 +11,71 @@
     </div>
 </div>
 
-<nav class="navbar navbar-expand-lg sticky-top shadow-sm" style="background: linear-gradient(to right, #800000, #4a0000); padding: 0.2rem 0;">
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm" style="background: linear-gradient(to right, #800000, #4a0000); padding: 0.4rem 0;">
     <div class="container">
         
         <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-            <img src="{% static 'logo.png' %}" alt="Logo" width="42" height="42" style="filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.6));">
+            <img src="{% static 'logo.png' %}" alt="Logo" width="45" height="45" style="filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.6));">
             <div class="ms-2" style="line-height: 1;">
-                <span class="text-white fw-bold" style="font-size: 1.25rem; letter-spacing: -0.5px;">UTTAR WORLD</span><br>
-                <span style="color: #ffcc00; letter-spacing: 5px; font-size: 0.65rem; font-weight: 800;">NEWS</span>
+                <span class="text-white fw-bold" style="font-size: 1.4rem; letter-spacing: -0.5px;">UTTAR WORLD</span><br>
+                <span style="color: #ffcc00; letter-spacing: 5px; font-size: 0.7rem; font-weight: 800;">NEWS</span>
             </div>
         </a>
 
-        <button class="navbar-toggler border-1" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" style="border-color: rgba(255,255,255,0.5) !important;">
-            <i class="fas fa-bars text-white" style="font-size: 1.5rem;"></i>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <i class="fas fa-bars text-white" style="font-size: 1.6rem;"></i>
         </button>
 
         <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 text-uppercase" style="font-size: 0.82rem; font-weight: 700;">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 text-uppercase" style="font-size: 0.8rem; font-weight: 700;">
                 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'home' %}">होम</a>
+                    <a class="nav-link px-3 ms-lg-2 rounded-2 home-btn" href="{% url 'home' %}">HOME</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'International' %}">WORLD</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'National' %}">INDIA</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Delhi' %}">DELHI</a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white px-2" href="#" data-bs-toggle="dropdown">बड़ी खबरें</a>
-                    <ul class="dropdown-menu border-0 shadow-lg">
-                        {% if dynamic_big_categories %}
-                            {% for cat in dynamic_big_categories %}
-                                <li><a class="dropdown-item" href="{% url 'district_news' cat.id %}">{{ cat.name }}</a></li>
-                            {% endfor %}
-                        {% else %}
-                            <li><a class="dropdown-item" href="{% url 'district_news' 'National' %}">राष्ट्रीय खबर</a></li>
-                        {% endif %}
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white px-2" href="#" data-bs-toggle="dropdown">उत्तर प्रदेश</a>
-                    <ul class="dropdown-menu border-0 shadow-lg" style="max-height: 350px; overflow-y: auto;">
-                        {% if dynamic_up_cities %}
-                            {% for city in dynamic_up_cities %}
-                                <li><a class="dropdown-item" href="{% url 'district_news' city.id %}">{{ city.name }}</a></li>
-                            {% endfor %}
-                        {% else %}
-                            <li><span class="dropdown-item text-muted" style="font-size: 0.75rem;">शहर चुनिए...</span></li>
-                        {% endif %}
+                    <a class="nav-link dropdown-toggle text-white px-2" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        ENTERTAINMENT
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-lg mt-lg-2">
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Bollywood' %}">BOLLYWOOD</a></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Hollywood' %}">HOLLYWOOD</a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'International' %}">दुनिया</a>
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Technology' %}">TECHNOLOGY</a>
                 </li>
+                
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Sports' %}">खेल</a>
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Market' %}">MARKET</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Bollywood' %}">मनोरंजन</a>
+                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Sports' %}">SPORTS</a>
                 </li>
             </ul>
 
-            <form class="d-flex mt-2 mt-lg-0" action="{% url 'home' %}" method="get">
-                <div class="input-group">
-                    <input class="form-control form-control-sm border-0 rounded-start-pill" type="search" name="q" placeholder="Search..." style="width: 100px; font-size: 0.75rem;">
-                    <button class="btn btn-warning btn-sm rounded-end-pill" type="submit">
+            <form class="d-flex" action="{% url 'home' %}" method="get">
+                <div class="input-group shadow-sm">
+                    <input class="form-control form-control-sm border-0 rounded-start-pill px-3" type="search" name="q" placeholder="खोजें..." style="font-size: 0.8rem; min-width: 100px;">
+                    <button class="btn btn-warning btn-sm rounded-end-pill px-3" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -83,8 +85,35 @@
 </nav>
 
 <style>
-    .navbar-nav .nav-link { transition: 0.3s; padding: 0.5rem 0.6rem !important; }
-    .navbar-nav .nav-link:hover { color: #ffcc00 !important; }
-    .dropdown-menu { border-radius: 8px; font-size: 0.85rem; border-top: 3px solid #ffcc00; }
-    .dropdown-item:hover { background-color: #f8f9fa; color: #800000; padding-left: 25px; transition: 0.2s; }
+    /* HOME Button Special Style */
+    .home-btn {
+        background-color: #ffcc00 !important;
+        color: #000 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: 0.3s !important;
+    }
+    .home-btn:hover {
+        background-color: #fff !important;
+        color: #800000 !important;
+    }
+
+    /* Navbar Link Hover Effect */
+    .navbar-nav .nav-link:not(.home-btn):hover { color: #ffcc00 !important; }
+
+    /* Dropdown Styling */
+    .dropdown-menu { 
+        background-color: #ffffff; 
+        border-top: 3px solid #ffcc00 !important;
+        border-radius: 0 0 8px 8px;
+    }
+    .dropdown-item { font-weight: 700; font-size: 0.75rem; color: #4a0000; padding: 10px 20px; }
+    .dropdown-item:hover { background-color: #800000; color: #fff; }
+
+    /* Mobile Responsive Logic */
+    @media (max-width: 991px) {
+        .navbar-collapse { background: #4a0000; padding: 15px; border-radius: 0 0 10px 10px; margin-top: 5px; }
+        .home-btn { margin-bottom: 10px; text-align: center; }
+        .dropdown-menu { background: #600000; }
+        .dropdown-item { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    }
 </style>
