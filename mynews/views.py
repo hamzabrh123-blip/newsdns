@@ -45,27 +45,44 @@ def get_common_sidebar_data():
         "dynamic_up_cities": dynamic_cities,
     }
 
-# --- 1. HOME PAGE ---
+# --- 1. HOME PAGE UPDATED ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # 1. World & National
-        world_news = all_news.filter(district__iexact="International")[:4]
-        national_news = all_news.filter(district__iexact="National")[:4]
+        # --- Section-wise Data Fetching (Har section ke liye 5 posts) ---
+        
+        # 1. International (Sabse Upar)
+        international_news = all_news.filter(district__iexact="International")[:5]
+        
+        # 2. National + Delhi + Other States
+        national_labels = ['National', 'Delhi', 'Other-States']
+        national_news = all_news.filter(district__in=national_labels)[:5]
 
-        # 2. UP NEWS SECTION
+        # 3. UP NEWS (Excluded non-up labels)
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
-        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)
+        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:5]
+
+        # 4. Entertainment (Bollywood + Hollywood)
+        ent_labels = ['Bollywood', 'Hollywood']
+        entertainment_news = all_news.filter(district__in=ent_labels)[:5]
+
+        # 5. Technology + Market
+        tech_market_labels = ['Technology', 'Market']
+        tech_market_news = all_news.filter(district__in=tech_market_labels)[:5]
+
+        # 6. Sports
+        sports_news = all_news.filter(district__iexact="Sports")[:5]
 
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
-            "up_news": up_news_qs[:12], 
+            "international_news": international_news,
             "national_news": national_news,
-            "world_news": world_news,
-            "bollywood_news": all_news.filter(district__iexact="Bollywood")[:4],
-            "sports_news": all_news.filter(district__iexact="Sports")[:4],
+            "up_news": up_news_qs, 
+            "entertainment_news": entertainment_news,
+            "tech_market_news": tech_market_news,
+            "sports_news": sports_news,
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -74,7 +91,7 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error: {e}")
-
+        
 # --- DETAIL VIEW ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
@@ -139,3 +156,4 @@ def contact_us(request):
 
 def disclaimer(request): 
     return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
