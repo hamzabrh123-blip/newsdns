@@ -76,25 +76,24 @@ def home(request):
         return HttpResponse(f"Server Error")
 
 
-# --- सुधरा हुआ YOUTUBE LOGIC 
-
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     
-    # 1. मॉडल में फील्ड का नाम 'youtube_url' है, इसलिए यहाँ वही यूज़ होगा
-    video_url = news.youtube_url  
+    # .strip() लगा दो ताकि एक्स्ट्रा स्पेस की वजह से Regex फेल न हो
+    video_url = news.youtube_url.strip() if news.youtube_url else None
     
-    # 2. डिकोडिंग फंक्शन को कॉल करना
-    v_id = extract_video_id(video_url) 
+    v_id = extract_video_id(video_url)
+    
+    # --- DEBUGGING के लिए (इसे बाद में हटा देना) ---
+    # print(f"DEBUG: URL is {video_url} and ID is {v_id}")
     
     context = {
         "news": news,
-        "v_id": v_id, # यही टेम्पलेट में {{ v_id }} बन कर जाएगा
+        "v_id": v_id,
         "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
 
 
 
@@ -140,6 +139,7 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
 
 
