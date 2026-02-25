@@ -8,25 +8,48 @@
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
     
+    /* Content Card */
     .content-card { background: #ffffff; border-radius: 12px; padding: 35px; margin-bottom: 25px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.4rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
     .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 2; color: #333; }
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* YOUTUBE FIX */
-    .video-main-container { width: 100%; margin: 25px 0; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .video-main-container iframe { width: 100% !important; aspect-ratio: 16 / 9; height: auto !important; display: block; border: 0; }
+    /* --- YOUTUBE BULLETPROOF FIX --- */
+    .video-wrapper-final {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #000;
+        margin: 25px 0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .video-wrapper-final iframe, 
+    .video-wrapper-final object, 
+    .video-wrapper-final embed {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border: 0 !important;
+    }
 
-    /* Related News */
+    /* Related News Section */
     .related-card { transition: 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; height: 100%; background: #fff; }
     .related-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .related-img { height: 150px; object-fit: cover; width: 100%; }
+    .related-img { height: 150px; object-fit: cover; width: 100%; background: #eee; }
     .related-title { font-size: 1rem; font-weight: 700; line-height: 1.4; color: #222; text-decoration: none; display: block; padding: 12px; }
 
+    /* Ads Styling */
     .in-article-ad { margin: 30px 0; padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; }
     .ad-hint { font-size: 10px; color: #ccc; letter-spacing: 2px; margin-bottom: 5px; display: block; }
 
-    @media (max-width: 991px) { .content-card { padding: 18px; } .article-title { font-size: 1.7rem; } }
+    @media (max-width: 991px) {
+        .content-card { padding: 18px; } 
+        .article-title { font-size: 1.7rem; }
+    }
 </style>
 
 <div class="container mt-4">
@@ -42,11 +65,11 @@
                 </div>
 
                 {% if news.youtube_url %}
-                    <div class="video-main-container">
+                    <div class="video-wrapper-final">
                         {{ news.youtube_url|safe }}
                     </div>
                 {% else %}
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image.name %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image and news.image.name %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
                          class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;" 
                          onerror="this.src='{% static 'logo.png' %}';">
                 {% endif %}
@@ -63,7 +86,7 @@
                     <div class="col-md-4 col-6 mb-4">
                         <div class="card related-card">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image.name %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image and item.image.name %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
                                      class="related-img" onerror="this.src='{% static 'logo.png' %}';">
                             </a>
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="related-title">
@@ -85,10 +108,16 @@
 </div>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+
 <div id="ad-template" style="display:none;">
     <div class="in-article-ad">
         <span class="ad-hint">ADVERTISEMENT</span>
-        <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>
+        <ins class="adsbygoogle"
+             style="display:block; text-align:center;"
+             data-ad-layout="in-article"
+             data-ad-format="fluid"
+             data-ad-client="ca-pub-3171847065256414"
+             data-ad-slot="5217172506"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 </div>
@@ -98,6 +127,7 @@
         var contentDiv = document.getElementById('articleContent');
         if (contentDiv) {
             var paragraphs = contentDiv.querySelectorAll('p');
+            // Check if there are at least 3 paragraphs to insert an ad
             if (paragraphs.length >= 3) {
                 var adHtml = document.getElementById('ad-template').innerHTML;
                 paragraphs[1].insertAdjacentHTML('afterend', adHtml);
