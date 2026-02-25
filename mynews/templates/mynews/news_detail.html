@@ -5,92 +5,118 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; }
+    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
-    
-    /* Content Card */
-    .content-card { background: #ffffff; border-radius: 12px; padding: 35px; margin-bottom: 25px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.4rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
-    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 2; color: #333; }
-    .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* --- YOUTUBE BULLETPROOF FIX --- */
-    .video-wrapper-final {
+    .content-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        padding: 30px;
+        margin-bottom: 25px;
+    }
+
+    .article-title { 
+        font-family: 'Noto Serif Devanagari', serif; 
+        font-weight: 700; font-size: 2.2rem; 
+        line-height: 1.3; color: #000; margin-bottom: 15px; 
+    }
+
+    .article-content { 
+        font-family: 'Noto Serif Devanagari', serif; 
+        font-size: 1.2rem; line-height: 1.9; color: #333; 
+    }
+    .article-content p { margin-bottom: 1.2rem; }
+
+    .author-box { 
+        border-top: 1px solid #eee; border-bottom: 1px solid #eee; 
+        padding: 12px 0; margin-bottom: 20px;
+    }
+
+    .cat-badge { 
+        background: var(--news-red); color: white; padding: 4px 12px; 
+        font-weight: bold; font-size: 0.75rem; border-radius: 3px;
+    }
+
+    /* Video Container Fix */
+    .ratio-16x9 {
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        width: 100%;
+        padding-bottom: 56.25%; /* 16:9 ratio */
         height: 0;
         overflow: hidden;
-        border-radius: 12px;
-        background: #000;
-        margin: 25px 0;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        border-radius: 8px;
     }
-    .video-wrapper-final iframe, 
-    .video-wrapper-final object, 
-    .video-wrapper-final embed {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        border: 0 !important;
+    .ratio-16x9 iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
     }
 
-    /* Related News Section */
-    .related-card { transition: 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; height: 100%; background: #fff; }
-    .related-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .related-img { height: 150px; object-fit: cover; width: 100%; background: #eee; }
-    .related-title { font-size: 1rem; font-weight: 700; line-height: 1.4; color: #222; text-decoration: none; display: block; padding: 12px; }
-
-    /* Ads Styling */
-    .in-article-ad { margin: 30px 0; padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; }
-    .ad-hint { font-size: 10px; color: #ccc; letter-spacing: 2px; margin-bottom: 5px; display: block; }
-
-    @media (max-width: 991px) {
-        .content-card { padding: 18px; } 
-        .article-title { font-size: 1.7rem; }
+    @media (max-width: 768px) {
+        .content-card { padding: 15px; border-radius: 0; }
+        .article-title { font-size: 1.6rem; }
+        .article-content { font-size: 1.1rem; }
     }
 </style>
 
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="/" class="text-danger text-decoration-none fw-bold">HOME</a></li>
+                    <li class="breadcrumb-item active text-uppercase">{{ news.category }}</li>
+                </ol>
+            </nav>
+
             <div class="content-card">
-                <span class="cat-badge mb-3 d-inline-block">{{ news.district|default:"Uttar Pradesh" }}</span>
+                <span class="cat-badge mb-2 d-inline-block">{{ news.get_district_display|default:"उत्तर प्रदेश" }}</span>
                 <h1 class="article-title">{{ news.title }}</h1>
 
-                <div class="d-flex align-items-center border-top border-bottom py-3 mb-4">
-                    <div class="me-4 small fw-bold"><i class="far fa-user text-danger me-1"></i> Uttar World Desk</div>
-                    <div class="small text-muted"><i class="far fa-calendar-alt text-danger me-1"></i> {{ news.date|date:"d M, Y" }}</div>
+                <div class="author-box d-flex align-items-center">
+                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40">
+                    <div>
+                        <p class="mb-0 fw-bold" style="font-size: 0.9rem;">By Uttar World Desk</p>
+                        <small class="text-muted">
+                            <i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | {{ news.date|date:"h:i A" }}
+                        </small>
+                    </div>
                 </div>
 
-                {% if news.youtube_url %}
-                    <div class="video-wrapper-final">
-                        {{ news.youtube_url|safe }}
-                    </div>
-                {% else %}
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image and news.image.name %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                         class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;" 
-                         onerror="this.src='{% static 'logo.png' %}';">
-                {% endif %}
+                <div class="mb-4">
+                    <img src="{{ news.image_url }}" class="w-100 rounded shadow-sm" style="max-height: 450px; object-fit: cover;" onerror="this.src='{% static 'logo.png' %}';">
+                </div>
 
                 <div class="article-content" id="articleContent">
                     {{ news.content|safe }}
                 </div>
+
+                {% if v_id %}
+                <div class="ratio-16x9 my-4 shadow rounded">
+                    <iframe src="https://www.youtube.com/embed/{{ v_id }}" allowfullscreen></iframe>
+                </div>
+                {% elif news.youtube_url %}
+                <div class="ratio-16x9 my-4 shadow rounded">
+                    {{ news.youtube_url|safe }}
+                </div>
+                {% endif %}
             </div>
 
-            <div class="related-news-section mt-5 mb-4">
-                <h4 class="fw-bold mb-4 border-start border-4 border-danger ps-3 text-uppercase">ताज़ा खबरें</h4>
-                <div class="row">
-                    {% for item in related_news|slice:":6" %}
-                    <div class="col-md-4 col-6 mb-4">
-                        <div class="card related-card">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image and item.image.name %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                                     class="related-img" onerror="this.src='{% static 'logo.png' %}';">
-                            </a>
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="related-title">
-                                {{ item.title|truncatechars:55 }}
+            <div class="mt-4">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">सम्बन्धित खबरें</h4>
+                <div class="row g-3">
+                    {% for r in related_news|slice:":4" %}
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <a href="{% url 'news_detail' r.url_city|default:'news' r.slug %}" class="text-decoration-none">
+                                <img src="{{ r.image_url }}" class="card-img-top" style="height: 160px; object-fit: cover;" onerror="this.src='{% static 'logo.png' %}';">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title text-dark fw-bold mb-0" style="font-size: 0.95rem;">{{ r.title|truncatechars:65 }}</h6>
+                                </div>
                             </a>
                         </div>
                     </div>
@@ -100,37 +126,21 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="sticky-sidebar-wrapper">
-                {% include "mynews/sidebar.html" %}
-            </div>
+            {% include "mynews/sidebar.html" %}
         </div>
     </div>
 </div>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-
-<div id="ad-template" style="display:none;">
-    <div class="in-article-ad">
-        <span class="ad-hint">ADVERTISEMENT</span>
-        <ins class="adsbygoogle"
-             style="display:block; text-align:center;"
-             data-ad-layout="in-article"
-             data-ad-format="fluid"
-             data-ad-client="ca-pub-3171847065256414"
-             data-ad-slot="5217172506"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-</div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var contentDiv = document.getElementById('articleContent');
         if (contentDiv) {
             var paragraphs = contentDiv.querySelectorAll('p');
-            // Check if there are at least 3 paragraphs to insert an ad
             if (paragraphs.length >= 3) {
-                var adHtml = document.getElementById('ad-template').innerHTML;
-                paragraphs[1].insertAdjacentHTML('afterend', adHtml);
+                var adCode = '<div class="my-4 text-center"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-in-article="true" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins></div>';
+                paragraphs[1].insertAdjacentHTML('afterend', adCode);
+                (adsbygoogle = window.adsbygoogle || []).push({});
             }
         }
     });
