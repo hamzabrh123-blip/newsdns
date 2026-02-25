@@ -1,6 +1,5 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
-{% load cloudinary_tags %} 
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
@@ -19,15 +18,13 @@
     /* Sticky Sidebar */
     .sticky-sidebar-wrapper { position: sticky; top: 100px; }
 
-    /* YouTube Box */
+    /* YouTube Box (RESTORED TO ORIGINAL) */
     .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin: 25px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .video-wrapper.shorts { padding-bottom: 177.77%; max-width: 350px; margin: 25px auto; }
-    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .video-wrapper iframe, .video-wrapper object, .video-wrapper embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
     /* Floating Share (Desktop) */
-    .share-sidebar-fixed { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-column; gap: 10px; }
+    .share-sidebar-fixed { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
     .s-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
-    .s-btn:hover { transform: scale(1.1); color: white; }
     .s-wa { background-color: var(--wa-green); }
     .s-fb { background-color: var(--fb-blue); }
 
@@ -44,7 +41,7 @@
         .mobile-share-bar { display: flex; }
         .content-card { padding: 18px; } 
         .article-title { font-size: 1.7rem; }
-        body { padding-bottom: 70px; } /* Space for mobile bar */
+        body { padding-bottom: 70px; }
     }
 </style>
 
@@ -85,12 +82,12 @@
                     <div class="small text-muted"><i class="far fa-calendar-alt text-danger me-1"></i> {{ news.date|date:"d M, Y | h:i A" }}</div>
                 </div>
 
-                {% if v_id %}
-                    <div class="video-wrapper {% if 'shorts' in news.youtube_url %}shorts{% endif %}">
-                        <iframe src="https://www.youtube.com/embed/{{ v_id }}?rel=0&modestbranding=1" allowfullscreen></iframe>
+                {% if news.youtube_url %}
+                    <div class="video-wrapper">
+                        {{ news.youtube_url|safe }}
                     </div>
                 {% else %}
-                    <img src="{% if news.image_url %}{{ news.image_url|optimize_image }}{% elif news.image %}{{ news.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
                          class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;" alt="{{ news.title }}">
                 {% endif %}
 
@@ -108,7 +105,7 @@
                     <div class="col-md-4 col-6 mb-4">
                         <div class="rec-card h-100">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% else %}{{ item.image.url|optimize_image }}{% endif %}" class="w-100 rec-img shadow-sm" alt="{{ item.title }}">
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% else %}{{ item.image.url }}{% endif %}" class="w-100 rec-img shadow-sm" alt="{{ item.title }}">
                                 <span class="rec-title text-dark">{{ item.title|truncatechars:55 }}</span>
                             </a>
                         </div>
