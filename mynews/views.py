@@ -51,12 +51,12 @@ def home(request):
         all_news = News.objects.filter(status='Published').order_by("-date")
         
         # Section-wise Data logic
-        international_news = all_news.filter(district__iexact="International")[:5]
+        international_news = all_news.filter(district__iexact="International")[:7]
         national_labels = ['National', 'Delhi', 'Other-States']
-        national_news = all_news.filter(district__in=national_labels)[:12]
+        national_news = all_news.filter(district__in=national_labels)[:13]
 
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
-        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:36]
+        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:37]
 
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:11],
@@ -132,4 +132,5 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
