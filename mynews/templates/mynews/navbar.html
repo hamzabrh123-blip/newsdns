@@ -11,71 +11,73 @@
     </div>
 </div>
 
-<nav class="navbar navbar-expand-lg sticky-top shadow-sm" style="background: linear-gradient(to right, #800000, #4a0000); padding: 0.4rem 0;">
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm main-navbar-custom">
     <div class="container">
         
-        <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-            <img src="{% static 'logo.png' %}" alt="Logo" width="45" height="45" style="filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.6));">
-            <div class="ms-2" style="line-height: 1;">
-                <span class="text-white fw-bold" style="font-size: 1.4rem; letter-spacing: -0.5px;">UTTAR WORLD</span><br>
-                <span style="color: #ffcc00; letter-spacing: 5px; font-size: 0.7rem; font-weight: 800;">NEWS</span>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'home' %}" class="navbar-brand me-0">
+                <img src="{% static 'logo.png' %}" alt="Logo" width="45" height="45" class="logo-glow">
+            </a>
+            <div class="ms-2 brand-text-container">
+                <span class="brand-title">UTTAR WORLD</span><br>
+                <span class="brand-subtitle">NEWS</span>
             </div>
-        </a>
+        </div>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-            <i class="fas fa-bars text-white" style="font-size: 1.6rem;"></i>
+            <i class="fas fa-bars text-white" style="font-size: 1.5rem;"></i>
         </button>
 
         <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 text-uppercase" style="font-size: 0.8rem; font-weight: 700;">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                 
                 <li class="nav-item">
-                    <a class="nav-link px-3 ms-lg-2 rounded-2 home-btn" href="{% url 'home' %}">HOME</a>
+                    <a class="nav-link home-special-btn" href="{% url 'home' %}">HOME</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'International' %}">WORLD</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'International' %}">WORLD</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'National' %}">INDIA</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'National' %}">INDIA</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a>
+                    <a class="nav-link menu-link text-nowrap" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Delhi' %}">DELHI</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'Delhi' %}">DELHI</a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white px-2" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link menu-link dropdown-toggle" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown">
                         ENTERTAINMENT
                     </a>
-                    <ul class="dropdown-menu border-0 shadow-lg mt-lg-2">
+                    <ul class="dropdown-menu border-0 shadow-lg">
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Bollywood' %}">BOLLYWOOD</a></li>
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Hollywood' %}">HOLLYWOOD</a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Technology' %}">TECHNOLOGY</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'Technology' %}">TECH</a>
                 </li>
                 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Market' %}">MARKET</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'Market' %}">MARKET</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white px-2" href="{% url 'district_news' 'Sports' %}">SPORTS</a>
+                    <a class="nav-link menu-link" href="{% url 'district_news' 'Sports' %}">SPORTS</a>
                 </li>
             </ul>
 
-            <form class="d-flex" action="{% url 'home' %}" method="get">
-                <div class="input-group shadow-sm">
-                    <input class="form-control form-control-sm border-0 rounded-start-pill px-3" type="search" name="q" placeholder="खोजें..." style="font-size: 0.8rem; min-width: 100px;">
-                    <button class="btn btn-warning btn-sm rounded-end-pill px-3" type="submit">
+            <form class="d-flex search-box-container" action="{% url 'home' %}" method="get">
+                <div class="input-group">
+                    <input class="form-control border-0 px-3 search-input" type="search" name="q" placeholder="खोजें...">
+                    <button class="btn btn-warning search-btn" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -85,35 +87,94 @@
 </nav>
 
 <style>
-    /* HOME Button Special Style */
-    .home-btn {
-        background-color: #ffcc00 !important;
-        color: #000 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        transition: 0.3s !important;
-    }
-    .home-btn:hover {
-        background-color: #fff !important;
-        color: #800000 !important;
+    /* Navbar Background Gradient */
+    .main-navbar-custom {
+        background: linear-gradient(to right, #800000, #4a0000);
+        padding: 0.4rem 0;
+        border-bottom: 3px solid #ffcc00;
     }
 
-    /* Navbar Link Hover Effect */
-    .navbar-nav .nav-link:not(.home-btn):hover { color: #ffcc00 !important; }
+    /* Brand Logo & Text */
+    .logo-glow { filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.5)); transition: 0.3s; }
+    .logo-glow:hover { transform: scale(1.05); }
+    .brand-text-container { line-height: 1; cursor: default; user-select: none; pointer-events: none; }
+    .brand-title { color: white; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.5px; }
+    .brand-subtitle { color: #ffcc00; letter-spacing: 5px; font-size: 0.65rem; font-weight: 900; }
+
+    /* Nav Links Styling */
+    .navbar-nav .nav-link {
+        color: rgba(255,255,255,0.95) !important;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 0.6rem 12px !important;
+        transition: 0.3s;
+        text-decoration: none !important; /* No Underline */
+        position: relative;
+    }
+
+    /* Hover Bottom Line Effect */
+    .menu-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 5px;
+        left: 50%;
+        background-color: #ffcc00;
+        transition: 0.3s ease;
+        transform: translateX(-50%);
+    }
+    .menu-link:hover::after { width: 70%; }
+    .menu-link:hover { color: #ffcc00 !important; }
+
+    /* HOME Button Style */
+    .home-special-btn {
+        background-color: #ffcc00 !important;
+        color: #000 !important;
+        border-radius: 4px;
+        margin-right: 8px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+    .home-special-btn:hover { background-color: #fff !important; transform: translateY(-1px); }
 
     /* Dropdown Styling */
     .dropdown-menu { 
         background-color: #ffffff; 
-        border-top: 3px solid #ffcc00 !important;
+        border-top: 4px solid #ffcc00 !important;
         border-radius: 0 0 8px 8px;
+        padding: 0;
     }
-    .dropdown-item { font-weight: 700; font-size: 0.75rem; color: #4a0000; padding: 10px 20px; }
+    .dropdown-item { font-weight: 700; font-size: 0.75rem; color: #4a0000; padding: 12px 20px; border-bottom: 1px solid #f8f9fa; }
     .dropdown-item:hover { background-color: #800000; color: #fff; }
+
+    /* Search Box styling */
+    .search-box-container .search-input {
+        font-size: 0.8rem;
+        border-radius: 20px 0 0 20px !important;
+        height: 34px;
+    }
+    .search-box-container .search-btn {
+        border-radius: 0 20px 20px 0 !important;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        background: #ffcc00;
+        border: none;
+    }
 
     /* Mobile Responsive Logic */
     @media (max-width: 991px) {
-        .navbar-collapse { background: #4a0000; padding: 15px; border-radius: 0 0 10px 10px; margin-top: 5px; }
-        .home-btn { margin-bottom: 10px; text-align: center; }
-        .dropdown-menu { background: #600000; }
-        .dropdown-item { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .navbar-collapse { 
+            background: #4a0000; 
+            padding: 20px; 
+            border-radius: 0 0 15px 15px; 
+            margin-top: 10px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .menu-link::after { display: none; }
+        .nav-link { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0 !important; }
+        .home-special-btn { margin-bottom: 10px; text-align: center; }
+        .search-box-container { margin-top: 15px; }
     }
 </style>
