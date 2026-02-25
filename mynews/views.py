@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
+from django.utils.html import strip_tags
 
 from .models import News
 from .constants import LOCATION_DATA
@@ -50,7 +51,6 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # Section-wise Data logic
         international_news = all_news.filter(district__iexact="International")[:7]
         national_labels = ['National', 'Delhi', 'Other-States']
         national_news = all_news.filter(district__in=national_labels)[:13]
@@ -79,13 +79,21 @@ def home(request):
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     
-    # Random Related News (Har refresh par badal jayegi)
+    # --- YOUTUBE ID EXTRACTION ---
+    v_id = None
+    if news.youtube_url:
+        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+        match = re.search(regex, news.youtube_url)
+        if match:
+            v_id = match.group(1)
+    
     related_random = News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6]
     
     context = {
         "news": news,
+        "v_id": v_id,  # Ab HTML ko ye milega aur video chalega
         "related_news": related_random,
-        "meta_description": news.content[:160],
+        "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
@@ -93,7 +101,6 @@ def news_detail(request, url_city, slug):
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
     clean_district = district.replace('-', ' ')
-    
     if clean_district.lower() in ['uttar pradesh', 'up news']:
         exclude_cats = ['International', 'National', 'Sports', 'Market', 'Technology', 'Bollywood', 'Hollywood']
         news_list = News.objects.filter(status='Published').exclude(district__in=exclude_cats).order_by("-date")
@@ -132,5 +139,3 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
-
-
