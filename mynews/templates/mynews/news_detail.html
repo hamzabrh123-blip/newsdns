@@ -8,60 +8,27 @@
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; --wa-green: #25D366; --fb-blue: #1877F2; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
     
-    /* Main Content Card */
     .content-card { background: #ffffff; border-radius: 12px; padding: 35px; margin-bottom: 25px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.4rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
     .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 2; color: #333; }
     
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* Sticky Sidebar */
-    .sticky-sidebar-wrapper { position: sticky; top: 100px; }
-
-    /* YouTube Box (RESTORED TO ORIGINAL) */
+    /* Youtube Wrapper Original */
     .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin: 25px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .video-wrapper iframe, .video-wrapper object, .video-wrapper embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
-    /* Floating Share (Desktop) */
-    .share-sidebar-fixed { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-    .s-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
-    .s-wa { background-color: var(--wa-green); }
-    .s-fb { background-color: var(--fb-blue); }
-
-    /* Bottom Share (Mobile) */
-    .mobile-share-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; display: none; justify-content: space-around; padding: 10px; z-index: 1001; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-
-    /* Recommended News Grid */
-    .recommended-section { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e0e0e0; margin-top: 30px; }
-    .rec-img { height: 160px; object-fit: cover; border-radius: 8px; }
-    .rec-title { font-size: 1rem; font-weight: 700; color: #1a1a1a; text-decoration: none; display: block; margin-top: 10px; line-height: 1.4; }
+    /* Ad Sense In-Article Styling */
+    .in-article-ad { margin: 30px 0; padding: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; clear: both; }
+    .ad-hint { font-size: 10px; color: #ccc; letter-spacing: 2px; margin-bottom: 5px; display: block; }
 
     @media (max-width: 991px) {
-        .share-sidebar-fixed { display: none; }
-        .mobile-share-bar { display: flex; }
         .content-card { padding: 18px; } 
         .article-title { font-size: 1.7rem; }
-        body { padding-bottom: 70px; }
     }
 </style>
 
-<div class="share-sidebar-fixed d-none d-lg-flex flex-column">
-    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="s-btn s-wa shadow">
-        <i class="fab fa-whatsapp fa-lg"></i>
-    </a>
-    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="s-btn s-fb shadow">
-        <i class="fab fa-facebook-f"></i>
-    </a>
-</div>
-
-<div class="mobile-share-bar">
-    <a href="https://api.whatsapp.com/send?text={{ news.title }} {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success btn-sm w-100 mx-1 py-2 shadow-sm">
-        <i class="fab fa-whatsapp me-1"></i> WhatsApp
-    </a>
-    <a href="https://facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary btn-sm w-100 mx-1 py-2 shadow-sm">
-        <i class="fab fa-facebook-f me-1"></i> Facebook
-    </a>
-</div>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
 <div class="container mt-4">
     <div class="row">
@@ -91,29 +58,26 @@
                          class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;" alt="{{ news.title }}">
                 {% endif %}
 
-                <div class="article-content">
+                <div class="article-content" id="articleContent">
                     {{ news.content|safe }}
                 </div>
-            </div>
 
-            <div class="recommended-section shadow-sm mb-5">
-                <h4 class="fw-bold mb-4 border-bottom pb-2">
-                    <span class="border-bottom border-3 border-danger pb-2">आपके लिए</span> खास
-                </h4>
-                <div class="row">
-                    {% for item in related_news %}
-                    <div class="col-md-4 col-6 mb-4">
-                        <div class="rec-card h-100">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% else %}{{ item.image.url }}{% endif %}" class="w-100 rec-img shadow-sm" alt="{{ item.title }}">
-                                <span class="rec-title text-dark">{{ item.title|truncatechars:55 }}</span>
-                            </a>
-                        </div>
+                <div id="ad-template" style="display:none;">
+                    <div class="in-article-ad">
+                        <span class="ad-hint">ADVERTISEMENT</span>
+                        <ins class="adsbygoogle"
+                             style="display:block; text-align:center;"
+                             data-ad-layout="in-article"
+                             data-ad-format="fluid"
+                             data-ad-client="ca-pub-3171847065256414"
+                             data-ad-slot="5217172506"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                     </div>
-                    {% endfor %}
                 </div>
+
             </div>
-        </div>
+            
+            </div>
 
         <div class="col-lg-4">
             <div class="sticky-sidebar-wrapper">
@@ -122,4 +86,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var contentDiv = document.getElementById('articleContent');
+        var paragraphs = contentDiv.getElementsByTagName('p');
+        
+        // Agar 3 se zyada paragraph hain, toh dusre ke baad ad daal do
+        if (paragraphs.length >= 3) {
+            var adHtml = document.getElementById('ad-template').innerHTML;
+            paragraphs[1].insertAdjacentHTML('afterend', adHtml);
+        } else if (paragraphs.length > 0) {
+            // Agar chhota article hai toh bilkul niche daal do
+            var adHtml = document.getElementById('ad-template').innerHTML;
+            contentDiv.insertAdjacentHTML('beforeend', adHtml);
+        }
+    });
+</script>
+
 {% endblock %}
