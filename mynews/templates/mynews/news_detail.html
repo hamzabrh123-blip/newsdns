@@ -14,26 +14,17 @@
     
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* --- YOUTUBE FIX START --- */
+    /* YouTube UI */
     .video-container { margin: 25px 0; width: 100%; }
-    .video-wrapper { 
-        position: relative; 
-        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-        height: 0; 
-        overflow: hidden; 
-        border-radius: 12px; 
-        background: #000; 
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    .video-wrapper iframe { 
-        position: absolute; 
-        top: 0; 
-        left: 0; 
-        width: 100% !important; 
-        height: 100% !important; 
-        border: 0; 
-    }
-    /* --- YOUTUBE FIX END --- */
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; border: 0; }
+
+    /* Related News Card Styling */
+    .related-card { transition: 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; height: 100%; }
+    .related-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .related-img { height: 140px; object-fit: cover; width: 100%; }
+    .related-title { font-size: 0.95rem; font-weight: 700; line-height: 1.4; color: #222; text-decoration: none; display: block; padding: 10px; }
+    .related-title:hover { color: var(--news-red); }
 
     .in-article-ad { margin: 30px 0; padding: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; }
     .ad-hint { font-size: 10px; color: #ccc; letter-spacing: 2px; margin-bottom: 5px; display: block; }
@@ -44,56 +35,51 @@
     }
 </style>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb small bg-transparent p-0 mb-3">
-                    <li class="breadcrumb-item"><a href="/" class="text-danger fw-bold text-decoration-none">HOME</a></li>
-                    <li class="breadcrumb-item active text-uppercase fw-bold text-muted">{{ news.category }}</li>
-                </ol>
-            </nav>
-
             <div class="content-card">
                 <span class="cat-badge mb-3 d-inline-block">{{ news.district|default:"Uttar Pradesh" }}</span>
                 <h1 class="article-title">{{ news.title }}</h1>
 
                 <div class="d-flex align-items-center border-top border-bottom py-3 mb-4">
                     <div class="me-4 small fw-bold"><i class="far fa-user text-danger me-1"></i> Uttar World Desk</div>
-                    <div class="small text-muted"><i class="far fa-calendar-alt text-danger me-1"></i> {{ news.date|date:"d M, Y | h:i A" }}</div>
+                    <div class="small text-muted"><i class="far fa-calendar-alt text-danger me-1"></i> {{ news.date|date:"d M, Y" }}</div>
                 </div>
 
                 {% if news.youtube_url %}
                     <div class="video-container">
-                        <div class="video-wrapper">
-                            {{ news.youtube_url|safe }}
-                        </div>
+                        <div class="video-wrapper">{{ news.youtube_url|safe }}</div>
                     </div>
                 {% else %}
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                         class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;" alt="{{ news.title }}">
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="w-100 rounded-3 mb-4 shadow-sm" style="max-height:500px; object-fit:cover;">
                 {% endif %}
 
                 <div class="article-content" id="articleContent">
                     {{ news.content|safe }}
                 </div>
+            </div>
 
-                <div id="ad-template" style="display:none;">
-                    <div class="in-article-ad">
-                        <span class="ad-hint">ADVERTISEMENT</span>
-                        <ins class="adsbygoogle"
-                             style="display:block; text-align:center;"
-                             data-ad-layout="in-article"
-                             data-ad-format="fluid"
-                             data-ad-client="ca-pub-3171847065256414"
-                             data-ad-slot="5217172506"></ins>
-                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            <div class="related-news-section mt-5 mb-4">
+                <h4 class="fw-bold mb-4 border-start border-4 border-danger ps-3 text-uppercase">ताज़ा खबरें (Latest News)</h4>
+                <div class="row">
+                    {% for item in related_news|slice:":6" %}
+                    <div class="col-md-4 col-6 mb-4">
+                        <div class="card related-card">
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" class="related-img" alt="{{ item.title }}">
+                            </a>
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="related-title">
+                                {{ item.title|truncatechars:50 }}
+                            </a>
+                        </div>
                     </div>
+                    {% empty %}
+                        <p class="text-muted ps-3">और खबरें लोड हो रही हैं...</p>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
+            </div>
 
         <div class="col-lg-4">
             <div class="sticky-sidebar-wrapper">
@@ -103,20 +89,23 @@
     </div>
 </div>
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+<div id="ad-template" style="display:none;">
+    <div class="in-article-ad">
+        <span class="ad-hint">ADVERTISEMENT</span>
+        <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+</div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Sirf articleContent ke andar ke P tags ko target karein
         var contentDiv = document.getElementById('articleContent');
         if (contentDiv) {
             var paragraphs = contentDiv.querySelectorAll('p');
-            
             if (paragraphs.length >= 3) {
                 var adHtml = document.getElementById('ad-template').innerHTML;
-                // Dusre paragraph ke baad ad insert karein
                 paragraphs[1].insertAdjacentHTML('afterend', adHtml);
-            } else if (paragraphs.length > 0) {
-                var adHtml = document.getElementById('ad-template').innerHTML;
-                contentDiv.insertAdjacentHTML('beforeend', adHtml);
             }
         }
     });
