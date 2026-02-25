@@ -5,7 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; --wa-green: #25D366; --fb-blue: #1877F2; }
+    :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f4f4f4; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
     
     .content-card { background: #ffffff; border-radius: 12px; padding: 35px; margin-bottom: 25px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -14,12 +14,28 @@
     
     .cat-badge { background: var(--news-red); color: white; padding: 5px 15px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; text-transform: uppercase; }
 
-    /* Youtube Wrapper Original */
-    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin: 25px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    /* --- YOUTUBE FIX START --- */
+    .video-container { margin: 25px 0; width: 100%; }
+    .video-wrapper { 
+        position: relative; 
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0; 
+        overflow: hidden; 
+        border-radius: 12px; 
+        background: #000; 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .video-wrapper iframe { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100% !important; 
+        height: 100% !important; 
+        border: 0; 
+    }
+    /* --- YOUTUBE FIX END --- */
 
-    /* Ad Sense In-Article Styling */
-    .in-article-ad { margin: 30px 0; padding: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; clear: both; }
+    .in-article-ad { margin: 30px 0; padding: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; }
     .ad-hint { font-size: 10px; color: #ccc; letter-spacing: 2px; margin-bottom: 5px; display: block; }
 
     @media (max-width: 991px) {
@@ -50,8 +66,10 @@
                 </div>
 
                 {% if news.youtube_url %}
-                    <div class="video-wrapper">
-                        {{ news.youtube_url|safe }}
+                    <div class="video-container">
+                        <div class="video-wrapper">
+                            {{ news.youtube_url|safe }}
+                        </div>
                     </div>
                 {% else %}
                     <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
@@ -74,10 +92,8 @@
                         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                     </div>
                 </div>
-
             </div>
-            
-            </div>
+        </div>
 
         <div class="col-lg-4">
             <div class="sticky-sidebar-wrapper">
@@ -89,19 +105,20 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Sirf articleContent ke andar ke P tags ko target karein
         var contentDiv = document.getElementById('articleContent');
-        var paragraphs = contentDiv.getElementsByTagName('p');
-        
-        // Agar 3 se zyada paragraph hain, toh dusre ke baad ad daal do
-        if (paragraphs.length >= 3) {
-            var adHtml = document.getElementById('ad-template').innerHTML;
-            paragraphs[1].insertAdjacentHTML('afterend', adHtml);
-        } else if (paragraphs.length > 0) {
-            // Agar chhota article hai toh bilkul niche daal do
-            var adHtml = document.getElementById('ad-template').innerHTML;
-            contentDiv.insertAdjacentHTML('beforeend', adHtml);
+        if (contentDiv) {
+            var paragraphs = contentDiv.querySelectorAll('p');
+            
+            if (paragraphs.length >= 3) {
+                var adHtml = document.getElementById('ad-template').innerHTML;
+                // Dusre paragraph ke baad ad insert karein
+                paragraphs[1].insertAdjacentHTML('afterend', adHtml);
+            } else if (paragraphs.length > 0) {
+                var adHtml = document.getElementById('ad-template').innerHTML;
+                contentDiv.insertAdjacentHTML('beforeend', adHtml);
+            }
         }
     });
 </script>
-
 {% endblock %}
