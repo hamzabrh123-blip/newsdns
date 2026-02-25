@@ -95,13 +95,9 @@
                     {{ news.content|safe }}
                 </div>
 
-                {% if v_id %}
-                <div class="ratio-16x9 my-4 shadow rounded">
+               {% if v_id %}
+                <div class="ratio ratio-16x9 my-4 shadow rounded overflow-hidden">
                     <iframe src="https://www.youtube.com/embed/{{ v_id }}" allowfullscreen></iframe>
-                </div>
-                {% elif news.youtube_url %}
-                <div class="ratio-16x9 my-4 shadow rounded">
-                    {{ news.youtube_url|safe }}
                 </div>
                 {% endif %}
             </div>
