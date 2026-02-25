@@ -53,19 +53,19 @@ def home(request):
         # Section-wise Data logic
         international_news = all_news.filter(district__iexact="International")[:5]
         national_labels = ['National', 'Delhi', 'Other-States']
-        national_news = all_news.filter(district__in=national_labels)[:5]
+        national_news = all_news.filter(district__in=national_labels)[:12]
 
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
-        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:5]
+        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:36]
 
         context = {
-            "top_5_highlights": all_news.filter(show_in_highlights=True)[:5],
+            "top_5_highlights": all_news.filter(show_in_highlights=True)[:11],
             "international_news": international_news,
             "national_news": national_news,
             "up_news": up_news_qs, 
-            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood']).order_by("-date")[:5],
-            "tech_market_news": all_news.filter(district__in=['Technology', 'Market']).order_by("-date")[:5],
-            "sports_news": all_news.filter(district__iexact="Sports")[:5],
+            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood']).order_by("-date")[:9],
+            "tech_market_news": all_news.filter(district__in=['Technology', 'Market']).order_by("-date")[:9],
+            "sports_news": all_news.filter(district__iexact="Sports")[:3],
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -147,4 +147,5 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
