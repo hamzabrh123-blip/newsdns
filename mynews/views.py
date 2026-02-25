@@ -74,30 +74,27 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error")
+# --- TERA PURANA YOUTUBE LOGIC ---
+def extract_video_id(url):
+    if not url: return None
+    regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+    match = re.search(regex, url)
+    return match.group(1) if match else None
 
-# --- 2. DETAIL VIEW ---
+# --- TERA PURANA DETAIL VIEW ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     
-    # YouTube Extraction (Jo tune manga tha)
-    v_id = None
-    if news.youtube_url:
-        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
-        match = re.search(regex, news.youtube_url)
-        if match:
-            v_id = match.group(1)
-    
-    related_random = News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6]
+    # Bina kisi badlav ke tera purana v_id logic
+    v_id = extract_video_id(news.youtube_url)
     
     context = {
         "news": news,
         "v_id": v_id,
-        "related_news": related_random,
-        "meta_description": strip_tags(news.content)[:160] if news.content else news.title,
+        "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
     clean_district = district.replace('-', ' ')
@@ -140,3 +137,4 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
