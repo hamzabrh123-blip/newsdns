@@ -74,45 +74,30 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error: {e}")
-        
-# --- 2. DETAIL VIEW ---
+
+# --- 2. DETAIL VIEW (YOUTUBE FIXED) ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
-    v_id = None
     
-    # Cloudinary/Social Image Logic
-    raw_img = news.image_url if news.image_url else (news.image.url if news.image else None)
-    og_image = f"https://res.cloudinary.com/dbe9v8mca/image/fetch/f_auto,q_auto,w_1200,h_630,c_fill/{raw_img}" if raw_img else None
-    
-    # YouTube Logic
-    if news.youtube_url:
-        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
-        match = re.search(regex, news.youtube_url)
-        if match: v_id = match.group(1)
+    # Random Related News (Har refresh par badal jayegi)
+    related_random = News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6]
     
     context = {
         "news": news,
-        "v_id": v_id,
-        "og_title": news.title,
-        "og_image": og_image,
-        "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
+        "related_news": related_random,
         "meta_description": news.content[:160],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
 
-# --- 3. DISTRICT/CATEGORY VIEW (UP News Fix) ---
+# --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
-    # Fix: Dash ko replace karna aur UP News ko handle karna
     clean_district = district.replace('-', ' ')
     
-    # Agar user 'Uttar Pradesh' ya 'UP-News' mang raha hai
     if clean_district.lower() in ['uttar pradesh', 'up news']:
-        # Wo saari news jo International/National/Sports/Market/Tech/Bollywood nahi hain
         exclude_cats = ['International', 'National', 'Sports', 'Market', 'Technology', 'Bollywood', 'Hollywood']
         news_list = News.objects.filter(status='Published').exclude(district__in=exclude_cats).order_by("-date")
     else:
-        # Baaki normal districts ke liye
         news_list = News.objects.filter(status='Published').filter(
             Q(district__iexact=clean_district) | 
             Q(url_city__iexact=district) | 
@@ -147,5 +132,3 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
-
-
