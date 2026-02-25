@@ -76,18 +76,7 @@ def home(request):
         return HttpResponse(f"Server Error")
 
 
-# --- सुधरा हुआ YOUTUBE LOGIC ---
-def extract_video_id(url):
-    if not url: 
-        return None
-    # यह Regex 'Shorts' और नॉर्मल लिंक दोनों को पूरी तरह डिकोड कर देगा
-    regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
-    match = re.search(regex, url)
-    if match:
-        return match.group(1)
-    return None
-
-
+# --- सुधरा हुआ YOUTUBE LOGIC 
 
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
@@ -151,6 +140,7 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
 
 
