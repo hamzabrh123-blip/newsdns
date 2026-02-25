@@ -1,50 +1,50 @@
-{% load static %}
-{% load cloudinary_tags %} 
+<style>
+    /* Sidebar Image Fix */
+    .thumb-item {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #eee;
+    }
+    .thumb-item:last-child { border-bottom: none; }
+
+    .thumb-img {
+        width: 80px;      /* Fix width */
+        height: 60px;     /* Fix height */
+        min-width: 80px;  /* Flexbox fix */
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
+    .thumb-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Isse image khichegi nahi, crop hokar set ho jayegi */
+    }
+
+    .thumb-link {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+        line-height: 1.4;
+        display: block;
+        transition: 0.2s;
+    }
+
+    .thumb-link:hover {
+        color: #dc3545; /* Red color on hover */
+    }
+
+    .box-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid;
+    }
+</style>
 
 <aside class="sidebar-wrapper">
-    
-    <div class="sidebar-box mb-4 text-center" style="border: 1px solid #ffeeba; background: #fffcf5;">
-        <div class="ad-tag">ADVERTISEMENT</div>
-        <div class="ad-content-wrapper" style="min-height: 250px;">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3171847065256414"
-                 data-ad-slot="5217172506"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-    </div>
-
-    {% if world_sidebar %}
-    <div class="sidebar-box mb-4">
-        <h5 class="box-title border-danger">
-            <i class="fas fa-globe-americas text-danger"></i> दुनिया (World)
-        </h5>
-        <div class="post-list">
-            {% for item in world_sidebar %}
-            <div class="post-item border-bottom">
-                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="post-title-link">
-                    {{ item.title|truncatechars:70 }}
-                </a>
-                <div class="post-meta">{{ item.date|timesince }} पहले</div>
-            </div>
-            {% endfor %}
-        </div>
-        <a href="{% url 'district_news' 'International' %}" class="view-all-btn text-danger">World की और खबरें →</a>
-    </div>
-    {% endif %}
-
-    <div class="sidebar-box ad-box mb-4">
-        <div class="ad-tag">SPONSORED</div>
-        <div class="ad-frame">
-            <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
-        </div>
-    </div>
-
     {% if up_sidebar %}
     <div class="sidebar-box mb-4">
         <h5 class="box-title border-primary">
@@ -52,39 +52,20 @@
         </h5>
         <div class="thumb-list">
             {% for item in up_sidebar %}
-            <div class="thumb-item d-flex align-items-center mb-3">
-                <div class="thumb-img">
-                    <img src="{% if item.image_url %}{{ item.image_url|optimize_image }}{% elif item.image %}{{ item.image.url|optimize_image }}{% else %}{% static 'logo.png' %}{% endif %}" 
+            <div class="thumb-item d-flex align-items-start mb-3"> <div class="thumb-img">
+                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
                          alt="{{ item.title }}" onerror="this.src='{% static 'logo.png' %}';">
                 </div>
                 <div class="thumb-content ms-2">
                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
-                        {{ item.title|truncatechars:50 }}
+                        {{ item.title|truncatechars:55 }}
                     </a>
                 </div>
             </div>
             {% endfor %}
         </div>
-        <a href="{% url 'district_news' 'Uttar-Pradesh' %}" class="view-all-btn text-primary">पूरा यूपी देखें →</a>
+        <a href="{% url 'district_news' 'Uttar-Pradesh' %}" class="view-all-btn text-primary text-decoration-none small fw-bold">पूरा यूपी देखें →</a>
     </div>
     {% endif %}
 
-    {% if bazaar_sidebar %}
-    <div class="sidebar-box market-section mb-4">
-        <h5 class="box-title border-success">
-            <i class="fas fa-chart-line text-success"></i> बाज़ार (Market)
-        </h5>
-        <div class="market-list">
-            {% for item in bazaar_sidebar %}
-            <div class="market-item">
-                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="market-link">
-                    <i class="fas fa-arrow-right small text-success"></i> {{ item.title|truncatechars:65 }}
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-        <a href="{% url 'district_news' 'Market' %}" class="view-all-btn text-success text-center mt-2">आज का ताज़ा भाव →</a>
-    </div>
-    {% endif %}
-
-</aside>
+    </aside>
