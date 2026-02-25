@@ -87,16 +87,20 @@ def extract_video_id(url):
         return match.group(1)
     return None
 
-# --- सुधरा हुआ DETAIL VIEW ---
+
+
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     
-    # यहाँ ध्यान दें: आपके Model में जो फील्ड का नाम है वही यहाँ लिखें (जैसे news.youtube_url)
-    v_id = extract_video_id(news.youtube_url) 
+    # 1. मॉडल में फील्ड का नाम 'youtube_url' है, इसलिए यहाँ वही यूज़ होगा
+    video_url = news.youtube_url  
+    
+    # 2. डिकोडिंग फंक्शन को कॉल करना
+    v_id = extract_video_id(video_url) 
     
     context = {
         "news": news,
-        "v_id": v_id, # यही v_id आपकी HTML टेम्पलेट में इस्तेमाल होगा
+        "v_id": v_id, # यही टेम्पलेट में {{ v_id }} बन कर जाएगा
         "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
         **get_common_sidebar_data()
     }
@@ -147,5 +151,6 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
 
