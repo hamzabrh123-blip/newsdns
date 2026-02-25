@@ -1,71 +1,142 @@
+{% load static %}
+{% load cloudinary_tags %} 
+
 <style>
-    /* Sidebar Image Fix */
-    .thumb-item {
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #eee;
+    /* Sidebar Styling Fixes */
+    .sidebar-wrapper { background: transparent; }
+    .sidebar-box { 
+        background: #fff; 
+        border-radius: 12px; 
+        padding: 15px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        margin-bottom: 25px;
     }
-    .thumb-item:last-child { border-bottom: none; }
+    
+    .box-title { 
+        font-size: 1.15rem; 
+        font-weight: 800; 
+        padding-bottom: 10px; 
+        margin-bottom: 15px; 
+        border-bottom: 3px solid; 
+        display: flex; 
+        align-items: center;
+    }
+    .box-title i { margin-right: 10px; }
 
-    .thumb-img {
-        width: 80px;      /* Fix width */
-        height: 60px;     /* Fix height */
-        min-width: 80px;  /* Flexbox fix */
-        overflow: hidden;
-        border-radius: 6px;
+    /* Thumb List (Image + Text) */
+    .thumb-item { border-bottom: 1px dashed #eee; padding-bottom: 12px; margin-bottom: 12px; }
+    .thumb-item:last-child { border-bottom: none; margin-bottom: 0; }
+    
+    .thumb-img { 
+        width: 85px; height: 65px; min-width: 85px; 
+        overflow: hidden; border-radius: 8px; 
     }
+    .thumb-img img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .thumb-link { 
+        font-size: 0.95rem; font-weight: 600; color: #222; 
+        text-decoration: none; line-height: 1.3; display: block; 
+    }
+    .thumb-link:hover { color: #dc3545; }
 
-    .thumb-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* Isse image khichegi nahi, crop hokar set ho jayegi */
-    }
+    /* Ads Design */
+    .ad-tag { font-size: 9px; color: #bbb; letter-spacing: 2px; text-align: center; margin-bottom: 5px; display: block; }
+    .view-all-btn { font-size: 0.85rem; display: block; text-align: right; margin-top: 10px; font-weight: 700; text-decoration: none; }
 
-    .thumb-link {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #333;
-        text-decoration: none;
-        line-height: 1.4;
-        display: block;
-        transition: 0.2s;
-    }
-
-    .thumb-link:hover {
-        color: #dc3545; /* Red color on hover */
-    }
-
-    .box-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        padding-bottom: 8px;
-        margin-bottom: 15px;
-        border-bottom: 2px solid;
-    }
+    /* Simple List (Text Only) */
+    .simple-post-item { padding: 8px 0; border-bottom: 1px solid #f8f8f8; }
+    .simple-post-link { font-size: 0.9rem; color: #444; text-decoration: none; font-weight: 500; display: block; }
+    .simple-post-link:hover { color: #000; }
 </style>
 
 <aside class="sidebar-wrapper">
-    {% if up_sidebar %}
-    <div class="sidebar-box mb-4">
-        <h5 class="box-title border-primary">
-            <i class="fas fa-map-marker-alt text-primary"></i> उत्तर प्रदेश
+
+    <div class="sidebar-box text-center" style="background: #fffcf5; border: 1px solid #ffeeba;">
+        <span class="ad-tag">ADVERTISEMENT</span>
+        <div style="min-height: 250px;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3171847065256414"
+                 data-ad-slot="5217172506"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    {% if world_sidebar %}
+    <div class="sidebar-box">
+        <h5 class="box-title border-danger text-danger">
+            <i class="fas fa-globe-americas"></i> दुनिया (World)
         </h5>
         <div class="thumb-list">
-            {% for item in up_sidebar %}
-            <div class="thumb-item d-flex align-items-start mb-3"> <div class="thumb-img">
+            {% for item in world_sidebar %}
+            <div class="thumb-item d-flex align-items-start">
+                <div class="thumb-img">
                     <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                         alt="{{ item.title }}" onerror="this.src='{% static 'logo.png' %}';">
+                         alt="{{ item.title }}" onerror="this.src='/static/logo.png';">
                 </div>
                 <div class="thumb-content ms-2">
                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
-                        {{ item.title|truncatechars:55 }}
+                        {{ item.title|truncatechars:50 }}
                     </a>
                 </div>
             </div>
             {% endfor %}
         </div>
-        <a href="{% url 'district_news' 'Uttar-Pradesh' %}" class="view-all-btn text-primary text-decoration-none small fw-bold">पूरा यूपी देखें →</a>
+        <a href="{% url 'district_news' 'International' %}" class="view-all-btn text-danger">और देखें →</a>
     </div>
     {% endif %}
 
-    </aside>
+    <div class="sidebar-box p-2">
+        <span class="ad-tag">SPONSORED</span>
+        <div class="text-center py-2">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-fb+5w+4e-db+86" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    {% if up_sidebar %}
+    <div class="sidebar-box">
+        <h5 class="box-title border-primary text-primary">
+            <i class="fas fa-map-marker-alt"></i> उत्तर प्रदेश
+        </h5>
+        <div class="thumb-list">
+            {% for item in up_sidebar %}
+            <div class="thumb-item d-flex align-items-start">
+                <div class="thumb-img">
+                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
+                         alt="{{ item.title }}" onerror="this.src='/static/logo.png';">
+                </div>
+                <div class="thumb-content ms-2">
+                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
+                        {{ item.title|truncatechars:50 }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'district_news' 'Uttar-Pradesh' %}" class="view-all-btn text-primary">पूरा यूपी देखें →</a>
+    </div>
+    {% endif %}
+
+    {% if bazaar_sidebar %}
+    <div class="sidebar-box">
+        <h5 class="box-title border-success text-success">
+            <i class="fas fa-chart-line"></i> बाज़ार (Market)
+        </h5>
+        <div class="simple-list">
+            {% for item in bazaar_sidebar %}
+            <div class="simple-post-item">
+                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="simple-post-link">
+                    <i class="fas fa-chevron-right me-1 small opacity-50"></i> {{ item.title|truncatechars:60 }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'district_news' 'Market' %}" class="view-all-btn text-success">ताज़ा भाव देखें →</a>
+    </div>
+    {% endif %}
+
+</aside>
