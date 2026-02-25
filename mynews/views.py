@@ -63,7 +63,7 @@ def home(request):
             "international_news": international_news,
             "national_news": national_news,
             "up_news": up_news_qs, 
-            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood']).order_by("-date")[:9],
+            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood']).order_by("-date")[:10],
             "tech_market_news": all_news.filter(district__in=['Technology', 'Market']).order_by("-date")[:9],
             "sports_news": all_news.filter(district__iexact="Sports")[:3],
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
@@ -132,3 +132,4 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_ us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
