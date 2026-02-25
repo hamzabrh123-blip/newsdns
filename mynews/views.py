@@ -74,27 +74,37 @@ def home(request):
     except Exception as e:
         logger.error(f"Home Error: {e}")
         return HttpResponse(f"Server Error")
-# --- TERA PURANA YOUTUBE LOGIC ---
+
+
+# --- सुधरा हुआ YOUTUBE LOGIC ---
 def extract_video_id(url):
-    if not url: return None
+    if not url: 
+        return None
+    # यह Regex 'Shorts' और नॉर्मल लिंक दोनों को पूरी तरह डिकोड कर देगा
     regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
     match = re.search(regex, url)
-    return match.group(1) if match else None
+    if match:
+        return match.group(1)
+    return None
 
-# --- TERA PURANA DETAIL VIEW ---
+# --- सुधरा हुआ DETAIL VIEW ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     
-    # Bina kisi badlav ke tera purana v_id logic
-    v_id = extract_video_id(news.youtube_url)
+    # यहाँ ध्यान दें: आपके Model में जो फील्ड का नाम है वही यहाँ लिखें (जैसे news.youtube_url)
+    v_id = extract_video_id(news.youtube_url) 
     
     context = {
         "news": news,
-        "v_id": v_id,
+        "v_id": v_id, # यही v_id आपकी HTML टेम्पलेट में इस्तेमाल होगा
         "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
+
+
+
+
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
     clean_district = district.replace('-', ' ')
@@ -137,4 +147,5 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
