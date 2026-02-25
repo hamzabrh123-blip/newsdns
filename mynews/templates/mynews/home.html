@@ -22,10 +22,11 @@
     .list-news-box img { width: 140px; height: 110px; }
     .list-news-box h4 { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
 
-    /* Grid for UP News */
-    .up-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-
     .section-title { border-left: 6px solid #d32f2f; padding: 8px 15px; font-weight: 900; color: #1a1a1a; margin: 40px 0 20px; background: #eee; text-transform: uppercase; font-size: 1.2rem; }
+
+    /* Ad Banner Style */
+    .home-ad-slot { background: #ffffff; border: 1px dashed #ddd; padding: 10px; margin: 30px 0; text-align: center; border-radius: 8px; }
+    .ad-label { font-size: 0.6rem; color: #bbb; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; display: block; }
 
     @media (max-width: 768px) {
         .big-news-box img { height: 220px; }
@@ -72,6 +73,17 @@
                 {% endfor %}
             </div>
 
+            <div class="home-ad-slot">
+                <span class="ad-label">Advertisement</span>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3171847065256414"
+                     data-ad-slot="5217172506"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
             <h4 class="section-title">देश और दिल्ली (National & Delhi)</h4>
             <div class="row">
                 {% for item in national_news %}
@@ -102,6 +114,17 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+            </div>
+
+            <div class="home-ad-slot">
+                <span class="ad-label">Advertisement</span>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3171847065256414"
+                     data-ad-slot="5217172506"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
 
             <h4 class="section-title">उत्तर प्रदेश (UP News)</h4>
@@ -137,65 +160,35 @@
                 {% endfor %}
             </div>
 
-            <h4 class="section-title">मनोरंजन (Bollywood & Hollywood)</h4>
+            <h4 class="section-title">मनोरंजन (Entertainment)</h4>
             <div class="row">
-                {% for item in entertainment_news %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}">
+                {% for item in entertainment_news|slice:":3" %}
+                    <div class="col-md-4 col-12 mb-3">
+                        <div class="news-box">
+                            <img src="{{ item.image_url|default:item.image.url }}" style="height: 180px;">
+                            <div class="news-box-content">
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                    <h4 style="font-size: 0.95rem;">{{ item.title|safe }}</h4>
                                 </a>
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h2>{{ item.title|safe }}</h2>
-                                    </a>
-                                </div>
                             </div>
                         </div>
-                    {% else %}
-                        <div class="col-md-6 mb-3">
-                            <div class="news-box list-news-box">
-                                <img src="{{ item.image_url|default:item.image.url }}">
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h4>{{ item.title|safe }}</h4>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    </div>
                 {% endfor %}
             </div>
 
             <h4 class="section-title">खेल (Sports)</h4>
             <div class="row">
-                {% for item in sports_news %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{{ item.image_url|default:item.image.url }}" alt="{{ item.title }}">
+                {% for item in sports_news|slice:":3" %}
+                    <div class="col-md-4 col-12 mb-3">
+                        <div class="news-box">
+                            <img src="{{ item.image_url|default:item.image.url }}" style="height: 180px;">
+                            <div class="news-box-content">
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                    <h4 style="font-size: 0.95rem;">{{ item.title|safe }}</h4>
                                 </a>
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h2>{{ item.title|safe }}</h2>
-                                    </a>
-                                </div>
                             </div>
                         </div>
-                    {% else %}
-                        <div class="col-md-6 mb-3">
-                            <div class="news-box list-news-box">
-                                <img src="{{ item.image_url|default:item.image.url }}">
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h4>{{ item.title|safe }}</h4>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    </div>
                 {% endfor %}
             </div>
 
