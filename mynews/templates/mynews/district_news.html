@@ -9,6 +9,8 @@
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8 col-md-8">
@@ -32,15 +34,9 @@
                         
                         <div class="img-container position-relative overflow-hidden">
                             {% if item.image_url %}
-                                <img src="{{ item.image_url }}" 
-                                     class="card-img-top news-thumb" 
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
+                                <img src="{{ item.image_url }}" class="card-img-top news-thumb" alt="{{ item.title }}" loading="lazy">
                             {% elif item.image %}
-                                <img src="{{ item.image.url }}" 
-                                     class="card-img-top news-thumb" 
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
+                                <img src="{{ item.image.url }}" class="card-img-top news-thumb" alt="{{ item.title }}" loading="lazy">
                             {% else %}
                                 <img src="{% static 'default.jpg' %}" class="card-img-top news-thumb" alt="No image">
                             {% endif %}
@@ -85,6 +81,22 @@
                         </div>
                     </article>
                 </div>
+
+                {% if forloop.counter|divisibleby:4 %}
+                <div class="col-12 mb-4">
+                    <div class="district-ad-box">
+                        <small class="ad-label">ADVERTISEMENT</small>
+                        <ins class="adsbygoogle"
+                             style="display:block"
+                             data-ad-format="fluid"
+                             data-ad-layout-key="-fb+5w+4e-db+86"
+                             data-ad-client="ca-pub-3171847065256414"
+                             data-ad-slot="5217172506"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </div>
+                </div>
+                {% endif %}
+
                 {% empty %}
                 <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
                     <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
@@ -99,13 +111,8 @@
             <nav class="my-5">
                 <ul class="pagination justify-content-center custom-pagination">
                     {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}">
-                            <i class="fas fa-arrow-left"></i>
-                        </a>
-                    </li>
+                    <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-arrow-left"></i></a></li>
                     {% endif %}
-
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
                             <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
@@ -113,13 +120,8 @@
                             <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
-
                     {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}">
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </li>
+                    <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-arrow-right"></i></a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -137,36 +139,29 @@
 </div>
 
 <style>
+    /* District Specific Ad Styling */
+    .district-ad-box { background: #fff; border: 1px dashed #ddd; border-radius: 12px; padding: 15px; text-align: center; }
+    .ad-label { font-size: 0.6rem; color: #ccc; letter-spacing: 2px; margin-bottom: 8px; display: block; }
+
+    /* Purana CSS ... (Baki same rahega) */
     .main-title { color: #1a1a1a; letter-spacing: -0.2px; }
     .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
-    
-    /* Live Pulse */
-    .pulse-dot {
-        width: 8px; height: 8px; background: #dc3545; border-radius: 50%;
-        animation: pulse 1.5s infinite;
-    }
+    .pulse-dot { width: 8px; height: 8px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
-
-    /* Card Styling */
     .news-card-v2 { border-radius: 15px; transition: all 0.3s ease; border: 1px solid #f2f2f2 !important; background: #fff; }
     .news-card-v2:hover { transform: translateY(-7px); box-shadow: 0 12px 25px rgba(0,0,0,0.08) !important; }
     .img-container { border-radius: 15px 15px 0 0; height: 190px; background: #f8f8f8; }
     .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
     .news-card-v2:hover .news-thumb { transform: scale(1.1); }
-
-    /* Date Overlay */
     .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
     .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
-
     .hover-title:hover { color: #d32f2f !important; }
     .excerpt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 3em; line-height: 1.5; }
-
-    /* Pagination Styling */
     .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 10px !important; color: #444; font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
     .custom-pagination .page-item.active .page-link { background: #d32f2f; color: #fff; }
 </style>
