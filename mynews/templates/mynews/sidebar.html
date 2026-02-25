@@ -3,10 +3,19 @@
 
 <aside class="sidebar-wrapper">
     
-    <div class="sidebar-box ad-box mb-4">
+    <div class="sidebar-box mb-4 text-center" style="border: 1px solid #ffeeba; background: #fffcf5;">
         <div class="ad-tag">ADVERTISEMENT</div>
-        <div class="ad-frame">
-            <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
+        <div class="ad-content-wrapper" style="min-height: 250px;">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3171847065256414"
+                 data-ad-slot="5217172506"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
         </div>
     </div>
 
@@ -28,6 +37,13 @@
         <a href="{% url 'district_news' 'International' %}" class="view-all-btn text-danger">World की और खबरें →</a>
     </div>
     {% endif %}
+
+    <div class="sidebar-box ad-box mb-4">
+        <div class="ad-tag">SPONSORED</div>
+        <div class="ad-frame">
+            <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="416535"></script>
+        </div>
+    </div>
 
     {% if up_sidebar %}
     <div class="sidebar-box mb-4">
@@ -72,38 +88,3 @@
     {% endif %}
 
 </aside>
-
-<style>
-    .sidebar-wrapper { position: sticky; top: 95px; }
-
-    /* Box Container */
-    .sidebar-box { background: #fff; border: 1px solid #eef0f2; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-    
-    /* Box Titles */
-    .box-title { font-size: 1rem; font-weight: 800; padding-bottom: 10px; border-bottom: 2px solid #f8f9fa; margin-bottom: 15px; border-left: 5px solid; padding-left: 10px; color: #333; }
-
-    /* List Style News */
-    .post-item { padding: 10px 0; }
-    .post-item:last-child { border-bottom: none !important; }
-    .post-title-link { text-decoration: none; color: #1a1a1a; font-size: 0.9rem; font-weight: 700; line-height: 1.4; transition: 0.2s; display: block; }
-    .post-title-link:hover { color: #dc3545; }
-    .post-meta { font-size: 0.7rem; color: #999; margin-top: 5px; font-weight: 600; }
-
-    /* Image + Content Style */
-    .thumb-img { width: 70px; height: 50px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f0f0f0; }
-    .thumb-img img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb-link { text-decoration: none; color: #333; font-size: 0.85rem; font-weight: 700; line-height: 1.3; display: block; }
-    .thumb-link:hover { color: #007bff; }
-
-    /* Market Style */
-    .market-section { background: #f8fff9; border: 1px solid #d4edda; }
-    .market-item { padding: 8px 0; border-bottom: 1px dashed #c3e6cb; }
-    .market-link { text-decoration: none; color: #2d5a27; font-size: 0.85rem; font-weight: 700; }
-
-    /* View All Button */
-    .view-all-btn { display: block; font-size: 0.75rem; font-weight: 800; text-decoration: none; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .view-all-btn:hover { text-decoration: underline; }
-
-    /* AD Tag */
-    .ad-tag { font-size: 0.6rem; color: #ccc; text-align: center; letter-spacing: 2px; margin-bottom: 5px; }
-</style>
