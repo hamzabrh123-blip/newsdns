@@ -10,15 +10,15 @@
     .container-custom { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
     body { background-color: #f8f9fa !important; font-family: 'Poppins', 'Mukta', sans-serif; }
 
-    /* Clean Card System (No Overlay) */
+    /* Clean Card System */
     .news-box { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; transition: 0.3s; display: flex; flex-direction: column; }
     .news-box:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.12); }
     .news-box img { width: 100%; height: auto; object-fit: cover; border-bottom: 1px solid #eee; }
     .news-box-content { padding: 15px; }
     
     /* Big Box Special Styling */
-    .big-news-box img { height: 300px; } /* Image choti rakhi hai */
-    .big-news-box h1, .big-news-box h2 { font-size: 1.6rem; font-weight: 800; color: #1a1a1a; margin-bottom: 10px; line-height: 1.3; }
+    .big-news-box img { height: 350px; }
+    .big-news-box h2 { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 10px; line-height: 1.3; }
     .big-news-box p { color: #555; font-size: 0.95rem; line-height: 1.6; }
 
     /* Section Headers */
@@ -26,14 +26,12 @@
 
     /* Small Box Grid */
     .small-news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .small-box img { height: 120px; }
-    .small-box h4 { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
+    .small-box h4 { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
 
     /* Mobile Responsive */
     @media (max-width: 768px) {
         .small-news-grid { grid-template-columns: 1fr; }
-        .big-news-box h1, .big-news-box h2 { font-size: 1.3rem; }
-        .container-custom { padding: 0 10px; }
+        .big-news-box h2 { font-size: 1.4rem; }
     }
 </style>
 
@@ -53,9 +51,9 @@
                             <div class="news-box-content">
                                 <span class="badge bg-danger mb-2">Duniya</span>
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                    <h2>{{ item.title }}</h2>
+                                    <h2>{{ item.title|safe }}</h2>
                                 </a>
-                                <p>{{ item.content|striptags|truncatewords:50 }}...</p>
+                                <p>{{ item.content|striptags|truncatewords:40 }}...</p>
                             </div>
                         </div>
                     </div>
@@ -65,7 +63,7 @@
                             <img src="{{ item.image_url|default:item.image.url }}" style="width: 120px; height: 90px;">
                             <div class="news-box-content">
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                    <h4>{{ item.title|truncatechars:65 }}</h4>
+                                    <h4>{{ item.title|safe|truncatechars:100 }}</h4>
                                 </a>
                             </div>
                         </div>
@@ -78,11 +76,11 @@
             <div class="row">
                 {% for item in national_news %}
                     <div class="col-md-6 mb-3">
-                        <div class="news-box flex-row" style="height: 100px;">
-                            <img src="{{ item.image_url|default:item.image.url }}" style="width: 130px; height: 100px;">
+                        <div class="news-box flex-row" style="min-height: 100px;">
+                            <img src="{{ item.image_url|default:item.image.url }}" style="width: 130px; height: 100px; object-fit: cover;">
                             <div class="news-box-content">
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                    <h4 style="font-size: 0.9rem;">{{ item.title|truncatechars:70 }}</h4>
+                                    <h4 style="font-size: 1rem;">{{ item.title|safe }}</h4>
                                 </a>
                             </div>
                         </div>
@@ -94,12 +92,12 @@
             <div class="row">
                 {% for item in up_news %}
                 <div class="col-md-4 col-6 mb-4">
-                    <div class="news-box">
-                        <img src="{{ item.image_url|default:item.image.url }}" style="height: 150px;">
+                    <div class="news-box h-100">
+                        <img src="{{ item.image_url|default:item.image.url }}" style="height: 150px; object-fit: cover;">
                         <div class="news-box-content">
                             <span class="text-danger fw-bold small">{{ item.district }}</span>
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                <h4 style="font-size: 0.85rem; margin-top: 5px;">{{ item.title|truncatechars:55 }}</h4>
+                                <h4 style="font-size: 0.95rem; margin-top: 5px;">{{ item.title|safe|truncatechars:85 }}</h4>
                             </a>
                         </div>
                     </div>
@@ -112,10 +110,10 @@
                 {% for item in entertainment_news %}
                 <div class="col-md-6 mb-3">
                     <div class="news-box flex-row align-items-center">
-                        <img src="{{ item.image_url|default:item.image.url }}" style="width: 100px; height: 75px; border-radius: 4px; margin: 10px;">
+                        <img src="{{ item.image_url|default:item.image.url }}" style="width: 100px; height: 75px; border-radius: 4px; margin: 10px; object-fit: cover;">
                         <div class="news-box-content p-2">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                <h4 style="font-size: 0.9rem;">{{ item.title }}</h4>
+                                <h4 style="font-size: 1rem;">{{ item.title|safe }}</h4>
                             </a>
                         </div>
                     </div>
@@ -129,7 +127,7 @@
                 <div class="col-md-12 mb-2">
                     <div class="p-3 bg-white border-start border-danger border-4 shadow-sm">
                          <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-dark text-decoration-none fw-bold">
-                            <i class="fas fa-chart-line text-danger me-2"></i> {{ item.title }}
+                            <i class="fas fa-chart-line text-danger me-2"></i> {{ item.title|safe }}
                          </a>
                     </div>
                 </div>
@@ -140,11 +138,11 @@
             <div class="row">
                 {% for item in sports_news %}
                 <div class="col-md-4 mb-4">
-                    <div class="news-box text-center">
-                        <img src="{{ item.image_url|default:item.image.url }}" style="height: 160px;">
+                    <div class="news-box text-center h-100">
+                        <img src="{{ item.image_url|default:item.image.url }}" style="height: 160px; object-fit: cover;">
                         <div class="news-box-content">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none">
-                                <h4 style="font-size: 0.9rem;">{{ item.title }}</h4>
+                                <h4 style="font-size: 1rem;">{{ item.title|safe }}</h4>
                             </a>
                         </div>
                     </div>
