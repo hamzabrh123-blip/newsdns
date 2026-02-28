@@ -75,6 +75,7 @@ def post_to_facebook(instance):
     # Render Environment Variables
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
+    page2_id = os.environ.get('FB_PAGE_2_ID')
     group_id = os.environ.get('FB_GROUP_1_ID') 
 
     if not access_token:
@@ -109,8 +110,13 @@ def post_to_facebook(instance):
         if page_id:
             res_page = requests.post(page_endpoint, data=payload, timeout=20)
             logger.info(f"Page Post Response: {res_page.status_code}")
+            
+        # 2. फेसबुक पेज पर पोस्ट करें
+        if page2_id:
+            res_page = requests.post(page_endpoint, data=payload, timeout=20)
+            logger.info(f"Page Post Response: {res_page.status_code}")
 
-        # 2. फेसबुक ग्रुप पर पोस्ट करें (चूंकि Post Approval OFF है)
+        # 3. फेसबुक ग्रुप पर पोस्ट करें (चूंकि Post Approval OFF है)
         if group_id:
             res_group = requests.post(group_endpoint, data=payload, timeout=20)
             logger.info(f"Group Post Response: {res_group.status_code}")
