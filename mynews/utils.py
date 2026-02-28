@@ -70,9 +70,8 @@ def process_and_upload_to_imgbb(instance):
         logger.error(f"ImgBB Error: {e}")
         return None
 
-# --- FACEBOOK PAGE & GROUP AUTO-POST (COMPLETE) ---
+# --- FACEBOOK PAGE & GROUP AUTO-POST (FIXED) ---
 def post_to_facebook(instance):
-    # Render Environment Variables
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_id = os.environ.get('FB_PAGE_ID')
     page2_id = os.environ.get('FB_PAGE_2_ID')
@@ -86,42 +85,28 @@ def post_to_facebook(instance):
         news_link = f"https://uttarworld.com/news/{instance.slug}/"
         msg = f"{instance.title}\n\nपूरी खबर यहाँ पढ़ें: {news_link}"
         
-        # पेलोड - फोटो के साथ (ImgBB URL का उपयोग)
+        # Payload setup
         if instance.image_url:
-            payload = {
-                'url': instance.image_url,
-                'caption': msg,
-                'access_token': access_token
-            }
-            # Photos endpoint बड़े बैनर के लिए बेस्ट है
-            page_endpoint = f"https://graph.facebook.com/v18.0/{page_id}/photos"
-            group_endpoint = f"https://graph.facebook.com/v18.0/{group_id}/photos" if group_id else None
+            payload = {'url': instance.image_url, 'caption': msg, 'access_token': access_token}
+            suffix = "/photos"
         else:
-            # बैकअप - बिना फोटो के
-            payload = {
-                'message': msg,
-                'link': news_link,
-                'access_token': access_token
-            }
-            page_endpoint = f"https://graph.facebook.com/v18.0/{page_id}/feed"
-            group_endpoint = f"https://graph.facebook.com/v18.0/{group_id}/feed" if group_id else None
+            payload = {'message': msg, 'link': news_link, 'access_token': access_token}
+            suffix = "/feed"
 
-        # 1. फेसबुक पेज पर पोस्ट करें
+        # 1. Post to Page 1
         if page_id:
-            res_page = requests.post(page_endpoint, data=payload, timeout=20)
-            logger.info(f"Page Post Response: {res_page.status_code}")
+            res_page = requests.post(f"https://graph.facebook.com/v18.0/{page_id}{suffix}", data=payload, timeout=20)
+            logger.info(f"Page 1 Response: {res_page.status_code}")
             
-        # 2. फेसबुक पेज पर पोस्ट करें
+        # 2. Post to Page 2 (FIXED: अलग endpoint बनाया)
         if page2_id:
-            res_page = requests.post(page_endpoint, data=payload, timeout=20)
-            logger.info(f"Page Post Response: {res_page.status_code}")
+            res_page2 = requests.post(f"https://graph.facebook.com/v18.0/{page2_id}{suffix}", data=payload, timeout=20)
+            logger.info(f"Page 2 Response: {res_page2.status_code}")
 
-        # 3. फेसबुक ग्रुप पर पोस्ट करें (चूंकि Post Approval OFF है)
+        # 3. Post to Group
         if group_id:
-            res_group = requests.post(group_endpoint, data=payload, timeout=20)
-            logger.info(f"Group Post Response: {res_group.status_code}")
-            if res_group.status_code != 200:
-                logger.warning(f"Group Post Error Detail: {res_group.text}")
+            res_group = requests.post(f"https://graph.facebook.com/v18.0/{group_id}{suffix}", data=payload, timeout=20)
+            logger.info(f"Group Response: {res_group.status_code}")
 
         return True
     except Exception as e:
@@ -130,7 +115,6 @@ def post_to_facebook(instance):
 
 def extract_video_id(url):
     if not url: return None
-    # यह Regex Shorts, Mobile, Si-Parameter सबको क्लीन कर देता है
     regex = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})'
     match = re.search(regex, url)
     if match:
