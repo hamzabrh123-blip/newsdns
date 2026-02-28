@@ -141,6 +141,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 # API Keys from Environment Variables
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
+FB_PAGE_2_ID = os.environ.get("FB_PAGE_2_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
