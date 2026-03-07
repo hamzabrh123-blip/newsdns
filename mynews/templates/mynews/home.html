@@ -79,7 +79,7 @@
                                 <div class="news-box-content">
                                     <span class="badge bg-danger mb-2">Duniya</span>
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3>{{ item.title|safe }}</h3>
+                                        <h3 class="big-title">{{ item.title|safe }}</h3>
                                     </a>
                                     <p>{{ item.content|striptags|safe|truncatewords:40 }}...</p>
                                 </div>
@@ -197,5 +197,6 @@
     </div>
 </div>
 {% endblock %}
+
 
 
