@@ -9,17 +9,22 @@
     .container-custom { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
     body { background-color: #f8f9fa !important; font-family: 'Poppins', 'Mukta', sans-serif; }
 
-    /* 2. Section Titles (H2 - Bot ki pasand) */
+    /* 2. Section Titles */
     .section-title { 
         border-left: 6px solid #d32f2f; 
         padding: 8px 15px; 
         font-weight: 900; 
         color: #1a1a1a; 
         margin: 40px 0 20px; 
-        background: #eee; 
+        background: #fff; 
         text-transform: uppercase; 
-        font-size: 1.2rem; 
+        font-size: 1.2rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+    .section-title a { font-size: 0.8rem; color: #d32f2f; text-decoration: none; }
 
     /* 3. News Box Base */
     .news-box { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; transition: 0.3s; display: flex; flex-direction: column; height: 100%; }
@@ -27,41 +32,27 @@
     .news-box img { width: 100%; object-fit: cover; background: #eee; }
     .news-box-content { padding: 15px; }
     
-    /* 4. Headings Styling (Dono H3 hain par size alag hai) */
+    /* 4. Headings Styling */
     .big-news-box img { height: 380px; }
-    .big-title { 
-        font-size: 1.8rem; 
-        font-weight: 800; 
-        color: #1a1a1a; 
-        margin-top: 10px; 
-        line-height: 1.3; 
-    }
-    .small-title { 
-        font-size: 1.05rem; 
-        font-weight: 700; 
-        margin: 0; 
-        line-height: 1.4; 
-        color: #333; 
-    }
+    .big-title { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-top: 10px; line-height: 1.3; }
+    .small-title { font-size: 1.05rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
 
-    /* 5. Summary Text */
-    .news-summary { 
-        color: #555; 
-        font-size: 1rem; 
-        line-height: 1.6; 
-        text-align: justify;
-    }
-
-    .list-news-box { flex-direction: row !important; min-height: 110px; }
-    .list-news-box img { width: 140px; height: 110px; flex-shrink: 0; }
+    .news-summary { color: #555; font-size: 1rem; line-height: 1.6; }
+    .list-news-box { flex-direction: row !important; min-height: 110px; border-bottom: 1px solid #eee; border-radius: 0; box-shadow: none; margin-bottom: 10px; }
+    .list-news-box img { width: 120px; height: 90px; flex-shrink: 0; border-radius: 4px; margin: 10px; }
+    .list-news-box:hover { transform: none; background: #fdfdfd; }
 
     .home-ad-slot { background: #ffffff; border: 1px dashed #ddd; padding: 10px; margin: 30px 0; text-align: center; border-radius: 8px; }
-    .ad-label { font-size: 0.6rem; color: #bbb; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    
+    /* Category Specific Colors */
+    .title-sports { border-left-color: #2e7d32; } /* Green */
+    .title-tech { border-left-color: #1565c0; }   /* Blue */
+    .title-market { border-left-color: #ff8f00; } /* Orange */
 
     @media (max-width: 768px) {
         .big-news-box img { height: 220px; }
         .big-title { font-size: 1.4rem; }
-        .list-news-box img { width: 110px; height: 90px; }
+        .list-news-box img { width: 100px; height: 80px; }
         .small-title { font-size: 0.95rem; }
     }
 </style>
@@ -74,7 +65,7 @@
             
             <h2 class="section-title">अंतरराष्ट्रीय (International)</h2>
             <div class="row">
-                {% for item in international_news %}
+                {% for item in international_news|slice:":5" %}
                     {% if forloop.first %}
                         <div class="col-12 mb-3">
                             <div class="news-box big-news-box">
@@ -86,7 +77,7 @@
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="big-title">{{ item.title|safe }}</h3>
                                     </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:70 }}...</p>
+                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:40 }}...</p>
                                 </div>
                             </div>
                         </div>
@@ -96,11 +87,8 @@
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
                                 <div class="news-box-content">
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title">{{ item.title|safe }}</h3>
+                                        <h3 class="small-title">{{ item.title|safe|truncatechars:70 }}</h3>
                                     </a>
-                                    <p class="small-news-summary">
-                                        {{ item.content|striptags|safe|truncatewords:20 }}
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -109,48 +97,28 @@
             </div>
 
             <div class="home-ad-slot">
-                <span class="ad-label">Advertisement</span>
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506" data-ad-format="auto"></ins>
             </div>
 
-            <h2 class="section-title">देश और दिल्ली (National & Delhi)</h2>
+            <h2 class="section-title title-sports">खेल जगत (Sports) <a href="/sports/">View All</a></h2>
             <div class="row">
-                {% for item in national_news %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
-                                </a>
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="big-title">{{ item.title|safe }}</h3>
-                                    </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:70 }}...</p>
-                                </div>
-                            </div>
+                {% for item in sports_news|slice:":4" %}
+                <div class="col-md-6 col-12 mb-3">
+                    <div class="news-box list-news-box">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
+                        <div class="news-box-content">
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                <h3 class="small-title">{{ item.title|safe|truncatechars:80 }}</h3>
+                            </a>
                         </div>
-                    {% else %}
-                        <div class="col-md-6 mb-3">
-                            <div class="news-box list-news-box">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title">{{ item.title|safe }}</h3>
-                                    </a>
-                                     <p class="small-news-summary">
-                                        {{ item.content|striptags|safe|truncatewords:20 }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    </div>
+                </div>
                 {% endfor %}
             </div>
 
             <h2 class="section-title">उत्तर प्रदेश (UP News)</h2>
             <div class="row">
-                {% for item in up_news %}
+                {% for item in up_news|slice:":13" %}
                     {% if forloop.first %}
                         <div class="col-12 mb-3">
                             <div class="news-box big-news-box">
@@ -162,26 +130,54 @@
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="big-title">{{ item.title|safe }}</h3>
                                     </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:70 }}...</p>
                                 </div>
                             </div>
                         </div>
                     {% else %}
                         <div class="col-md-4 col-6 mb-3">
                             <div class="news-box">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" style="height: 150px;">
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" style="height: 140px;">
                                 <div class="news-box-content">
                                     <span class="text-danger small fw-bold">{{ item.district }}</span>
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title" style="font-size: 0.95rem;">{{ item.title|safe|truncatechars:80 }}</h3>
+                                        <h3 class="small-title" style="font-size: 0.9rem;">{{ item.title|safe|truncatechars:65 }}</h3>
                                     </a>
-                                    <p class="small-news-summary">
-                                        {{ item.content|striptags|safe|truncatewords:20 }}
-                                    </p>
                                 </div>
                             </div>
                         </div>
                     {% endif %}
+                {% endfor %}
+            </div>
+
+            <h2 class="section-title title-tech">टेक & गैजेट्स (Technology)</h2>
+            <div class="row">
+                {% for item in tech_news|slice:":6" %}
+                <div class="col-md-4 col-12 mb-3">
+                    <div class="news-box">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" style="height: 150px;">
+                        <div class="news-box-content">
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                <h3 class="small-title" style="font-size: 0.95rem;">{{ item.title|safe|truncatechars:70 }}</h3>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <h2 class="section-title title-market">बाज़ार (Market/Business)</h2>
+            <div class="row">
+                {% for item in market_news|slice:":4" %}
+                <div class="col-md-6 mb-3">
+                    <div class="news-box list-news-box" style="border: 1px solid #eee; border-radius: 8px;">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
+                        <div class="news-box-content">
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                <h3 class="small-title">{{ item.title|safe|truncatechars:80 }}</h3>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
             </div>
 
@@ -190,14 +186,11 @@
                 {% for item in entertainment_news|slice:":6" %}
                     <div class="col-md-4 col-12 mb-3">
                         <div class="news-box">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" style="height: 180px;">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" style="height: 160px;">
                             <div class="news-box-content">
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                    <h3 class="small-title">{{ item.title|safe }}</h3>
+                                    <h3 class="small-title">{{ item.title|safe|truncatechars:75 }}</h3>
                                 </a>
-                                     <p class="small-news-summary">
-                                        {{ item.content|striptags|safe|truncatewords:20 }}
-                                    </p>
                             </div>
                         </div>
                     </div>
@@ -213,5 +206,10 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+{% endblock %}
