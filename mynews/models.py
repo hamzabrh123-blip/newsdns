@@ -1,6 +1,6 @@
 import uuid
 import re
-from django.db import models
+from django.db import models, transaction
 from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -8,7 +8,7 @@ from unidecode import unidecode
 from .constants import LOCATION_DATA 
 from .utils import process_and_upload_to_imgbb, post_to_facebook
 
-# --- 1. SIDEBAR MODEL (Admin se Ads/Banner handle karne ke liye) ---
+# --- 1. SIDEBAR MODEL ---
 class SidebarWidget(models.Model):
     WIDGET_TYPES = [
         ('AD', 'Google AdSense / Script'),
@@ -16,9 +16,9 @@ class SidebarWidget(models.Model):
         ('LATEST', 'Latest News List'),
     ]
 
-    title = models.CharField(max_length=100, help_text="Pehchan ke liye (e.g. Sidebar Top Ad)")
+    title = models.CharField(max_length=100, help_text="पहचान के लिए (e.g. Sidebar Top Ad)")
     widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES, default='LATEST')
-    code_content = models.TextField(blank=True, null=True, help_text="AdSense code ya HTML yahan dale")
+    code_content = models.TextField(blank=True, null=True, help_text="AdSense code यहाँ डालें")
     image = models.ImageField(upload_to="sidebar_pics/", blank=True, null=True)
     link = models.URLField(blank=True, null=True, help_text="Banner click link")
     news_limit = models.IntegerField(default=5)
@@ -55,6 +55,7 @@ class News(models.Model):
     class Meta:
         db_table = 'mynews_news'
         verbose_name_plural = "News"
+        ordering = ['-date']
 
     def save(self, *args, **kwargs):
         # A. DISTRICT & CATEGORY LOGIC
@@ -75,44 +76,48 @@ class News(models.Model):
             self.url_city = 'news'
             if not self.category: self.category = "Uttar Pradesh"
 
-        # B. SLUG LOGIC
+        # B. SLUG LOGIC (Improved with Unicode)
         if not self.slug:
-            base_slug = slugify(unidecode(self.title))[:60]
+            base_slug = slugify(unidecode(self.title))[:80]
             self.slug = f"{base_slug}-{str(uuid.uuid4())[:6]}"
 
-        # C. MAIN IMAGE IMGBB UPLOAD
+        # C. AUTO KEYWORDS (SEO)
+        if not self.meta_keywords:
+            self.meta_keywords = f"{self.title}, {self.district} news, {self.category} news, Uttar World"
+
+        # D. MAIN IMAGE IMGBB UPLOAD
         if self.image and not self.image_url:
             try:
                 link = process_and_upload_to_imgbb(self)
                 if link: self.image_url = link
             except Exception as e: print(f"Main Image Upload Error: {e}")
 
+        # Save the instance
         super(News, self).save(*args, **kwargs)
 
-        # D. FACEBOOK AUTO-POST
-        try:
-            if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
-                if self.image_url:
-                    if post_to_facebook(self):
-                        News.objects.filter(id=self.id).update(is_fb_posted=True)
-        except Exception as e: print(f"FB Posting Error: {e}")
+        # E. FACEBOOK AUTO-POST (After Save)
+        if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
+            # transaction.on_commit ensures the DB is updated before FB tries to fetch the link
+            transaction.on_commit(lambda: self.post_to_fb_handler())
+
+    def post_to_fb_handler(self):
+        if post_to_facebook(self):
+            News.objects.filter(id=self.id).update(is_fb_posted=True)
 
     def __str__(self):
         return f"{self.title} | ({self.district})"
 
 
-# --- 3. MULTI-IMAGE MODEL (News ke beech/neeche ke liye) ---
+# --- 3. MULTI-IMAGE MODEL ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="news_pics/")
-    image_url = models.URLField(max_length=500, blank=True, null=True) # Extra images bhi ImgBB par jayengi
+    image_url = models.URLField(max_length=500, blank=True, null=True)
     caption = models.CharField(max_length=200, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # Additional images ko bhi ImgBB par bhejne ka logic
         if self.image and not self.image_url:
             try:
-                # process_and_upload_to_imgbb ko self pass kar rahe hain
                 link = process_and_upload_to_imgbb(self) 
                 if link: self.image_url = link
             except Exception as e: print(f"Extra Image Upload Error: {e}")
