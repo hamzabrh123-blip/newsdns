@@ -8,7 +8,6 @@ import gc
 # --- 1. Thumbnail Optimization (Using Cloudinary as Proxy for Speed) ---
 def get_optimized_url(url, width=100, height=100, crop="fill"):
     if not url: return ""
-    # ImgBB की इमेज को Cloudinary के जरिए तेज लोड करने के लिए
     cloud_name = "dvoqsrkkq" 
     if "res.cloudinary.com" not in url:
         return f"https://res.cloudinary.com/{cloud_name}/image/fetch/f_auto,q_auto,w_{width},h_{height},c_{crop}/{url}"
@@ -32,7 +31,6 @@ class NewsAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # एडिट करते समय पुराने डिस्ट्रिक्ट को ड्रॉपडाउन में दिखाना
         if self.instance and self.instance.district:
             dist = self.instance.district
             if any(dist == x[0] for x in UP_DISTRICTS):
@@ -78,15 +76,16 @@ class NewsAdmin(admin.ModelAdmin):
     form = NewsAdminForm
     inlines = [NewsImageInline]
     
-    # List View Settings
-    list_display = ('display_thumb', 'get_title_styled', 'district', 'category', 'get_status_badge', 'date')
+    # FIX: 'status' ko list_display mein add kiya taaki list_editable kaam kare
+    list_display = ('display_thumb', 'get_title_styled', 'district', 'category', 'status', 'get_status_badge', 'date')
     list_filter = ('status', 'district', 'category', 'date')
     search_fields = ('title', 'content')
+    
+    # Status edit tabhi hoga jab wo list_display mein bhi ho
     list_editable = ('status',)
     list_per_page = 20
     readonly_fields = ('category', 'url_city', 'image_url', 'is_fb_posted', 'display_large_img')
 
-    # Admin UI Layout
     fieldsets = (
         ('मुख्य जानकारी (News Content)', {
             'fields': ('title', 'status', 'content'),
@@ -104,11 +103,10 @@ class NewsAdmin(admin.ModelAdmin):
         }),
         ('SEO और तारीख', {
             'fields': ('slug', 'date', 'meta_keywords'),
-            'classes': ('collapse',), # Hide by default
+            'classes': ('collapse',),
         }),
     )
 
-    # --- Custom Methods for Admin Display ---
     def get_title_styled(self, obj):
         important_tag = '<span style="color:red;font-weight:bold;">[Breaking]</span> ' if obj.is_important else ''
         highlight_tag = '<span style="color:orange;font-weight:bold;">[★]</span> ' if obj.show_in_highlights else ''
@@ -119,7 +117,7 @@ class NewsAdmin(admin.ModelAdmin):
         colors = {'Published': '#28a745', 'Draft': '#ffc107'}
         return format_html('<span style="background:{}; color:white; padding:3px 8px; border-radius:10px; font-size:11px;">{}</span>', 
                            colors.get(obj.status, '#6c757d'), obj.status)
-    get_status_badge.short_description = "Status"
+    get_status_badge.short_description = "Badge"
 
     def display_thumb(self, obj):
         img_url = obj.image_url if obj.image_url else (obj.image.url if obj.image else None)
@@ -133,19 +131,18 @@ class NewsAdmin(admin.ModelAdmin):
         img_url = obj.image_url if obj.image_url else (obj.image.url if obj.image else None)
         if img_url:
             optimized = get_optimized_url(img_url, width=400, height=250, crop="limit")
-            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;box-shadow: 0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">ImgBB Hosted URL: {}</p></div>', optimized, obj.image_url)
+            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;box-shadow: 0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">ImgBB URL: {}</p></div>', optimized, obj.image_url)
         return "Upload a photo to see preview"
     display_large_img.short_description = "Live Preview"
 
-    # --- Memory Optimized Saving ---
     def save_model(self, request, obj, form, change):
         obj.district = form.cleaned_data.get('district')
         super().save_model(request, obj, form, change)
-        gc.collect() # 512MB RAM Cleanup
+        gc.collect()
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-        gc.collect() # 512MB RAM Cleanup
+        gc.collect()
 
 # --- 5. Sidebar Widget Admin ---
 @admin.register(SidebarWidget)
