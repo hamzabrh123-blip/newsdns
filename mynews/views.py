@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from .utils import extract_video_id
-from .models import News, SidebarWidget  # SidebarWidget model add kiya
+from .models import News, SidebarWidget 
 
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
@@ -22,11 +22,9 @@ def fb_news_api(request):
         })
     return JsonResponse(data, safe=False)
 
-# --- Common Sidebar Data (Updated for Dynamic Sidebar) ---
+# --- Common Sidebar Data ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published')
-    
-    # Ye data models.py ke SidebarWidget se aa raha hai
     sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
     
     return {
@@ -43,7 +41,6 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # Section Wise Data Filtering
         international_news = all_news.filter(district__iexact="International")[:7]
         national_labels = ['National', 'Delhi', 'Other-States']
         national_news = all_news.filter(district__in=national_labels)[:13]
@@ -57,12 +54,9 @@ def home(request):
             "national_news": national_news,
             "up_news": up_news_qs, 
             "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood'])[:10],
-            
-            # FIXED: Alag-alag sections for Home
             "market_news": all_news.filter(district__iexact='Market')[:8],
             "tech_news": all_news.filter(district__iexact='Technology')[:8],
             "sports_news": all_news.filter(district__iexact="Sports")[:8],
-            
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -72,17 +66,35 @@ def home(request):
         logger.error(f"Home Error: {e}")
         return HttpResponse("Server Error")
 
-# --- 2. NEWS DETAIL PAGE ---
+# --- 2. NEWS DETAIL PAGE (FIXED FOR SMART RELATED NEWS) ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     video_url = news.youtube_url.strip() if news.youtube_url else None
     v_id = extract_video_id(video_url)
     
-    # NewsDetail page par context processor aur sidebar logic
+    # स्मार्ट फ़िल्टर: पहले उसी जिला (District) की खबरें खोजो जो अभी पढ़ी जा रही है
+    related_news = News.objects.filter(
+        status='Published', 
+        district=news.district
+    ).exclude(id=news.id).order_by('-date')[:6]
+    
+    # अगर उस जिला में ज्यादा खबरें नहीं हैं, तो उसी कैटेगरी (Category) की खबरें उठाओ
+    if related_news.count() < 4:
+        category_news = News.objects.filter(
+            status='Published',
+            category=news.category
+        ).exclude(id=news.id).exclude(id__in=[n.id for n in related_news]).order_by('-date')[:6 - related_news.count()]
+        related_news = list(related_news) + list(category_news)
+
+    # अगर फिर भी खबरें कम हैं (जैसे नई कैटेगरी), तो लेटेस्ट ताज़ा खबरें दिखा दो
+    if len(related_news) < 4:
+        latest_news = News.objects.filter(status='Published').exclude(id=news.id).exclude(id__in=[n.id for n in related_news]).order_by('-date')[:6 - len(related_news)]
+        related_news = list(related_news) + list(latest_news)
+    
     context = {
         "news": news,
         "v_id": v_id,
-        "related_news": News.objects.filter(status='Published').exclude(id=news.id).order_by('?')[:6],
+        "related_news": related_news, 
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
@@ -109,7 +121,7 @@ def district_news(request, district):
         **get_common_sidebar_data()
     })
 
-# --- 4. UTILS & SEO ---
+# --- 4. SEO VIEWS ---
 def sitemap_xml(request):
     items = News.objects.filter(status='Published').order_by('-date')[:500]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
