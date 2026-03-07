@@ -81,15 +81,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (SSL FIX FOR RENDER) ---
+# --- DATABASE (RENDER SSL FIXED) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True if not DEBUG else False
     )
 }
 
+# Render के डेटाबेस के लिए SSL सेटिंग्स को साफ़ तौर पर यहाँ जोड़ें
+if not DEBUG:
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
