@@ -3,10 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
-from django.utils.html import strip_tags
 from .utils import extract_video_id
-from .models import News
-from .constants import LOCATION_DATA
+from .models import News, SidebarWidget  # SidebarWidget model add kiya
 
 logger = logging.getLogger(__name__)
 SITE_URL = "https://uttarworld.com"
@@ -24,25 +22,19 @@ def fb_news_api(request):
         })
     return JsonResponse(data, safe=False)
 
-# --- Common Sidebar Data ---
+# --- Common Sidebar Data (Updated for Dynamic Sidebar) ---
 def get_common_sidebar_data():
     published = News.objects.filter(status='Published')
-    used_districts = published.values_list('district', flat=True).distinct()
-    dynamic_cities = []
-
-    exclude_keys = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi', 'Other-States']
-
-    for eng, hin, cat_slug in LOCATION_DATA:
-        if eng in used_districts and eng not in exclude_keys:
-            dynamic_cities.append({'id': eng, 'name': hin})
-
+    
+    # Ye data models.py ke SidebarWidget se aa raha hai
+    sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
+    
     return {
+        "sidebar_widgets": sidebar_widgets,
         "up_sidebar": published.exclude(district__in=['International', 'Sports', 'Market']).order_by("-date")[:10],
-        "bharat_sidebar": published.filter(district__iexact="National")[:5],
-        "world_sidebar": published.filter(district__iexact="International")[:5],
-        "bazaar_sidebar": published.filter(district__iexact="Market")[:5],
-        "sports_sidebar": published.filter(district__iexact="Sports")[:5],
-        "dynamic_up_cities": dynamic_cities,
+        "world_sidebar": published.filter(district__iexact="International").order_by("-date")[:5],
+        "bazaar_sidebar": published.filter(district__iexact="Market").order_by("-date")[:5],
+        "sports_sidebar": published.filter(district__iexact="Sports").order_by("-date")[:5],
     }
 
 # --- 1. HOME PAGE ---
@@ -51,6 +43,7 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
+        # Section Wise Data Filtering
         international_news = all_news.filter(district__iexact="International")[:7]
         national_labels = ['National', 'Delhi', 'Other-States']
         national_news = all_news.filter(district__in=national_labels)[:13]
@@ -63,9 +56,13 @@ def home(request):
             "international_news": international_news,
             "national_news": national_news,
             "up_news": up_news_qs, 
-            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood']).order_by("-date")[:10],
-            "tech_market_news": all_news.filter(district__in=['Technology', 'Market']).order_by("-date")[:9],
-            "sports_news": all_news.filter(district__iexact="Sports")[:3],
+            "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood'])[:10],
+            
+            # FIXED: Alag-alag sections for Home
+            "market_news": all_news.filter(district__iexact='Market')[:8],
+            "tech_news": all_news.filter(district__iexact='Technology')[:8],
+            "sports_news": all_news.filter(district__iexact="Sports")[:8],
+            
             "other_news": Paginator(all_news, 10).get_page(request.GET.get('page')),
             "meta_description": "Uttar World News: Latest breaking news from UP, India and World.",
             **common_data
@@ -73,20 +70,15 @@ def home(request):
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse(f"Server Error")
+        return HttpResponse("Server Error")
 
-
+# --- 2. NEWS DETAIL PAGE ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
-    
-    # .strip() लगा दो ताकि एक्स्ट्रा स्पेस की वजह से Regex फेल न हो
     video_url = news.youtube_url.strip() if news.youtube_url else None
-    
     v_id = extract_video_id(video_url)
     
-    # --- DEBUGGING के लिए (इसे बाद में हटा देना) ---
-    # print(f"DEBUG: URL is {video_url} and ID is {v_id}")
-    
+    # NewsDetail page par context processor aur sidebar logic
     context = {
         "news": news,
         "v_id": v_id,
@@ -94,8 +86,6 @@ def news_detail(request, url_city, slug):
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
-
 
 # --- 3. DISTRICT/CATEGORY VIEW ---
 def district_news(request, district):
@@ -134,14 +124,8 @@ def robots_txt(request):
 def ads_txt(request): 
     return HttpResponse("google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0", content_type="text/plain")
 
-# --- 5. STATIC PAGES (Jisse build pass hogi) ---
+# --- 5. STATIC PAGES ---
 def privacy_policy(request): return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
-
-
-
-
-
-
