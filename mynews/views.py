@@ -55,12 +55,12 @@ def home(request):
             "meta_description": "Uttar World News: उत्तर प्रदेश, भारत और दुनिया की ताज़ा ब्रेकिंग न्यूज़ और लाइव अपडेट।",
             **common_data
         }
-        # ध्यान दें: अगर आपकी फाइल का नाम index.html है तो यहाँ वही रखें
-        return render(request, "mynews/index.html", context)
+        # ध्यान दें: अगर आपकी फाइल का नाम home.html है तो यहाँ वही रखें
+        return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
         # अगर डेटाबेस एरर है तो कम से कम खाली पेज लोड हो जाए क्रैश न हो
-        return render(request, "mynews/index.html", {"error": "News loading..."})
+        return render(request, "mynews/home.html", {"error": "News loading..."})
 
 # --- 3. SEO & TEXT FILES (Corrected) ---
 def robots_txt(request):
@@ -133,3 +133,4 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
