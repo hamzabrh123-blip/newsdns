@@ -3,6 +3,7 @@
 
 {% block content %}
 <style>
+    .hidden-h1 { position: absolute; left: -9999px; } /* SEO के लिए H1 */
     .container-custom { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
     body { background-color: #f8f9fa !important; font-family: 'Poppins', 'Mukta', sans-serif; }
 
@@ -37,6 +38,7 @@
 </style>
 
 <div class="container-custom mt-4">
+    <h1 class="hidden-h1">Uttar World - उत्तर प्रदेश और देश-दुनिया की ताज़ा खबरें</h1>
     <div class="row">
         <div class="col-lg-9">
             
@@ -170,3 +172,4 @@
     </div>
 </div>
 {% endblock %}
+
