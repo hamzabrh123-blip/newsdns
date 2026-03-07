@@ -7,6 +7,7 @@ from .utils import extract_video_id
 from .models import News, SidebarWidget 
 
 logger = logging.getLogger(__name__)
+
 # पक्का करें कि यहाँ अंत में / न हो
 SITE_URL = "https://uttarworld.com"
 
@@ -15,6 +16,7 @@ def get_common_sidebar_data():
     """साइडबार के लिए डेटा लोड करना - Try-Except के साथ सुरक्षित"""
     try:
         published = News.objects.filter(status='Published')
+        # अगर टेबल नहीं बनी होगी तो यह हिस्सा खाली डिक्शनरी देगा, क्रैश नहीं होगा
         sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
         
         return {
@@ -26,9 +28,15 @@ def get_common_sidebar_data():
         }
     except Exception as e:
         logger.error(f"Sidebar Data Error: {e}")
-        return {}
+        return {
+            "sidebar_widgets": [],
+            "up_sidebar": [],
+            "world_sidebar": [],
+            "bazaar_sidebar": [],
+            "sports_sidebar": [],
+        }
 
-# --- 2. HOME PAGE (Template Name Fix) ---
+# --- 2. HOME PAGE ---
 def home(request):
     try:
         common_data = get_common_sidebar_data()
@@ -55,16 +63,13 @@ def home(request):
             "meta_description": "Uttar World News: उत्तर प्रदेश, भारत और दुनिया की ताज़ा ब्रेकिंग न्यूज़ और लाइव अपडेट।",
             **common_data
         }
-        # ध्यान दें: अगर आपकी फाइल का नाम home.html है तो यहाँ वही रखें
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        # अगर डेटाबेस एरर है तो कम से कम खाली पेज लोड हो जाए क्रैश न हो
-        return render(request, "mynews/home.html", {"error": "News loading..."})
+        return HttpResponse(f"सर्वर में समस्या है: {e}", status=500)
 
-# --- 3. SEO & TEXT FILES (Corrected) ---
+# --- 3. SEO & TEXT FILES ---
 def robots_txt(request):
-    # इसमें Sitemap की URL एकदम सही फॉर्मेट में होनी चाहिए
     lines = [
         "User-Agent: *",
         "Allow: /",
@@ -73,22 +78,23 @@ def robots_txt(request):
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 def ads_txt(request): 
-    # AdSense के लिए एकदम सटीक फॉर्मेट
     content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
 
 def sitemap_xml(request):
-    items = News.objects.filter(status='Published').order_by('-date')[:500]
-    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    for n in items:
-        city_path = n.url_city if n.url_city else "news"
-        # URL के बीच में डबल स्लैश रोकने के लिए rstrip
-        xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
-    xml += '</urlset>'
-    return HttpResponse(xml, content_type="application/xml")
+    try:
+        items = News.objects.filter(status='Published').order_by('-date')[:500]
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        for n in items:
+            city_path = n.url_city if n.url_city else "news"
+            xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+        xml += '</urlset>'
+        return HttpResponse(xml, content_type="application/xml")
+    except Exception as e:
+        return HttpResponse(str(e), content_type="text/plain")
 
-# --- 4. OTHER VIEWS (Unchanged but Safe) ---
+# --- 4. OTHER VIEWS ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = extract_video_id(news.youtube_url) if news.youtube_url else None
@@ -133,4 +139,3 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
-
