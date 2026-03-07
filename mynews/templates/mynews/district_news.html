@@ -17,7 +17,7 @@
                     <div class="header-left">
                         <nav aria-label="breadcrumb" class="small mb-1">
                             <ol class="breadcrumb mb-0">
-                                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Home</a></li>
+                                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
                                 <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">{{ district }}</li>
                             </ol>
                         </nav>
@@ -84,13 +84,9 @@
                         </div>
                     </article>
                 </div>
-
                 {% empty %}
-                <div class="col-12 text-center py-5 no-news-box bg-white shadow-sm rounded-4 border-0">
-                    <img src="https://cdn-icons-png.flaticon.com/512/6108/6108830.png" style="width: 80px; opacity: 0.3;" class="mb-3">
-                    <h5 class="text-muted fw-bold">खबरें अभी अपडेट हो रही हैं!</h5>
-                    <p class="text-secondary small">{{ district }} के लिए जल्द ही नई खबरें यहाँ दिखाई देंगी।</p>
-                    <a href="/" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">मुख्य समाचार देखें</a>
+                <div class="col-12 text-center py-5">
+                    <h5 class="text-muted">अभी इस क्षेत्र की खबरें अपडेट की जा रही हैं।</h5>
                 </div>
                 {% endfor %}
             </div>
@@ -101,7 +97,6 @@
                     {% if page_obj.has_previous %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
                     {% endif %}
-                    
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
                             <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
@@ -109,7 +104,6 @@
                             <li class="page-item d-none d-md-block"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
-
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
                     {% endif %}
@@ -119,7 +113,7 @@
 
         </div>
 
-        <div class="col-lg-4 mt-4 mt-lg-0">
+        <div class="col-lg-4">
             <div class="sticky-sidebar">
                 {% include 'mynews/sidebar.html' %}
             </div>
@@ -128,7 +122,6 @@
 </div>
 
 <style>
-    /* Clean Styles - Ads CSS Removed */
     .fw-black { font-weight: 900; }
     .card-title-fixed { 
         font-size: 1.15rem; 
@@ -140,36 +133,31 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    /* Content styling for 70 words */
     .excerpt-v2 { 
         font-size: 0.95rem; 
         color: #555 !important; 
         line-height: 1.6;
+        text-align: justify;
+        /* Line clamp removed or increased to allow more text */
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 5; 
         -webkit-box-orient: vertical;
         overflow: hidden;
+        min-height: 7.5em; /* content area consistent rahega */
     }
     .img-container { height: 210px; border-radius: 12px 12px 0 0; }
     .news-card-v2 { border-radius: 12px; transition: 0.3s ease-in-out; background: #fff; }
     .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
-    .small-font { font-size: 0.8rem; }
     .sticky-sidebar { position: sticky; top: 100px; }
-    
     .pulse-dot { width: 10px; height: 10px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
-    
     .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
     .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
-
-    @media (max-width: 768px) {
-        .card-title-fixed { font-size: 1.05rem; }
-        .img-container { height: 180px; }
-    }
 </style>
 {% endblock %}
-
