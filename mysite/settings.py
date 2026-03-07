@@ -13,10 +13,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 ALLOWED_HOSTS = [
     "uttarworld.com", 
     "www.uttarworld.com", 
+    "newsdns.onrender.com", # आपका स्पेसिफिक रेंडर URL
     ".onrender.com", 
     "localhost", 
     "127.0.0.1",
-    "newsdns.onrender.com"
+    "*"  # अस्थायी रूप से इसे जोड़ें, अगर पेज खुल जाए तो समझिये होस्ट की ही दिक्कत थी
 ]
 
 # --- SSL & CSRF Fix (Render Production) ---
@@ -27,10 +28,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://uttarworld.com", 
-    "https://www.uttarworld.com", 
-    "https://newsdns.onrender.com",
-    "https://*.onrender.com" 
+    "https://uttarworld.com",
+    "https://www.uttarworld.com",
+    "https://newsdns.onrender.com"
 ]
 
 # --- INSTALLED APPS ---
