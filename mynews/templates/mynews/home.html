@@ -98,6 +98,9 @@
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="small-title">{{ item.title|safe }}</h3>
                                     </a>
+                                    <p class="small-news-summary">
+                                        {{ item.content|striptags|safe|truncatewords:20 }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -135,6 +138,9 @@
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="small-title">{{ item.title|safe }}</h3>
                                     </a>
+                                     <p class="small-news-summary">
+                                        {{ item.content|striptags|safe|truncatewords:20 }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -169,6 +175,9 @@
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="small-title" style="font-size: 0.95rem;">{{ item.title|safe|truncatechars:80 }}</h3>
                                     </a>
+                                    <p class="small-news-summary">
+                                        {{ item.content|striptags|safe|truncatewords:20 }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -186,6 +195,9 @@
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                     <h3 class="small-title">{{ item.title|safe }}</h3>
                                 </a>
+                                     <p class="small-news-summary">
+                                        {{ item.content|striptags|safe|truncatewords:20 }}
+                                    </p>
                             </div>
                         </div>
                     </div>
@@ -202,3 +214,4 @@
     </div>
 </div>
 {% endblock %}
+
