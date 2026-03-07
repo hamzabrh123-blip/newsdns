@@ -4,10 +4,20 @@
 {% block content %}
 
 <style>
-    /* 1. SEO & Base */
+    /* 1. SEO & Base Fixes for Mobile Stability */
     .hidden-h1 { position: absolute; left: -9999px; } 
-    .container-custom { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
-    body { background-color: #f8f9fa !important; font-family: 'Poppins', 'Mukta', sans-serif; }
+    .container-custom { 
+        max-width: 1250px; 
+        margin: 0 auto; 
+        padding: 0 15px; 
+        overflow: hidden; /* बाहरी फैलाव रोकता है */
+    }
+    body { 
+        background-color: #f8f9fa !important; 
+        font-family: 'Poppins', 'Mukta', sans-serif;
+        overflow-x: hidden; /* सबसे ज़रूरी: पूरी बॉडी को लॉक करता है */
+        width: 100%;
+    }
 
     /* 2. Section Titles */
     .section-title { 
@@ -15,45 +25,70 @@
         padding: 8px 15px; 
         font-weight: 900; 
         color: #1a1a1a; 
-        margin: 40px 0 20px; 
+        margin: 30px 0 15px; 
         background: #fff; 
         text-transform: uppercase; 
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    .section-title a { font-size: 0.8rem; color: #d32f2f; text-decoration: none; }
 
-    /* 3. News Box Base */
-    .news-box { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; transition: 0.3s; display: flex; flex-direction: column; height: 100%; }
-    .news-box:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.12); }
+    /* 3. News Box Base (Responsive Fix) */
+    .news-box { 
+        background: #fff; 
+        border-radius: 8px; 
+        overflow: hidden; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+        margin-bottom: 20px; 
+        transition: 0.3s; 
+        display: flex; 
+        flex-direction: column; 
+        height: 100%; 
+        width: 100%; /* डब्बे को स्क्रीन के अंदर रखता है */
+    }
     .news-box img { width: 100%; object-fit: cover; background: #eee; }
-    .news-box-content { padding: 15px; }
+    .news-box-content { padding: 12px; flex-grow: 1; }
     
-    /* 4. Headings Styling */
+    /* 4. Headings & List View Fix */
     .big-news-box img { height: 380px; }
-    .big-title { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-top: 10px; line-height: 1.3; }
-    .small-title { font-size: 1.05rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
+    .big-title { font-size: 1.7rem; font-weight: 800; color: #1a1a1a; margin-top: 10px; line-height: 1.3; }
+    .small-title { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; word-wrap: break-word; }
 
-    .news-summary { color: #555; font-size: 1rem; line-height: 1.6; }
-    .list-news-box { flex-direction: row !important; min-height: 110px; border-bottom: 1px solid #eee; border-radius: 0; box-shadow: none; margin-bottom: 10px; }
-    .list-news-box img { width: 120px; height: 90px; flex-shrink: 0; border-radius: 4px; margin: 10px; }
-    .list-news-box:hover { transform: none; background: #fdfdfd; }
+    /* LIST BOX FIX: मोबाइल पर इसे Row से वापस Column कर देगा अगर जगह कम होगी */
+    .list-news-box { 
+        flex-direction: row !important; 
+        min-height: 110px; 
+        border-bottom: 1px solid #eee; 
+        border-radius: 8px; 
+        box-shadow: none; 
+        margin-bottom: 12px;
+        background: #fff;
+    }
+    .list-news-box img { width: 110px; height: 90px; flex-shrink: 0; border-radius: 6px; margin: 10px; object-fit: cover; }
 
-    .home-ad-slot { background: #ffffff; border: 1px dashed #ddd; padding: 10px; margin: 30px 0; text-align: center; border-radius: 8px; }
+    /* Ads Optimization */
+    .home-ad-slot { background: #ffffff; border: 1px dashed #ddd; padding: 10px; margin: 20px 0; text-align: center; border-radius: 8px; overflow: hidden; }
     
-    /* Category Specific Colors */
-    .title-sports { border-left-color: #2e7d32; } /* Green */
-    .title-tech { border-left-color: #1565c0; }   /* Blue */
-    .title-market { border-left-color: #ff8f00; } /* Orange */
-
+    /* ============================================================
+       MOBILE FIXES (768px and below)
+       ============================================================ */
     @media (max-width: 768px) {
-        .big-news-box img { height: 220px; }
-        .big-title { font-size: 1.4rem; }
-        .list-news-box img { width: 100px; height: 80px; }
-        .small-title { font-size: 0.95rem; }
+        .container-custom { padding: 0 10px; } /* मोबाइल पर साइड स्पेस कम */
+        .big-news-box img { height: 210px; }
+        .big-title { font-size: 1.3rem; }
+        
+        /* मोबाइल पर लिस्ट वाली फोटो को छोटा करें ताकि टेक्स्ट को जगह मिले */
+        .list-news-box img { width: 90px; height: 75px; margin: 8px; }
+        .small-title { font-size: 0.9rem; }
+        .news-box-content { padding: 10px; }
+
+        /* अगर मोबाइल बहुत छोटा है तो Row को Column कर दें ताकि कंटेंट न दबे */
+        @media (max-width: 400px) {
+            .list-news-box { flex-direction: column !important; height: auto; }
+            .list-news-box img { width: 100%; height: 180px; margin: 0; border-radius: 8px 8px 0 0; }
+        }
     }
 </style>
 
@@ -213,3 +248,4 @@
 </script>
 
 {% endblock %}
+
