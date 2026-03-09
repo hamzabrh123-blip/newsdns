@@ -108,7 +108,7 @@ ins.adsbygoogle:empty {
     <div class="row">
         <div class="col-lg-9">
             
-            <h2 class="section-title">अंतरराष्ट्रीय (International)</h2>
+            <h2 class="section-title">अंतरराष्ट्रीय (International)  <a href="/category/International/">View All</a></h2>
             <div class="row">
                 {% for item in international_news|slice:":5" %}
                     {% if forloop.first %}
@@ -145,7 +145,7 @@ ins.adsbygoogle:empty {
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506" data-ad-format="auto"></ins>
             </div>
 
-            <h2 class="section-title title-sports">खेल जगत (Sports) <a href="/sports/">View All</a></h2>
+            <h2 class="section-title title-sports">खेल जगत (Sports) <a href="/category/sports/">View All</a></h2>
             <div class="row">
                 {% for item in sports_news|slice:":4" %}
                 <div class="col-md-6 col-12 mb-3">
@@ -258,5 +258,6 @@ ins.adsbygoogle:empty {
 </script>
 
 {% endblock %}
+
 
 
