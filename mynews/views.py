@@ -98,11 +98,19 @@ def sitemap_xml(request):
     except Exception as e:
         return HttpResponse(str(e), content_type="text/plain")
 
-# --- 4. NEWS DETAIL ---
+# --- 4. NEWS DETAIL (Original v_id Logic Restored) ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
-    v_id = extract_video_id(news.youtube_url) if news.youtube_url else None
     
+    # आपका वही पुराना Regex जो 100% सही ID निकालता है
+    v_id = None
+    if news.youtube_url:
+        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+        match = re.search(regex, news.youtube_url)
+        if match: 
+            v_id = match.group(1)
+    
+    # रिलेटेड न्यूज़ और मेटा डिस्क्रिप्शन (नया वाला बेहतर तरीका)
     related_news = News.objects.filter(status='Published', district=news.district).exclude(id=news.id).order_by('-date')[:6]
     
     clean_text = re.sub('<[^<]+?>', '', news.content) if news.content else ""
@@ -110,13 +118,12 @@ def news_detail(request, url_city, slug):
 
     context = {
         "news": news,
-        "v_id": v_id,
+        "v_id": v_id,  # यही असली ID HTML में जाएगी
         "related_news": related_news, 
         "meta_description": meta_desc or news.title,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
 # --- 5. CATEGORY/DISTRICT PAGE (FIXED FOR UP) ---
 def district_news(request, district):
     # '-' को स्पेस में बदलें (जैसे Uttar-Pradesh -> Uttar Pradesh)
@@ -155,4 +162,5 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
