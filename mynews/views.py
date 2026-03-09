@@ -16,12 +16,11 @@ def get_common_sidebar_data():
     """साइडबार के लिए डेटा लोड करना - Try-Except के साथ सुरक्षित"""
     try:
         published = News.objects.filter(status='Published')
-        # अगर टेबल नहीं बनी होगी तो यह हिस्सा खाली डिक्शनरी देगा, क्रैश नहीं होगा
         sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
         
         return {
             "sidebar_widgets": sidebar_widgets,
-            "up_sidebar": published.exclude(district__in=['International', 'Sports', 'Market']).order_by("-date")[:10],
+            "up_sidebar": published.exclude(district__in=['International', 'Sports', 'Market', 'National', 'Bollywood', 'Technology']).order_by("-date")[:10],
             "world_sidebar": published.filter(district__iexact="International").order_by("-date")[:5],
             "bazaar_sidebar": published.filter(district__iexact="Market").order_by("-date")[:5],
             "sports_sidebar": published.filter(district__iexact="Sports").order_by("-date")[:5],
@@ -47,7 +46,7 @@ def home(request):
         national_labels = ['National', 'Delhi', 'Other-States']
         national_news = all_news.filter(district__in=national_labels)[:13]
 
-        non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market']
+        non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']
         up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:37]
 
         context = {
@@ -94,7 +93,7 @@ def sitemap_xml(request):
     except Exception as e:
         return HttpResponse(str(e), content_type="text/plain")
 
-# --- 4. OTHER VIEWS ---
+# --- 4. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
     v_id = extract_video_id(news.youtube_url) if news.youtube_url else None
@@ -113,13 +112,24 @@ def news_detail(request, url_city, slug):
     }
     return render(request, "mynews/news_detail.html", context)
 
+# --- 5. CATEGORY/DISTRICT PAGE (FIXED FOR UP) ---
 def district_news(request, district):
+    # '-' को स्पेस में बदलें (जैसे Uttar-Pradesh -> Uttar Pradesh)
     clean_district = district.replace('-', ' ')
-    news_list = News.objects.filter(status='Published').filter(
-        Q(district__iexact=clean_district) | 
-        Q(url_city__iexact=district) | 
-        Q(category__iexact=clean_district)
-    ).order_by("-date")
+    
+    all_published = News.objects.filter(status='Published')
+
+    # अगर "Uttar Pradesh" पेज माँगा गया है, तो सभी जिलों की खबर दिखाओ
+    if clean_district.lower() == 'uttar pradesh':
+        non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']
+        news_list = all_published.exclude(district__in=non_up_labels).exclude(district__isnull=True).order_by("-date")
+    else:
+        # किसी खास जिले या कैटेगरी के लिए फ़िल्टर
+        news_list = all_published.filter(
+            Q(district__iexact=clean_district) | 
+            Q(url_city__iexact=district) | 
+            Q(category__iexact=clean_district)
+        ).order_by("-date")
     
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -130,6 +140,7 @@ def district_news(request, district):
         **get_common_sidebar_data()
     })
 
+# --- 6. OTHER VIEWS ---
 def fb_news_api(request):
     news_list = News.objects.filter(status='Published').order_by('-date')[:20]
     data = [{'id': n.id, 'title': n.title, 'url': f"{SITE_URL}/{n.url_city or 'news'}/{n.slug}/"} for n in news_list]
