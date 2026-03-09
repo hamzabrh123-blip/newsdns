@@ -5,6 +5,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
+    /* विज्ञापन न होने पर जगह न घेरे */
+ins.adsbygoogle[data-ad-status="unfilled"], 
+ins.adsbygoogle:empty {
+    display: none !important;
+    height: 0px !important;
+    margin: 0px !important;
+}
+
+/* अगर आपने विज्ञापन को किसी div में रखा है */
+.ad-slot-wrapper:empty {
+    display: none;
+}
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
 
