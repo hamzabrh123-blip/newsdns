@@ -13,17 +13,23 @@ SITE_URL = "https://uttarworld.com"
 
 # --- 1. COMMON DATA (Sidebar & Footer) ---
 def get_common_sidebar_data():
-    """साइडबार के लिए डेटा लोड करना - Try-Except के साथ सुरक्षित"""
+    """साइडबार के लिए डेटा लोड करना - Case-Insensitive और सुरक्षित"""
     try:
-        published = News.objects.filter(status='Published')
+        # सिर्फ लाइव खबरें लें
+        published = News.objects.filter(status='Published').order_by("-date")
         sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
         
+        # यूपी साइडबार: नेशनल, इंटरनेशनल, स्पोर्ट्स आदि को छोड़कर जो बचा वो यूपी का है
+        non_up_labels = ['International', 'National', 'Sports', 'Market', 'Bollywood', 'Hollywood', 'Technology', 'Delhi']
+        up_side = published.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:10]
+
         return {
             "sidebar_widgets": sidebar_widgets,
-            "up_sidebar": published.exclude(district__in=['International', 'Sports', 'Market', 'National', 'Bollywood', 'Technology']).order_by("-date")[:10],
-            "world_sidebar": published.filter(district__iexact="International").order_by("-date")[:5],
-            "bazaar_sidebar": published.filter(district__iexact="Market").order_by("-date")[:5],
-            "sports_sidebar": published.filter(district__iexact="Sports").order_by("-date")[:5],
+            "up_sidebar": up_side,
+            # __iexact इस्तेमाल करने से 'International' और 'international' दोनों काम करेंगे
+            "world_sidebar": published.filter(district__iexact="International")[:5],
+            "bazaar_sidebar": published.filter(district__iexact="Market")[:5],
+            "sports_sidebar": published.filter(district__iexact="Sports")[:5],
         }
     except Exception as e:
         logger.error(f"Sidebar Data Error: {e}")
@@ -34,7 +40,6 @@ def get_common_sidebar_data():
             "bazaar_sidebar": [],
             "sports_sidebar": [],
         }
-
 # --- 2. HOME PAGE ---
 def home(request):
     try:
@@ -150,3 +155,4 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
