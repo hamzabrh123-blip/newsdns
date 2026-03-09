@@ -50,9 +50,7 @@
 <aside class="sidebar-wrapper">
 
     {% for widget in sidebar_widgets %}
-        
         <div class="sidebar-box">
-            
             {% if widget.widget_type == 'AD' %}
                 <span class="ad-tag">ADVERTISEMENT</span>
                 <div class="text-center">
@@ -88,13 +86,31 @@
                 </div>
                 <a href="/" class="view-all-btn">ताज़ा खबरें देखें →</a>
             {% endif %}
-
-        </div>
-    {% empty %}
-        <div class="sidebar-box">
-            <p class="text-muted small text-center">No widgets active.</p>
         </div>
     {% endfor %}
+
+    {% if up_sidebar %}
+    <div class="sidebar-box">
+        <h5 class="box-title" style="border-color: #ffc107; color: #856404;">
+            <i class="fas fa-map-marker-alt"></i> उत्तर प्रदेश (UP)
+        </h5>
+        <div class="thumb-list">
+            {% for item in up_sidebar|slice:":8" %}
+            <div class="thumb-item d-flex align-items-start">
+                <div class="thumb-img">
+                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
+                </div>
+                <div class="thumb-content ms-2">
+                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
+                        {{ item.title|truncatechars:50 }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/category/Uttar-Pradesh/" class="view-all-btn">यूपी की खबरें देखें →</a>
+    </div>
+    {% endif %}
 
     {% if world_sidebar %}
     <div class="sidebar-box">
@@ -103,6 +119,28 @@
         </h5>
         <div class="thumb-list">
             {% for item in world_sidebar|slice:":5" %}
+            <div class="thumb-item d-flex align-items-start">
+                <div class="thumb-img">
+                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
+                </div>
+                <div class="thumb-content ms-2">
+                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
+                        {{ item.title|truncatechars:50 }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if bazaar_sidebar %}
+    <div class="sidebar-box">
+        <h5 class="box-title" style="border-color: #198754; color: #198754;">
+            <i class="fas fa-chart-line"></i> बाज़ार (Market)
+        </h5>
+        <div class="thumb-list">
+            {% for item in bazaar_sidebar|slice:":5" %}
             <div class="thumb-item d-flex align-items-start">
                 <div class="thumb-img">
                     <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" alt="{{ item.title }}">
