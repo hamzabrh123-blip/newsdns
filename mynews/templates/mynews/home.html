@@ -4,6 +4,16 @@
 {% block content %}
 
 <style>
+/* अगर एडसेंस का डिब्बा खाली है, तो उसे पूरी तरह छुपा दो */
+ins.adsbygoogle[data-ad-status="unfilled"], 
+ins.adsbygoogle:empty {
+    display: none !important;
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+    
     /* 1. SEO & Base Fixes for Mobile Stability */
     .hidden-h1 { position: absolute; left: -9999px; } 
     .container-custom { 
@@ -248,4 +258,5 @@
 </script>
 
 {% endblock %}
+
 
