@@ -64,7 +64,7 @@
                             </h2>
 
                             <div class="card-text text-muted small mb-3 excerpt-v2">
-                                {{ item.content|striptags|safe|truncatewords:70 }}
+                                {{ item.content|striptags|truncatewords:70 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -123,41 +123,51 @@
 
 <style>
     .fw-black { font-weight: 900; }
+    
     .card-title-fixed { 
         font-size: 1.15rem; 
         font-weight: 800; 
-        line-height: 1.4; 
-        min-height: 3.2em;
+        line-height: 1.5 !important; /* लाइन के बीच जगह बढ़ाई ताकि मात्राएं न कटें */
+        min-height: 3.4em;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        overflow: hidden;
+        overflow: visible !important; /* इसे visible रखा ताकि नीचे की मात्राएं दिखें */
+        margin-bottom: 10px;
     }
-    /* Content styling for 70 words */
+
     .excerpt-v2 { 
         font-size: 0.95rem; 
         color: #555 !important; 
         line-height: 1.6;
         text-align: justify;
-        /* Line clamp removed or increased to allow more text */
         display: -webkit-box;
-        -webkit-line-clamp: 5; 
+        -webkit-line-clamp: 4; 
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 7.5em; /* content area consistent rahega */
+        min-height: 6em;
     }
-    .img-container { height: 210px; border-radius: 12px 12px 0 0; }
+
+    .img-container { height: 210px; border-radius: 12px 12px 0 0; background: #f8f9fa; }
+    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
     .news-card-v2 { border-radius: 12px; transition: 0.3s ease-in-out; background: #fff; }
     .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+    .news-card-v2:hover .news-thumb { transform: scale(1.1); }
+
     .sticky-sidebar { position: sticky; top: 100px; }
+    
     .pulse-dot { width: 10px; height: 10px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
+
     .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
     .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
+    
+    .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 8px; color: #333; font-weight: 600; }
+    .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; }
 </style>
 {% endblock %}
