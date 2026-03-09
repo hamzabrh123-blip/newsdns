@@ -137,7 +137,11 @@ def post_to_facebook(instance):
 
 # --- 4. UTILITY FUNCTIONS ---
 def extract_video_id(url):
-    if not url: return None
-    regex = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})'
+    if not url: 
+        return None
+    # यह Regex सबसे पावरफुल है, जो हर तरह के YouTube लिंक से 11 अक्षरों की ID निकालता है
+    regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
     match = re.search(regex, url)
-    return match.group(1) if match else None
+    if match:
+        return match.group(1) # यही वो dQw4w9WgXcQ निकालेगा
+    return None
