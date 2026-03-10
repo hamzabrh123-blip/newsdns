@@ -1,0 +1,42 @@
+<div id="yt-player-container" style="display:none; margin-top: 20px;">
+    <div class="ratio-16x9">
+        <div id="player"></div>
+    </div>
+</div>
+
+<script>
+    // 1. YouTube API ko load karo
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+        // Django se sirf URL ya ID uthao
+        var videoUrl = "{{ news.youtube_url|default:'' }}"; 
+        var videoId = "";
+
+        if (videoUrl) {
+            // Regex se ID nikaalo (Frontend par)
+            var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            var match = videoUrl.match(regExp);
+            if (match && match[2].length == 11) {
+                videoId = match[2];
+            }
+        }
+
+        if (videoId) {
+            document.getElementById('yt-player-container').style.display = 'block';
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1,
+                    'rel': 0
+                }
+            });
+        }
+    }
+</script>
