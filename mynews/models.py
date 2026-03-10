@@ -1,5 +1,6 @@
 import uuid
 import os
+import re  # YouTube ID निकालने के लिए ज़रूरी
 from django.db import models, transaction
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -42,7 +43,11 @@ class News(models.Model):
     content = RichTextField(blank=True)
     image = models.ImageField(upload_to="temp_news/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
+    
+    # YouTube का असली खेल यहाँ है
     youtube_url = models.URLField(blank=True, null=True)
+    youtube_video_id = models.CharField(max_length=20, blank=True, null=True, editable=False) # यह ID ऑटोमैटिक भरेगी
+
     date = models.DateTimeField(default=now) 
     slug = models.SlugField(max_length=500, unique=True, blank=True)
     is_important = models.BooleanField(default=False, verbose_name="Breaking News?")
@@ -57,6 +62,16 @@ class News(models.Model):
         ordering = ['-date']
 
     def save(self, *args, **kwargs):
+        # 1. YouTube ID निकालना (dQw4w9WgXcQ वाला काम)
+        if self.youtube_url:
+            regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+            match = re.search(regex, self.youtube_url)
+            if match:
+                self.youtube_video_id = match.group(1)
+            else:
+                self.youtube_video_id = None
+
+        # 2. District, Category और City Slug सेट करना
         if self.district:
             d_val = str(self.district).strip()
             found = False
@@ -72,6 +87,7 @@ class News(models.Model):
             self.url_city = 'news'
             if not self.category: self.category = "Uttar Pradesh"
 
+        # 3. Slug बनाना
         if not self.slug:
             slug_base = unidecode(self.title)
             if not slug_base.strip():
@@ -80,8 +96,10 @@ class News(models.Model):
 
         is_new_image = True if self.image and not self.image_url else False
 
+        # 4. असली सेव (Super Save)
         super(News, self).save(*args, **kwargs)
 
+        # 5. Image Upload Logic
         if is_new_image:
             try:
                 new_url = process_and_upload_to_imgbb(self)
@@ -90,6 +108,7 @@ class News(models.Model):
             except Exception as e:
                 print(f"Auto Upload Error: {e}")
 
+        # 6. FB Auto-Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             try:
                 transaction.on_commit(lambda: self.post_to_fb_handler())
@@ -104,7 +123,7 @@ class News(models.Model):
         return self.title or "Untitled News"
 
 
-# --- 3. ADDITIONAL IMAGES (यह हिस्सा गायब था, जिसकी वजह से Error आ रहा था) ---
+# --- 3. ADDITIONAL IMAGES ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="temp_news/")
