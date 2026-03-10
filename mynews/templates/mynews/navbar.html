@@ -1,6 +1,6 @@
 {% load static %}
 
-<div class="py-1 d-none d-lg-block" style="background: #ffffff; font-size: 0.8rem; border-bottom: 1px solid #eee;">
+<div class="py-1 d-none d-lg-block" style="background: #ffffff; font-size: 0.8rem; border-bottom: 1px solid #eee; position: relative; z-index: 1060;">
     <div class="container d-flex justify-content-between align-items-center">
         <div id="google_translate_element"></div>
         <div class="social-links">
@@ -30,26 +30,11 @@
 
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                
-                <li class="nav-item">
-                    <a class="nav-link home-special-btn" href="{% url 'home' %}">HOME</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'International' %}">WORLD</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'National' %}">INDIA</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link text-nowrap" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'Delhi' %}">DELHI</a>
-                </li>
+                <li class="nav-item"><a class="nav-link home-special-btn text-center" href="{% url 'home' %}">HOME</a></li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'International' %}">WORLD</a></li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'National' %}">INDIA</a></li>
+                <li class="nav-item"><a class="nav-link menu-link text-nowrap" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a></li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'Delhi' %}">DELHI</a></li>
 
                 <li class="nav-item dropdown custom-dropdown">
                     <a class="nav-link menu-link dropdown-toggle" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -63,25 +48,15 @@
                     </ul>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'Technology' %}">TECH</a>
-                </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'Market' %}">MARKET</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{% url 'district_news' 'Sports' %}">SPORTS</a>
-                </li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'Technology' %}">TECH</a></li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'Market' %}">MARKET</a></li>
+                <li class="nav-item"><a class="nav-link menu-link" href="{% url 'district_news' 'Sports' %}">SPORTS</a></li>
             </ul>
 
             <form class="d-flex search-box-container" action="{% url 'home' %}" method="get">
                 <div class="input-group">
                     <input class="form-control border-0 px-3 search-input" type="search" name="q" placeholder="खोजें...">
-                    <button class="btn btn-warning search-btn" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <button class="btn btn-warning search-btn" type="submit"><i class="fas fa-search"></i></button>
                 </div>
             </form>
         </div>
@@ -89,91 +64,80 @@
 </nav>
 
 <style>
-    /* Navbar Background & Priority */
+    /* Navbar & Z-Index logic */
     .main-navbar-custom {
         background: linear-gradient(to right, #800000, #4a0000);
         padding: 0.4rem 0;
         border-bottom: 3px solid #ffcc00;
-        z-index: 1050 !important; /* Takki cards ke upar rahe */
+        z-index: 1050 !important;
     }
 
-    /* Brand Logo & Text */
-    .logo-glow { filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.5)); }
-    .brand-text-container { line-height: 1; }
-    .brand-title { color: white; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.5px; }
+    .navbar-collapse { overflow: visible !important; }
+
+    /* Logo & Text */
+    .logo-glow { filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.3)); }
+    .brand-title { color: white; font-weight: 800; font-size: 1.35rem; }
     .brand-subtitle { color: #ffcc00; letter-spacing: 5px; font-size: 0.65rem; font-weight: 900; }
 
-    /* Nav Links Styling */
+    /* Nav Links */
     .navbar-nav .nav-link {
         color: rgba(255,255,255,0.95) !important;
         font-size: 0.75rem;
         font-weight: 700;
-        text-transform: uppercase;
         padding: 0.6rem 12px !important;
-        transition: 0.3s;
-        position: relative;
+        text-transform: uppercase;
     }
 
-    .menu-link:hover { color: #ffcc00 !important; }
+    .home-special-btn { background-color: #ffcc00 !important; color: #000 !important; border-radius: 4px; margin-right: 8px; }
 
-    /* HOME Button */
-    .home-special-btn {
-        background-color: #ffcc00 !important;
-        color: #000 !important;
-        border-radius: 4px;
-        margin-right: 8px;
-    }
-
-    /* DROPDOWN FIXES FOR PC */
+    /* DROPDOWN PC FIX - Hover Logic */
     @media (min-width: 992px) {
-        /* Hover karne par menu khulega */
         .nav-item.dropdown:hover > .dropdown-menu {
-            display: block;
-            margin-top: 0;
+            display: block !important; /* Force show on hover */
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateY(0);
+            transition: all 0.3s ease;
         }
-        .dropdown-toggle::after {
-            transition: 0.3s;
-        }
-        .nav-item.dropdown:hover .dropdown-toggle::after {
-            transform: rotate(180deg);
-        }
+        .dropdown-toggle::after { transition: 0.3s; }
+        .nav-item.dropdown:hover .dropdown-toggle::after { transform: rotate(180deg); }
     }
 
-    .dropdown-menu { 
-        background-color: #ffffff; 
+    /* Dropdown Menu Appearance */
+    .dropdown-menu {
+        background-color: #ffffff !important;
         border-top: 4px solid #ffcc00 !important;
         border-radius: 0 0 8px 8px;
         padding: 0;
-        z-index: 1100 !important;
-        min-width: 200px;
+        margin-top: 0 !important;
+        min-width: 210px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;
+        z-index: 99999 !important; /* Always on top */
+        position: absolute;
     }
 
-    .dropdown-item { 
-        font-weight: 700; 
-        font-size: 0.75rem; 
-        color: #4a0000; 
-        padding: 12px 20px; 
-        border-bottom: 1px solid #f8f9fa; 
+    .dropdown-item {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: #4a0000 !important;
+        padding: 12px 20px !important;
+        border-bottom: 1px solid #f1f1f1;
+        transition: 0.2s;
     }
 
-    .dropdown-item:hover { 
-        background-color: #800000; 
-        color: #fff !important; 
+    .dropdown-item:hover {
+        background-color: #800000 !important;
+        color: #ffffff !important;
+    }
+
+    /* Mobile */
+    @media (max-width: 991px) {
+        .navbar-collapse { background: #4a0000; padding: 15px; border-radius: 0 0 15px 15px; margin-top: 5px; }
+        .dropdown-menu { background: #5a0000 !important; border: none !important; position: static !important; }
+        .dropdown-item { color: #fff !important; }
     }
 
     /* Search Box */
     .search-box-container .search-input { font-size: 0.8rem; border-radius: 20px 0 0 20px !important; height: 34px; }
     .search-box-container .search-btn { border-radius: 0 20px 20px 0 !important; height: 34px; background: #ffcc00; border: none; }
-
-    /* Mobile View Fixes */
-    @media (max-width: 991px) {
-        .navbar-collapse { 
-            background: #4a0000; 
-            padding: 20px; 
-            border-radius: 0 0 15px 15px; 
-            margin-top: 10px; 
-        }
-        .dropdown-menu { background: #5a0000; border: none; }
-        .dropdown-item { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    }
 </style>
