@@ -101,30 +101,15 @@ def sitemap_xml(request):
 
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
-    
-    # यह वाला कोड शायद आपने पहले लगाया था जो बिना किसी utils के चलता है
-    v_id = None
-    if news.youtube_url:
-        if 'youtu.be/' in news.youtube_url:
-            v_id = news.youtube_url.split('/')[-1].split('?')[0]
-        elif 'youtube.com/watch' in news.youtube_url:
-            import urllib.parse
-            parsed_url = urllib.parse.urlparse(news.youtube_url)
-            v_id = urllib.parse.parse_qs(parsed_url.query).get('v', [None])[0]
-        elif 'youtube.com/embed/' in news.youtube_url:
-            v_id = news.youtube_url.split('/')[-1].split('?')[0]
-        elif 'youtube.com/shorts/' in news.youtube_url:
-            v_id = news.youtube_url.split('/')[-1].split('?')[0]
 
+    related_news = News.objects.filter(status='Published', district=news.district).exclude(id=news.id).order_by('-date')[:6]
     context = {
         "news": news,
-        "v_id": v_id, 
-        "related_news": News.objects.filter(status='Published', district=news.district).exclude(id=news.id).order_by('-date')[:6],
+        "related_news": related_news, 
         "meta_description": news.title,
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
-
 
 
 # --- 5. CATEGORY/DISTRICT PAGE (FIXED FOR UP) ---
@@ -165,6 +150,7 @@ def privacy_policy(request): return render(request, "mynews/privacy_policy.html"
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
 def disclaimer(request): return render(request, "mynews/disclaimer.html", get_common_sidebar_data())
+
 
 
 
