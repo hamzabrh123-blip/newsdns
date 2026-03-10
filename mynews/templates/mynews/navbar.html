@@ -51,13 +51,15 @@
                     <a class="nav-link menu-link" href="{% url 'district_news' 'Delhi' %}">DELHI</a>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link menu-link dropdown-toggle" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown">
+                <li class="nav-item dropdown custom-dropdown">
+                    <a class="nav-link menu-link dropdown-toggle" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         ENTERTAINMENT
                     </a>
-                    <ul class="dropdown-menu border-0 shadow-lg">
+                    <ul class="dropdown-menu border-0 shadow-lg" aria-labelledby="entDropdown">
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Bollywood' %}">BOLLYWOOD</a></li>
                         <li><a class="dropdown-item" href="{% url 'district_news' 'Hollywood' %}">HOLLYWOOD</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'district_news' 'Entertainment' %}">ALL ENTERTAINMENT</a></li>
                     </ul>
                 </li>
 
@@ -87,17 +89,17 @@
 </nav>
 
 <style>
-    /* Navbar Background Gradient */
+    /* Navbar Background & Priority */
     .main-navbar-custom {
         background: linear-gradient(to right, #800000, #4a0000);
         padding: 0.4rem 0;
         border-bottom: 3px solid #ffcc00;
+        z-index: 1050 !important; /* Takki cards ke upar rahe */
     }
 
     /* Brand Logo & Text */
-    .logo-glow { filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.5)); transition: 0.3s; }
-    .logo-glow:hover { transform: scale(1.05); }
-    .brand-text-container { line-height: 1; cursor: default; user-select: none; pointer-events: none; }
+    .logo-glow { filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.5)); }
+    .brand-text-container { line-height: 1; }
     .brand-title { color: white; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.5px; }
     .brand-subtitle { color: #ffcc00; letter-spacing: 5px; font-size: 0.65rem; font-weight: 900; }
 
@@ -109,72 +111,69 @@
         text-transform: uppercase;
         padding: 0.6rem 12px !important;
         transition: 0.3s;
-        text-decoration: none !important; /* No Underline */
         position: relative;
     }
 
-    /* Hover Bottom Line Effect */
-    .menu-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: 5px;
-        left: 50%;
-        background-color: #ffcc00;
-        transition: 0.3s ease;
-        transform: translateX(-50%);
-    }
-    .menu-link:hover::after { width: 70%; }
     .menu-link:hover { color: #ffcc00 !important; }
 
-    /* HOME Button Style */
+    /* HOME Button */
     .home-special-btn {
         background-color: #ffcc00 !important;
         color: #000 !important;
         border-radius: 4px;
         margin-right: 8px;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
-    .home-special-btn:hover { background-color: #fff !important; transform: translateY(-1px); }
 
-    /* Dropdown Styling */
+    /* DROPDOWN FIXES FOR PC */
+    @media (min-width: 992px) {
+        /* Hover karne par menu khulega */
+        .nav-item.dropdown:hover > .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+        .dropdown-toggle::after {
+            transition: 0.3s;
+        }
+        .nav-item.dropdown:hover .dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
+    }
+
     .dropdown-menu { 
         background-color: #ffffff; 
         border-top: 4px solid #ffcc00 !important;
         border-radius: 0 0 8px 8px;
         padding: 0;
-    }
-    .dropdown-item { font-weight: 700; font-size: 0.75rem; color: #4a0000; padding: 12px 20px; border-bottom: 1px solid #f8f9fa; }
-    .dropdown-item:hover { background-color: #800000; color: #fff; }
-
-    /* Search Box styling */
-    .search-box-container .search-input {
-        font-size: 0.8rem;
-        border-radius: 20px 0 0 20px !important;
-        height: 34px;
-    }
-    .search-box-container .search-btn {
-        border-radius: 0 20px 20px 0 !important;
-        height: 34px;
-        display: flex;
-        align-items: center;
-        background: #ffcc00;
-        border: none;
+        z-index: 1100 !important;
+        min-width: 200px;
     }
 
-    /* Mobile Responsive Logic */
+    .dropdown-item { 
+        font-weight: 700; 
+        font-size: 0.75rem; 
+        color: #4a0000; 
+        padding: 12px 20px; 
+        border-bottom: 1px solid #f8f9fa; 
+    }
+
+    .dropdown-item:hover { 
+        background-color: #800000; 
+        color: #fff !important; 
+    }
+
+    /* Search Box */
+    .search-box-container .search-input { font-size: 0.8rem; border-radius: 20px 0 0 20px !important; height: 34px; }
+    .search-box-container .search-btn { border-radius: 0 20px 20px 0 !important; height: 34px; background: #ffcc00; border: none; }
+
+    /* Mobile View Fixes */
     @media (max-width: 991px) {
         .navbar-collapse { 
             background: #4a0000; 
             padding: 20px; 
             border-radius: 0 0 15px 15px; 
             margin-top: 10px; 
-            border: 1px solid rgba(255,255,255,0.1);
         }
-        .menu-link::after { display: none; }
-        .nav-link { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0 !important; }
-        .home-special-btn { margin-bottom: 10px; text-align: center; }
-        .search-box-container { margin-top: 15px; }
+        .dropdown-menu { background: #5a0000; border: none; }
+        .dropdown-item { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
     }
 </style>
