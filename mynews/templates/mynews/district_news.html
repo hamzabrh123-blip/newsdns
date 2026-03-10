@@ -60,12 +60,12 @@
 
                         <div class="card-body d-flex flex-column p-3">
                             <h2 class="card-title-fixed mb-3">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark js-clean-text">
                                     {{ item.title|striptags }}
                                 </a>
                             </h2>
 
-                            <div class="card-text text-muted small mb-3 excerpt-v2">
+                            <div class="card-text text-muted small mb-3 excerpt-v2 js-clean-text">
                                 {{ item.content|striptags|truncatewords:45 }}
                             </div>
 
@@ -125,46 +125,22 @@
 
 <style>
     .fw-black { font-weight: 900; }
-    
-    /* OVERLAP FIX: Height auto and display block is key */
-    .card-title-fixed { 
-        font-size: 1.15rem; 
-        font-weight: 800; 
-        line-height: 1.4 !important; 
-        display: block !important;
-        height: auto !important;
-        min-height: auto !important;
-        margin-bottom: 12px;
-        overflow: visible !important;
-    }
-
-    .excerpt-v2 { 
-        font-size: 0.92rem; 
-        color: #555 !important; 
-        line-height: 1.6;
-        display: block !important;
-        height: auto !important;
-        margin-bottom: 10px;
-    }
-
+    .card-title-fixed { font-size: 1.15rem; font-weight: 800; line-height: 1.4 !important; display: block !important; height: auto !important; margin-bottom: 12px; overflow: visible !important; }
+    .excerpt-v2 { font-size: 0.92rem; color: #555 !important; line-height: 1.6; display: block !important; height: auto !important; margin-bottom: 10px; }
     .img-container { height: 210px; background: #f8f9fa; border-radius: 12px 12px 0 0; }
     .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
     .news-card-v2 { border-radius: 12px; transition: 0.3s ease-in-out; background: #fff; height: 100%; }
     .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-
     .sticky-sidebar { position: sticky; top: 100px; }
-    
     .pulse-dot { width: 10px; height: 10px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
-
     .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 4px 8px; text-align: center; z-index: 5; }
     .date-overlay .day { display: block; font-size: 1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
     .date-overlay .month { font-size: 0.6rem; text-transform: uppercase; color: #333; font-weight: bold; }
-    
     .custom-pagination .page-link { border: none; margin: 0 3px; border-radius: 6px; color: #333; }
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; }
 
@@ -173,5 +149,31 @@
         .card-title-fixed { font-size: 1.1rem; }
     }
 </style>
-{% endblock %}
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Sirf unhi elements ko target kiya jinme news ka text hai
+        const newsElements = document.querySelectorAll('.js-clean-text');
+
+        newsElements.forEach(el => {
+            let rawText = el.innerHTML;
+
+            // 1. HTML Entities decode karne ke liye DOMParser ka use
+            let doc = new DOMParser().parseFromString(rawText, 'text/html');
+            let decodedText = doc.documentElement.textContent;
+
+            // 2. Additional Clean up (nbsp, # aur fattu symbols)
+            let cleanText = decodedText
+                .replace(/&nbsp;/g, ' ')      // nbsp ko space banao
+                .replace(/#/g, '')            // # ko gayab karo
+                .replace(/&amp;/g, '&')       // double encode check
+                .replace(/&quot;/g, '"')
+                .replace(/&apos;/g, "'")
+                .trim();
+
+            // 3. Wapas clean text daal do
+            el.textContent = cleanText;
+        });
+    });
+</script>
+{% endblock %}
