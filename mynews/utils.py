@@ -134,14 +134,3 @@ def post_to_facebook(instance):
     except Exception as e:
         logger.error(f"FB Auto-Post Error: {e}")
         return False
-
-# --- 4. UTILITY FUNCTIONS ---
-def extract_video_id(url):
-    if not url: 
-        return None
-    # यह Regex सबसे पावरफुल है, जो हर तरह के YouTube लिंक से 11 अक्षरों की ID निकालता है
-    regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
-    match = re.search(regex, url)
-    if match:
-        return match.group(1) # यही वो dQw4w9WgXcQ निकालेगा
-    return None
