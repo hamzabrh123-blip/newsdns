@@ -13,35 +13,37 @@
         <div class="col-lg-8">
             
             <div class="district-header mb-4 p-4 bg-white shadow-sm rounded-3 border-start border-5 border-danger">
-                <div class="d-flex align-items-center justify-content-between flex-wrap">
-                    <div class="header-left">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
                         <nav aria-label="breadcrumb" class="small mb-1">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
-                                <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">{{ district }}</li>
+                                <li class="breadcrumb-item active text-danger fw-bold">{{ district }}</li>
                             </ol>
                         </nav>
-                        <h1 class="fw-black mb-0 h2 text-dark text-uppercase d-flex align-items-center">
+                        <h1 class="fw-black mb-0 h2 text-dark text-uppercase">
                             <i class="fas fa-city text-danger me-2"></i> {{ district }} न्यूज़
                         </h1>
                     </div>
-                    <div class="live-pulse-container d-flex align-items-center mt-2 mt-md-0 bg-light px-3 py-2 rounded-pill">
-                        <span class="pulse-dot"></span>
-                        <span class="ms-2 small fw-bold text-danger">LIVE UPDATES</span>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="d-inline-flex align-items-center bg-light px-3 py-2 rounded-pill">
+                            <span class="pulse-dot"></span>
+                            <span class="ms-2 small fw-bold text-danger">LIVE UPDATES</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4">
                 {% for item in page_obj %}
-                <div class="col-md-6">
-                    <article class="card h-100 border-0 shadow-sm news-card-v2">
+                <div class="col-md-6 d-flex">
+                    <article class="card w-100 border-0 shadow-sm news-card-v2">
                         
                         <div class="img-container position-relative overflow-hidden">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
                                      class="card-img-top news-thumb" 
-                                     alt="{{ item.title }}" 
+                                     alt="{{ item.title|striptags }}" 
                                      loading="lazy"
                                      onerror="this.src='{% static 'logo.png' %}';">
                             </a>
@@ -58,13 +60,13 @@
 
                         <div class="card-body d-flex flex-column p-3">
                             <h2 class="card-title-fixed mb-3">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark hover-title">
-                                    {{ item.title|safe }}
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                    {{ item.title|striptags }}
                                 </a>
                             </h2>
 
                             <div class="card-text text-muted small mb-3 excerpt-v2">
-                                {{ item.content|striptags|truncatewords:70 }}
+                                {{ item.content|striptags|truncatewords:45 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -73,11 +75,11 @@
                                 </small>
                                 <div class="action-buttons d-flex align-items-center">
                                     <a href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20-%20{{ request.build_absolute_uri }}{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
-                                       target="_blank" class="text-success me-3 text-decoration-none">
+                                       target="_blank" class="text-success me-3">
                                         <i class="fab fa-whatsapp fa-lg"></i>
                                     </a>
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold">
-                                        विस्तार से <i class="fas fa-arrow-right ms-1" style="font-size: 0.7rem;"></i>
+                                        विस्तार से <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>
                             </div>
@@ -124,35 +126,31 @@
 <style>
     .fw-black { font-weight: 900; }
     
+    /* OVERLAP FIX: Height auto and display block is key */
     .card-title-fixed { 
         font-size: 1.15rem; 
         font-weight: 800; 
-        line-height: 1.5 !important; /* लाइन के बीच जगह बढ़ाई ताकि मात्राएं न कटें */
-        min-height: 3.4em;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: visible !important; /* इसे visible रखा ताकि नीचे की मात्राएं दिखें */
-        margin-bottom: 10px;
+        line-height: 1.4 !important; 
+        display: block !important;
+        height: auto !important;
+        min-height: auto !important;
+        margin-bottom: 12px;
+        overflow: visible !important;
     }
 
     .excerpt-v2 { 
-        font-size: 0.95rem; 
+        font-size: 0.92rem; 
         color: #555 !important; 
         line-height: 1.6;
-        text-align: justify;
-        display: -webkit-box;
-        -webkit-line-clamp: 4; 
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 6em;
+        display: block !important;
+        height: auto !important;
+        margin-bottom: 10px;
     }
 
-    .img-container { height: 210px; border-radius: 12px 12px 0 0; background: #f8f9fa; }
-    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-    .news-card-v2 { border-radius: 12px; transition: 0.3s ease-in-out; background: #fff; }
-    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
-    .news-card-v2:hover .news-thumb { transform: scale(1.1); }
+    .img-container { height: 210px; background: #f8f9fa; border-radius: 12px 12px 0 0; }
+    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+    .news-card-v2 { border-radius: 12px; transition: 0.3s ease-in-out; background: #fff; height: 100%; }
+    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
 
     .sticky-sidebar { position: sticky; top: 100px; }
     
@@ -163,11 +161,16 @@
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
 
-    .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 4px 10px; text-align: center; z-index: 5; }
-    .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
-    .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
+    .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 4px 8px; text-align: center; z-index: 5; }
+    .date-overlay .day { display: block; font-size: 1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
+    .date-overlay .month { font-size: 0.6rem; text-transform: uppercase; color: #333; font-weight: bold; }
     
-    .custom-pagination .page-link { border: none; margin: 0 5px; border-radius: 8px; color: #333; font-weight: 600; }
+    .custom-pagination .page-link { border: none; margin: 0 3px; border-radius: 6px; color: #333; }
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; }
+
+    @media (max-width: 768px) {
+        .img-container { height: 190px; }
+        .card-title-fixed { font-size: 1.1rem; }
+    }
 </style>
 {% endblock %}
