@@ -123,18 +123,22 @@ class News(models.Model):
         return self.title or "Untitled News"
 
 
-# --- 3. ADDITIONAL IMAGES ---
+# --- 3. ADDITIONAL IMAGES (FIXED) ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="temp_news/")
-    image_url = models.URLField(max_length=500, blank=True, null=True)
+    # Yahan null=True aur blank=True hona bahut zaroori hai
+    image_url = models.URLField(max_length=500, blank=True, null=True) 
     caption = models.CharField(max_length=200, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         is_new_img = True if self.image and not self.image_url else False
+        # Pehle save hone do (Null allow hoga tabhi save hoga)
         super().save(*args, **kwargs)
+        
         if is_new_img:
             try:
+                # Phir background mein upload karke update karo
                 new_url = process_and_upload_to_imgbb(self)
                 if new_url:
                     NewsImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
