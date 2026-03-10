@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily News 🗞️</title>
+    <style>
+        body { font-family: Arial; background: #fafafa; color: #333; padding: 20px; }
+        .important { color: red; font-weight: bold; }
+        iframe { width: 560px; height: 315px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Today's News 🌸</h1>
+    {% for news in news_items %}
+        <div>
+            <h2 class="{% if news.is_important %}important{% endif %}">{{ news.headline }}</h2>
+            <iframe src="{{ news.youtube_url|replace:'watch?v=','embed/' }}" frameborder="0" allowfullscreen></iframe>
+            <p>{{ news.date }}</p>
+            <hr>
+        </div>
+    {% empty %}
+        <p>No news available.</p>
+    {% endfor %}
+</body>
+</html>

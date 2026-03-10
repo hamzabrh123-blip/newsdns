@@ -3,7 +3,6 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
-from .utils import extract_video_id
 from .models import News, SidebarWidget 
 
 logger = logging.getLogger(__name__)

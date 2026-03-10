@@ -1,0 +1,142 @@
+/* ============================================================
+   1. GLOBAL & STABILITY (FIXED: Mobile stability added)
+   ============================================================ */
+html, body {
+  /* स्क्रीन को लॉक करता है ताकि दाएं-बाएं न हिले */
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif !important;
+  background-color: #f0f2f5 !important; 
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Bootstrap के Container की वजह से होने वाला एक्स्ट्रा मार्जिन फिक्स */
+.container, .container-fluid {
+  overflow: hidden !important;
+}
+
+.row {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.col, [class*="col-"] {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+a { text-decoration: none !important; }
+
+/* ============================================================
+   2. NAVBAR & BRANDING
+   ============================================================ */
+.navbar {
+  background-color: #800000 !important; 
+  padding: 8px 0 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+  width: 100%;
+}
+
+.navbar-logo {
+  height: 40px !important; /* मोबाइल के लिए थोड़ा छोटा */
+  width: auto;
+}
+
+.brand-text {
+  margin-left: 10px;
+  font-weight: 800;
+  font-size: 1.2rem; /* मोबाइल फ्रेंडली साइज */
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* ============================================================
+   3. NAVIGATION LINKS
+   ============================================================ */
+.navbar-nav .nav-link { 
+  color: #ffffff !important; 
+  font-weight: 600;
+  padding: 10px 15px !important;
+}
+
+/* ============================================================
+   4. NEWS CARDS & LAYOUT (STABLE VERSION)
+   ============================================================ */
+.news-card {  
+  background: #ffffff !important; 
+  border-radius: 12px; 
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+  transition: all 0.3s ease;
+  border: 1px solid #e1e4e8;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%; /* डब्बे को स्क्रीन के बाहर जाने से रोकता है */
+}
+
+.news-card img { 
+  width: 100%; 
+  height: 200px; 
+  object-fit: cover;
+}
+
+.news-card-body {
+  padding: 15px; /* मोबाइल पर पैडिंग थोड़ी कम */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.news-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+/* न्यूज़ कंटेंट के बीच की लंबी लिंक या शब्द को तोड़ने के लिए */
+.news-card-text {
+  font-size: 0.9rem;
+  color: #555;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================================
+   5. MOBILE RESPONSIVE (STABILITY FIX)
+   ============================================================ */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px; /* छोटे स्क्रीन के लिए फॉन्ट एडजस्ट */
+  }
+
+  .brand-text { font-size: 1rem; }
+  
+  .news-card img { height: 170px; }
+
+  /* मोबाइल पर न्यूज़ कार्ड के बीच की दूरी */
+  .col-12 {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+
+  /* मोबाइल मेनू का बैकग्राउंड */
+  .navbar-collapse {
+    background-color: #800000 !important;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+}

@@ -1,0 +1,9 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Django local db
+db.sqlite3
+
+# Environment
+.env

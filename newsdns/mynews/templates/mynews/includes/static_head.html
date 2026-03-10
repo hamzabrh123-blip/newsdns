@@ -1,0 +1,54 @@
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Uttar World News Team">
+<meta name="robots" content="index, follow">
+
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'logo.png' %}">
+<link rel="apple-touch-icon" href="{% static 'logo.png' %}">
+
+<title>{% block title %}{% if news %}{{ news.title }}{% else %}Uttar World News | Latest News, Breaking News{% endif %}{% endblock %}</title>
+
+<link rel="canonical" href="https://uttarworld.com{{ request.path }}">
+
+{# Google Adsense #}
+<meta name="google-adsense-account" content="ca-pub-3171847065256414">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+
+{% block social_meta %}
+    {# --- SEO Keywords (Isse site rank karegi) --- #}
+    <meta name="keywords" content="{% if news %}{{ news.title }}, Uttar World, Latest Hindi News, UP News, Breaking News{% else %}Uttar World, Hindi News, Uttar Pradesh News, Latest World News, Breaking News India{% endif %}">
+
+    {# --- Meta Description (Isse AdSense aur Google Ranking sudhregi) --- #}
+    <meta name="description" content="{% if news %}{{ news.content|striptags|truncatechars:160 }}{% else %}Uttar World News: उत्तर प्रदेश, भारत और दुनिया की तमाम बड़ी खबरें और ब्रेकिंग अपडेट्स सबसे पहले यहाँ पढ़ें।{% endif %}">
+
+    {# --- Facebook / WhatsApp Open Graph --- #}
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Uttar World News">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="fb:app_id" content="741916956166104">
+
+    <meta property="og:title" content="{% if news %}{{ news.title }}{% else %}Uttar World News | Truth Above All{% endif %}">
+    <meta property="og:description" content="{% if news %}{{ news.content|striptags|truncatechars:200 }}{% else %}Breaking news from India and the world.{% endif %}">
+
+    {# IMAGE OPTIMIZATION: Yahan hum views.py se aane wala 'og_image' use karenge #}
+    {% if og_image %}
+        <meta property="og:image" content="{{ og_image }}">
+        <meta property="og:image:secure_url" content="{{ og_image }}">
+    {% elif news.image_url %}
+        <meta property="og:image" content="{{ news.image_url }}">
+        <meta property="og:image:secure_url" content="{{ news.image_url }}">
+    {% else %}
+        <meta property="og:image" content="https://uttarworld.com/static/logo.png">
+        <meta property="og:image:secure_url" content="https://uttarworld.com/static/logo.png">
+    {% endif %}
+
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+
+    {# --- Twitter Card --- #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% if news %}{{ news.title }}{% else %}Uttar World News{% endif %}">
+    <meta name="twitter:image" content="{% if og_image %}{{ og_image }}{% else %}https://uttarworld.com/static/logo.png{% endif %}">
+{% endblock %}
