@@ -122,7 +122,7 @@ ins.adsbygoogle:empty {
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
                                         <h3 class="big-title">{{ item.title|safe }}</h3>
                                     </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:40 }}...</p>
+                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:80 }}...</p>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +132,7 @@ ins.adsbygoogle:empty {
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
                                 <div class="news-box-content">
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title">{{ item.title|safe|truncatechars:70 }}</h3>
+                                        <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
                                     </a>
                                 </div>
                             </div>
@@ -145,6 +145,40 @@ ins.adsbygoogle:empty {
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506" data-ad-format="auto"></ins>
             </div>
 
+            <h2 class="section-title">राष्ट्रीय (National)  <a href="/category/National/">View All</a></h2>
+            <div class="row">
+                {% for item in national_news|slice:":5" %}
+                    {% if forloop.first %}
+                        <div class="col-12 mb-3">
+                            <div class="news-box big-news-box">
+                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+                                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
+                                </a>
+                                <div class="news-box-content">
+                                    <span class="badge bg-danger mb-2">भारत</span>
+                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                        <h3 class="big-title">{{ item.title|safe }}</h3>
+                                    </a>
+                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:80 }}...</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-md-6 mb-3">
+                            <div class="news-box list-news-box">
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
+                                <div class="news-box-content">
+                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                        <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+
             <h2 class="section-title title-sports">खेल जगत (Sports) <a href="/category/sports/">View All</a></h2>
             <div class="row">
                 {% for item in sports_news|slice:":4" %}
@@ -153,7 +187,7 @@ ins.adsbygoogle:empty {
                         <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" onerror="this.src='{% static 'logo.png' %}';">
                         <div class="news-box-content">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                <h3 class="small-title">{{ item.title|safe|truncatechars:80 }}</h3>
+                                <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
                             </a>
                         </div>
                     </div>
@@ -185,7 +219,7 @@ ins.adsbygoogle:empty {
                                 <div class="news-box-content">
                                     <span class="text-danger small fw-bold">{{ item.district }}</span>
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title" style="font-size: 0.9rem;">{{ item.title|safe|truncatechars:65 }}</h3>
+                                        <h3 class="small-title" style="font-size: 0.9rem;">{{ item.title|safe|truncatechars:100 }}</h3>
                                     </a>
                                 </div>
                             </div>
@@ -258,6 +292,7 @@ ins.adsbygoogle:empty {
 </script>
 
 {% endblock %}
+
 
 
 
