@@ -1,6 +1,6 @@
 import uuid
 import os
-import re  # YouTube ID निकालने के लिए ज़रूरी
+import re
 from django.db import models, transaction
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -44,9 +44,8 @@ class News(models.Model):
     image = models.ImageField(upload_to="temp_news/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
-    # YouTube का असली खेल यहाँ है
     youtube_url = models.URLField(blank=True, null=True)
-    youtube_video_id = models.CharField(max_length=20, blank=True, null=True, editable=False) # यह ID ऑटोमैटिक भरेगी
+    youtube_video_id = models.CharField(max_length=20, blank=True, null=True, editable=False)
 
     date = models.DateTimeField(default=now) 
     slug = models.SlugField(max_length=500, unique=True, blank=True)
@@ -62,16 +61,11 @@ class News(models.Model):
         ordering = ['-date']
 
     def save(self, *args, **kwargs):
-        # 1. YouTube ID निकालना (dQw4w9WgXcQ वाला काम)
         if self.youtube_url:
             regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
             match = re.search(regex, self.youtube_url)
-            if match:
-                self.youtube_video_id = match.group(1)
-            else:
-                self.youtube_video_id = None
+            self.youtube_video_id = match.group(1) if match else None
 
-        # 2. District, Category और City Slug सेट करना
         if self.district:
             d_val = str(self.district).strip()
             found = False
@@ -87,19 +81,15 @@ class News(models.Model):
             self.url_city = 'news'
             if not self.category: self.category = "Uttar Pradesh"
 
-        # 3. Slug बनाना
         if not self.slug:
             slug_base = unidecode(self.title)
-            if not slug_base.strip():
-                slug_base = "news-article"
+            if not slug_base.strip(): slug_base = "news-article"
             self.slug = f"{slugify(slug_base)[:80]}-{str(uuid.uuid4())[:6]}"
 
         is_new_image = True if self.image and not self.image_url else False
 
-        # 4. असली सेव (Super Save)
         super(News, self).save(*args, **kwargs)
 
-        # 5. Image Upload Logic
         if is_new_image:
             try:
                 new_url = process_and_upload_to_imgbb(self)
@@ -108,7 +98,6 @@ class News(models.Model):
             except Exception as e:
                 print(f"Auto Upload Error: {e}")
 
-        # 6. FB Auto-Post
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             try:
                 transaction.on_commit(lambda: self.post_to_fb_handler())
@@ -126,24 +115,21 @@ class News(models.Model):
 # --- 3. ADDITIONAL IMAGES (FIXED) ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="temp_news/")
-    # Yahan null=True aur blank=True hona bahut zaroori hai
-    image_url = models.URLField(max_length=500, blank=True, null=True) 
+    image = models.ImageField(upload_to="temp_news/", blank=True, null=True) # Changed to Null/Blank
+    image_url = models.URLField(max_length=500, blank=True, null=True) # Null/Blank for DB
     caption = models.CharField(max_length=200, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         is_new_img = True if self.image and not self.image_url else False
-        # Pehle save hone do (Null allow hoga tabhi save hoga)
         super().save(*args, **kwargs)
         
         if is_new_img:
             try:
-                # Phir background mein upload karke update karo
                 new_url = process_and_upload_to_imgbb(self)
                 if new_url:
                     NewsImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
-            except:
-                pass
+            except Exception as e:
+                print(f"Additional Image Error: {e}")
 
     def __str__(self):
-        return f"Image for {self.news.title}"
+        return f"Image for {self.news.title[:30]}..."
