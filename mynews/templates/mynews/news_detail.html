@@ -1,6 +1,47 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
 
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ request.build_absolute_uri }}"
+  },
+  "headline": "{{ news.title|striptags }}",
+  "description": "{{ news.content|striptags|truncatewords:30 }}",
+  "image": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
+  "datePublished": "{{ news.date|date:'c' }}",
+  "dateModified": "{{ news.date|date:'c' }}",
+  "author": {
+    "@type": "Person",
+    "name": "Uttar World Desk",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}"
+    }
+  }
+  {% if news.youtube_url %},
+  "video": {
+    "@type": "VideoObject",
+    "name": "{{ news.title|striptags }}",
+    "description": "{{ news.content|striptags|truncatewords:20 }}",
+    "thumbnailUrl": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
+    "uploadDate": "{{ news.date|date:'c' }}",
+    "embedUrl": "{{ news.youtube_url }}"
+  }
+  {% endif %}
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
