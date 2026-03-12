@@ -2,7 +2,27 @@
 {% load static %}
 
 {% block title %}
-{{ district|default:"Latest" }} न्यूज़ | Uttar World
+{{ district|default:category.name|default:"Latest" }} न्यूज़ | Uttar World
+{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ district|default:category.name }} न्यूज़ - Uttar World",
+  "url": "{{ request.build_absolute_uri }}",
+  "description": "उत्तर वर्ल्ड पर पढ़ें {{ district|default:category.name }} की ताज़ा खबरें, वीडियो और मुख्य समाचार।",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{% static 'logo.png' %}"
+    }
+  }
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -18,11 +38,11 @@
                         <nav aria-label="breadcrumb" class="small mb-1">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
-                                <li class="breadcrumb-item active text-danger fw-bold">{{ district }}</li>
+                                <li class="breadcrumb-item active text-danger fw-bold">{{ district|default:category.name }}</li>
                             </ol>
                         </nav>
                         <h1 class="fw-black mb-0 h2 text-dark text-uppercase">
-                            <i class="fas fa-city text-danger me-2"></i> {{ district }} न्यूज़
+                            <i class="fas fa-city text-danger me-2"></i> {{ district|default:category.name }} न्यूज़
                         </h1>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -54,7 +74,7 @@
                             </div>
 
                             <span class="position-absolute bottom-0 start-0 m-2 badge bg-danger">
-                                {{ item.district|default:district }}
+                                {{ item.district|default:district|default:category.name }}
                             </span>
                         </div>
 
@@ -127,7 +147,7 @@
     /* 1. Global & Utility Styles */
     .fw-black { font-weight: 900; }
     
-    /* 2. News Card Base - Sabhi cards ki height barabar rahegi */
+    /* 2. News Card Base */
     .news-card-v2 { 
         border-radius: 12px; 
         transition: all 0.3s ease; 
@@ -163,16 +183,16 @@
         transform: scale(1.05);
     }
 
-    /* 4. TITLE STYLE - Justified & Professional */
+    /* 4. TITLE STYLE */
     .card-title-fixed { 
         font-size: 1.15rem; 
         font-weight: 800; 
         line-height: 1.4 !important; 
         margin-bottom: 12px; 
         overflow: hidden;
-        text-align: justify; /* Title Justify */
+        text-align: justify;
         display: -webkit-box;
-        -webkit-line-clamp: 2; /* 2 line ke baad title cut jayega */
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
     }
     
@@ -181,17 +201,17 @@
         text-decoration: none;
     }
 
-    /* 5. EXCERPT STYLE - Pure Justified News Look */
+    /* 5. EXCERPT STYLE */
     .excerpt-v2 { 
         font-size: 0.92rem; 
         color: #555 !important; 
         line-height: 1.6; 
         margin-bottom: 10px;
-        text-align: justify; /* Sabse zaroori: Justify */
+        text-align: justify;
         text-justify: inter-word;
         hyphens: auto;
         display: -webkit-box;
-        -webkit-line-clamp: 3; /* Content 3 line ke baad cut jayega */
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
@@ -248,7 +268,7 @@
     /* 9. Responsive Mobile Fixes */
     @media (max-width: 768px) {
         .img-container { height: 180px; }
-        .card-title-fixed { font-size: 1.1rem; text-align: left; } /* Mobile par left hi theek lagta hai */
+        .card-title-fixed { font-size: 1.1rem; text-align: left; }
         .excerpt-v2 { font-size: 0.88rem; -webkit-line-clamp: 2; }
         .district-header { padding: 1.5rem !important; }
     }
@@ -256,7 +276,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Function to decode HTML entities using a temporary textarea
         function decodeEntities(encodedString) {
             var textArea = document.createElement('textarea');
             textArea.innerHTML = encodedString;
@@ -266,21 +285,15 @@
         const newsElements = document.querySelectorAll('.js-clean-text');
         newsElements.forEach(el => {
             let content = el.innerHTML;
-            
-            // 1. Decode entities twice to catch &amp;#39; type issues
             let decoded = decodeEntities(decodeEntities(content));
-            
-            // 2. Manual cleaning for persistent bastards
             let finalClean = decoded
                 .replace(/&39;/g, "'")
                 .replace(/&nbsp;/g, " ")
                 .replace(/#/g, "")
                 .replace(/&hellip;/g, "...")
                 .trim();
-            
             el.textContent = finalClean;
         });
     });
 </script>
 {% endblock %}
-
