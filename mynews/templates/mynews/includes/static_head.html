@@ -21,8 +21,8 @@
     <meta name="keywords" content="{% if news %}{{ news.title }}, Uttar World, Latest Hindi News, UP News, Breaking News{% else %}Uttar World, Hindi News, Uttar Pradesh News, Latest World News, Breaking News India{% endif %}">
 
     {# --- Meta Description (AdSense & Google Ranking Optimization) --- #}
-    <meta name="description" content="{% if news %}{{ news.title|striptags }} - {{ news.content|striptags|truncatechars:130 }}{% else %}Uttar World News: उत्तर प्रदेश, भारत और दुनिया की तमाम बड़ी खबरें, ब्रेकिंग न्यूज़ अपडेट्स, व्यापार और तकनीक की हर जानकारी सबसे पहले यहाँ विस्तार से पढ़ें।{% endif %}">
-
+    <meta name="description" content="{% if news %}{{ news.content|striptags|truncatechars:155 }}{% else %}Uttar World News: उत्तर प्रदेश, भारत और दुनिया की तमाम बड़ी खबरें, ब्रेकिंग न्यूज़, व्यापार और तकनीक की हर जानकारी सबसे पहले यहाँ विस्तार से पढ़ें। ताज़ा अपडेट्स के लिए जुड़ें।{% endif %}">
+   
     {# --- Facebook / WhatsApp Open Graph --- #}
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Uttar World News">
