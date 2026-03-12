@@ -1,8 +1,46 @@
 {% extends 'mynews/base.html' %}
 {% load static %}
 
-{% block content %}
+{% block schema %}
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Uttar World",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ request.scheme }}://{{ request.get_host }}/search/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for item in international_news|slice:":3" %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city|default:'news' item.slug %}"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+      {% if national_news %},{% endif %}
+      {% for item in national_news|slice:":3" %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter|add:3 }},
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city|default:'news' item.slug %}"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+]
+</script>
+{% endblock %}
 
+{% block content %}
 <style>
 /* अगर एडसेंस का डिब्बा खाली है, तो उसे पूरी तरह छुपा दो */
 ins.adsbygoogle[data-ad-status="unfilled"], 
@@ -292,6 +330,7 @@ ins.adsbygoogle:empty {
 </script>
 
 {% endblock %}
+
 
 
 
