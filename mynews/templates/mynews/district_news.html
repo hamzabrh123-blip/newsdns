@@ -5,26 +5,6 @@
 {{ district|default:category.name|default:"Latest" }} न्यूज़ | Uttar World
 {% endblock %}
 
-{% block schema %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": "{{ district|default:category.name|default:'Uttar Pradesh' }} न्यूज़ - Uttar World",
-  "url": "{{ request.build_absolute_uri }}",
-  "description": "उत्तर वर्ल्ड पर पढ़ें {{ district|default:category.name|default:'उत्तर प्रदेश' }} की ताज़ा खबरें।",
-  "publisher": {
-    "@type": "Organization",
-    "name": "Uttar World",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://uttarworld.com/static/logo.png" 
-    }
-  }
-}
-</script>
-{% endblock %}
-
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
