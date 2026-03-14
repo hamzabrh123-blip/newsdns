@@ -17,11 +17,11 @@
                         <nav aria-label="breadcrumb" class="small mb-1">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">होम</a></li>
-                                <li class="breadcrumb-item active text-danger fw-bold">{{ district|default:category.name }}</li>
+                                <li class="breadcrumb-item active text-danger fw-bold">{{ district|default:category.name|default:"News" }}</li>
                             </ol>
                         </nav>
                         <h1 class="fw-black mb-0 h2 text-dark text-uppercase">
-                            <i class="fas fa-city text-danger me-2"></i> {{ district|default:category.name }} न्यूज़
+                            <i class="fas fa-city text-danger me-2"></i> {{ district|default:category.name|default:"UP" }} न्यूज़
                         </h1>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -41,7 +41,8 @@
                             {% if item.slug %}
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                                     class="card-img-top news-thumb" alt="{{ item.title|striptags }}" loading="lazy">
+                                     class="card-img-top news-thumb" alt="{{ item.title|striptags }}" 
+                                     onerror="this.src='{% static 'logo.png' %}';" loading="lazy">
                             </a>
                             {% endif %}
                             
@@ -50,7 +51,7 @@
                                 <span class="month">{{ item.date|date:"M" }}</span>
                             </div>
                             <span class="position-absolute bottom-0 start-0 m-2 badge bg-danger">
-                                {{ item.district|default:district|default:category.name }}
+                                {{ item.district|default:district|default:category.name|default:"News" }}
                             </span>
                         </div>
 
@@ -64,7 +65,7 @@
                             </h2>
 
                             <div class="card-text text-muted small mb-3 excerpt-v2">
-                                {{ item.content|striptags|truncatewords:40 }}
+                                {{ item.content|striptags|truncatewords:30 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -73,12 +74,13 @@
                                 </small>
                                 <div class="action-buttons d-flex align-items-center">
                                     {% if item.slug %}
-                                    <a href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20-%20{{ request.build_absolute_uri }}{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
+                                    {# यहाँ ध्यान दें: URL को आसान बना दिया गया है ताकि सर्वर क्रैश न हो #}
+                                    <a href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20https://uttarworld.com{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
                                        target="_blank" class="text-success me-3">
                                         <i class="fab fa-whatsapp fa-lg"></i>
                                     </a>
                                     <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold">
-                                        विस्तार से <i class="fas fa-arrow-right ms-1"></i>
+                                        पढ़ें <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                     {% endif %}
                                 </div>
@@ -88,7 +90,7 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-5">
-                    <h5 class="text-muted">अभी इस क्षेत्र की खबरें अपडेट की जा रही हैं।</h5>
+                    <h5 class="text-muted">अभी खबरें उपलब्ध नहीं हैं।</h5>
                 </div>
                 {% endfor %}
             </div>
@@ -99,6 +101,7 @@
                     {% if page_obj.has_previous %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
                     {% endif %}
+                    
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
                             <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
@@ -106,6 +109,7 @@
                             <li class="page-item d-none d-md-block"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
+
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
                     {% endif %}
@@ -128,9 +132,8 @@
     .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
     .img-container { height: 210px; background: #f8f9fa; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
     .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .news-card-v2:hover .news-thumb { transform: scale(1.05); }
-    .card-title-fixed { font-size: 1.15rem; font-weight: 800; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .excerpt-v2 { font-size: 0.92rem; color: #555 !important; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-align: justify; }
+    .card-title-fixed { font-size: 1.15rem; font-weight: 800; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 3.2em; }
+    .excerpt-v2 { font-size: 0.92rem; color: #555 !important; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 5px 10px; text-align: center; z-index: 5; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
@@ -138,6 +141,5 @@
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
     .sticky-sidebar { position: sticky; top: 100px; }
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; border: none; }
-    @media (max-width: 768px) { .img-container { height: 180px; } .card-title-fixed { font-size: 1.1rem; } }
 </style>
 {% endblock %}
