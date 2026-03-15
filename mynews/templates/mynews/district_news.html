@@ -164,25 +164,35 @@
 </style>
 <script>
     window.onload = function() {
-        // 1. हर कार्ड के अंदर घुसकर सफाई करना
+        // 1. सभी खबरों के सारांश (Excerpts) को पकड़ना
         var excerpts = document.querySelectorAll('.excerpt-v2');
         
         excerpts.forEach(function(el) {
-            // ये लाइन सबसे खास है: ये छिपे हुए &nbsp; (char code 160) को पकड़कर सादा स्पेस बनाती है
-            var cleanText = el.innerText || el.textContent;
-            cleanText = cleanText.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/#/g, '').trim();
+            // --- जादू यहाँ है ---
+            // यह DOMParser &39;, &nbsp;, &quot; सबको असली इंसानी भाषा में बदल देता है
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(el.innerHTML, 'text/html');
+            var decodedText = doc.documentElement.textContent;
+
+            // फालतू #, एक्स्ट्रा स्पेस और छिपे हुए कैरेक्टर्स की सफाई
+            var cleanText = decodedText.replace(/\u00a0/g, ' ') // Invisible space हटाओ
+                                       .replace(/#/g, '')      // # हटाओ
+                                       .replace(/\s\s+/g, ' ') // डबल स्पेस हटाओ
+                                       .trim();
             
-            el.textContent = cleanText; // innerHTML की जगह textContent इस्तेमाल करें
+            // साफ़ टेक्स्ट को वापस डालना और अखबार जैसा लुक (Justify) देना
+            el.textContent = cleanText;
             el.style.textAlign = "justify";
         });
 
-        // 2. AdSense Injection (2nd Card के बाद)
+        // 2. ADSENSE INJECTION (सिर्फ दूसरी खबर के बाद)
         var newsCards = document.querySelectorAll('.news-card-v2');
         if (newsCards.length >= 2) {
             var adWrapper = document.createElement('div');
             adWrapper.className = 'col-12 my-3 text-center';
             adWrapper.innerHTML = `
                 <div class="p-2 border-top border-bottom bg-light">
+                    <small class="text-muted d-block mb-1">ADVERTISEMENT</small>
                     <ins class="adsbygoogle"
                          style="display:block"
                          data-ad-format="fluid"
@@ -190,6 +200,8 @@
                          data-ad-client="ca-pub-3171847065256414"
                          data-ad-slot="5217172506"></ins>
                 </div>`;
+            
+            // दूसरी न्यूज़ के ठीक बाद विज्ञापन फिट करना
             newsCards[1].parentElement.insertAdjacentElement('afterend', adWrapper);
             (adsbygoogle = window.adsbygoogle || []).push({});
         }
