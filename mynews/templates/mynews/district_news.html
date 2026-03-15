@@ -26,6 +26,7 @@
 {% endblock %}
 
 {% block content %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="container mt-4">
@@ -162,29 +163,37 @@
     @media (max-width: 768px) { .img-container { height: 180px; } .card-title-fixed { font-size: 1.1rem; } }
 </style>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var contentDiv = document.getElementById('articleContent');
-        if (contentDiv) {
-            // 1. फालतू &nbsp; और # कोड को हटाना (Clean up)
-            var cleanContent = contentDiv.innerHTML
-                .replace(/&nbsp;/g, ' ')  
-                .replace(/#/g, '')        
-                .replace(/\s\s+/g, ' ');   
-            
-            contentDiv.innerHTML = cleanContent;
+    window.onload = function() {
+        // 1. कैटेगरी पेज के सभी न्यूज़ कार्ड्स के छोटे टेक्स्ट (Excerpts) को साफ़ करना
+        var excerpts = document.querySelectorAll('.excerpt-v2');
+        
+        excerpts.forEach(function(el) {
+            // &nbsp; और # को जड़ से खत्म करना और टेक्स्ट Justify करना
+            var cleanText = el.innerHTML.replace(/&nbsp;/g, ' ').replace(/#/g, '').replace(/\s\s+/g, ' ');
+            el.innerHTML = cleanText;
+            el.style.textAlign = "justify";
+        });
 
-            // 2. टेक्स्ट को Justify करना और स्टाइलिंग सही करना
-            contentDiv.style.textAlign = "justify";
-            contentDiv.style.textJustify = "inter-word";
+        // 2. कैटेगरी लिस्ट के बीच में विज्ञापन (AdSense) डालना
+        var newsCards = document.querySelectorAll('.news-card-v2');
+        if (newsCards.length >= 2) {
+            var adWrapper = document.createElement('div');
+            adWrapper.className = 'col-12 my-3 text-center';
+            adWrapper.innerHTML = `
+                <div class="p-2 border-top border-bottom bg-light">
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-format="fluid"
+                         data-ad-layout-key="-fb+5w+4e-db+86"
+                         data-ad-client="ca-pub-3171847065256414"
+                         data-ad-slot="5217172506"></ins>
+                </div>`;
             
-            // पैराग्राफ के बीच सही गैप सेट करना
-            var paragraphs = contentDiv.querySelectorAll('p');
-            paragraphs.forEach(function(p) {
-                p.style.marginBottom = "1.5rem";
-                p.style.display = "block";
-            });
+            // दूसरी न्यूज़ के बाद विज्ञापन फिट करना
+            newsCards[1].parentElement.insertAdjacentElement('afterend', adWrapper);
+            (adsbygoogle = window.adsbygoogle || []).push({});
         }
-    });
+    };
 </script>
 
 {% endblock %}
