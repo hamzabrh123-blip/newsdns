@@ -220,13 +220,50 @@ ins.adsbygoogle:empty {
         var contentDiv = document.getElementById('articleContent');
         if (contentDiv) {
             var paragraphs = contentDiv.querySelectorAll('p');
-            // 2nd paragraph ke baad auto-ad insert karega
             if (paragraphs.length >= 2) {
                 var adCode = '<div class="my-4 text-center border-top border-bottom py-2"><small class="text-muted d-block mb-2">Advertisement</small><ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins></div>';
                 paragraphs[1].insertAdjacentHTML('afterend', adCode);
                 (adsbygoogle = window.adsbygoogle || []).push({});
             }
         }
+    });
+  
+    document.addEventListener("DOMContentLoaded", function() {
+        const contentDiv = document.getElementById('articleContent');
+        if (!contentDiv) return;
+        let rawHtml = contentDiv.innerHTML;
+        rawHtml = rawHtml.replace(/&nbsp;/g, ' ').replace(/#/g, '').replace(/\s\s+/g, ' ');
+        contentDiv.innerHTML = rawHtml;
+
+        // --- 2. लिखावट (Text Styling) ---
+        // पूरे टेक्स्ट को Justify करना ताकि वह अखबार जैसा प्रोफेशनल दिखे
+        contentDiv.style.textAlign = "justify";
+        contentDiv.style.textJustify = "inter-word";
+        contentDiv.style.fontSize = "1.2rem";
+        contentDiv.style.lineHeight = "1.8";
+
+        // --- 3. ऑटो एड्स और पैराग्राफ सेटिंग ---
+        const paragraphs = contentDiv.querySelectorAll('p');
+        
+        paragraphs.forEach((p, index) => {
+            p.style.marginBottom = "1.5rem"; // हर पैराग्राफ के बीच गैप
+            
+            // दूसरी न्यूज़ के बाद विज्ञापन डालना
+            if (index === 1) { 
+                const adDiv = document.createElement('div');
+                adDiv.className = "my-4 text-center border-top border-bottom py-3 bg-light";
+                adDiv.innerHTML = `
+                    <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
+                    <ins class="adsbygoogle"
+                         style="display:block; text-align:center;"
+                         data-ad-layout="in-article"
+                         data-ad-format="fluid"
+                         data-ad-client="ca-pub-3171847065256414"
+                         data-ad-slot="5217172506"></ins>`;
+                p.insertAdjacentElement('afterend', adDiv);
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            }
+        });
     });
 </script>
 {% endblock %}
