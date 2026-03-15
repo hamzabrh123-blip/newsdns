@@ -164,17 +164,19 @@
 </style>
 <script>
     window.onload = function() {
-        // 1. कैटेगरी पेज के सभी न्यूज़ कार्ड्स के छोटे टेक्स्ट (Excerpts) को साफ़ करना
+        // 1. हर कार्ड के अंदर घुसकर सफाई करना
         var excerpts = document.querySelectorAll('.excerpt-v2');
         
         excerpts.forEach(function(el) {
-            // &nbsp; और # को जड़ से खत्म करना और टेक्स्ट Justify करना
-            var cleanText = el.innerHTML.replace(/&nbsp;/g, ' ').replace(/#/g, '').replace(/\s\s+/g, ' ');
-            el.innerHTML = cleanText;
+            // ये लाइन सबसे खास है: ये छिपे हुए &nbsp; (char code 160) को पकड़कर सादा स्पेस बनाती है
+            var cleanText = el.innerText || el.textContent;
+            cleanText = cleanText.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/#/g, '').trim();
+            
+            el.textContent = cleanText; // innerHTML की जगह textContent इस्तेमाल करें
             el.style.textAlign = "justify";
         });
 
-        // 2. कैटेगरी लिस्ट के बीच में विज्ञापन (AdSense) डालना
+        // 2. AdSense Injection (2nd Card के बाद)
         var newsCards = document.querySelectorAll('.news-card-v2');
         if (newsCards.length >= 2) {
             var adWrapper = document.createElement('div');
@@ -188,8 +190,6 @@
                          data-ad-client="ca-pub-3171847065256414"
                          data-ad-slot="5217172506"></ins>
                 </div>`;
-            
-            // दूसरी न्यूज़ के बाद विज्ञापन फिट करना
             newsCards[1].parentElement.insertAdjacentElement('afterend', adWrapper);
             (adsbygoogle = window.adsbygoogle || []).push({});
         }
