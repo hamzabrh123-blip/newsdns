@@ -165,23 +165,23 @@
 <script>
     (function() {
         function finalCleanup() {
-            // उन सभी न्यूज़ के सारांश को टारगेट करना
             var elements = document.querySelectorAll('.excerpt-v2, .card-text');
             
             elements.forEach(function(el) {
-                // 1. HTML Entities को असली भाषा में बदलना
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(el.innerHTML, 'text/html');
-                var decodedText = doc.documentElement.textContent;
+                // 1. ब्राउज़र की मदद से entities को असली टेक्स्ट बनाना
+                var txt = document.createElement("textarea");
+                txt.innerHTML = el.innerHTML;
+                var decodedText = txt.value;
 
-                // 2. &nbsp; (\u00a0), # और एक्स्ट्रा स्पेस की सफाई
-                var cleanText = decodedText.replace(/\u00a0/g, ' ')
-                                           .replace(/&nbsp;/g, ' ')
-                                           .replace(/#/g, '')
-                                           .replace(/\s\s+/g, ' ')
+                // 2. सफाई अभियान (अब &39; और &nbsp; का नामो-निशान नहीं बचेगा)
+                var cleanText = decodedText.replace(/\u00a0/g, ' ')  // Invisible space
+                                           .replace(/&nbsp;/g, ' ')   // HTML space
+                                           .replace(/&39;|&#39;/g, "'") // Single quote (अति आवश्यक)
+                                           .replace(/&quot;|&#34;/g, '"') // Double quote
+                                           .replace(/#/g, '')         // Hash
+                                           .replace(/\s\s+/g, ' ')    // Double space
                                            .trim();
                 
-                // 3. अगर टेक्स्ट बदला है तभी अपडेट करना ताकि पेज बार-बार न हिले
                 if (el.textContent !== cleanText) {
                     el.textContent = cleanText;
                     el.style.textAlign = "justify";
@@ -189,12 +189,11 @@
             });
         }
 
-        // पेज लोड होने पर और न्यूज़ आने के बाद सफाई करना
         window.addEventListener('load', finalCleanup);
-        // एक छोटा सा इंटरवल ताकि अगर न्यूज़ देरी से लोड हो तो भी साफ़ हो जाए
         setTimeout(finalCleanup, 500);
         setTimeout(finalCleanup, 2000);
+        // एक बैकअप के लिए 5 सेकंड बाद फिर से (AdSense लोडिंग के समय के लिए)
+        setTimeout(finalCleanup, 5000);
     })();
 </script>
-
 {% endblock %}
