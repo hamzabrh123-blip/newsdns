@@ -61,35 +61,41 @@ class News(models.Model):
         ordering = ['-date']
 
     def save(self, *args, **kwargs):
+        # YouTube ID Logic
         if self.youtube_url:
             regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
             match = re.search(regex, self.youtube_url)
             self.youtube_video_id = match.group(1) if match else None
 
+        # District & WebP City Logic (LowerCase Fix)
         if self.district:
             d_val = str(self.district).strip()
             found = False
             for item in LOCATION_DATA:
                 if len(item) >= 3 and str(item[0]).strip() == d_val:
                     self.category = item[1]
-                    self.url_city = slugify(unidecode(item[2]))
+                    # .lower() लगा दिया है ताकि static/districts/ मे इमेज मिल जाए
+                    self.url_city = slugify(unidecode(item[2])).lower()
                     found = True
                     break
             if not found:
-                self.url_city = slugify(unidecode(d_val))
+                self.url_city = slugify(unidecode(d_val)).lower()
         else:
             self.url_city = 'news'
             if not self.category: self.category = "Uttar Pradesh"
 
+        # SEO Friendly Slug
         if not self.slug:
             slug_base = unidecode(self.title)
             if not slug_base.strip(): slug_base = "news-article"
             self.slug = f"{slugify(slug_base)[:80]}-{str(uuid.uuid4())[:6]}"
 
+        # Image Upload Check
         is_new_image = True if self.image and not self.image_url else False
 
         super(News, self).save(*args, **kwargs)
 
+        # Auto ImgBB Upload
         if is_new_image:
             try:
                 new_url = process_and_upload_to_imgbb(self)
@@ -98,6 +104,7 @@ class News(models.Model):
             except Exception as e:
                 print(f"Auto Upload Error: {e}")
 
+        # Facebook Sharing Logic
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             try:
                 transaction.on_commit(lambda: self.post_to_fb_handler())
@@ -112,11 +119,11 @@ class News(models.Model):
         return self.title or "Untitled News"
 
 
-# --- 3. ADDITIONAL IMAGES (FIXED) ---
+# --- 3. ADDITIONAL IMAGES ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="temp_news/", blank=True, null=True) # Changed to Null/Blank
-    image_url = models.URLField(max_length=500, blank=True, null=True) # Null/Blank for DB
+    image = models.ImageField(upload_to="temp_news/", blank=True, null=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
     caption = models.CharField(max_length=200, blank=True, null=True)
 
     def save(self, *args, **kwargs):
