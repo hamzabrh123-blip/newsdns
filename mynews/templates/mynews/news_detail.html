@@ -12,7 +12,7 @@
   },
   "headline": "{{ news.title|striptags }}",
   "description": "{{ news.content|striptags|truncatewords:30 }}",
-  "image": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
+  "image": "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'districts/' %}{{ news.url_city|lower|default:'news' }}.webp{% endif %}",
   "datePublished": "{{ news.date|date:'c' }}",
   "dateModified": "{{ news.date|date:'c' }}",
   "author": {
@@ -36,20 +36,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* विज्ञापन सेटिंग्स */
+    /* Ads Cleanup */
     ins.adsbygoogle[data-ad-status="unfilled"], ins.adsbygoogle:empty { display: none !important; }
     
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
 
     .content-card { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; border: 1px solid #eee; position: relative; }
+    .district-badge { position: absolute; top: 15px; right: 15px; background: var(--news-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
     .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.3rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
     .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; text-align: justify; }
-    
-    /* Thumbnail Label */
-    .district-badge { position: absolute; top: 15px; right: 15px; background: var(--news-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; z-index: 10; }
-
-    .main-news-img { width: 100%; border-radius: 10px; shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; object-fit: cover; max-height: 500px; }
+    .main-news-img { width: 100%; border-radius: 10px; margin-bottom: 20px; object-fit: cover; max-height: 500px; background: #eee; }
 
     @media (max-width: 768px) {
         .content-card { padding: 15px; border-radius: 0; border: none; }
@@ -69,7 +66,7 @@
 
             <div class="content-card">
                 {% if news.url_city %}
-                <div class="district-badge text-uppercase"><i class="fas fa-map-marker-alt me-1"></i> {{ news.url_city }}</div>
+                <div class="district-badge"><i class="fas fa-map-marker-alt me-1"></i> {{ news.url_city }}</div>
                 {% endif %}
                 
                 <span class="cat-badge mb-3 d-inline-block bg-danger text-white px-2 py-1 rounded" style="font-size: 0.8rem; font-weight: bold;">{{ news.category|default:"उत्तर प्रदेश" }}</span>
@@ -79,16 +76,16 @@
                 <div class="author-box d-flex align-items-center mb-4 border-top border-bottom py-2">
                     <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40">
                     <div>
-                        <p class="mb-0 fw-bold" style="font-size: 0.9rem;">Uttar World Desk</p>
+                        <p class="mb-0 fw-bold" style="font-size: 0.9rem;">By Uttar World Desk</p>
                         <small class="text-muted">{{ news.date|date:"d M, Y" }} | {{ news.date|date:"h:i A" }}</small>
                     </div>
                 </div>
 
                 <div class="text-center">
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'districts/' %}{{ news.url_city|default:'news' }}.jpg{% endif %}" 
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'districts/' %}{{ news.url_city|lower|default:'news' }}.webp{% endif %}" 
                          class="main-news-img" 
                          alt="{{ news.title }}"
-                         onerror="this.onerror=null;this.src='{% static 'districts/news.jpg' %}';">
+                         onerror="this.onerror=null;this.src='{% static 'districts/news.webp' %}';">
                 </div>
 
                 <div class="article-content" id="articleContent">
@@ -102,7 +99,6 @@
                         {% for img in news.additional_images.all %}
                         <div class="col-12 mb-3">
                             <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
-                            {% if img.caption %}<div class="small text-muted mt-2 ps-2 border-left">{{ img.caption }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -110,9 +106,8 @@
                 {% endif %}
 
                 <div class="fb-promo-box bg-primary text-white p-4 rounded-3 text-center mt-5">
-                    <h4 class="fw-bold">Uttar World से जुड़ें</h4>
-                    <p>ताज़ा खबरों के लिए हमारे फेसबुक पेज को लाइक करें</p>
-                    <a href="https://www.facebook.com/uttarworld" target="_blank" class="btn btn-light fw-bold rounded-pill">Like Page <i class="fab fa-facebook-f ms-1"></i></a>
+                    <h4 class="fw-bold">Uttar World से जुड़ें</h4>
+                    <a href="https://www.facebook.com/uttarworld" target="_blank" class="btn btn-light fw-bold rounded-pill mt-2">Like Page <i class="fab fa-facebook-f ms-1"></i></a>
                 </div>
             </div>
         </div>
@@ -124,14 +119,16 @@
 </div>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const contentDiv = document.getElementById('articleContent');
         if (!contentDiv) return;
 
-        // क्लीनअप (Optional)
+        // Clean & Format
         contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
 
+        // Ad Injection - Sirf 1 baar aayega
         const paragraphs = contentDiv.querySelectorAll('p');
         if (paragraphs.length >= 2) {
             const adDiv = document.createElement('div');
@@ -141,8 +138,14 @@
                 <ins class="adsbygoogle" style="display:block; text-align:center;"
                      data-ad-layout="in-article" data-ad-format="fluid"
                      data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>`;
+            
+            // Doosre paragraph ke baad insert karo
             paragraphs[1].insertAdjacentElement('afterend', adDiv);
-            (adsbygoogle = window.adsbygoogle || []).push({});
+            
+            // Ad Push
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) { console.log("AdSense logic handled."); }
         }
     });
 </script>
