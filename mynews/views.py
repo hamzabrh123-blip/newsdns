@@ -86,17 +86,26 @@ def ads_txt(request):
 
 def sitemap_xml(request):
     try:
-        items = News.objects.filter(status='Published').order_by('-date')[:500]
+        # [:500] को हटाकर [ :2000 ] या [ :5000 ] कर दे 
+        # या फिर पूरी तरह हटा दे अगर पोस्ट्स कम हैं
+        items = News.objects.filter(status='Published').order_by('-date')[:2000] 
+        
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        
+        # होमपेज को भी सैटमैप में जोड़ दे, ये एडसेंस के लिए अच्छा होता है
+        xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+        
         for n in items:
             city_path = n.url_city if n.url_city else "news"
-            xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+            # URL में एक्स्ट्रा स्लैश (/ /) न आए इसलिए rstrip और सही फॉर्मेटिंग ज़रूरी है
+            loc = f'{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/'
+            xml += f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+            
         xml += '</urlset>'
         return HttpResponse(xml, content_type="application/xml")
     except Exception as e:
         return HttpResponse(str(e), content_type="text/plain")
-
 
 def news_detail(request, url_city, slug):
     news = get_object_or_404(News, slug=slug)
