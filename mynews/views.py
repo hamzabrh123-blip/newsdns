@@ -72,10 +72,12 @@ def home(request):
         return HttpResponse(f"सर्वर में समस्या है: {e}", status=500)
 
 # --- 3. SEO & TEXT FILES ---
+# --- 1. Robots.txt ---
 def robots_txt(request):
     lines = [
         "User-Agent: *",
         "Allow: /",
+        "Disallow: /admin/",  # एडमिन पैनल को गूगल से बचाना ज़रूरी है
         f"Sitemap: {SITE_URL}/sitemap.xml"
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
