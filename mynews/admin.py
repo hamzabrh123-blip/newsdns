@@ -5,16 +5,18 @@ from .constants import UP_DISTRICTS, OTHER_CATEGORIES
 from django.utils.html import format_html
 import gc
 
-# --- 1. Thumbnail Optimization (Using Cloudinary as Proxy for Speed) ---
+# --- 1. Thumbnail Optimization ---
 def get_optimized_url(url, width=100, height=100, crop="fill"):
     if not url: return ""
     cloud_name = "dvoqsrkkq" 
+    # अगर URL पहले से क्लाउडिनरी का नहीं है, तो फेच प्रॉक्सी लगाओ
     if "res.cloudinary.com" not in url:
         return f"https://res.cloudinary.com/{cloud_name}/image/fetch/f_auto,q_auto,w_{width},h_{height},c_{crop}/{url}"
     return url
 
 # --- 2. News Admin Form Logic ---
 class NewsAdminForm(forms.ModelForm):
+    # .choices को .lower() के हिसाब से मैनेज करने के लिए यहाँ Logic है
     up_city = forms.ChoiceField(
         choices=[('', '--- उत्तर प्रदेश के जिले ---')] + [(x[0], x[1]) for x in UP_DISTRICTS],
         required=False, label="UP के जिले"
@@ -33,9 +35,10 @@ class NewsAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.district:
             dist = self.instance.district
-            if any(dist == x[0] for x in UP_DISTRICTS):
+            # अगर डेटाबेस में लोअरकेस है तो भी मैच कर ले
+            if any(dist.lower() == x[0].lower() for x in UP_DISTRICTS):
                 self.fields['up_city'].initial = dist
-            elif any(dist == x[0] for x in OTHER_CATEGORIES):
+            elif any(dist.lower() == x[0].lower() for x in OTHER_CATEGORIES):
                 self.fields['big_cat'].initial = dist
 
     def clean(self):
@@ -55,7 +58,7 @@ class NewsAdminForm(forms.ModelForm):
             
         return cleaned_data
 
-# --- 3. News Image Inline (Multi-photo Support) ---
+# --- 3. News Image Inline ---
 class NewsImageInline(admin.TabularInline):
     model = NewsImage
     extra = 1
@@ -76,12 +79,11 @@ class NewsAdmin(admin.ModelAdmin):
     form = NewsAdminForm
     inlines = [NewsImageInline]
     
-    # FIX: 'status' ko list_display mein add kiya taaki list_editable kaam kare
+    # 'status' को list_display में रखा है ताकि list_editable काम करे
     list_display = ('display_thumb', 'get_title_styled', 'district', 'category', 'status', 'get_status_badge', 'date')
     list_filter = ('status', 'district', 'category', 'date')
     search_fields = ('title', 'content')
     
-    # Status edit tabhi hoga jab wo list_display mein bhi ho
     list_editable = ('status',)
     list_per_page = 20
     readonly_fields = ('category', 'url_city', 'image_url', 'is_fb_posted', 'display_large_img')
@@ -89,11 +91,9 @@ class NewsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('मुख्य जानकारी (News Content)', {
             'fields': ('title', 'status', 'content'),
-            'description': 'यहाँ न्यूज़ का टाइटल और कंटेंट लिखें।'
         }),
         ('लोकेशन और कैटेगरी (Dynamic Select)', {
             'fields': (('up_city', 'big_cat'), 'district'),
-            'classes': ('wide',),
         }),
         ('मीडिया (Main Image & Video)', {
             'fields': (('image', 'display_large_img'), 'image_url', 'youtube_url'),
@@ -131,18 +131,14 @@ class NewsAdmin(admin.ModelAdmin):
         img_url = obj.image_url if obj.image_url else (obj.image.url if obj.image else None)
         if img_url:
             optimized = get_optimized_url(img_url, width=400, height=250, crop="limit")
-            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;box-shadow: 0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">ImgBB URL: {}</p></div>', optimized, obj.image_url)
-        return "Upload a photo to see preview"
-    display_large_img.short_description = "Live Preview"
+            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;box-shadow: 0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">URL: {}</p></div>', optimized, obj.image_url or "Local Storage")
+        return "Preview will appear after upload"
 
     def save_model(self, request, obj, form, change):
+        # पक्का करें कि जिला वही है जो फॉर्म में सिलेक्ट हुआ
         obj.district = form.cleaned_data.get('district')
         super().save_model(request, obj, form, change)
-        gc.collect()
-
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
-        gc.collect()
+        gc.collect() # मेमोरी साफ़ रखने के लिए
 
 # --- 5. Sidebar Widget Admin ---
 @admin.register(SidebarWidget)
@@ -150,7 +146,3 @@ class SidebarWidgetAdmin(admin.ModelAdmin):
     list_display = ('title', 'widget_type', 'order', 'active')
     list_editable = ('order', 'active')
     list_filter = ('widget_type', 'active')
-    fieldsets = (
-        (None, {'fields': ('title', 'active', 'order')}),
-        ('Widget Config', {'fields': ('widget_type', 'code_content', 'image', 'link', 'news_limit')}),
-    )
