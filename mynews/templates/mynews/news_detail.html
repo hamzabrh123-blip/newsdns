@@ -28,16 +28,6 @@
       "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'logo.png' %}"
     }
   }
-  {% if news.youtube_url %},
-  "video": {
-    "@type": "VideoObject",
-    "name": "{{ news.title|striptags }}",
-    "description": "{{ news.content|striptags|truncatewords:20 }}",
-    "thumbnailUrl": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
-    "uploadDate": "{{ news.date|date:'c' }}",
-    "embedUrl": "{{ news.youtube_url }}"
-  }
-  {% endif %}
 }
 </script>
 {% endblock %}
@@ -46,76 +36,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* विज्ञापन न होने पर जगह न घेरे */
-ins.adsbygoogle[data-ad-status="unfilled"], 
-ins.adsbygoogle:empty {
-    display: none !important;
-    height: 0px !important;
-    margin: 0px !important;
-}
-
-/* अगर आपने विज्ञापन को किसी div में रखा है */
-.ad-slot-wrapper:empty {
-    display: none;
-}
+    /* विज्ञापन सेटिंग्स */
+    ins.adsbygoogle[data-ad-status="unfilled"], ins.adsbygoogle:empty { display: none !important; }
+    
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
 
-    .content-card {
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        padding: 30px;
-        margin-bottom: 25px;
-        border: 1px solid #eee;
-    }
+    .content-card { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; border: 1px solid #eee; position: relative; }
+    .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.3rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
+    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; text-align: justify; }
+    
+    /* Thumbnail Label */
+    .district-badge { position: absolute; top: 15px; right: 15px; background: var(--news-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; z-index: 10; }
 
-    .article-title { 
-        font-family: 'Noto Serif Devanagari', serif; 
-        font-weight: 700; font-size: 2.3rem; 
-        line-height: 1.3; color: #000; margin-bottom: 15px; 
-    }
-
-    .article-content { 
-        font-family: 'Noto Serif Devanagari', serif; 
-        font-size: 1.25rem; line-height: 1.9; color: #222; 
-    }
-    .article-content p { margin-bottom: 1.3rem; }
-
-    .author-box { 
-        border-top: 1px solid #eee; border-bottom: 1px solid #eee; 
-        padding: 12px 0; margin-bottom: 20px;
-    }
-
-    .cat-badge { 
-        background: var(--news-red); color: white; padding: 4px 12px; 
-        font-weight: bold; font-size: 0.8rem; border-radius: 3px;
-    }
-
-    /* Video Container */
-    .ratio-16x9 {
-        position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
-        overflow: hidden; border-radius: 12px; background: #000;
-    }
-    .ratio-16x9 iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-
-    /* Photo Gallery Styling */
-    .news-gallery { margin: 30px 0; }
-    .gallery-img-wrapper { margin-bottom: 20px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .gallery-img-wrapper img { width: 100%; height: auto; transition: 0.3s; }
-    .gallery-caption { font-size: 0.9rem; color: #666; padding: 8px 12px; background: #f9f9f9; font-style: italic; border-left: 3px solid var(--news-red); }
-
-    /* FB Page Banner */
-    .fb-promo-box {
-        background: linear-gradient(135deg, #1877F2, #0056b3); color: #fff; 
-        padding: 25px; border-radius: 12px; text-align: center;
-        margin: 30px 0; border: none;
-    }
+    .main-news-img { width: 100%; border-radius: 10px; shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; object-fit: cover; max-height: 500px; }
 
     @media (max-width: 768px) {
         .content-card { padding: 15px; border-radius: 0; border: none; }
         .article-title { font-size: 1.7rem; }
-        .article-content { font-size: 1.15rem; }
     }
 </style>
 
@@ -125,30 +63,32 @@ ins.adsbygoogle:empty {
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb small bg-transparent p-0 mb-3">
                     <li class="breadcrumb-item"><a href="/" class="text-danger text-decoration-none fw-bold">HOME</a></li>
-                    <li class="breadcrumb-item active text-uppercase fw-bold text-muted">{{ news.category }}</li>
+                    <li class="breadcrumb-item active text-uppercase fw-bold text-muted">{{ news.url_city|default:news.category }}</li>
                 </ol>
             </nav>
 
             <div class="content-card">
-                <span class="cat-badge mb-3 d-inline-block">{{ news.category|default:"उत्तर प्रदेश" }}</span>
+                {% if news.url_city %}
+                <div class="district-badge text-uppercase"><i class="fas fa-map-marker-alt me-1"></i> {{ news.url_city }}</div>
+                {% endif %}
+                
+                <span class="cat-badge mb-3 d-inline-block bg-danger text-white px-2 py-1 rounded" style="font-size: 0.8rem; font-weight: bold;">{{ news.category|default:"उत्तर प्रदेश" }}</span>
+                
                 <h1 class="article-title">{{ news.title }}</h1>
 
-                <div class="author-box d-flex align-items-center">
-                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="45">
+                <div class="author-box d-flex align-items-center mb-4 border-top border-bottom py-2">
+                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40">
                     <div>
-                        <p class="mb-0 fw-bold" style="font-size: 0.95rem;">By Uttar World Desk</p>
-                        <small class="text-muted">
-                            <i class="far fa-calendar-alt"></i> {{ news.date|date:"d M, Y" }} | <i class="far fa-clock"></i> {{ news.date|date:"h:i A" }}
-                        </small>
+                        <p class="mb-0 fw-bold" style="font-size: 0.9rem;">Uttar World Desk</p>
+                        <small class="text-muted">{{ news.date|date:"d M, Y" }} | {{ news.date|date:"h:i A" }}</small>
                     </div>
                 </div>
 
-                <div class="mb-4 text-center">
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% else %}{{ news.image.url }}{% endif %}" 
-                         class="w-100 rounded shadow-sm" 
-                         style="max-height: 500px; object-fit: cover;" 
+                <div class="text-center">
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'districts/' %}{{ news.url_city|default:'news' }}.jpg{% endif %}" 
+                         class="main-news-img" 
                          alt="{{ news.title }}"
-                         onerror="this.src='{% static 'logo.png' %}';">
+                         onerror="this.onerror=null;this.src='{% static 'districts/news.jpg' %}';">
                 </div>
 
                 <div class="article-content" id="articleContent">
@@ -156,54 +96,23 @@ ins.adsbygoogle:empty {
                 </div>
 
                 {% if news.additional_images.all %}
-                <div class="news-gallery">
-                    <h5 class="fw-bold border-bottom pb-2 mb-4"><i class="fas fa-camera text-danger"></i> इस खबर से जुड़ी तस्वीरें</h5>
+                <div class="news-gallery mt-5">
+                    <h5 class="fw-bold border-bottom pb-2 mb-4"><i class="fas fa-camera text-danger"></i> खास तस्वीरें</h5>
                     <div class="row g-3">
                         {% for img in news.additional_images.all %}
-                        <div class="col-12">
-                            <div class="gallery-img-wrapper">
-                                <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" 
-                                     alt="Extra Image" class="img-fluid">
-                                {% if img.caption %}
-                                <div class="gallery-caption">{{ img.caption }}</div>
-                                {% endif %}
-                            </div>
+                        <div class="col-12 mb-3">
+                            <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
+                            {% if img.caption %}<div class="small text-muted mt-2 ps-2 border-left">{{ img.caption }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
-{% if news.youtube_url %}
-    {% include "mynews/youtube_player.html" %}
-{% endif %}
-
-                
-                <div class="fb-promo-box">
-                    <h3 class="fw-bold mb-2">Uttar World News on Facebook</h3>
-                    <p class="mb-3">खबरों की पल-पल की अपडेट के लिए हमारे फेसबुक पेज को अभी लाइक करें।</p>
-                    <a href="https://www.facebook.com/uttarworld" target="_blank" class="btn btn-warning fw-bold px-5 py-2 rounded-pill shadow">
-                        अभी Like करें <i class="fab fa-facebook-f ms-2"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="mt-4 mb-5">
-                <h4 class="fw-bold mb-3 border-bottom pb-2"><i class="fas fa-link text-danger"></i> सम्बन्धित खबरें</h4>
-                <div class="row g-3">
-                    {% for r in related_news|slice:":4" %}
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0 shadow-sm overflow-hidden" style="border-radius: 10px;">
-                            <a href="{% url 'news_detail' r.url_city|default:'news' r.slug %}" class="text-decoration-none">
-                                <img src="{% if r.image_url %}{{ r.image_url }}{% else %}{{ r.image.url }}{% endif %}" 
-                                     class="card-img-top" style="height: 180px; object-fit: cover;" onerror="this.src='{% static 'logo.png' %}';">
-                                <div class="card-body p-3">
-                                    <h6 class="card-title text-dark fw-bold mb-0" style="line-height: 1.4;">{{ r.title|truncatechars:70 }}</h6>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="fb-promo-box bg-primary text-white p-4 rounded-3 text-center mt-5">
+                    <h4 class="fw-bold">Uttar World से जुड़ें</h4>
+                    <p>ताज़ा खबरों के लिए हमारे फेसबुक पेज को लाइक करें</p>
+                    <a href="https://www.facebook.com/uttarworld" target="_blank" class="btn btn-light fw-bold rounded-pill">Like Page <i class="fab fa-facebook-f ms-1"></i></a>
                 </div>
             </div>
         </div>
@@ -217,53 +126,24 @@ ins.adsbygoogle:empty {
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        var contentDiv = document.getElementById('articleContent');
-        if (contentDiv) {
-            var paragraphs = contentDiv.querySelectorAll('p');
-            if (paragraphs.length >= 2) {
-                var adCode = '<div class="my-4 text-center border-top border-bottom py-2"><small class="text-muted d-block mb-2">Advertisement</small><ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins></div>';
-                paragraphs[1].insertAdjacentHTML('afterend', adCode);
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            }
-        }
-    });
-  
-    document.addEventListener("DOMContentLoaded", function() {
         const contentDiv = document.getElementById('articleContent');
         if (!contentDiv) return;
-        let rawHtml = contentDiv.innerHTML;
-        rawHtml = rawHtml.replace(/&nbsp;/g, ' ').replace(/#/g, '').replace(/\s\s+/g, ' ');
-        contentDiv.innerHTML = rawHtml;
 
-        // --- 2. लिखावट (Text Styling) ---
-        // पूरे टेक्स्ट को Justify करना ताकि वह अखबार जैसा प्रोफेशनल दिखे
-        contentDiv.style.textAlign = "justify";
-        contentDiv.style.textJustify = "inter-word";
-        contentDiv.style.fontSize = "1.2rem";
-        contentDiv.style.lineHeight = "1.8";
+        // क्लीनअप (Optional)
+        contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
 
-        // --- 3. ऑटो एड्स और पैराग्राफ सेटिंग ---
         const paragraphs = contentDiv.querySelectorAll('p');
-        
-        paragraphs.forEach((p, index) => {
-            p.style.marginBottom = "1.5rem"; // हर पैराग्राफ के बीच गैप
-            
-            // दूसरी न्यूज़ के बाद विज्ञापन डालना
-            if (index === 1) { 
-                const adDiv = document.createElement('div');
-                adDiv.className = "my-4 text-center border-top border-bottom py-3 bg-light";
-                adDiv.innerHTML = `
-                    <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
-                    <ins class="adsbygoogle"
-                         style="display:block; text-align:center;"
-                         data-ad-layout="in-article"
-                         data-ad-format="fluid"
-                         data-ad-client="ca-pub-3171847065256414"
-                         data-ad-slot="5217172506"></ins>`;
-                p.insertAdjacentElement('afterend', adDiv);
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            }
-        });
+        if (paragraphs.length >= 2) {
+            const adDiv = document.createElement('div');
+            adDiv.className = "my-4 text-center border-top border-bottom py-3 bg-light";
+            adDiv.innerHTML = `
+                <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
+                <ins class="adsbygoogle" style="display:block; text-align:center;"
+                     data-ad-layout="in-article" data-ad-format="fluid"
+                     data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>`;
+            paragraphs[1].insertAdjacentElement('afterend', adDiv);
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        }
     });
 </script>
 {% endblock %}
