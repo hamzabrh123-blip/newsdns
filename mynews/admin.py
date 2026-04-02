@@ -3,6 +3,7 @@ from django import forms
 from .models import News, NewsImage, SidebarWidget
 from .constants import UP_DISTRICTS, OTHER_CATEGORIES
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 import gc
 
 # --- 1. Thumbnail Optimization ---
@@ -16,7 +17,6 @@ def get_optimized_url(url, width=100, height=100, crop="fill"):
 
 # --- 2. News Admin Form Logic ---
 class NewsAdminForm(forms.ModelForm):
-    # .choices को .lower() के हिसाब से मैनेज करने के लिए यहाँ Logic है
     up_city = forms.ChoiceField(
         choices=[('', '--- उत्तर प्रदेश के जिले ---')] + [(x[0], x[1]) for x in UP_DISTRICTS],
         required=False, label="UP के जिले"
@@ -35,7 +35,6 @@ class NewsAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.district:
             dist = self.instance.district
-            # अगर डेटाबेस में लोअरकेस है तो भी मैच कर ले
             if any(dist.lower() == x[0].lower() for x in UP_DISTRICTS):
                 self.fields['up_city'].initial = dist
             elif any(dist.lower() == x[0].lower() for x in OTHER_CATEGORIES):
@@ -70,7 +69,7 @@ class NewsImageInline(admin.TabularInline):
         if img_url:
             optimized = get_optimized_url(img_url, width=100, height=80)
             return format_html('<img src="{}" style="width:70px;height:50px;border-radius:4px;border:1px solid #ddd;"/>', optimized)
-        return "No Pic"
+        return mark_safe("<span>No Pic</span>")
     display_extra_thumb.short_description = "Preview"
 
 # --- 4. Main News Admin ---
@@ -79,7 +78,6 @@ class NewsAdmin(admin.ModelAdmin):
     form = NewsAdminForm
     inlines = [NewsImageInline]
     
-    # 'status' को list_display में रखा है ताकि list_editable काम करे
     list_display = ('display_thumb', 'get_title_styled', 'district', 'category', 'status', 'get_status_badge', 'date')
     list_filter = ('status', 'district', 'category', 'date')
     search_fields = ('title', 'content')
@@ -110,13 +108,14 @@ class NewsAdmin(admin.ModelAdmin):
     def get_title_styled(self, obj):
         important_tag = '<span style="color:red;font-weight:bold;">[Breaking]</span> ' if obj.is_important else ''
         highlight_tag = '<span style="color:orange;font-weight:bold;">[★]</span> ' if obj.show_in_highlights else ''
-        return format_html('{}{}{}', format_html(important_tag), format_html(highlight_tag), obj.title[:80])
+        # Django 6.0 compatibility fix
+        return format_html('{}{}{}', mark_safe(important_tag), mark_safe(highlight_tag), obj.title[:80])
     get_title_styled.short_description = "Title"
 
     def get_status_badge(self, obj):
         colors = {'Published': '#28a745', 'Draft': '#ffc107'}
         return format_html('<span style="background:{}; color:white; padding:3px 8px; border-radius:10px; font-size:11px;">{}</span>', 
-                           colors.get(obj.status, '#6c757d'), obj.status)
+                            colors.get(obj.status, '#6c757d'), obj.status)
     get_status_badge.short_description = "Badge"
 
     def display_thumb(self, obj):
@@ -124,7 +123,8 @@ class NewsAdmin(admin.ModelAdmin):
         if img_url:
             optimized = get_optimized_url(img_url, width=80, height=80)
             return format_html('<img src="{}" style="width:45px;height:45px;border-radius:5px;object-fit:cover;border:1px solid #ccc;"/>', optimized)
-        return format_html('<div style="width:45px;height:45px;background:#eee;border-radius:5px;text-align:center;line-height:45px;color:#999;font-size:10px;">No Pic</div>')
+        # Fix for TypeError: args or kwargs must be provided
+        return format_html('<div style="width:45px;height:45px;background:#eee;border-radius:5px;text-align:center;line-height:45px;color:#999;font-size:10px;">No Pic</div>', "")
     display_thumb.short_description = "Img"
 
     def display_large_img(self, obj):
@@ -135,10 +135,9 @@ class NewsAdmin(admin.ModelAdmin):
         return "Preview will appear after upload"
 
     def save_model(self, request, obj, form, change):
-        # पक्का करें कि जिला वही है जो फॉर्म में सिलेक्ट हुआ
         obj.district = form.cleaned_data.get('district')
         super().save_model(request, obj, form, change)
-        gc.collect() # मेमोरी साफ़ रखने के लिए
+        gc.collect()
 
 # --- 5. Sidebar Widget Admin ---
 @admin.register(SidebarWidget)

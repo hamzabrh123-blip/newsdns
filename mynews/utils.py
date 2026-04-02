@@ -6,7 +6,7 @@ import logging
 import gc
 import io
 from PIL import Image
-import pillow_avif  # AVIF सपोर्ट के लिए ज़रूरी
+#import pillow_avif  # AVIF सपोर्ट के लिए ज़रूरी
 from django.conf import settings
 from django.apps import apps
 
@@ -50,7 +50,7 @@ def process_and_upload_to_imgbb(instance):
         img = Image.open(io.BytesIO(img_data))
 
         # AVIF/WebP/PNG को RGB में बदलें (ताकि वॉटरमार्क और JPEG सेव हो सके)
-        if img.mode in ("RGBA", "P", "LA") or "avif" in str(img.format).lower():
+        if img.mode in ("RGBA", "P", "LA"):
             img = img.convert("RGB")
         
         # 512MB RAM के लिए इमेज रिसाइज़ (1000px चौड़ाई काफी है)

@@ -61,9 +61,12 @@
                         <div class="img-container position-relative overflow-hidden">
                             {% if item.slug %}
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                                     class="card-img-top news-thumb" alt="{{ item.title|striptags }}" loading="lazy"
-                                     onerror="this.src='{% static 'logo.png' %}';">
+                                {# अपडेटेड इमेज लॉजिक #}
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
+                                     class="card-img-top news-thumb" 
+                                     alt="{{ item.title|striptags }}" 
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                             </a>
                             {% endif %}
                             
@@ -146,8 +149,8 @@
 
 <style>
     .fw-black { font-weight: 900; }
-    .news-card-v2 { border-radius: 12px; transition: all 0.3s ease; background: #fff; height: 100%; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05) !important; }
-    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+    .news-card-v2 { border-radius: 12px; transition: all 0.3s ease; background: #fff; height: 100%; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05) !important; position: relative; z-index: 1; }
+    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; z-index: 2; }
     .img-container { height: 210px; background: #f8f9fa; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
     .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
     .news-card-v2:hover .news-thumb { transform: scale(1.05); }
@@ -158,42 +161,37 @@
     .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
     .pulse-dot { width: 10px; height: 10px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-    .sticky-sidebar { position: sticky; top: 100px; }
+    
+    .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
+    
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; border: none; }
-    @media (max-width: 768px) { .img-container { height: 180px; } .card-title-fixed { font-size: 1.1rem; } }
+    @media (max-width: 768px) { .img-container { height: 180px; } .card-title-fixed { font-size: 1.1rem; } .sticky-sidebar { position: static; } }
 </style>
+
 <script>
     (function() {
         function finalCleanup() {
             var elements = document.querySelectorAll('.excerpt-v2, .card-text');
-            
             elements.forEach(function(el) {
-                // 1. ब्राउज़र की मदद से entities को असली टेक्स्ट बनाना
                 var txt = document.createElement("textarea");
                 txt.innerHTML = el.innerHTML;
                 var decodedText = txt.value;
-
-                // 2. सफाई अभियान (अब &39; और &nbsp; का नामो-निशान नहीं बचेगा)
-                var cleanText = decodedText.replace(/\u00a0/g, ' ')  // Invisible space
-                                           .replace(/&nbsp;/g, ' ')   // HTML space
-                                           .replace(/&39;|&#39;/g, "'") // Single quote (अति आवश्यक)
-                                           .replace(/&quot;|&#34;/g, '"') // Double quote
-                                           .replace(/#/g, '')         // Hash
-                                           .replace(/\s\s+/g, ' ')    // Double space
+                var cleanText = decodedText.replace(/\u00a0/g, ' ')
+                                           .replace(/&nbsp;/g, ' ')
+                                           .replace(/&39;|&#39;/g, "'")
+                                           .replace(/&quot;|&#34;/g, '"')
+                                           .replace(/#/g, '')
+                                           .replace(/\s\s+/g, ' ')
                                            .trim();
-                
                 if (el.textContent !== cleanText) {
                     el.textContent = cleanText;
                     el.style.textAlign = "justify";
                 }
             });
         }
-
         window.addEventListener('load', finalCleanup);
         setTimeout(finalCleanup, 500);
         setTimeout(finalCleanup, 2000);
-        // एक बैकअप के लिए 5 सेकंड बाद फिर से (AdSense लोडिंग के समय के लिए)
-        setTimeout(finalCleanup, 5000);
     })();
 </script>
 {% endblock %}
