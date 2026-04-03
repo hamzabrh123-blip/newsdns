@@ -83,11 +83,9 @@
                          onerror="this.onerror=null;this.src='{% static 'districts/news.webp' %}';">
                 </div>
 
-                {% if news.youtube_video_id %}
-                <div class="video-container">
-                    <iframe src="https://www.youtube.com/embed/{{ news.youtube_video_id }}" allowfullscreen></iframe>
-                </div>
-                {% endif %}
+               {% if news.youtube_url %}
+                  {% include "mynews/youtube_player.html" %}
+               {% endif %}
 
                 <div class="article-content" id="articleContent">
                     {{ news.content|safe }}
