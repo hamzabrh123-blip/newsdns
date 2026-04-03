@@ -12,7 +12,7 @@
   },
   "headline": "{{ news.title|striptags }}",
   "description": "{{ news.content|striptags|truncatewords:30 }}",
-  "image": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
+  "image": "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/districts/{{ news.url_city|lower|default:'news' }}.webp{% endif %}",
   "datePublished": "{{ news.date|date:'c' }}",
   "dateModified": "{{ news.date|date:'c' }}",
   "author": {
@@ -33,7 +33,7 @@
     "@type": "VideoObject",
     "name": "{{ news.title|striptags }}",
     "description": "{{ news.content|striptags|truncatewords:20 }}",
-    "thumbnailUrl": "{% if news.image_url %}{{ news.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% endif %}",
+    "thumbnailUrl": "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/districts/{{ news.url_city|lower|default:'news' }}.webp{% endif %}",
     "uploadDate": "{{ news.date|date:'c' }}",
     "embedUrl": "{{ news.youtube_url }}"
   }
@@ -46,24 +46,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* विज्ञापन न होने पर जगह न घेरे */
+    /* Ads Cleanup */
     ins.adsbygoogle[data-ad-status="unfilled"], ins.adsbygoogle:empty { display: none !important; height: 0px !important; margin: 0px !important; }
-    .ad-slot-wrapper:empty { display: none; }
+    
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
+
     .content-card { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; border: 1px solid #eee; }
     .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.3rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
-    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; }
+    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; text-align: justify; }
     .article-content p { margin-bottom: 1.3rem; }
     .author-box { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 12px 0; margin-bottom: 20px; }
     .cat-badge { background: var(--news-red); color: white; padding: 4px 12px; font-weight: bold; font-size: 0.8rem; border-radius: 3px; }
-    .ratio-16x9 { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; }
-    .ratio-16x9 iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-    .gallery-img-wrapper { margin-bottom: 20px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .gallery-img-wrapper img { width: 100%; height: auto; transition: 0.3s; }
-    .gallery-caption { font-size: 0.9rem; color: #666; padding: 8px 12px; background: #f9f9f9; font-style: italic; border-left: 3px solid var(--news-red); }
-    .fb-promo-box { background: linear-gradient(135deg, #1877F2, #0056b3); color: #fff; padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; border: none; }
-    @media (max-width: 768px) { .content-card { padding: 15px; border-radius: 0; border: none; } .article-title { font-size: 1.7rem; } .article-content { font-size: 1.15rem; } }
+    .fb-promo-box { background: linear-gradient(135deg, #1877F2, #0056b3); color: #fff; padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; }
+
+    @media (max-width: 768px) {
+        .content-card { padding: 15px; border-radius: 0; border: none; }
+        .article-title { font-size: 1.7rem; }
+    }
 </style>
 
 <div class="container mt-4">
@@ -92,9 +92,7 @@
 
                 <div class="mb-4 text-center">
                     <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}/static/districts/{{ news.url_city|lower|default:'news' }}.webp{% endif %}" 
-                         class="w-100 rounded shadow-sm" 
-                         style="max-height: 500px; object-fit: cover;" 
-                         alt="{{ news.title }}"
+                         class="w-100 rounded shadow-sm" style="max-height: 500px; object-fit: cover;" alt="{{ news.title }}"
                          onerror="this.src='{% static 'logo.png' %}';">
                 </div>
 
@@ -103,20 +101,13 @@
                 </div>
 
                 {% if news.additional_images.all %}
-                <div class="news-gallery">
-                    <h5 class="fw-bold border-bottom pb-2 mb-4"><i class="fas fa-camera text-danger"></i> इस खबर से जुड़ी तस्वीरें</h5>
-                    <div class="row g-3">
-                        {% for img in news.additional_images.all %}
-                        <div class="col-12">
-                            <div class="gallery-img-wrapper">
-                                <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" alt="Extra Image" class="img-fluid">
-                                {% if img.caption %}
-                                <div class="gallery-caption">{{ img.caption }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
+                <div class="news-gallery mt-4">
+                    {% for img in news.additional_images.all %}
+                    <div class="mb-3">
+                        <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
+                        {% if img.caption %}<div class="small text-muted mt-1 italic">{{ img.caption }}</div>{% endif %}
                     </div>
+                    {% endfor %}
                 </div>
                 {% endif %}
 
@@ -126,7 +117,6 @@
 
                 <div class="fb-promo-box">
                     <h3 class="fw-bold mb-2">Uttar World News on Facebook</h3>
-                    <p class="mb-3">खबरों की पल-पल की अपडेट के लिए हमारे फेसबुक पेज को अभी लाइक करें।</p>
                     <a href="https://www.facebook.com/uttarworld" target="_blank" class="btn btn-warning fw-bold px-5 py-2 rounded-pill shadow">
                         अभी Like करें <i class="fab fa-facebook-f ms-2"></i>
                     </a>
@@ -160,31 +150,25 @@
 </div>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const contentDiv = document.getElementById('articleContent');
         if (!contentDiv) return;
-        
-        // --- 1. Clean Text ---
-        contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/#/g, '').replace(/\s\s+/g, ' ');
-        contentDiv.style.textAlign = "justify";
-        contentDiv.style.textJustify = "inter-word";
-        contentDiv.style.fontSize = "1.2rem";
-        contentDiv.style.lineHeight = "1.8";
 
-        // --- 2. Single Ad Logic ---
+        // Clean & Format
+        contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
+
+        // Ad Injection Logic (Only 1 Ad after 2nd paragraph)
         const paragraphs = contentDiv.querySelectorAll('p');
         if (paragraphs.length >= 2) {
             const adDiv = document.createElement('div');
             adDiv.className = "my-4 text-center border-top border-bottom py-3 bg-light";
             adDiv.innerHTML = `
                 <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
-                <ins class="adsbygoogle"
-                     style="display:block; text-align:center;"
-                     data-ad-layout="in-article"
-                     data-ad-format="fluid"
-                     data-ad-client="ca-pub-3171847065256414"
-                     data-ad-slot="5217172506"></ins>`;
+                <ins class="adsbygoogle" style="display:block; text-align:center;"
+                     data-ad-layout="in-article" data-ad-format="fluid"
+                     data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>`;
             paragraphs[1].insertAdjacentElement('afterend', adDiv);
             try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
         }
