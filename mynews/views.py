@@ -3,7 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
-from django.utils.timezone import now # इसे जोड़ना मत भूलना
+from django.utils.timezone import now
+from django.utils.html import escape, strip_tags  # Clean XML के लिए ज़रूरी
 from .models import News, SidebarWidget 
 
 logger = logging.getLogger(__name__)
@@ -73,14 +74,12 @@ def ads_txt(request):
     content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
 
-
-
 def sitemap_xml(request):
     try:
         # ताज़ा 2000 खबरें उठाएं
         items = News.objects.filter(status='Published').order_by('-date')[:2000] 
         
-        # 1. XML Header - एकदम सही फॉर्मेट में
+        # 1. XML Header - एकदम क्लीन शुरुआत
         xml_output = '<?xml version="1.0" encoding="UTF-8"?>\n'
         xml_output += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
         
@@ -90,7 +89,6 @@ def sitemap_xml(request):
         # 3. Loop through News Items
         for n in items:
             city_path = n.url_city.lower() if n.url_city else "news"
-            # URL को सुरक्षित बनाना
             loc = f'{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/'
             
             xml_output += '  <url>\n'
@@ -99,12 +97,12 @@ def sitemap_xml(request):
             
             # --- VIDEO SITEMAP LOGIC ---
             if n.youtube_url:
-                # थंबनेल का सही रास्ता
+                # थंबनेल का पक्का रास्ता
                 thumbnail = n.image_url if n.image_url else f"{SITE_URL}/static/districts/news.webp"
                 if n.image and not n.image_url:
                     thumbnail = f"{SITE_URL}{n.image.url}"
 
-                # टाइटल और कंटेंट को XML के लिए साफ़ करना (बहुत ज़रूरी)
+                # टाइटल और कंटेंट को XML के लिए साफ़ करना (Escape ज़रूरी है)
                 clean_title = escape(strip_tags(n.title[:90]))
                 clean_desc = escape(strip_tags(n.content[:200]))
 
@@ -113,7 +111,7 @@ def sitemap_xml(request):
                 xml_output += f'      <video:title>{clean_title}</video:title>\n'
                 xml_output += f'      <video:description>{clean_desc}</video:description>\n'
                 
-                # YouTube ID निकालने का पक्का जुगाड़
+                # YouTube ID निकालने का लॉजिक
                 video_id = ""
                 if "v=" in n.youtube_url:
                     video_id = n.youtube_url.split("v=")[1].split("&")[0]
@@ -123,7 +121,6 @@ def sitemap_xml(request):
                 if video_id:
                     xml_output += f'      <video:player_loc>https://www.youtube.com/embed/{video_id}</video:player_loc>\n'
                 else:
-                    # अगर ID नहीं मिली तो ओरिजिनल URL ही डाल दो
                     xml_output += f'      <video:content_loc>{escape(n.youtube_url)}</video:content_loc>\n'
                 
                 xml_output += f'      <video:publication_date>{n.date.strftime("%Y-%m-%dT%H:%M:%S+05:30")}</video:publication_date>\n'
@@ -134,20 +131,16 @@ def sitemap_xml(request):
             
         xml_output += '</urlset>'
         
-        # HttpResponse में content_type और charset एकदम सही देना है
         return HttpResponse(xml_output, content_type="application/xml; charset=utf-8")
         
     except Exception as e:
         logger.error(f"Sitemap Error: {e}")
         return HttpResponse(f"Error generating sitemap", content_type="text/plain")
-        
+
 # --- 4. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
-    # url_city को ignore कर सकते हैं क्योंकि slug unique है, 
-    # लेकिन SEO के लिए URL में city होना ज़रूरी है
     news = get_object_or_404(News, slug=slug)
 
-    # रिलेटेड न्यूज़: उसी जिले या कैटेगरी की खबरें
     related_news = News.objects.filter(status='Published').filter(
         Q(district=news.district) | Q(category=news.category)
     ).exclude(id=news.id).order_by('-date')[:6]
@@ -155,7 +148,7 @@ def news_detail(request, url_city, slug):
     context = {
         "news": news,
         "related_news": related_news, 
-        "meta_description": news.title[:160], # डिस्क्रिप्शन को लिमिट करना अच्छा है
+        "meta_description": news.title[:160],
         **get_common_sidebar_data()
     }
     return render(request, "mynews/news_detail.html", context)
@@ -169,7 +162,6 @@ def district_news(request, district):
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']
         news_list = all_published.exclude(district__in=non_up_labels).exclude(district__isnull=True).order_by("-date")
     else:
-        # District, Category या URL City तीनों में से कहीं भी मैच हो जाए
         news_list = all_published.filter(
             Q(district__iexact=clean_district) | 
             Q(url_city__iexact=district) | 
@@ -191,7 +183,6 @@ def fb_news_api(request):
     data = [{'id': n.id, 'title': n.title, 'url': f"{SITE_URL}/{n.url_city.lower() if n.url_city else 'news'}/{n.slug}/"} for n in news_list]
     return JsonResponse(data, safe=False)
 
-# Standard Pages
 def privacy_policy(request): return render(request, "mynews/privacy_policy.html", get_common_sidebar_data())
 def about_us(request): return render(request, "mynews/about_us.html", get_common_sidebar_data())
 def contact_us(request): return render(request, "mynews/contact_us.html", get_common_sidebar_data())
