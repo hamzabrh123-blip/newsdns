@@ -4,8 +4,29 @@
     </div>
 </div>
 
+{% if news.youtube_url %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "{{ news.title|striptags|addslashes }}",
+  "description": "{{ news.content|striptags|truncatewords:30|addslashes }}",
+  "thumbnailUrl": "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/districts/news.webp{% endif %}",
+  "uploadDate": "{{ news.date|date:'c' }}",
+  "embedUrl": "{{ news.youtube_url }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/static/logo.png"
+    }
+  }
+}
+</script>
+{% endif %}
+
 <script>
-    // 1. YouTube API ko load karo
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -13,29 +34,21 @@
 
     var player;
     function onYouTubeIframeAPIReady() {
-        // Django se sirf URL ya ID uthao
         var videoUrl = "{{ news.youtube_url|default:'' }}"; 
         var videoId = "";
-
         if (videoUrl) {
-            // Regex se ID nikaalo (Frontend par)
             var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             var match = videoUrl.match(regExp);
             if (match && match[2].length == 11) {
                 videoId = match[2];
             }
         }
-
         if (videoId) {
             document.getElementById('yt-player-container').style.display = 'block';
             player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
+                height: '100%', width: '100%',
                 videoId: videoId,
-                playerVars: {
-                    'playsinline': 1,
-                    'rel': 0
-                }
+                playerVars: { 'playsinline': 1, 'rel': 0 }
             });
         }
     }
