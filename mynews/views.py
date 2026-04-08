@@ -75,26 +75,58 @@ def ads_txt(request):
 
 def sitemap_xml(request):
     try:
-        # 2000 पोस्ट्स एडसेंस के लिए बहुत अच्छी हैं
+        # ताज़ा 2000 खबरें उठाएं
         items = News.objects.filter(status='Published').order_by('-date')[:2000] 
         
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        # यहाँ हमने video schema का Namespace (xmlns:video) जोड़ दिया है
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
         
-        # Homepage
-        xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+        # 1. Homepage
+        xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
         
+        # 2. News Items
         for n in items:
-            # url_city को lowercase रखना ज़रूरी है WebP मैचिंग के लिए
             city_path = n.url_city.lower() if n.url_city else "news"
             loc = f'{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/'
-            xml += f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n  </url>\n'
+            
+            xml += '  <url>\n'
+            xml += f'    <loc>{loc}</loc>\n'
+            xml += f'    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n'
+            
+            # --- VIDEO SITEMAP LOGIC START ---
+            if n.youtube_url:
+                # थंबनेल के लिए आपकी न्यूज़ इमेज ही काम आएगी
+                thumbnail = n.image_url if n.image_url else f"{SITE_URL}/static/districts/news.webp"
+                if n.image and not n.image_url:
+                    thumbnail = f"{SITE_URL}{n.image.url}"
+
+                xml += '    <video:video>\n'
+                xml += f'      <video:thumbnail_loc>{thumbnail}</video:thumbnail_loc>\n'
+                xml += f'      <video:title>{n.title[:90]}</video:title>\n'
+                xml += f'      <video:description>{n.content[:200]|striptags}</video:description>\n'
+                xml += f'      <video:content_loc>{n.youtube_url}</video:content_loc>\n'
+                # Embed URL बनाना (GSC इसे पसंद करता है)
+                video_id = ""
+                if "v=" in n.youtube_url: video_id = n.youtube_url.split("v=")[1].split("&")[0]
+                elif "youtu.be/" in n.youtube_url: video_id = n.youtube_url.split("youtu.be/")[1].split("?")[0]
+                
+                if video_id:
+                    xml += f'      <video:player_loc>https://www.youtube.com/embed/{video_id}</video:player_loc>\n'
+                
+                xml += f'      <video:publication_date>{n.date.strftime("%Y-%m-%dT%H:%M:%S+05:30")}</video:publication_date>\n'
+                xml += '      <video:family_friendly>yes</video:family_friendly>\n'
+                xml += '    </video:video>\n'
+            # --- VIDEO SITEMAP LOGIC END ---
+
+            xml += '  </url>\n'
             
         xml += '</urlset>'
         return HttpResponse(xml, content_type="application/xml")
     except Exception as e:
-        return HttpResponse(str(e), content_type="text/plain")
-
+        logger.error(f"Sitemap Error: {e}")
+        return HttpResponse(f"Error generating sitemap", content_type="text/plain")
+        
 # --- 4. NEWS DETAIL ---
 def news_detail(request, url_city, slug):
     # url_city को ignore कर सकते हैं क्योंकि slug unique है, 
