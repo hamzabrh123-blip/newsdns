@@ -73,56 +73,70 @@ def ads_txt(request):
     content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
 
+
+
 def sitemap_xml(request):
     try:
-        # ताज़ा 2000 खबरें उठाएं
+        # ताज़ा 2000 खबरें उठाएं
         items = News.objects.filter(status='Published').order_by('-date')[:2000] 
         
-        xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        # यहाँ हमने video schema का Namespace (xmlns:video) जोड़ दिया है
-        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
+        # 1. XML Header - एकदम सही फॉर्मेट में
+        xml_output = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml_output += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
         
-        # 1. Homepage
-        xml += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
+        # 2. Homepage Entry
+        xml_output += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
         
-        # 2. News Items
+        # 3. Loop through News Items
         for n in items:
             city_path = n.url_city.lower() if n.url_city else "news"
+            # URL को सुरक्षित बनाना
             loc = f'{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/'
             
-            xml += '  <url>\n'
-            xml += f'    <loc>{loc}</loc>\n'
-            xml += f'    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n'
+            xml_output += '  <url>\n'
+            xml_output += f'    <loc>{escape(loc)}</loc>\n'
+            xml_output += f'    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n'
             
-            # --- VIDEO SITEMAP LOGIC START ---
+            # --- VIDEO SITEMAP LOGIC ---
             if n.youtube_url:
-                # थंबनेल के लिए आपकी न्यूज़ इमेज ही काम आएगी
+                # थंबनेल का सही रास्ता
                 thumbnail = n.image_url if n.image_url else f"{SITE_URL}/static/districts/news.webp"
                 if n.image and not n.image_url:
                     thumbnail = f"{SITE_URL}{n.image.url}"
 
-                xml += '    <video:video>\n'
-                xml += f'      <video:thumbnail_loc>{thumbnail}</video:thumbnail_loc>\n'
-                xml += f'      <video:title>{n.title[:90]}</video:title>\n'
-                xml += f'      <video:description>{n.content[:200]|striptags}</video:description>\n'
-                xml += f'      <video:content_loc>{n.youtube_url}</video:content_loc>\n'
-                # Embed URL बनाना (GSC इसे पसंद करता है)
+                # टाइटल और कंटेंट को XML के लिए साफ़ करना (बहुत ज़रूरी)
+                clean_title = escape(strip_tags(n.title[:90]))
+                clean_desc = escape(strip_tags(n.content[:200]))
+
+                xml_output += '    <video:video>\n'
+                xml_output += f'      <video:thumbnail_loc>{escape(thumbnail)}</video:thumbnail_loc>\n'
+                xml_output += f'      <video:title>{clean_title}</video:title>\n'
+                xml_output += f'      <video:description>{clean_desc}</video:description>\n'
+                
+                # YouTube ID निकालने का पक्का जुगाड़
                 video_id = ""
-                if "v=" in n.youtube_url: video_id = n.youtube_url.split("v=")[1].split("&")[0]
-                elif "youtu.be/" in n.youtube_url: video_id = n.youtube_url.split("youtu.be/")[1].split("?")[0]
+                if "v=" in n.youtube_url:
+                    video_id = n.youtube_url.split("v=")[1].split("&")[0]
+                elif "youtu.be/" in n.youtube_url:
+                    video_id = n.youtube_url.split("youtu.be/")[1].split("?")[0]
                 
                 if video_id:
-                    xml += f'      <video:player_loc>https://www.youtube.com/embed/{video_id}</video:player_loc>\n'
+                    xml_output += f'      <video:player_loc>https://www.youtube.com/embed/{video_id}</video:player_loc>\n'
+                else:
+                    # अगर ID नहीं मिली तो ओरिजिनल URL ही डाल दो
+                    xml_output += f'      <video:content_loc>{escape(n.youtube_url)}</video:content_loc>\n'
                 
-                xml += f'      <video:publication_date>{n.date.strftime("%Y-%m-%dT%H:%M:%S+05:30")}</video:publication_date>\n'
-                xml += '      <video:family_friendly>yes</video:family_friendly>\n'
-                xml += '    </video:video>\n'
-            # --- VIDEO SITEMAP LOGIC END ---
+                xml_output += f'      <video:publication_date>{n.date.strftime("%Y-%m-%dT%H:%M:%S+05:30")}</video:publication_date>\n'
+                xml_output += '      <video:family_friendly>yes</video:family_friendly>\n'
+                xml_output += '    </video:video>\n'
 
-            xml += '  </url>\n'
+            xml_output += '  </url>\n'
             
-        xml += '</urlset>'
-        return HttpResponse(xml, content_type="application/xml")
+        xml_output += '</urlset>'
+        
+        # HttpResponse में content_type और charset एकदम सही देना है
+        return HttpResponse(xml_output, content_type="application/xml; charset=utf-8")
+        
     except Exception as e:
         logger.error(f"Sitemap Error: {e}")
         return HttpResponse(f"Error generating sitemap", content_type="text/plain")
