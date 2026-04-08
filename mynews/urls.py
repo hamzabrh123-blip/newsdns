@@ -7,29 +7,32 @@ urlpatterns = [
     # --- 1. HOME PAGE ---
     path("", views.home, name="home"),
 
-    # --- 2. THE "CLEANUP" REDIRECTS (इन्हें ऊपर ही रखें ताकि ये एरर्स को पहले पकड़ लें) ---
+    # --- 2. THE "CLEANUP" REDIRECTS (इन्हें टॉप पर रखना अनिवार्य है) ---
     
-    # पुरानी /google/ वाली कैटेगरी को होमपेज पर भेजें
+    # A. 'district/' वाले पुराने रास्तों को होमपेज पर भेजें (जो अभी एरर दे रहा था)
+    re_path(r'^district/.*$', RedirectView.as_view(url='/', permanent=True)),
+
+    # B. पुरानी /google/ वाली कैटेगरी को होमपेज पर भेजें
     re_path(r'^google/.*$', RedirectView.as_view(url='/', permanent=True)),
 
-    # किसी भी यूआरएल के अंत में .html हो तो उसे होमपेज पर भेजें
+    # C. किसी भी यूआरएल के अंत में .html हो (जैसे news-title.html) तो उसे होमपेज पर भेजें
     re_path(r'.*\.html$', RedirectView.as_view(url='/', permanent=True)),
 
-    # पुरानी जिला/कैटेगरी लिंक्स (जैसे bahraich-gonda, gonda-news आदि) को होमपेज पर भेजें
-    # यहाँ आप अपनी पुरानी कैटेगरी के नाम पाइप | लगाकर जोड़ सकते हैं
-    re_path(r'^(bahraich-gonda|gonda-news|azamgarh-news|balrampur-news)/.*$', RedirectView.as_view(url='/', permanent=True)),
+    # D. पुराने जिला/कैटेगरी लिंक्स (जैसे bahraich-gonda, gonda-news आदि)
+    # यहाँ आप अपनी पुरानी कैटेगरी के नाम पाइप | लगाकर जोड़ सकते हैं
+    re_path(r'^(bahraich-gonda|gonda-news|azamgarh-news|balrampur-news|up-national)/.*$', RedirectView.as_view(url='/', permanent=True)),
 
     # --- 3. API & SCRIPTS ---
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
-    # --- 4. CATEGORIES & DISTRICTS ---
+    # --- 4. CATEGORIES & DISTRICTS (New Structure) ---
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
     path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
     
-    # Universal Category Route
+    # Universal Category Route (e.g., /category/business/)
     path("category/<str:district>/", views.district_news, name="district_news"),
 
-    # Compatibility Paths for Search Engine
+    # Search Engine Compatibility Paths
     path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
     path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
     path("news/int/", views.district_news, {'district': 'International'}, name="international"),
@@ -48,6 +51,6 @@ urlpatterns = [
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
     # --- 6. NEWS DETAIL PAGE (Hamesha Last Mein) ---
-    # यह नियम बहुत 'Broad' है, इसलिए इसे सबसे नीचे रखा गया है
+    # यह नियम सबसे नीचे है ताकि ऊपर के रिडायरेक्ट पहले अपना काम कर सकें
     path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 ]
