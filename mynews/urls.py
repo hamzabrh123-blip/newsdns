@@ -7,32 +7,29 @@ urlpatterns = [
     # --- 1. HOME PAGE ---
     path("", views.home, name="home"),
 
-    # --- 2. THE "CLEANUP" REDIRECTS (इन्हें टॉप पर रखना अनिवार्य है) ---
+    # --- 2. THE ULTIMATE CLEANUP (शातिर 404 एरर्स का गेम यहाँ खत्म) ---
     
-    # A. 'district/' वाले पुराने रास्तों को होमपेज पर भेजें (जो अभी एरर दे रहा था)
-    re_path(r'^district/.*$', RedirectView.as_view(url='/', permanent=True)),
+    # A. 'district/' और 'google/' वाले सभी पुराने रास्तों को होमपेज पर भेजें
+    re_path(r'^(google|district)/.*$', RedirectView.as_view(url='/', permanent=True)),
 
-    # B. पुरानी /google/ वाली कैटेगरी को होमपेज पर भेजें
-    re_path(r'^google/.*$', RedirectView.as_view(url='/', permanent=True)),
-
-    # C. किसी भी यूआरएल के अंत में .html हो (जैसे news-title.html) तो उसे होमपेज पर भेजें
+    # B. किसी भी फाइल के अंत में .html हो तो उसे दफन करो
     re_path(r'.*\.html$', RedirectView.as_view(url='/', permanent=True)),
 
-    # D. पुराने जिला/कैटेगरी लिंक्स (जैसे bahraich-gonda, gonda-news आदि)
-    # यहाँ आप अपनी पुरानी कैटेगरी के नाम पाइप | लगाकर जोड़ सकते हैं
-    re_path(r'^(bahraich-gonda|gonda-news|azamgarh-news|balrampur-news|up-national)/.*$', RedirectView.as_view(url='/', permanent=True)),
+    # C. सीधे नाम वाले लिंक्स (bollywood/, sports/ आदि) और पुराने जिला नाम
+    # यह नियम बिना 'news/' या 'category/' वाले सीधे लिंक्स को पकड़ लेगा
+    re_path(r'^(bollywood|sports|market|national|international|bahraich-gonda|gonda-news|azamgarh-news|balrampur-news|up-national)/?$', RedirectView.as_view(url='/', permanent=True)),
 
     # --- 3. API & SCRIPTS ---
     path("api/v1/fb-share-data/", views.fb_news_api, name='fb_api'),
 
-    # --- 4. CATEGORIES & DISTRICTS (New Structure) ---
+    # --- 4. CATEGORIES & DISTRICTS (New Working Structure) ---
     path("technology/", views.district_news, {'district': 'Technology'}, name="technology_direct"),
     path("news/tech/", views.district_news, {'district': 'Technology'}, name="technology"),
     
-    # Universal Category Route (e.g., /category/business/)
+    # Universal Category Route
     path("category/<str:district>/", views.district_news, name="district_news"),
 
-    # Search Engine Compatibility Paths
+    # Search Engine Compatibility Paths (news/ के साथ)
     path("news/national/", views.district_news, {'district': 'National'}, name="national_news"),
     path("news/international/", views.district_news, {'district': 'International'}, name="international_news"),
     path("news/int/", views.district_news, {'district': 'International'}, name="international"),
@@ -50,7 +47,7 @@ urlpatterns = [
     path("contact-us/", views.contact_us, name="contact_us"),
     path("disclaimer/", views.disclaimer, name="disclaimer"),
 
-    # --- 6. NEWS DETAIL PAGE (Hamesha Last Mein) ---
-    # यह नियम सबसे नीचे है ताकि ऊपर के रिडायरेक्ट पहले अपना काम कर सकें
+    # --- 6. NEWS DETAIL PAGE (Hamesha Sabse Neeche) ---
+    # यह नियम सबसे आखिरी गार्ड है
     path("<str:url_city>/<slug:slug>/", views.news_detail, name="news_detail"),
 ]
