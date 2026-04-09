@@ -16,6 +16,7 @@ urlpatterns = [
     re_path(r'.*\.html$', RedirectView.as_view(url='/', permanent=True)),
 
     # C. सीधे नाम वाले लिंक्स (bollywood/, sports/ आदि) और पुराने जिला नाम
+    re_path(r'^(category/)?(kanpur-nagar|kanpur-dehat)/?$', RedirectView.as_view(url='/category/kanpur/', permanent=True)),
     # यह नियम बिना 'news/' या 'category/' वाले सीधे लिंक्स को पकड़ लेगा
     re_path(r'^(bollywood|sports|market|national|international|bahraich-gonda|gonda-news|azamgarh-news|balrampur-news|up-national)/?$', RedirectView.as_view(url='/', permanent=True)),
 
