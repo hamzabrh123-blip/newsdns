@@ -35,7 +35,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    ins.adsbygoogle[data-ad-status="unfilled"], ins.adsbygoogle:empty { display: none !important; }
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
 
@@ -125,31 +124,11 @@
     </div>
 </div>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const contentDiv = document.getElementById('articleContent');
         if (!contentDiv) return;
-
         contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
-
-        const paragraphs = contentDiv.querySelectorAll('p');
-        if (paragraphs.length >= 2) {
-            const adDiv = document.createElement('div');
-            adDiv.className = "my-4 text-center border-top border-bottom py-3 bg-light";
-            adDiv.innerHTML = `
-                <small class="text-muted d-block mb-2">ADVERTISEMENT</small>
-                <ins class="adsbygoogle" style="display:block; text-align:center;"
-                     data-ad-layout="in-article" data-ad-format="fluid"
-                     data-ad-client="ca-pub-3171847065256414" data-ad-slot="5217172506"></ins>`;
-            
-            paragraphs[1].insertAdjacentElement('afterend', adDiv);
-            
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) { }
-        }
     });
 </script>
 {% endblock %}
