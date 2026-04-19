@@ -1,32 +1,17 @@
 {% load static %}
 
 <style>
-    /* Sidebar Styling - Clean & Modern */
-    .sidebar-wrapper { 
-        background: transparent; 
-        position: relative;
-        z-index: 1; 
-    }
-    
+    /* Sidebar Styling - Modern & Clean */
+    .sidebar-wrapper { background: transparent; position: relative; z-index: 1; }
     .sidebar-box { 
-        background: #fff; 
-        border-radius: 12px; 
-        padding: 15px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-        margin-bottom: 25px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.03);
+        background: #fff; border-radius: 12px; padding: 15px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px;
+        overflow: hidden; border: 1px solid rgba(0,0,0,0.03);
     }
-    
     .box-title { 
-        font-size: 1.1rem; 
-        font-weight: 800; 
-        padding-bottom: 8px; 
-        margin-bottom: 15px; 
-        border-bottom: 3px solid #dc3545; 
-        display: flex; 
-        align-items: center;
-        text-transform: uppercase;
+        font-size: 1.1rem; font-weight: 800; padding-bottom: 8px; 
+        margin-bottom: 15px; border-bottom: 3px solid #dc3545; 
+        display: flex; align-items: center; text-transform: uppercase;
     }
     .box-title i { margin-right: 10px; }
 
@@ -34,71 +19,46 @@
     .thumb-item { border-bottom: 1px dashed #eee; padding-bottom: 12px; margin-bottom: 12px; transition: 0.3s; }
     .thumb-item:last-child { border-bottom: none; margin-bottom: 0; }
     .thumb-item:hover { background: #fff5f5; border-radius: 8px; padding-left: 5px; }
-    
-    .thumb-img { 
-        width: 85px; height: 65px; min-width: 85px; 
-        overflow: hidden; border-radius: 8px; 
-        background: #f8f9fa;
-    }
+    .thumb-img { width: 85px; height: 65px; min-width: 85px; overflow: hidden; border-radius: 8px; background: #f8f9fa; }
     .thumb-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
     .thumb-item:hover .thumb-img img { transform: scale(1.1); }
-    
-    .thumb-link { 
-        font-size: 0.92rem; font-weight: 700; color: #222; 
-        text-decoration: none; line-height: 1.35; display: block; 
-    }
+    .thumb-link { font-size: 0.92rem; font-weight: 700; color: #222; text-decoration: none; line-height: 1.35; display: block; }
     .thumb-link:hover { color: #dc3545; }
-
-    /* Ads Label */
-    .ad-tag { font-size: 9px; color: #bbb; letter-spacing: 2px; text-align: center; margin-bottom: 8px; display: block; font-weight: bold; }
+    
     .view-all-btn { font-size: 0.8rem; display: block; text-align: right; margin-top: 10px; font-weight: 700; text-decoration: none; color: #dc3545; }
 </style>
 
 <aside class="sidebar-wrapper">
 
+    {# सिर्फ खबरें दिखाने वाला हिस्सा #}
     {% for widget in sidebar_widgets %}
+        {% if widget.widget_type == 'LATEST' %}
         <div class="sidebar-box">
-            {% if widget.widget_type == 'AD' %}
-                <span class="ad-tag">ADVERTISEMENT</span>
-                <div class="text-center">
-                    {{ widget.code_content|safe }}
-                </div>
-
-            {% elif widget.widget_type == 'BANNER' %}
-                {% if widget.image %}
-                <span class="ad-tag">SPONSORED</span>
-                <a href="{{ widget.link|default:'#' }}" target="_blank">
-                    <img src="{{ widget.image.url }}" class="img-fluid rounded" alt="{{ widget.title }}">
-                </a>
-                {% endif %}
-
-            {% elif widget.widget_type == 'LATEST' %}
-                <h5 class="box-title" style="border-color: #dc3545; color: #dc3545;">
-                    <i class="fas fa-bolt"></i> {{ widget.title }}
-                </h5>
-                <div class="thumb-list">
-                    {% for item in sidebar_latest_news|slice:widget.news_limit %}
-                    <div class="thumb-item d-flex align-items-center">
-                        <div class="thumb-img">
-                            {# इमेज लॉजिक: ImgBB > Local > District WebP > Logo #}
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
-                                 alt="{{ item.title|striptags }}" 
-                                 onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
-                        </div>
-                        <div class="thumb-content ms-3">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
-                                {{ item.title|striptags|truncatechars:55 }}
-                            </a>
-                        </div>
+            <h5 class="box-title" style="border-color: #dc3545; color: #dc3545;">
+                <i class="fas fa-bolt"></i> {{ widget.title }}
+            </h5>
+            <div class="thumb-list">
+                {% for item in sidebar_latest_news|slice:widget.news_limit %}
+                <div class="thumb-item d-flex align-items-center">
+                    <div class="thumb-img">
+                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
+                             alt="{{ item.title|striptags }}" 
+                             onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                     </div>
-                    {% endfor %}
+                    <div class="thumb-content ms-3">
+                        <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
+                            {{ item.title|striptags|truncatechars:55 }}
+                        </a>
+                    </div>
                 </div>
-                <a href="/" class="view-all-btn">ताज़ा खबरें देखें →</a>
-            {% endif %}
+                {% endfor %}
+            </div>
+            <a href="/" class="view-all-btn">ताज़ा खबरें देखें →</a>
         </div>
+        {% endif %}
     {% endfor %}
 
-    {# उत्तर प्रदेश सेक्शन #}
+    {# उत्तर प्रदेश विशेष #}
     {% if up_sidebar %}
     <div class="sidebar-box">
         <h5 class="box-title" style="border-color: #ffc107; color: #856404;">
@@ -124,32 +84,7 @@
     </div>
     {% endif %}
 
-    {# दुनिया सेक्शन #}
-    {% if world_sidebar %}
-    <div class="sidebar-box">
-        <h5 class="box-title" style="border-color: #0d6efd; color: #0d6efd;">
-            <i class="fas fa-globe-americas"></i> दुनिया (World)
-        </h5>
-        <div class="thumb-list">
-            {% for item in world_sidebar|slice:":5" %}
-            <div class="thumb-item d-flex align-items-center">
-                <div class="thumb-img">
-                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'logo.png' %}{% endif %}" 
-                         alt="{{ item.title|striptags }}" 
-                         onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
-                </div>
-                <div class="thumb-content ms-3">
-                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="thumb-link">
-                        {{ item.title|striptags|truncatechars:50 }}
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {# बाज़ार सेक्शन #}
+    {# बाज़ार अपडेट्स #}
     {% if bazaar_sidebar %}
     <div class="sidebar-box">
         <h5 class="box-title" style="border-color: #198754; color: #198754;">
