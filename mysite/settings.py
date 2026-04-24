@@ -13,13 +13,16 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 ALLOWED_HOSTS = [
     "uttarworld.com", 
     "www.uttarworld.com", 
-    "newsdns.onrender.com" 
+    "newsdns.onrender.com",
+    "127.0.0.1",
+    "localhost"
 ]
 
-# --- SSL & CSRF Fix (Only for Production/Render) ---
+# --- SSL & CSRF Fix (Redirect Loop फिक्स यहाँ है) ---
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
+    # Render + Cloudflare के साथ इसे False रखना ही बेहतर है ताकि लूप न बने
+    SECURE_SSL_REDIRECT = False 
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
@@ -78,8 +81,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE CONFIGURATION (OFFLINE & ONLINE AUTO-SWITCH) ---
-# Default to SQLite for local development
+# --- DATABASE CONFIGURATION ---
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -87,14 +89,12 @@ DATABASES = {
     }
 }
 
-# Agar Render pe DATABASE_URL milta hai, toh use configure karein
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES['default'] = dj_database_url.config(
         default=DATABASE_URL,
         conn_max_age=600,
     )
-    # Online database (PostgreSQL) ke liye SSL require set karein
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
     }
@@ -107,17 +107,18 @@ STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Whitenoise Storage Fix
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
 WHITENOISE_MANIFEST_STRICT = False
-WHITENOISE_KEEP_FILES_ON_GNE = True
+
 # --- CKEDITOR CONFIG ---
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
@@ -164,3 +165,6 @@ USE_TZ = True
 CLOUDINARY_CLOUD_NAME = "dvoqsrkkq"
 CLOUDINARY_BASE_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/fetch/"
 CLOUDINARY_OPTIMIZE_PARAMS = "f_auto,q_auto,w_800/"
+
+# Slash Redirect Fix
+APPEND_SLASH = True
