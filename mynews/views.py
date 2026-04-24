@@ -1,24 +1,23 @@
 import re, logging
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.utils.timezone import now
-from django.utils.html import escape, strip_tags  # Clean XML के लिए ज़रूरी
+from django.utils.html import escape, strip_tags
 from .models import News, SidebarWidget 
 
 logger = logging.getLogger(__name__)
 
-# पक्का करें कि यहाँ अंत में / न हो
 SITE_URL = "https://uttarworld.com"
 
-# --- 1. COMMON DATA (Sidebar & Footer) ---
+# --- 1. COMMON DATA (AdSense Friendly) ---
 def get_common_sidebar_data():
     try:
+        # केवल Published खबरें ही साइडबार में आएं
         published = News.objects.filter(status='Published').order_by("-date")
         sidebar_widgets = SidebarWidget.objects.filter(active=True).order_by('order')
         
-        # यूपी साइडबार लॉजिक
         non_up_labels = ['International', 'National', 'Sports', 'Market', 'Bollywood', 'Hollywood', 'Technology', 'Delhi']
         up_side = published.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:10]
 
@@ -39,19 +38,12 @@ def home(request):
         common_data = get_common_sidebar_data()
         all_news = News.objects.filter(status='Published').order_by("-date")
         
-        # Categories
-        international_news = all_news.filter(district__iexact="International")[:7]
-        national_labels = ['National', 'Delhi', 'Other-States']
-        national_news = all_news.filter(district__in=national_labels)[:13]
-
-        non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']
-        up_news_qs = all_news.exclude(district__in=non_up_labels).exclude(district__isnull=True)[:37]
-
+        # AdSense के लिए होमपेज पर पर्याप्त कंटेंट सुनिश्चित करना
         context = {
             "top_5_highlights": all_news.filter(show_in_highlights=True)[:11],
-            "international_news": international_news,
-            "national_news": national_news,
-            "up_news": up_news_qs, 
+            "international_news": all_news.filter(district__iexact="International")[:7],
+            "national_news": all_news.filter(district__in=['National', 'Delhi', 'Other-States'])[:13],
+            "up_news": all_news.exclude(district__in=['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']).exclude(district__isnull=True)[:37], 
             "entertainment_news": all_news.filter(district__in=['Bollywood', 'Hollywood'])[:10],
             "market_news": all_news.filter(district__iexact='Market')[:8],
             "tech_news": all_news.filter(district__iexact='Technology')[:8],
@@ -63,110 +55,51 @@ def home(request):
         return render(request, "mynews/home.html", context)
     except Exception as e:
         logger.error(f"Home Error: {e}")
-        return HttpResponse(f"सर्वर में समस्या है: {e}", status=500)
+        return redirect('/') # होमपेज पर भी एरर आए तो रिफ्रेश या रीडायरेक्ट करें
 
-# --- 3. SEO & TEXT FILES ---
-def robots_txt(request):
-    lines = ["User-Agent: *", "Allow: /", "Disallow: /admin/", f"Sitemap: {SITE_URL}/sitemap.xml"]
-    return HttpResponse("\n".join(lines), content_type="text/plain")
-
-def ads_txt(request): 
-    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
-    return HttpResponse(content, content_type="text/plain")
-
-def sitemap_xml(request):
-    try:
-        # ताज़ा 2000 खबरें उठाएं
-        items = News.objects.filter(status='Published').order_by('-date')[:2000] 
-        
-        # 1. XML Header - एकदम क्लीन शुरुआत
-        xml_output = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xml_output += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
-        
-        # 2. Homepage Entry
-        xml_output += f'  <url>\n    <loc>{SITE_URL.rstrip("/")}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
-        
-        # 3. Loop through News Items
-        for n in items:
-            city_path = n.url_city.lower() if n.url_city else "news"
-            loc = f'{SITE_URL.rstrip("/")}/{city_path}/{n.slug}/'
-            
-            xml_output += '  <url>\n'
-            xml_output += f'    <loc>{escape(loc)}</loc>\n'
-            xml_output += f'    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n'
-            
-            # --- VIDEO SITEMAP LOGIC ---
-            if n.youtube_url:
-                # थंबनेल का पक्का रास्ता
-                thumbnail = n.image_url if n.image_url else f"{SITE_URL}/static/districts/news.webp"
-                if n.image and not n.image_url:
-                    thumbnail = f"{SITE_URL}{n.image.url}"
-
-                # टाइटल और कंटेंट को XML के लिए साफ़ करना (Escape ज़रूरी है)
-                clean_title = escape(strip_tags(n.title[:90]))
-                clean_desc = escape(strip_tags(n.content[:200]))
-
-                xml_output += '    <video:video>\n'
-                xml_output += f'      <video:thumbnail_loc>{escape(thumbnail)}</video:thumbnail_loc>\n'
-                xml_output += f'      <video:title>{clean_title}</video:title>\n'
-                xml_output += f'      <video:description>{clean_desc}</video:description>\n'
-                
-                # YouTube ID निकालने का लॉजिक
-                video_id = ""
-                if "v=" in n.youtube_url:
-                    video_id = n.youtube_url.split("v=")[1].split("&")[0]
-                elif "youtu.be/" in n.youtube_url:
-                    video_id = n.youtube_url.split("youtu.be/")[1].split("?")[0]
-                
-                if video_id:
-                    xml_output += f'      <video:player_loc>https://www.youtube.com/embed/{video_id}</video:player_loc>\n'
-                else:
-                    xml_output += f'      <video:content_loc>{escape(n.youtube_url)}</video:content_loc>\n'
-                
-                xml_output += f'      <video:publication_date>{n.date.strftime("%Y-%m-%dT%H:%M:%S+05:30")}</video:publication_date>\n'
-                xml_output += '      <video:family_friendly>yes</video:family_friendly>\n'
-                xml_output += '    </video:video>\n'
-
-            xml_output += '  </url>\n'
-            
-        xml_output += '</urlset>'
-        
-        return HttpResponse(xml_output, content_type="application/xml; charset=utf-8")
-        
-    except Exception as e:
-        logger.error(f"Sitemap Error: {e}")
-        return HttpResponse(f"Error generating sitemap", content_type="text/plain")
-
-# --- 4. NEWS DETAIL ---
+# --- 3. NEWS DETAIL (The Safety Shield) ---
 def news_detail(request, url_city, slug):
-    news = get_object_or_404(News, slug=slug)
+    try:
+        # 404 के बजाय filter().first() का इस्तेमाल ताकि क्रैश न हो
+        news = News.objects.filter(slug=slug, status='Published').first()
 
-    related_news = News.objects.filter(status='Published').filter(
-        Q(district=news.district) | Q(category=news.category)
-    ).exclude(id=news.id).order_by('-date')[:6]
+        # अगर न्यूज नहीं मिली (गलत स्लग) तो सीधा होमपेज पर रीडायरेक्ट
+        if not news:
+            return redirect('home', permanent=True)
+
+        related_news = News.objects.filter(status='Published').filter(
+            Q(district=news.district) | Q(category=news.category)
+        ).exclude(id=news.id).order_by('-date')[:6]
+        
+        context = {
+            "news": news,
+            "related_news": related_news, 
+            "meta_description": strip_tags(news.content[:160]), # Meta साफ़ रखें
+            **get_common_sidebar_data()
+        }
+        return render(request, "mynews/news_detail.html", context)
     
-    context = {
-        "news": news,
-        "related_news": related_news, 
-        "meta_description": news.title[:160],
-        **get_common_sidebar_data()
-    }
-    return render(request, "mynews/news_detail.html", context)
+    except Exception as e:
+        return redirect('home')
 
-# --- 5. DISTRICT PAGE ---
+# --- 4. DISTRICT PAGE (Galti-Proof) ---
 def district_news(request, district):
     clean_district = district.replace('-', ' ')
     all_published = News.objects.filter(status='Published')
 
+    # अगर जिला खाली है या गलत है, तो 404 के बजाय होमपेज
+    news_list = all_published.filter(
+        Q(district__iexact=clean_district) | 
+        Q(url_city__iexact=district) | 
+        Q(category__iexact=clean_district)
+    ).order_by("-date")
+
+    if not news_list.exists() and clean_district.lower() != 'uttar pradesh':
+        return redirect('home')
+
     if clean_district.lower() == 'uttar pradesh':
         non_up_labels = ['National', 'International', 'Sports', 'Bollywood', 'Hollywood', 'Technology', 'Market', 'Delhi']
         news_list = all_published.exclude(district__in=non_up_labels).exclude(district__isnull=True).order_by("-date")
-    else:
-        news_list = all_published.filter(
-            Q(district__iexact=clean_district) | 
-            Q(url_city__iexact=district) | 
-            Q(category__iexact=clean_district)
-        ).order_by("-date")
     
     paginator = Paginator(news_list, 20) 
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -177,7 +110,39 @@ def district_news(request, district):
         **get_common_sidebar_data()
     })
 
-# --- 6. OTHER VIEWS ---
+# --- 5. SEO & TEXT FILES (AdSense & Google Bot Friendly) ---
+def robots_txt(request):
+    lines = ["User-Agent: *", "Allow: /", "Disallow: /admin/", f"Sitemap: {SITE_URL}/sitemap.xml"]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+def ads_txt(request): 
+    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(content, content_type="text/plain")
+
+def sitemap_xml(request):
+    try:
+        items = News.objects.filter(status='Published').order_by('-date')[:2000] 
+        xml_output = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
+        xml_output += f'  <url>\n    <loc>{SITE_URL}/</loc>\n    <lastmod>{now().strftime("%Y-%m-%d")}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
+        
+        for n in items:
+            city_path = n.url_city.lower() if n.url_city else "news"
+            loc = f'{SITE_URL}/{city_path}/{n.slug}/'
+            xml_output += f'  <url>\n    <loc>{escape(loc)}</loc>\n    <lastmod>{n.date.strftime("%Y-%m-%d")}</lastmod>\n'
+            
+            if n.youtube_url:
+                clean_title = escape(strip_tags(n.title[:90]))
+                clean_desc = escape(strip_tags(n.content[:200]))
+                xml_output += f'    <video:video>\n      <video:title>{clean_title}</video:title>\n      <video:description>{clean_desc}</video:description>\n    </video:video>\n'
+            
+            xml_output += '  </url>\n'
+        
+        xml_output += '</urlset>'
+        return HttpResponse(xml_output, content_type="application/xml")
+    except:
+        return redirect('/')
+
+# --- 6. UTILITIES ---
 def fb_news_api(request):
     news_list = News.objects.filter(status='Published').order_by('-date')[:20]
     data = [{'id': n.id, 'title': n.title, 'url': f"{SITE_URL}/{n.url_city.lower() if n.url_city else 'news'}/{n.slug}/"} for n in news_list]
