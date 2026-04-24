@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'logo.png' %}">
 <link rel="apple-touch-icon" href="{% static 'logo.png' %}">
 
-<title>{% block title %}{% if news %}{{ news.title }}{% else %}Uttar World News | Latest News, Breaking News{% endif %}{% endblock %}</title>
+<title>{% block title %}{% if news %}{{ news.title }}{% else %}Uttar World News | UP News, Breaking News, ताज़ा समाचार{% endif %}{% endblock %}</title>
 
 <link rel="canonical" href="https://uttarworld.com{{ request.path }}">
 
@@ -16,11 +16,11 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3171847065256414" crossorigin="anonymous"></script>
 
 {% block social_meta %}
-    {# --- SEO Keywords --- #}
-    <meta name="keywords" content="{% if news %}{{ news.title }}, Uttar World, Latest Hindi News, UP News, Breaking News{% else %}Uttar World, Hindi News, Uttar Pradesh News, Latest World News, Breaking News India{% endif %}">
+    {# --- SEO Keywords (Home & News Optimized) --- #}
+    <meta name="keywords" content="{% if news %}{{ news.title }}{% if news.image_caption %}, {{ news.image_caption }}{% endif %}, Uttar World, Latest Hindi News, UP News, Breaking News{% else %}Uttar World, उत्तर प्रदेश समाचार, Hindi News, UP News in Hindi, Breaking News India, Latest Khabar, ताज़ा खबरें, Samachar, Political News UP, Crime News Uttar Pradesh, Business News Hindi{% endif %}">
 
-    {# --- Meta Description --- #}
-    <meta name="description" content="{% if news %}{{ news.content|striptags|truncatechars:155 }}{% else %}Uttar World News: उत्तर प्रदेश, भारत और दुनिया की तमाम बड़ी खबरें, ब्रेकिंग न्यूज़, व्यापार और तकनीक की हर जानकारी सबसे पहले यहाँ विस्तार से पढ़ें।{% endif %}">
+    {# --- Meta Description (Best for CTR) --- #}
+    <meta name="description" content="{% if news %}{% if news.image_caption %}{{ news.image_caption }} | {% endif %}{{ news.content|striptags|truncatechars:155 }}{% else %}Uttar World News: उत्तर प्रदेश और भारत की विश्वसनीय न्यूज़ वेबसाइट। राजनीति, अपराध, व्यापार और तकनीक की हर बड़ी खबर सबसे पहले यहाँ विस्तार से पढ़ें। सटीक समाचार, आपकी भाषा में।{% endif %}">
     
     {# --- Facebook / WhatsApp Open Graph --- #}
     <meta property="og:type" content="article">
@@ -29,7 +29,9 @@
     <meta property="fb:app_id" content="741916956166104">
 
     <meta property="og:title" content="{% if news %}{{ news.title }}{% else %}Uttar World News | Truth Above All{% endif %}">
-    <meta property="og:description" content="{% if news %}{{ news.content|striptags|truncatechars:200 }}{% else %}Breaking news from India and the world.{% endif %}">
+    
+    {# WhatsApp/FB Card Description Fix #}
+    <meta property="og:description" content="{% if news %}{% if news.image_caption %}{{ news.image_caption }}{% else %}{{ news.content|striptags|truncatechars:200 }}{% endif %}{% else %}Breaking news from India and the world.{% endif %}">
 
     {# IMAGE OPTIMIZATION: Model logic (url_city) based priority #}
     {% if og_image %}
@@ -39,11 +41,9 @@
         <meta property="og:image" content="{{ news.image_url }}">
         <meta property="og:image:secure_url" content="{{ news.image_url }}">
     {% elif news.url_city %}
-        {# Agar main image nahi hai, to district wali webp dikhao #}
-        <meta property="og:image" content="https://uttarworld.com/static/districts/{{ news.url_city }}.webp">
-        <meta property="og:image:secure_url" content="https://uttarworld.com/static/districts/{{ news.url_city }}.webp">
+        <meta property="og:image" content="https://uttarworld.com/static/districts/{{ news.url_city|lower }}.webp">
+        <meta property="og:image:secure_url" content="https://uttarworld.com/static/districts/{{ news.url_city|lower }}.webp">
     {% else %}
-        {# Sabse last option default logo #}
         <meta property="og:image" content="https://uttarworld.com/static/logo.png">
         <meta property="og:image:secure_url" content="https://uttarworld.com/static/logo.png">
     {% endif %}
@@ -55,5 +55,6 @@
     {# --- Twitter Card --- #}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% if news %}{{ news.title }}{% else %}Uttar World News{% endif %}">
-    <meta name="twitter:image" content="{% if og_image %}{{ og_image }}{% elif news.image_url %}{{ news.image_url }}{% elif news.url_city %}https://uttarworld.com/static/districts/{{ news.url_city }}.webp{% else %}https://uttarworld.com/static/logo.png{% endif %}">
+    <meta name="twitter:description" content="{% if news %}{{ news.image_caption|default:news.title|truncatechars:150 }}{% else %}Latest news and breaking updates from Uttar World.{% endif %}">
+    <meta name="twitter:image" content="{% if og_image %}{{ og_image }}{% elif news.image_url %}{{ news.image_url }}{% elif news.url_city %}https://uttarworld.com/static/districts/{{ news.url_city|lower }}.webp{% else %}https://uttarworld.com/static/logo.png{% endif %}">
 {% endblock %}
