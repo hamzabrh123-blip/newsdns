@@ -98,6 +98,7 @@ if DATABASE_URL:
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
     }
+    DATABASES['default']['ATOMIC_REQUESTS'] = False
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
