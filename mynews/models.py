@@ -10,10 +10,11 @@ from ckeditor.fields import RichTextField
 from PIL import Image
 from django.core.files.base import ContentFile
 
+# अपनी फाइल्स से इम्पोर्ट पक्का करें
 from .constants import LOCATION_DATA 
 from .utils import process_and_upload_to_imgbb, post_to_facebook
 
-# --- 1. SIDEBAR MODEL ---
+# --- 1. SIDEBAR MODEL (AdSense के लिए) ---
 class SidebarWidget(models.Model):
     WIDGET_TYPES = [
         ('AD', 'Google AdSense / Script'),
@@ -36,7 +37,7 @@ class SidebarWidget(models.Model):
         return f"{self.title} ({self.widget_type})"
 
 
-# --- 2. MAIN NEWS MODEL ---
+# --- 2. MAIN NEWS MODEL (Bulletproof Version) ---
 class News(models.Model):
     title = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=[('Draft', 'Draft'), ('Published', 'Published')], default='Published')
@@ -45,7 +46,7 @@ class News(models.Model):
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True)
     
-    # ImageField को FileField में बदल दिया (AVIF/WebP सपोर्ट के लिए)
+    # AVIF/WebP के लिए FileField ज़रूरी है
     image = models.FileField(upload_to="temp_news/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
@@ -66,13 +67,13 @@ class News(models.Model):
         ordering = ['-date']
 
     def save(self, *args, **kwargs):
-        # 1. YouTube ID Logic
+        # A. YouTube Logic
         if self.youtube_url:
             regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
             match = re.search(regex, self.youtube_url)
             self.youtube_video_id = match.group(1) if match else None
 
-        # 2. SEO & District Logic
+        # B. District & Category Logic
         if self.district:
             d_val = str(self.district).strip()
             for item in LOCATION_DATA:
@@ -84,22 +85,19 @@ class News(models.Model):
             if not self.url_city: self.url_city = 'news'
             if not self.category: self.category = "Uttar Pradesh"
 
-        # 3. Clean Slug
+        # C. SEO Friendly Slug
         if not self.slug:
             slug_base = unidecode(self.title)
             self.slug = f"{slugify(slug_base)[:85]}-{str(uuid.uuid4())[:4]}"
 
-        # 4. AVIF/WebP Auto-Optimization (Size कम करने के लिए)
+        # D. AVIF/WebP Auto-Convert (Admin Panel Error Fix)
         if self.image and not self.image_url:
             try:
                 img = Image.open(self.image)
                 if img.mode in ("RGBA", "P"): img = img.convert("RGB")
-                
                 output = io.BytesIO()
-                # WebP is better for AdSense speed
                 img.save(output, format='WEBP', quality=75)
                 output.seek(0)
-                
                 new_name = f"{os.path.splitext(self.image.name)[0]}.webp"
                 self.image.save(new_name, ContentFile(output.read()), save=False)
             except:
@@ -107,14 +105,13 @@ class News(models.Model):
 
         super(News, self).save(*args, **kwargs)
 
-        # 5. External Services (ImgBB & FB)
-        # transaction.on_commit पक्का करता है कि इमेज सेव होने के बाद ही FB पर जाए
+        # E. External Services (Post-Save)
         if (self.image and not self.image_url) or (self.share_now_to_fb and not self.is_fb_posted):
             transaction.on_commit(lambda: self.handle_services())
 
     def handle_services(self):
         updated = False
-        # ImgBB Upload
+        # ImgBB Upload logic
         if self.image and not self.image_url:
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
@@ -122,7 +119,7 @@ class News(models.Model):
                 self.image = None
                 updated = True
         
-        # Facebook Posting with Image URL
+        # Facebook Sharing with Full Image URL
         if self.status == 'Published' and self.share_now_to_fb and not self.is_fb_posted:
             if post_to_facebook(self):
                 self.is_fb_posted = True
@@ -136,4 +133,44 @@ class News(models.Model):
             )
 
     def __str__(self):
-        return self.title
+        return self.title or "Untitled News"
+
+
+# --- 3. GALLERY / ADDITIONAL IMAGES (Multiple Upload Support) ---
+class NewsImage(models.Model):
+    news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
+    image = models.FileField(upload_to="temp_news/", blank=True, null=True) # AVIF/WebP Support
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+    caption = models.CharField(max_length=200, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Gallery Image Optimization
+        if self.image and not self.image_url:
+            try:
+                img = Image.open(self.image)
+                if img.mode in ("RGBA", "P"): img = img.convert("RGB")
+                output = io.BytesIO()
+                img.save(output, format='WEBP', quality=75)
+                output.seek(0)
+                new_name = f"gallery_{uuid.uuid4().hex[:8]}.webp"
+                self.image.save(new_name, ContentFile(output.read()), save=False)
+            except:
+                pass
+
+        super().save(*args, **kwargs)
+        
+        # Gallery Upload to ImgBB
+        if self.image and not self.image_url:
+            transaction.on_commit(lambda: self.upload_gallery_image())
+
+    def upload_gallery_image(self):
+        try:
+            # NewsImage के लिए अलग से upload logic या same function
+            new_url = process_and_upload_to_imgbb(self)
+            if new_url:
+                NewsImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
+        except Exception as e:
+            print(f"Gallery Upload Error: {e}")
+
+    def __str__(self):
+        return f"Gallery Image for {self.news.title[:30]}"
