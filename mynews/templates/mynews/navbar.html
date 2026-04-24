@@ -27,16 +27,16 @@
             <i class="fas fa-bars text-white"></i>
         </button>
 
-        <div class="collapse navbar-collapse" id="mainNav" style="overflow: visible !important;">
-            <ul class="navbar-nav mx-auto" style="overflow: visible !important;">
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto">
                 <li class="nav-item"><a class="nav-link home-special-btn" href="{% url 'home' %}">HOME</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'district_news' 'International' %}">WORLD</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'district_news' 'National' %}">INDIA</a></li>
                 <li class="nav-item"><a class="nav-link text-nowrap" href="{% url 'district_news' 'Uttar-Pradesh' %}">UTTAR PRADESH</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'district_news' 'Delhi' %}">DELHI</a></li>
 
-                <li class="nav-item dropdown custom-h-dropdown" style="position: relative !important;">
-                    <a class="nav-link dropdown-toggle no-border-fix" href="#" id="entDropdown" role="button">
+                <li class="nav-item dropdown custom-h-dropdown">
+                    <a class="nav-link dropdown-toggle no-border-fix" href="#" id="entDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         ENTERTAINMENT
                     </a>
                     <ul class="dropdown-menu shadow-lg" aria-labelledby="entDropdown">
@@ -64,7 +64,7 @@
 <div class="nav-spacer d-lg-none" style="height: 70px;"></div>
 
 <style>
-    /* Navbar Base */
+    /* Navbar Base Styles */
     .main-navbar-custom {
         background: linear-gradient(to right, #800000, #4a0000) !important;
         border-bottom: 3px solid #ffcc00 !important;
@@ -75,7 +75,6 @@
     .brand-title { color: white; font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
     .brand-subtitle { color: #ffcc00; letter-spacing: 4px; font-size: 0.6rem; font-weight: 900; }
 
-    /* Links Fix - Removing any invisible borders */
     .navbar-nav .nav-link { 
         color: #fff !important; 
         font-size: 0.72rem; 
@@ -83,13 +82,11 @@
         padding: 0.8rem 10px !important; 
         text-transform: uppercase;
         border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
     }
     
     .home-special-btn { background: #ffcc00 !important; color: #000 !important; border-radius: 4px; margin-right: 5px; text-align: center; }
 
-    /* Desktop Dropdown - Double Line Remover */
+    /* Desktop View (Hover Support) */
     @media (min-width: 992px) {
         .custom-h-dropdown:hover > .dropdown-menu {
             display: block !important;
@@ -100,18 +97,12 @@
         .dropdown-menu {
             display: none;
             position: absolute !important;
-            /* Negative margin navbar की बॉर्डर के ऊपर बैठने के लिए */
             top: 100% !important;
             margin-top: -3px !important; 
             left: 0 !important;
             background: #ffffff !important;
-            
-            /* Borders */
             border: none !important;
-            border-left: 1px solid #ddd !important;
-            border-right: 1px solid #ddd !important;
             border-bottom: 4px solid #ffcc00 !important;
-            
             min-width: 200px !important;
             padding: 0 !important;
             z-index: 1000000 !important;
@@ -126,8 +117,30 @@
             padding: 12px 20px !important;
             border-bottom: 1px solid #f1f1f1 !important;
         }
-        .dropdown-item:last-child { border-bottom: none !important; }
         .dropdown-item:hover { background-color: #800000 !important; color: #fff !important; }
+    }
+
+    /* Mobile View Fixes */
+    @media (max-width: 991px) {
+        .navbar-collapse {
+            background: #4a0000;
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+        }
+        /* Mobile Dropdown Styling */
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: none !important;
+            display: none; /* Hidden by default on click */
+        }
+        .dropdown-menu.show {
+            display: block !important;
+        }
+        .dropdown-item {
+            color: #fff !important;
+            padding: 10px 20px !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        }
     }
 
     /* Search Box */
@@ -137,8 +150,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Desktop Hover Fix
         const dropdown = document.querySelector('.custom-h-dropdown');
-        if(dropdown) {
+        if(dropdown && window.innerWidth >= 992) {
             dropdown.addEventListener('mouseenter', function() {
                 document.querySelectorAll('.row, section, .container').forEach(el => {
                     if(!el.contains(dropdown)) el.style.zIndex = "1";
@@ -150,5 +164,11 @@
                 });
             });
         }
+
+        // Mobile Click Fix - Ensures Bootstrap Dropdown works
+        var dropdownToggleList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+        var dropdownList = dropdownToggleList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl)
+        });
     });
 </script>
