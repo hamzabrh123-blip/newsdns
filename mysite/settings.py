@@ -22,6 +22,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://uttarworld.com",
