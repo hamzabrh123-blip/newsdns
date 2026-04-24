@@ -12,12 +12,15 @@
   },
   "headline": "{{ news.title|striptags|addslashes }}",
   "description": "{{ news.content|striptags|truncatewords:30|addslashes }}",
-  "image": "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/districts/{{ news.url_city|lower|default:'news' }}.webp{% endif %}",
+  "image": [
+    "{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ request.scheme }}://{{ request.get_host }}{{ news.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'districts/' %}{{ news.url_city|lower|default:'news' }}.webp{% endif %}"
+  ],
   "datePublished": "{{ news.date|date:'c' }}",
   "dateModified": "{{ news.date|date:'c' }}",
   "author": {
     "@type": "Person",
-    "name": "Uttar World Desk"
+    "name": "Uttar World Desk",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
   },
   "publisher": {
     "@type": "Organization",
@@ -38,19 +41,35 @@
     :root { --news-red: #800000; --text-dark: #1a1a1a; --bg-gray: #f8f9fa; }
     body { background-color: var(--bg-gray); color: var(--text-dark); }
 
-    .content-card { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; border: 1px solid #eee; position: relative; }
-    .district-badge { position: absolute; top: 15px; right: 15px; background: var(--news-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
-    .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.3rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
-    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; text-align: justify; }
-    .main-news-img { width: 100%; border-radius: 10px; margin-bottom: 20px; object-fit: cover; max-height: 500px; background: #eee; }
+    .content-card { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 25px; border: 1px solid #eee; position: relative; overflow: hidden; }
+    
+    /* Layout Shift Fix: Image Container */
+    .image-wrapper { 
+        width: 100%; 
+        aspect-ratio: 16 / 9; 
+        background: #eee; 
+        border-radius: 10px; 
+        overflow: hidden; 
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .main-news-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 
-    /* YOUTUBE HEIGHT FIX */
+    .district-badge { position: absolute; top: 15px; right: 15px; background: var(--news-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
+    
+    .article-title { font-family: 'Noto Serif Devanagari', serif; font-weight: 700; font-size: 2.3rem; line-height: 1.3; color: #000; margin-bottom: 15px; }
+    .article-content { font-family: 'Noto Serif Devanagari', serif; font-size: 1.25rem; line-height: 1.9; color: #222; text-align: justify; word-wrap: break-word; }
+    
+    /* विज्ञापन के लिए साफ जगह (Ad Slots) */
+    .ad-placeholder { min-height: 250px; background: #fafafa; border: 1px dashed #ddd; display: flex; align-items: center; justify-content: center; margin: 20px 0; color: #aaa; font-size: 0.8rem; }
+
     .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 10px; margin-bottom: 25px; }
     .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
     @media (max-width: 768px) {
         .content-card { padding: 15px; border-radius: 0; border: none; }
-        .article-title { font-size: 1.7rem; }
+        .article-title { font-size: 1.75rem; }
+        .article-content { font-size: 1.15rem; }
     }
 </style>
 
@@ -74,15 +93,15 @@
                 <h1 class="article-title">{{ news.title }}</h1>
 
                 <div class="author-box d-flex align-items-center mb-4 border-top border-bottom py-2">
-                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40">
+                    <img src="https://ui-avatars.com/api/?name=U+W&background=800000&color=fff" class="rounded-circle me-3" width="40" alt="Author">
                     <div>
                         <p class="mb-0 fw-bold" style="font-size: 0.9rem;">By Uttar World Desk</p>
                         <small class="text-muted">{{ news.date|date:"d M, Y" }} | {{ news.date|date:"h:i A" }}</small>
                     </div>
                 </div>
 
-                <div class="text-center">
-                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}/static/districts/{{ news.url_city|lower|default:'news' }}.webp{% endif %}" 
+                <div class="image-wrapper">
+                    <img src="{% if news.image_url %}{{ news.image_url }}{% elif news.image %}{{ news.image.url }}{% else %}{% static 'districts/' %}{{ news.url_city|lower|default:'news' }}.webp{% endif %}" 
                          class="main-news-img" 
                          alt="{{ news.title }}"
                          onerror="this.onerror=null;this.src='{% static 'districts/news.webp' %}';">
@@ -104,7 +123,9 @@
                     <div class="row g-3">
                         {% for img in news.additional_images.all %}
                         <div class="col-12 mb-3">
-                            <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" class="w-100 rounded shadow-sm">
+                            <div class="rounded shadow-sm overflow-hidden" style="background:#eee;">
+                                <img src="{% if img.image_url %}{{ img.image_url }}{% else %}{{ img.image.url }}{% endif %}" class="w-100 d-block" alt="Gallery Image">
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -126,9 +147,11 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Cleaning empty spaces from rich text (Good for SEO)
         const contentDiv = document.getElementById('articleContent');
-        if (!contentDiv) return;
-        contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
+        if (contentDiv) {
+            contentDiv.innerHTML = contentDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s\s+/g, ' ');
+        }
     });
 </script>
 {% endblock %}
