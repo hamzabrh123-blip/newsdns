@@ -11,7 +11,7 @@
     "url": "{{ request.scheme }}://{{ request.get_host }}",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "{{ request.scheme }}://{{ request.get_host /search/?q={search_term_string}",
+      "target": "{{ request.scheme }}://{{ request.get_host }}/search/?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   },
@@ -24,9 +24,8 @@
         "@type": "ListItem",
         "position": {{ forloop.counter }},
         "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'news_detail' item.url_city|default:'news' item.slug %}"
-      }{% if not forloop.last %},{% endif %}
+      }{% if not forloop.last or national_news %},{% endif %}
       {% endfor %}
-      {% if national_news %},{% endif %}
       {% for item in national_news|slice:":3" %}
       {
         "@type": "ListItem",
@@ -42,168 +41,136 @@
 
 {% block content %}
 <style>
-
-    /* 1. SEO & Base Fixes for Mobile Stability */
+    /* 1. SEO & Base Fixes */
     .hidden-h1 { position: absolute; left: -9999px; } 
     .container-custom { 
         max-width: 1250px; 
         margin: 0 auto; 
         padding: 0 15px; 
-        overflow: hidden; 
     }
     body { 
         background-color: #f8f9fa !important; 
         font-family: 'Poppins', 'Mukta', sans-serif;
         overflow-x: hidden; 
-        width: 100%;
     }
 
     /* 2. Section Titles */
     .section-title { 
         border-left: 6px solid #d32f2f; 
-        padding: 8px 15px; 
-        font-weight: 900; 
+        padding: 10px 15px; 
+        font-weight: 800; 
         color: #1a1a1a; 
         margin: 30px 0 15px; 
         background: #fff; 
-        text-transform: uppercase; 
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
+    .section-title a { font-size: 0.8rem; color: #d32f2f; text-decoration: none; font-weight: 600; }
 
-    /* 3. News Box Base (Responsive Fix) */
+    /* 3. News Box & Layout Shift Fix */
     .news-box { 
         background: #fff; 
         border-radius: 8px; 
         overflow: hidden; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
         margin-bottom: 20px; 
-        transition: 0.3s; 
-        display: flex; 
-        flex-direction: column; 
         height: 100%; 
-        width: 100%; 
+        display: flex;
+        flex-direction: column;
     }
-    .news-box img { width: 100%; object-fit: cover; background: #eee; }
-    .news-box-content { padding: 12px; flex-grow: 1; }
     
-    /* 4. Headings & List View Fix */
-    .big-news-box img { height: 380px; }
-    .big-title { font-size: 1.7rem; font-weight: 800; color: #1a1a1a; margin-top: 10px; line-height: 1.3; }
-    .small-title { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; word-wrap: break-word; }
+    /* Image placeholder to prevent jumpy layout */
+    .img-container { 
+        width: 100%; 
+        background: #eee; 
+        position: relative; 
+        overflow: hidden; 
+    }
+    .news-box img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        display: block;
+    }
 
+    /* Aspect Ratios for different box types */
+    .big-news-box .img-container { aspect-ratio: 16 / 9; }
+    .standard-box .img-container { aspect-ratio: 16 / 10; }
+    .list-news-box .img-container { width: 110px; height: 80px; flex-shrink: 0; margin: 10px; border-radius: 6px; }
+
+    .news-box-content { padding: 15px; flex-grow: 1; }
+    .big-title { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; line-height: 1.3; margin-top: 5px; }
+    .small-title { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.4; color: #333; }
+
+    /* List View Fix */
     .list-news-box { 
         flex-direction: row !important; 
-        min-height: 110px; 
-        border-bottom: 1px solid #eee; 
-        border-radius: 8px; 
         box-shadow: none; 
-        margin-bottom: 12px;
-        background: #fff;
+        border-bottom: 1px solid #eee; 
+        border-radius: 0;
+        margin-bottom: 0;
     }
-    .list-news-box img { width: 110px; height: 90px; flex-shrink: 0; border-radius: 6px; margin: 10px; object-fit: cover; }
 
-    .home-ad-slot { background: #ffffff; border: 1px dashed #ddd; padding: 10px; margin: 20px 0; text-align: center; border-radius: 8px; overflow: hidden; }
-    
     @media (max-width: 768px) {
-        .container-custom { padding: 0 10px; }
-        .big-news-box img { height: 210px; }
-        .big-title { font-size: 1.3rem; }
-        .list-news-box img { width: 90px; height: 75px; margin: 8px; }
+        .big-title { font-size: 1.2rem; }
+        .list-news-box .img-container { width: 90px; height: 70px; margin: 8px; }
         .small-title { font-size: 0.9rem; }
-        .news-box-content { padding: 10px; }
+    }
 
-        @media (max-width: 400px) {
-            .list-news-box { flex-direction: column !important; height: auto; }
-            .list-news-box img { width: 100%; height: 180px; margin: 0; border-radius: 8px 8px 0 0; }
-        }
+    @media (max-width: 480px) {
+        .list-news-box { flex-direction: column !important; }
+        .list-news-box .img-container { width: 100%; height: auto; aspect-ratio: 16/9; margin: 0; border-radius: 8px 8px 0 0; }
     }
 </style>
 
 <div class="container-custom mt-4">
-    <h1 class="hidden-h1">Uttar World - उत्तर प्रदेश और देश-दुनिया की ताज़ा खबरें</h1>
+    <h1 class="hidden-h1">Uttar World - उत्तर प्रदेश की ताज़ा खबरें</h1>
     
     <div class="row">
         <div class="col-lg-9">
             
-            <h2 class="section-title">अंतरराष्ट्रीय (International)  <a href="/category/International/">View All</a></h2>
+            {# --- International Section --- #}
+            <h2 class="section-title">अंतरराष्ट्रीय 🌍 <a href="/category/International/">View All</a></h2>
             <div class="row">
                 {% for item in international_news|slice:":5" %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
-                                </a>
-                                <div class="news-box-content">
-                                    <span class="badge bg-danger mb-2">Duniya</span>
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="big-title">{{ item.title|safe }}</h3>
-                                    </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:80 }}...</p>
-                                </div>
-                            </div>
+                <div class="{% if forloop.first %}col-12{% else %}col-md-6{% endif %} mb-3">
+                    <div class="news-box {% if forloop.first %}big-news-box{% else %}list-news-box standard-box{% endif %}">
+                        <div class="img-container">
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
+                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
+                                     onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
+                            </a>
                         </div>
-                    {% else %}
-                        <div class="col-md-6 mb-3">
-                            <div class="news-box list-news-box">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
-                                    </a>
-                                </div>
-                            </div>
+                        <div class="news-box-content">
+                            {% if forloop.first %}<span class="badge bg-danger mb-2">Duniya</span>{% endif %}
+                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
+                                <h3 class="{% if forloop.first %}big-title{% else %}small-title{% endif %}">{{ item.title|safe }}</h3>
+                            </a>
+                            {% if forloop.first %}
+                            <p class="text-muted mt-2 d-none d-md-block">{{ item.content|striptags|truncatewords:40 }}</p>
+                            {% endif %}
                         </div>
-                    {% endif %}
+                    </div>
+                </div>
                 {% endfor %}
             </div>
 
-            <h2 class="section-title">राष्ट्रीय (National)  <a href="/category/National/">View All</a></h2>
+            {# --- National Section --- #}
+            <h2 class="section-title">राष्ट्रीय 🇮🇳 <a href="/category/National/">View All</a></h2>
             <div class="row">
                 {% for item in national_news|slice:":5" %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
-                                </a>
-                                <div class="news-box-content">
-                                    <span class="badge bg-danger mb-2">भारत</span>
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="big-title">{{ item.title|safe }}</h3>
-                                    </a>
-                                    <p class="news-summary">{{ item.content|striptags|safe|truncatewords:80 }}...</p>
-                                </div>
-                            </div>
+                <div class="{% if forloop.first %}col-12{% else %}col-md-6{% endif %} mb-3">
+                    <div class="news-box {% if forloop.first %}big-news-box{% else %}list-news-box standard-box{% endif %}">
+                        <div class="img-container">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
+                                 onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                         </div>
-                    {% else %}
-                        <div class="col-md-6 mb-3">
-                            <div class="news-box list-news-box">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
-                                <div class="news-box-content">
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <h2 class="section-title title-sports">खेल जगत (Sports) <a href="/category/sports/">View All</a></h2>
-            <div class="row">
-                {% for item in sports_news|slice:":4" %}
-                <div class="col-md-6 col-12 mb-3">
-                    <div class="news-box list-news-box">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                         <div class="news-box-content">
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                <h3 class="small-title">{{ item.title|safe|truncatechars:100 }}</h3>
+                                <h3 class="{% if forloop.first %}big-title{% else %}small-title{% endif %}">{{ item.title|safe|truncatechars:100 }}</h3>
                             </a>
                         </div>
                     </div>
@@ -211,89 +178,30 @@
                 {% endfor %}
             </div>
 
-            <h2 class="section-title">उत्तर प्रदेश (UP News)  <a href="/category/Uttar-Pradesh/">View All</a></h2>
+            {# --- UP News Section --- #}
+            <h2 class="section-title">उत्तर प्रदेश 🚩 <a href="/category/Uttar-Pradesh/">View All</a></h2>
             <div class="row">
                 {% for item in up_news|slice:":13" %}
-                    {% if forloop.first %}
-                        <div class="col-12 mb-3">
-                            <div class="news-box big-news-box">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                    <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" alt="{{ item.title }}">
-                                </a>
-                                <div class="news-box-content">
-                                    <span class="text-danger fw-bold">{{ item.district }}</span>
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="big-title">{{ item.title|safe }}</h3>
-                                    </a>
-                                </div>
-                            </div>
+                <div class="{% if forloop.first %}col-12{% else %}col-md-4 col-6{% endif %} mb-3">
+                    <div class="news-box {% if forloop.first %}big-news-box{% else %}standard-box{% endif %}">
+                        <div class="img-container">
+                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
+                                 onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                         </div>
-                    {% else %}
-                        <div class="col-md-4 col-6 mb-3">
-                            <div class="news-box">
-                                <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" style="height: 140px;">
-                                <div class="news-box-content">
-                                    <span class="text-danger small fw-bold">{{ item.district }}</span>
-                                    <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                        <h3 class="small-title" style="font-size: 0.9rem;">{{ item.title|safe|truncatechars:100 }}</h3>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <h2 class="section-title title-tech">टेक & गैजेट्स (Technology)  <a href="/category/Technology/">View All</a></h2>
-            <div class="row">
-                {% for item in tech_news|slice:":6" %}
-                <div class="col-md-4 col-12 mb-3">
-                    <div class="news-box">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" style="height: 150px;">
                         <div class="news-box-content">
+                            <span class="text-danger small fw-bold text-uppercase">{{ item.district }}</span>
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                <h3 class="small-title" style="font-size: 0.95rem;">{{ item.title|safe|truncatechars:70 }}</h3>
+                                <h3 class="{% if forloop.first %}big-title{% else %}small-title{% endif %}" style="font-size: 0.95rem;">{{ item.title|safe|truncatechars:80 }}</h3>
                             </a>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-
-            <h2 class="section-title title-market">बाज़ार (Market/Business)  <a href="/category/Market/">View All</a></h2>
-            <div class="row">
-                {% for item in market_news|slice:":4" %}
-                <div class="col-md-6 mb-3">
-                    <div class="news-box list-news-box" style="border: 1px solid #eee; border-radius: 8px;">
-                        <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
-                        <div class="news-box-content">
-                            <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                <h3 class="small-title">{{ item.title|safe|truncatechars:80 }}</h3>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <h2 class="section-title">मनोरंजन (Entertainment)  <a href="/category/Bollywood/">View All</a></h2>
-            <div class="row">
-                {% for item in entertainment_news|slice:":6" %}
-                    <div class="col-md-4 col-12 mb-3">
-                        <div class="news-box">
-                            <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" onerror="this.onerror=null; this.src='{% static 'logo.png' %}';" style="height: 160px;">
-                            <div class="news-box-content">
-                                <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                    <h3 class="small-title">{{ item.title|safe|truncatechars:75 }}</h3>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
                 {% endfor %}
             </div>
 
         </div>
 
+        {# --- Sidebar --- #}
         <div class="col-lg-3">
             <div class="sticky-top" style="top: 20px;">
                 {% include "mynews/sidebar.html" %}
@@ -301,5 +209,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
