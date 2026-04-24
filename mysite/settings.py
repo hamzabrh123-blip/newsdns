@@ -13,11 +13,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 ALLOWED_HOSTS = [
     "uttarworld.com", 
     "www.uttarworld.com", 
-    "newsdns.onrender.com", 
-    ".onrender.com", 
-    "localhost", 
-    "127.0.0.1",
-    "*" 
+    "newsdns.onrender.com" 
 ]
 
 # --- SSL & CSRF Fix (Only for Production/Render) ---
