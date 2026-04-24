@@ -46,16 +46,16 @@ class News(models.Model):
     district = models.CharField(max_length=100, choices=[(x[0], x[1]) for x in LOCATION_DATA], blank=True, null=True)
     content = RichTextField(blank=True)
     
-    # Image Section
+    # Main Image Section
     image = models.FileField(upload_to="temp_news/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
-    # --- यहाँ फिक्स किया है (Image Caption & ALT Logic) ---
+    # Image Caption & ALT Logic
     image_caption = models.CharField(
         max_length=300, 
         blank=True, 
         null=True, 
-        help_text="फोटो के नीचे क्या दिखाना है? खाली छोड़ने पर न्यूज़ हेडलाइन ही कैप्शन बनेगी।"
+        help_text="फोटो के नीचे क्या दिखाना है? खाली छोड़ने पर न्यूज़ हेडलाइन ही कैप्शन बनेगी।"
     )
     
     youtube_url = models.URLField(blank=True, null=True)
@@ -98,7 +98,7 @@ class News(models.Model):
             slug_base = unidecode(self.title)
             self.slug = f"{slugify(slug_base)[:85]}-{str(uuid.uuid4())[:4]}"
 
-        # 4. AVIF/WebP Auto-Convert (Optimized for 512MB RAM)
+        # 4. Image Optimization (Main Image)
         if self.image and not self.image_url:
             try:
                 img = Image.open(self.image)
@@ -142,14 +142,16 @@ class News(models.Model):
         return self.title
 
 
-# --- 3. GALLERY / ADDITIONAL IMAGES ---
+# --- 3. GALLERY / ADDITIONAL IMAGES (FIXED IntegrityError) ---
 class NewsImage(models.Model):
     news = models.ForeignKey(News, related_name='additional_images', on_delete=models.CASCADE)
     image = models.FileField(upload_to="temp_news/", blank=True, null=True)
+    # image_url को यहाँ null=True, blank=True किया गया है ताकि IntegrityError न आए
     image_url = models.URLField(max_length=500, blank=True, null=True)
     caption = models.CharField(max_length=200, blank=True, null=True)
 
     def save(self, *args, **kwargs):
+        # Image Optimization (Gallery Image)
         if self.image and not self.image_url:
             try:
                 img = Image.open(self.image)
@@ -161,15 +163,21 @@ class NewsImage(models.Model):
                 self.image.save(new_name, ContentFile(output.read()), save=False)
             except:
                 pass
+        
         super().save(*args, **kwargs)
         
+        # Upload to ImgBB after saving local WEBP
         if self.image and not self.image_url:
             transaction.on_commit(lambda: self.upload_gallery_image())
 
     def upload_gallery_image(self):
         try:
+            # हम NewsImage के ऑब्जेक्ट को ही भेज रहे हैं
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
                 NewsImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Gallery Upload Error: {e}")
+
+    def __str__(self):
+        return f"Gallery Image for {self.news.title}"
