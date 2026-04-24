@@ -4,11 +4,11 @@ from .models import News
 from django.utils.feedgenerator import Rss201rev2Feed
 from django.utils.html import strip_tags
 
-# --- Media & Video RSS Support ---
+# --- Media & Video RSS Support (Extended) ---
 class ExtendedRssFeed(Rss201rev2Feed):
     def rss_attributes(self):
         attrs = super().rss_attributes()
-        # यहाँ Media Namespace जोड़ना ज़रूरी है ताकि वीडियो और फोटो सही से रीड हों
+        # Media Namespace: फोटो और वीडियो रेंडरिंग के लिए ज़रूरी
         attrs['xmlns:media'] = 'http://search.yahoo.com/mrss/'
         return attrs
 
@@ -25,19 +25,20 @@ class ExtendedRssFeed(Rss201rev2Feed):
             handler.addQuickElement('media:content', '', {
                 'url': item['image_url'],
                 'medium': 'image',
+                'title': item.get('caption', ''),  # यहाँ कैप्शन/ALT टेक्स्ट जाएगा
             })
 
-        # 2. वीडियो सपोर्ट (Video Logic)
+        # 2. वीडियो सपोर्ट (YouTube Embed Logic)
         if item.get('video_url'):
             video_url = item['video_url']
-            # YouTube ID निकालकर Embed URL बनाना
             video_id = ""
-            if "v=" in video_url: video_id = video_url.split("v=")[1].split("&")[0]
-            elif "youtu.be/" in video_url: video_id = video_url.split("youtu.be/")[1].split("?")[0]
+            if "v=" in video_url: 
+                video_id = video_url.split("v=")[1].split("&")[0]
+            elif "youtu.be/" in video_url: 
+                video_id = video_url.split("youtu.be/")[1].split("?")[0]
             
             if video_id:
                 embed_url = f"https://www.youtube.com/embed/{video_id}"
-                # Media player और content टैग्स डेलीहंट जैसे एप्स के लिए
                 handler.addQuickElement('media:content', '', {
                     'url': embed_url,
                     'medium': 'video',
@@ -52,32 +53,36 @@ class LatestNewsFeed(Feed):
     description = "उत्तर प्रदेश और दुनिया की तमाम बड़ी खबरें।"
 
     def items(self):
-        return News.objects.filter(status='Published').order_by('-date')[:20]
+        # संख्या बढ़ाकर 50 कर दी है ताकि एग्रीगेटर्स को पर्याप्त डेटा मिले
+        return News.objects.filter(status='Published').order_by('-date')[:50]
 
     def item_title(self, item):
         return item.title
 
     def item_description(self, item):
         if item.content:
-            # RSS के लिए साफ़ टेक्स्ट (HTML टैग्स हटाकर)
-            return strip_tags(item.content[:400]) + "..."
+            # HTML हटाकर साफ़ टेक्स्ट और लम्बाई थोड़ी बढ़ाई है (SEO के लिए अच्छा है)
+            return strip_tags(item.content[:500]) + "..."
         return ""
 
     def item_link(self, item):
+        # SEO फ्रेंडली यूआरएल स्ट्रक्चर
         city = item.url_city.lower() if item.url_city else 'news'
         return reverse('news_detail', args=[city, item.slug])
 
     def item_pubdate(self, item):
         return item.date
 
-    # एक्स्ट्रा डेटा (फोटो और वीडियो) को फीड में भेजने के लिए
     def item_extra_kwargs(self, item):
-        # फोटो का चुनाव
+        # फोटो यूआरएल लॉजिक
         img = item.image_url if item.image_url else (item.image.url if item.image else None)
-        # वीडियो का चुनाव
+        # वीडियो यूआरएल
         video = item.youtube_url if item.youtube_url else None
+        # कैप्शन लॉजिक: अगर कैप्शन नहीं है तो टाइटल को ही कैप्शन मानेंगे (ALT Fix)
+        caption = item.image_caption if item.image_caption else item.title
         
         return {
             'image_url': img,
-            'video_url': video
+            'video_url': video,
+            'caption': caption
         }
