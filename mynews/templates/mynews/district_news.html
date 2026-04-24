@@ -53,6 +53,10 @@
                 </div>
             </div>
 
+            <div class="ads-placeholder mb-4 text-center py-2" style="background: #fafafa; border: 1px dashed #ddd;">
+                <small class="text-muted d-block mb-1">ADVERTISEMENT</small>
+                </div>
+
             <div class="row g-4">
                 {% for item in page_obj %}
                 <div class="col-md-6 d-flex">
@@ -60,7 +64,6 @@
                         <div class="img-container position-relative overflow-hidden">
                             {% if item.slug %}
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
-                                {# अपडेटेड इमेज लॉजिक #}
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
                                      class="card-img-top news-thumb" 
                                      alt="{{ item.title|striptags }}" 
@@ -69,7 +72,7 @@
                             </a>
                             {% endif %}
                             
-                            <div class="date-overlay shadow-sm">
+                            <div class="date-overlay">
                                 <span class="day">{{ item.date|date:"d" }}</span>
                                 <span class="month">{{ item.date|date:"M" }}</span>
                             </div>
@@ -88,7 +91,7 @@
                             </h2>
 
                             <div class="card-text text-muted small mb-3 excerpt-v2">
-                                {{ item.content|striptags|truncatewords:40 }}
+                                {{ item.content|striptags|truncatewords:60 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -112,7 +115,7 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-5">
-                    <h5 class="text-muted">अभी इस क्षेत्र की खबरें अपडेट की जा रही हैं।</h5>
+                    <h5 class="text-muted">उत्तर प्रदेश के इस जिले की ताजा खबरें जल्द ही यहाँ अपडेट की जाएँगी। तब तक आप हमारे मुख्य पृष्ठ पर अन्य खबरें पढ़ सकते हैं।</h5>
                 </div>
                 {% endfor %}
             </div>
@@ -139,58 +142,81 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="sticky-sidebar">
+            <aside class="sticky-sidebar">
                 {% include 'mynews/sidebar.html' %}
-            </div>
+            </aside>
         </div>
     </div>
 </div>
 
 <style>
     .fw-black { font-weight: 900; }
-    .news-card-v2 { border-radius: 12px; transition: all 0.3s ease; background: #fff; height: 100%; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05) !important; position: relative; z-index: 1; }
-    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; z-index: 2; }
-    .img-container { height: 210px; background: #f8f9fa; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
-    .news-thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .news-card-v2:hover .news-thumb { transform: scale(1.05); }
-    .card-title-fixed { font-size: 1.15rem; font-weight: 800; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .excerpt-v2 { font-size: 0.92rem; color: #555 !important; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-align: justify; }
-    .date-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 5px 10px; text-align: center; z-index: 5; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .date-overlay .day { display: block; font-size: 1.1rem; font-weight: 800; color: #d32f2f; line-height: 1; }
-    .date-overlay .month { font-size: 0.65rem; text-transform: uppercase; color: #333; font-weight: bold; }
-    .pulse-dot { width: 10px; height: 10px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
     
-    .sticky-sidebar { position: sticky; top: 90px; z-index: 10; }
+    /* AdSense Friendly Cards: No overlapping z-index */
+    .news-card-v2 { 
+        border-radius: 12px; 
+        transition: transform 0.3s ease, box-shadow 0.3s ease; 
+        background: #fff; 
+        height: 100%; 
+        display: flex; 
+        flex-direction: column; 
+        border: 1px solid rgba(0,0,0,0.08) !important;
+    }
+    .news-card-v2:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; 
+    }
+
+    .img-container { height: 210px; background: #f0f0f0; border-radius: 12px 12px 0 0; position: relative; }
+    .news-thumb { width: 100%; height: 100%; object-fit: cover; }
+    
+    .card-title-fixed { 
+        font-size: 1.15rem; 
+        font-weight: 800; 
+        line-height: 1.4; 
+        display: -webkit-box; 
+        -webkit-line-clamp: 2; 
+        -webkit-box-orient: vertical; 
+        overflow: hidden; 
+    }
+
+    .excerpt-v2 { 
+        font-size: 0.95rem; 
+        color: #444 !important; 
+        line-height: 1.6; 
+        display: -webkit-box; 
+        -webkit-line-clamp: 3; 
+        -webkit-box-orient: vertical; 
+        overflow: hidden; 
+        text-align: justify;
+    }
+
+    /* Date Overlay: Clean and Simple */
+    .date-overlay { 
+        position: absolute; 
+        top: 12px; 
+        right: 12px; 
+        background: #fff; 
+        border-radius: 6px; 
+        padding: 4px 8px; 
+        text-align: center; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    }
+    .date-overlay .day { display: block; font-size: 1rem; font-weight: 800; color: #d32f2f; }
+    .date-overlay .month { font-size: 0.6rem; text-transform: uppercase; color: #666; font-weight: bold; }
+
+    .pulse-dot { width: 8px; height: 8px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    
+    /* Sidebar: Proper spacing for Ads */
+    .sticky-sidebar { position: sticky; top: 100px; padding-bottom: 20px; }
     
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; border: none; }
-    @media (max-width: 768px) { .img-container { height: 180px; } .card-title-fixed { font-size: 1.1rem; } .sticky-sidebar { position: static; } }
+
+    @media (max-width: 768px) { 
+        .img-container { height: 190px; } 
+        .sticky-sidebar { position: static; margin-top: 30px; } 
+    }
 </style>
 
-<script>
-    (function() {
-        function finalCleanup() {
-            var elements = document.querySelectorAll('.excerpt-v2, .card-text');
-            elements.forEach(function(el) {
-                var txt = document.createElement("textarea");
-                txt.innerHTML = el.innerHTML;
-                var decodedText = txt.value;
-                var cleanText = decodedText.replace(/\u00a0/g, ' ')
-                                           .replace(/&nbsp;/g, ' ')
-                                           .replace(/&39;|&#39;/g, "'")
-                                           .replace(/&quot;|&#34;/g, '"')
-                                           .replace(/#/g, '')
-                                           .replace(/\s\s+/g, ' ')
-                                           .trim();
-                if (el.textContent !== cleanText) {
-                    el.textContent = cleanText;
-                    el.style.textAlign = "justify";
-                }
-            });
-        }
-        window.addEventListener('load', finalCleanup);
-        setTimeout(finalCleanup, 500);
-        setTimeout(finalCleanup, 2000);
-    })();
-</script>
 {% endblock %}
