@@ -53,10 +53,6 @@
                 </div>
             </div>
 
-            <div class="ads-placeholder mb-4 text-center py-2" style="background: #fafafa; border: 1px dashed #ddd;">
-                <small class="text-muted d-block mb-1">ADVERTISEMENT</small>
-                </div>
-
             <div class="row g-4">
                 {% for item in page_obj %}
                 <div class="col-md-6 d-flex">
@@ -66,7 +62,7 @@
                             <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}">
                                 <img src="{% if item.image_url %}{{ item.image_url }}{% elif item.image %}{{ item.image.url }}{% else %}{% static 'districts/' %}{{ item.url_city|default:'news' }}.webp{% endif %}" 
                                      class="card-img-top news-thumb" 
-                                     alt="{{ item.title|striptags }}" 
+                                     alt="{{ item.title|striptags|safe }}" 
                                      loading="lazy"
                                      onerror="this.onerror=null; this.src='{% static 'logo.png' %}';">
                             </a>
@@ -85,13 +81,15 @@
                             <h2 class="card-title-fixed mb-3">
                                 {% if item.slug %}
                                 <a href="{% url 'news_detail' item.url_city|default:'news' item.slug %}" class="text-decoration-none text-dark">
-                                    {{ item.title|striptags }}
+                                    {# यहाँ safe फ़िल्टर कचरा अक्षरों को हटा देगा #}
+                                    {{ item.title|safe|striptags }}
                                 </a>
                                 {% endif %}
                             </h2>
 
                             <div class="card-text text-muted small mb-3 excerpt-v2">
-                                {{ item.content|striptags|truncatewords:60 }}
+                                {# कंटेंट से टैग्स हटाकर साफ़ हिंदी दिखाने के लिए #}
+                                {{ item.content|safe|striptags|truncatewords:55 }}
                             </div>
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -100,7 +98,7 @@
                                 </small>
                                 <div class="action-buttons d-flex align-items-center">
                                     {% if item.slug %}
-                                    <a href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20-%20{{ request.build_absolute_uri }}{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
+                                    <a href="https://api.whatsapp.com/send?text={{ item.title|striptags|safe }}%20-%20{{ request.build_absolute_uri }}{% url 'news_detail' item.url_city|default:'news' item.slug %}" 
                                        target="_blank" class="text-success me-3">
                                         <i class="fab fa-whatsapp fa-lg"></i>
                                     </a>
@@ -115,7 +113,7 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-5">
-                    <h5 class="text-muted">उत्तर प्रदेश के इस जिले की ताजा खबरें जल्द ही यहाँ अपडेट की जाएँगी। तब तक आप हमारे मुख्य पृष्ठ पर अन्य खबरें पढ़ सकते हैं।</h5>
+                    <h5 class="text-muted">ताजा खबरें जल्द ही यहाँ अपडेट की जाएँगी।</h5>
                 </div>
                 {% endfor %}
             </div>
@@ -126,6 +124,7 @@
                     {% if page_obj.has_previous %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
                     {% endif %}
+                    
                     {% for num in page_obj.paginator.page_range %}
                         {% if num == page_obj.number %}
                             <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
@@ -133,6 +132,7 @@
                             <li class="page-item d-none d-md-block"><a class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
+
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
                     {% endif %}
@@ -151,72 +151,19 @@
 
 <style>
     .fw-black { font-weight: 900; }
-    
-    /* AdSense Friendly Cards: No overlapping z-index */
-    .news-card-v2 { 
-        border-radius: 12px; 
-        transition: transform 0.3s ease, box-shadow 0.3s ease; 
-        background: #fff; 
-        height: 100%; 
-        display: flex; 
-        flex-direction: column; 
-        border: 1px solid rgba(0,0,0,0.08) !important;
-    }
-    .news-card-v2:hover { 
-        transform: translateY(-5px); 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; 
-    }
-
+    .news-card-v2 { border-radius: 12px; background: #fff; height: 100%; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.08) !important; transition: transform 0.3s ease; }
+    .news-card-v2:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; }
     .img-container { height: 210px; background: #f0f0f0; border-radius: 12px 12px 0 0; position: relative; }
     .news-thumb { width: 100%; height: 100%; object-fit: cover; }
-    
-    .card-title-fixed { 
-        font-size: 1.15rem; 
-        font-weight: 800; 
-        line-height: 1.4; 
-        display: -webkit-box; 
-        -webkit-line-clamp: 2; 
-        -webkit-box-orient: vertical; 
-        overflow: hidden; 
-    }
-
-    .excerpt-v2 { 
-        font-size: 0.95rem; 
-        color: #444 !important; 
-        line-height: 1.6; 
-        display: -webkit-box; 
-        -webkit-line-clamp: 3; 
-        -webkit-box-orient: vertical; 
-        overflow: hidden; 
-        text-align: justify;
-    }
-
-    /* Date Overlay: Clean and Simple */
-    .date-overlay { 
-        position: absolute; 
-        top: 12px; 
-        right: 12px; 
-        background: #fff; 
-        border-radius: 6px; 
-        padding: 4px 8px; 
-        text-align: center; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    }
+    .card-title-fixed { font-size: 1.15rem; font-weight: 800; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .excerpt-v2 { font-size: 0.95rem; color: #444 !important; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .date-overlay { position: absolute; top: 12px; right: 12px; background: #fff; border-radius: 6px; padding: 4px 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .date-overlay .day { display: block; font-size: 1rem; font-weight: 800; color: #d32f2f; }
     .date-overlay .month { font-size: 0.6rem; text-transform: uppercase; color: #666; font-weight: bold; }
-
     .pulse-dot { width: 8px; height: 8px; background: #dc3545; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-    
-    /* Sidebar: Proper spacing for Ads */
     .sticky-sidebar { position: sticky; top: 100px; padding-bottom: 20px; }
-    
     .custom-pagination .page-item.active .page-link { background: #dc3545; color: #fff; border: none; }
-
-    @media (max-width: 768px) { 
-        .img-container { height: 190px; } 
-        .sticky-sidebar { position: static; margin-top: 30px; } 
-    }
+    @media (max-width: 768px) { .img-container { height: 190px; } .sticky-sidebar { position: static; margin-top: 30px; } }
 </style>
-
 {% endblock %}
