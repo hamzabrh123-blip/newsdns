@@ -3,9 +3,10 @@ from django import forms
 from .models import News, NewsImage, SidebarWidget
 from .constants import UP_DISTRICTS, OTHER_CATEGORIES
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 import gc
 
-# --- 1. Thumbnail Optimization (Using Cloudinary as Proxy for Speed) ---
+# --- 1. Thumbnail Optimization ---
 def get_optimized_url(url, width=100, height=100, crop="fill"):
     if not url: return ""
     cloud_name = "dvoqsrkkq" 
@@ -55,7 +56,7 @@ class NewsAdminForm(forms.ModelForm):
             
         return cleaned_data
 
-# --- 3. News Image Inline (Multi-photo Support) ---
+# --- 3. News Image Inline ---
 class NewsImageInline(admin.TabularInline):
     model = NewsImage
     extra = 1
@@ -76,12 +77,9 @@ class NewsAdmin(admin.ModelAdmin):
     form = NewsAdminForm
     inlines = [NewsImageInline]
     
-    # FIX: 'status' ko list_display mein add kiya taaki list_editable kaam kare
     list_display = ('display_thumb', 'get_title_styled', 'district', 'category', 'status', 'get_status_badge', 'date')
     list_filter = ('status', 'district', 'category', 'date')
     search_fields = ('title', 'content')
-    
-    # Status edit tabhi hoga jab wo list_display mein bhi ho
     list_editable = ('status',)
     list_per_page = 20
     readonly_fields = ('category', 'url_city', 'image_url', 'is_fb_posted', 'display_large_img')
@@ -89,34 +87,38 @@ class NewsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('मुख्य जानकारी (News Content)', {
             'fields': ('title', 'status', 'content'),
-            'description': 'यहाँ न्यूज़ का टाइटल और कंटेंट लिखें।'
         }),
-        ('लोकेशन और कैटेगरी (Dynamic Select)', {
+        ('लोकेशन और कैटेगरी', {
             'fields': (('up_city', 'big_cat'), 'district'),
-            'classes': ('wide',),
         }),
-        ('मीडिया (Main Image & Video)', {
+        ('मीडिया', {
             'fields': (('image', 'display_large_img'), 'image_url', 'youtube_url'),
         }),
-        ('सोशल मीडिया और हाईलाइट्स', {
+        ('सोशल मीडिया', {
             'fields': (('is_important', 'show_in_highlights'), ('share_now_to_fb', 'is_fb_posted')),
         }),
-        ('SEO और तारीख', {
+        ('SEO', {
             'fields': ('slug', 'date', 'meta_keywords'),
             'classes': ('collapse',),
         }),
     )
 
+    # यहाँ था असली सुधार:
     def get_title_styled(self, obj):
-        important_tag = '<span style="color:red;font-weight:bold;">[Breaking]</span> ' if obj.is_important else ''
-        highlight_tag = '<span style="color:orange;font-weight:bold;">[★]</span> ' if obj.show_in_highlights else ''
-        return format_html('{}{}{}', format_html(important_tag), format_html(highlight_tag), obj.title[:80])
+        tags = ""
+        if obj.is_important:
+            tags += '<span style="color:red;font-weight:bold;">[Breaking] </span>'
+        if obj.show_in_highlights:
+            tags += '<span style="color:orange;font-weight:bold;">[★] </span>'
+        
+        # सुरक्षित तरीके से HTML और टाइटल को जोड़ना
+        return format_html('{}{}', mark_safe(tags), obj.title[:80])
     get_title_styled.short_description = "Title"
 
     def get_status_badge(self, obj):
         colors = {'Published': '#28a745', 'Draft': '#ffc107'}
-        return format_html('<span style="background:{}; color:white; padding:3px 8px; border-radius:10px; font-size:11px;">{}</span>', 
-                           colors.get(obj.status, '#6c757d'), obj.status)
+        color = colors.get(obj.status, '#6c757d')
+        return format_html('<span style="background:{}; color:white; padding:3px 8px; border-radius:10px; font-size:11px;">{}</span>', color, obj.status)
     get_status_badge.short_description = "Badge"
 
     def display_thumb(self, obj):
@@ -131,7 +133,7 @@ class NewsAdmin(admin.ModelAdmin):
         img_url = obj.image_url if obj.image_url else (obj.image.url if obj.image else None)
         if img_url:
             optimized = get_optimized_url(img_url, width=400, height=250, crop="limit")
-            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;box-shadow: 0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">ImgBB URL: {}</p></div>', optimized, obj.image_url)
+            return format_html('<div><img src="{}" style="max-width:350px;border-radius:8px;border:1px solid #ddd;"/><p style="color:gray;font-size:11px;">URL: {}</p></div>', optimized, obj.image_url)
         return "Upload a photo to see preview"
     display_large_img.short_description = "Live Preview"
 
@@ -140,17 +142,9 @@ class NewsAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         gc.collect()
 
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
-        gc.collect()
-
 # --- 5. Sidebar Widget Admin ---
 @admin.register(SidebarWidget)
 class SidebarWidgetAdmin(admin.ModelAdmin):
     list_display = ('title', 'widget_type', 'order', 'active')
     list_editable = ('order', 'active')
     list_filter = ('widget_type', 'active')
-    fieldsets = (
-        (None, {'fields': ('title', 'active', 'order')}),
-        ('Widget Config', {'fields': ('widget_type', 'code_content', 'image', 'link', 'news_limit')}),
-    )

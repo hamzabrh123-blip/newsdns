@@ -6,18 +6,18 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- DEBUG & SECURITY ---
-# Render par DEBUG False hona chahiye, local pe True
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+# Local pe kaam karte waqt ise True rakhein, Render khud ise False kar dega
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
     "www.uttarworld.com", 
-    "newsdns.onrender.com", # आपका स्पेसिफिक रेंडर URL
+    "newsdns.onrender.com", 
     ".onrender.com", 
     "localhost", 
     "127.0.0.1",
-    "*"  # अस्थायी रूप से इसे जोड़ें, अगर पेज खुल जाए तो समझिये होस्ट की ही दिक्कत थी
+    "*" 
 ]
 
 # --- SSL & CSRF Fix (Render Production) ---
@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",  # Static files handling
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "mynews",
     "ckeditor",
@@ -49,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # WhiteNoise for Static
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -71,7 +71,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # Dono functions yahan hain taaki error na aaye
                 "mynews.context_processors.site_visits",
                 "mynews.context_processors.news_data_processor", 
             ],
@@ -81,19 +80,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE (RENDER SSL FIXED) ---
+# --- DATABASE (FORCED ONLINE CONNECTION) ---
+# Yahan offline/online dono Supabase se connect honge
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+        default=DATABASE_URL,
         conn_max_age=600,
     )
 }
 
-# Render के डेटाबेस के लिए SSL सेटिंग्स को साफ़ तौर पर यहाँ जोड़ें
-if not DEBUG:
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
-    }
+# SSL Settings: Supabase ke liye 'require' zaroori hai
+if DATABASES.get('default'):
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
+
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -102,7 +104,6 @@ STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# File Storage settings (Render delete fix is handled by ImgBB in models)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -142,7 +143,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# API Keys from Environment Variables
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
 FB_PAGE_2_ID = os.environ.get("FB_PAGE_2_ID")
@@ -160,6 +160,4 @@ USE_TZ = True
 # Cloudinary Proxy Configuration
 CLOUDINARY_CLOUD_NAME = "dvoqsrkkq"
 CLOUDINARY_BASE_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/fetch/"
-
-# f_auto: फॉर्मेट (WebP/AVIF), q_auto: बेस्ट क्वालिटी, w_800: चौड़ाई
 CLOUDINARY_OPTIMIZE_PARAMS = "f_auto,q_auto,w_800/"
