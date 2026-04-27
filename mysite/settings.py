@@ -81,33 +81,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE CONFIGURATION (PROPER AUTO-SWITCH) ---
-
-# 1. Environment Variable से URL उठाओ (Render/Supabase के लिए)
-# 2. अगर Variable नहीं मिलता, तो Local SQLite पर गिरो (Fallback)
+# --- Database Logic for Local & Production ---
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
+    # यह हिस्सा Render पर अपने आप चलेगा
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True # SSL यहाँ इनेबल करो
+            ssl_require=True
         )
     }
-    # SSL settings के लिए एक्स्ट्रा सावधानी
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
-    }
 else:
-    # लोकल डेवलपमेंट के लिए SQLite (ताकि पीसी पर एरर न आए)
+    # यह तेरा जादुई इंजन (Local PC) है - यहाँ तेरा Supabase लिंक सेट है
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        'default': dj_database_url.config(
+            default='postgresql://postgres.lnbzfuxggmxixiibixnt:UttarWorld2026@aws-1-ap-south-1.pooler.supabase.com:5432/postgres',
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
 
+# SSL settings (Supabase के लिए ज़रूरी है)
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
+}
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
