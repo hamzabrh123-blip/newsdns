@@ -24,23 +24,19 @@ def google_verify(request):
     )
 
 urlpatterns = [
-    # 1. Admin Control
+   # 1. Admin और Technical चीजें ऊपर ही रहने दे
     path('control-panel/', admin.site.urls),
-    
-    # 2. CKEditor
     path('ckeditor/', include('ckeditor_uploader.urls')),
-
-    # 3. Google Verification
     path("google21a82f00fad0f9b3.html", google_verify),
 
-    # 4. News Section (uttarworld.com/news)
-    path('news/', include('mynews.urls')),  
-
-    # 5. Shopping Section (uttarworld.com/shopping)
+    # 2. सबसे पहले शॉपिंग को चेक करने दे (Priority)
     path('shopping/', include('shopping.urls')), 
 
-    # 6. Default (Agar koi sirf uttarworld.com khole, toh use kahan bhejna hai?)
-    path('', include('mynews.urls')), # Abhi ke liye news par hi rakhte hain
+    # 3. फिर न्यूज़ का स्पेसिफिक रास्ता
+    path('news/', include('mynews.urls')),  
+
+    # 4. DEFAULT: अगर ऊपर कुछ न मिले, तब न्यूज़ पर जाए
+    path('', include('mynews.urls')),
 ]
 
 # 5. Temporary route (Sirf emergency ke liye, use ke baad hata dena)
