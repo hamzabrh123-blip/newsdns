@@ -24,19 +24,15 @@ def google_verify(request):
     )
 
 urlpatterns = [
-   # 1. Admin और Technical चीजें ऊपर ही रहने दे
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
-    path("google21a82f00fad0f9b3.html", google_verify),
-
-    # 2. सबसे पहले शॉपिंग को चेक करने दे (Priority)
+    
+    # 1. शॉपिंग को न्यूज़ से ऊपर रख ताकि न्यूज़ वाला 'slug' इसे न पकड़ ले
     path('shopping/', include('shopping.urls')), 
 
-    # 3. फिर न्यूज़ का स्पेसिफिक रास्ता
-    path('news/', include('mynews.urls')),  
-
-    # 4. DEFAULT: अगर ऊपर कुछ न मिले, तब न्यूज़ पर जाए
-    path('', include('mynews.urls')),
+    # 2. बाकी सब न्यूज़ के हवाले
+    path('news/', include('mynews.urls')), 
+    path('', include('mynews.urls')), 
 ]
 
 # 5. Temporary route (Sirf emergency ke liye, use ke baad hata dena)
