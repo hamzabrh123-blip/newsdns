@@ -112,8 +112,9 @@ else:
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    BASE_DIR / "mynews" / "static",
     BASE_DIR / "shopping" / "static",
+    BASE_DIR / "mynews" / "static",
+    
     
     ]
 
