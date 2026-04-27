@@ -12,22 +12,76 @@
         .carousel-item img { height: 200px; }
     }
     
-    /* Card Styling */
+    /* Global Card Hover Effect */
     .product-card {
-        border-radius: 12px;
+        border-radius: 15px;
         overflow: hidden;
-        transition: 0.3s;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.12) !important;
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
     }
-    .cat-card img {
-        transition: 0.5s;
+
+    /* --- Vertical Category Card Styling --- */
+    .cat-wrapper {
+        perspective: 1000px;
     }
-    .cat-card:hover img {
+    .premium-cat-card {
+        border: none !important;
+        border-radius: 15px !important;
+        background: #fff;
+        position: relative;
+    }
+    .img-holder {
+        background: #f8f8f8;
+        height: 280px; /* वर्टिकल लुक के लिए हाइट बढ़ा दी */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        border-radius: 15px;
+    }
+    .img-holder img {
+        height: 100% !important;
+        width: 100%;
+        object-fit: cover; /* कपड़ों को खड़ा और साफ़ दिखाने के लिए */
+        transition: 0.6s;
+    }
+    .premium-cat-card:hover .img-holder img {
         transform: scale(1.1);
     }
+    
+    /* Category Name Overlay */
+    .cat-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        padding: 30px 10px 15px;
+        text-align: center;
+        border-radius: 0 0 15px 15px;
+    }
+    .cat-name-text {
+        color: white;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        letter-spacing: 1px;
+    }
+    .cat-action-text {
+        color: #ff4d4d;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Latest Collection Adjustments */
+    .price-tag { color: #d32f2f; font-weight: 800; font-size: 1.1rem; }
+    .old-price { text-decoration: line-through; color: #999; font-size: 0.9rem; }
 </style>
 
 <div class="container mt-3">
@@ -42,51 +96,44 @@
             {% for slider in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="3000">
                 {% if slider.link %}<a href="{{ slider.link }}">{% endif %}
-                    
                     {% if slider.image_url %}
                         <img src="{{ slider.image_url }}" class="d-block w-100" alt="{{ slider.title }}">
                     {% elif slider.image %}
                         <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
                     {% endif %}
-
                 {% if slider.link %}</a>{% endif %}
-                
-                {% if slider.title %}
-                <div class="carousel-caption d-none d-md-block">
-                    <h3 class="fw-bold">{{ slider.title }}</h3>
-                </div>
-                {% endif %}
             </div>
             {% empty %}
             <div class="carousel-item active">
-                <img src="https://via.placeholder.com/1200x400?text=Welcome+to+Uttar+World+Store" class="d-block w-100">
+                <img src="https://via.placeholder.com/1200x400?text=Premium+Collection+Live" class="d-block w-100">
             </div>
             {% endfor %}
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#homeSlider" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#homeSlider" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-        </button>
     </div>
 
-    <h4 class="fw-bold mb-4"><i class="fas fa-th-large me-2 text-primary"></i> Top Categories</h4>
-    <div class="row mb-5 text-center">
+    <div class="d-flex align-items-center mb-4">
+        <div style="width: 5px; height: 30px; background: #d32f2f; margin-right: 12px; border-radius: 10px;"></div>
+        <h4 class="fw-bold mb-0">Shop By Category</h4>
+    </div>
+
+    <div class="row mb-5">
         {% for cat in categories %}
-        <div class="col-md-3 col-6 mb-3">
-            <a href="/shopping/category/{{ cat.slug }}/" style="text-decoration: none; color: black;">
-                <div class="card shadow-sm border-0 product-card cat-card">
-                    {% if cat.image_url %}
-                        <img src="{{ cat.image_url }}" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
-                    {% elif cat.image %}
-                        <img src="{{ cat.image.url }}" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
-                    {% else %}
-                        <img src="https://via.placeholder.com/150" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
-                    {% endif %}
-                    
-                    <div class="card-body pt-0">
-                        <h6 class="fw-bold">{{ cat.name }}</h6>
+        <div class="col-md-3 col-6 mb-4 cat-wrapper">
+            <a href="/shopping/category/{{ cat.slug }}/" style="text-decoration: none;">
+                <div class="card premium-cat-card shadow-sm">
+                    <div class="img-holder">
+                        {% if cat.image_url %}
+                            <img src="{{ cat.image_url }}" alt="{{ cat.name }}">
+                        {% elif cat.image %}
+                            <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x450?text=Kurti+Collection" alt="No Image">
+                        {% endif %}
+                        
+                        <div class="cat-overlay">
+                            <div class="cat-name-text">{{ cat.name }}</div>
+                            <div class="cat-action-text">EXPLORE STORE <i class="fas fa-arrow-right ms-1"></i></div>
+                        </div>
                     </div>
                 </div>
             </a>
@@ -95,8 +142,8 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0"><i class="fas fa-shopping-bag me-2 text-primary"></i> Latest Collection</h4>
-        <span class="badge bg-soft-primary text-primary border border-primary px-3 py-2 rounded-pill">New Arrivals</span>
+        <h4 class="fw-bold mb-0"><i class="fas fa-fire me-2 text-danger"></i> Latest Arrivals</h4>
+        <a href="#" class="text-decoration-none text-danger fw-bold small">VIEW ALL</a>
     </div>
 
     <div class="row">
@@ -105,26 +152,27 @@
             <div class="card h-100 shadow-sm product-card border-0">
                 <div class="position-relative">
                     {% if product.main_image_url %}
-                        <img src="{{ product.main_image_url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <img src="{{ product.main_image_url }}" class="card-img-top" style="height: 320px; object-fit: cover;">
                     {% elif product.main_image %}
-                        <img src="{{ product.main_image.url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <img src="{{ product.main_image.url }}" class="card-img-top" style="height: 320px; object-fit: cover;">
                     {% else %}
-                        <img src="https://via.placeholder.com/300" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <img src="https://via.placeholder.com/300x400" class="card-img-top" style="height: 320px; object-fit: cover;">
                     {% endif %}
 
                     {% if product.old_price %}
-                    <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small m-2 rounded">SALE</span>
+                    <span class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 small m-2 rounded-pill fw-bold" style="font-size: 10px;">HOT SALE</span>
                     {% endif %}
                 </div>
-                <div class="card-body px-2">
-                    <h6 class="card-title text-truncate mb-1">{{ product.title }}</h6>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="text-danger fw-bold">₹{{ product.price }}</span>
+                <div class="card-body px-3">
+                    <p class="text-muted small mb-1">{{ product.category.name }}</p>
+                    <h6 class="card-title text-truncate fw-bold mb-2">{{ product.title }}</h6>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="price-tag">₹{{ product.price }}</span>
                         {% if product.old_price %}
-                        <span class="text-muted small text-decoration-line-through">₹{{ product.old_price }}</span>
+                        <span class="old-price">₹{{ product.old_price }}</span>
                         {% endif %}
                     </div>
-                    <a href="{% url 'product_detail' product.slug %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">View Details</a>
+                    <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-sm w-100 rounded-pill py-2">Quick View</a>
                 </div>
             </div>
         </div>
