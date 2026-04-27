@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
+    "shopping",
     "mynews",
-    'shopping',
     "ckeditor",
     "ckeditor_uploader",
 ]
@@ -81,21 +81,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- DATABASE CONFIGURATION (OFFLINE & ONLINE AUTO-SWITCH) ---
-# Default to SQLite for local development
-SUPABASE_URL = "postgresql://postgres.lnbzfuxggmxixiibixnt:UttarWorld2026@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
+# --- DATABASE CONFIGURATION (PROPER AUTO-SWITCH) ---
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', SUPABASE_URL),
-        conn_max_age=600,
-    )
-}
+# 1. Environment Variable से URL उठाओ (Render/Supabase के लिए)
+# 2. अगर Variable नहीं मिलता, तो Local SQLite पर गिरो (Fallback)
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# SSL settings (Supabase और Render दोनों के लिए ज़रूरी है)
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
-}
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True # SSL यहाँ इनेबल करो
+        )
+    }
+    # SSL settings के लिए एक्स्ट्रा सावधानी
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+else:
+    # लोकल डेवलपमेंट के लिए SQLite (ताकि पीसी पर एरर न आए)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
