@@ -41,13 +41,16 @@
         <div class="carousel-inner">
             {% for slider in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="3000">
-                {% if slider.link %}
-                <a href="{{ slider.link }}">
-                    <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
-                </a>
-                {% else %}
-                <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
-                {% endif %}
+                {% if slider.link %}<a href="{{ slider.link }}">{% endif %}
+                    
+                    {% if slider.image_url %}
+                        <img src="{{ slider.image_url }}" class="d-block w-100" alt="{{ slider.title }}">
+                    {% elif slider.image %}
+                        <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
+                    {% endif %}
+
+                {% if slider.link %}</a>{% endif %}
+                
                 {% if slider.title %}
                 <div class="carousel-caption d-none d-md-block">
                     <h3 class="fw-bold">{{ slider.title }}</h3>
@@ -74,11 +77,14 @@
         <div class="col-md-3 col-6 mb-3">
             <a href="/shopping/category/{{ cat.slug }}/" style="text-decoration: none; color: black;">
                 <div class="card shadow-sm border-0 product-card cat-card">
-                    {% if cat.image %}
-                    <img src="{{ cat.image.url }}" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
+                    {% if cat.image_url %}
+                        <img src="{{ cat.image_url }}" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
+                    {% elif cat.image %}
+                        <img src="{{ cat.image.url }}" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
                     {% else %}
-                    <img src="https://via.placeholder.com/150" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
+                        <img src="https://via.placeholder.com/150" class="card-img-top p-3" style="height: 120px; object-fit: contain;">
                     {% endif %}
+                    
                     <div class="card-body pt-0">
                         <h6 class="fw-bold">{{ cat.name }}</h6>
                     </div>
@@ -98,7 +104,14 @@
         <div class="col-md-3 col-6 mb-4">
             <div class="card h-100 shadow-sm product-card border-0">
                 <div class="position-relative">
-                    <img src="{{ product.main_image.url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% if product.main_image_url %}
+                        <img src="{{ product.main_image_url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% elif product.main_image %}
+                        <img src="{{ product.main_image.url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% endif %}
+
                     {% if product.old_price %}
                     <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small m-2 rounded">SALE</span>
                     {% endif %}

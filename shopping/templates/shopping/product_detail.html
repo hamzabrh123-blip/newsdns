@@ -13,56 +13,7 @@
     .buy-btn { background-color: #25d366; color: white; font-weight: bold; padding: 15px; border-radius: 50px; text-decoration: none; display: block; text-align: center; font-size: 18px; transition: 0.3s; }
     .buy-btn:hover { background-color: #128c7e; color: white; transform: scale(1.02); }
     .description-box { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-</style>
-
-<div class="container mt-5">
-    <div class="row product-container shadow-sm">
-        
-        <div class="col-md-1 d-none d-md-block">
-            {% for img in product.images.all %}
-            <img src="{{ img.image.url }}" class="thumb-img" onclick="changeImage('{{ img.image.url }}')">
-            {% endfor %}
-        </div>
-        
-        <div class="col-md-5">
-            <div class="main-img-container text-center">
-                <img src="{{ product.main_image.url }}" id="mainProductImg" alt="{{ product.title }}">
-            </div>
-            <div class="d-md-none mt-3 d-flex overflow-auto">
-                {% for img in product.images.all %}
-                <img src="{{ img.image.url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image.url }}')">
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/shopping/">Store</a></li>
-                    <li class="breadcrumb-item active">{{ product.category.name }}</li>
-                </ol>
-            </nav>
-
-            <h1 class="product-title">{{ product.title }}</h1>
-            
-            <div class="mb-3">
-                <span class="old-price">₹{{ product.old_price }}</span>
-                <span class="price-tag">₹{{ product.price }}</span>
-                <span class="badge bg-success ms-2">SAVE {% widthratio product.price product.old_price 100 %}% OFF</span>
-            </div>
-
-            <p class="text-muted small">Tax included. Shipping calculated at checkout.</p>
-            
-            <div class="description-box">
-                <h5>Product Highlights</h5>
-                <p>{{ product.short_description }}</p>
-            </div>
-            {% if product.buy_now_url %}
-<a href="{{ product.buy_now_url }}" target="_blank" class="btn-buy-now mb-2">
-    <i class="fas fa-shopping-cart me-2"></i> BUY NOW (OFFICIAL STORE)
-</a>
-
-<style>
+    
     .btn-buy-now {
         background: #ff9900; /* Amazon जैसा संतरी रंग */
         color: white;
@@ -82,7 +33,76 @@
         transform: scale(1.02);
     }
 </style>
-{% endif %}
+
+<div class="container mt-5">
+    <div class="row product-container shadow-sm">
+        
+        <div class="col-md-1 d-none d-md-block">
+            {% for img in product.images.all %}
+                {% if img.image_url %}
+                    <img src="{{ img.image_url }}" class="thumb-img" onclick="changeImage('{{ img.image_url }}')">
+                {% else %}
+                    <img src="{{ img.image.url }}" class="thumb-img" onclick="changeImage('{{ img.image.url }}')">
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div class="col-md-5">
+            <div class="main-img-container text-center">
+                {% if product.main_image_url %}
+                    <img src="{{ product.main_image_url }}" id="mainProductImg" alt="{{ product.title }}">
+                {% else %}
+                    <img src="{{ product.main_image.url }}" id="mainProductImg" alt="{{ product.title }}">
+                {% endif %}
+            </div>
+            
+            <div class="d-md-none mt-3 d-flex overflow-auto">
+                {% for img in product.images.all %}
+                    {% if img.image_url %}
+                        <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image_url }}')">
+                    {% else %}
+                        <img src="{{ img.image.url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image.url }}')">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/shopping/">Store</a></li>
+                    <li class="breadcrumb-item active">{{ product.category.name }}</li>
+                </ol>
+            </nav>
+
+            <h1 class="product-title">{{ product.title }}</h1>
+            
+            <div class="mb-3">
+                {% if product.old_price %}
+                    <span class="old-price">₹{{ product.old_price }}</span>
+                {% endif %}
+                <span class="price-tag">₹{{ product.price }}</span>
+                
+                {% if product.old_price %}
+                    <span class="badge bg-success ms-2">
+                        {% widthratio product.price product.old_price 100 %}% OFF
+                    </span>
+                {% endif %}
+            </div>
+
+            <p class="text-muted small">Tax included. Shipping calculated at checkout.</p>
+            
+            <div class="description-box">
+                <h5>Product Highlights</h5>
+                <p>{{ product.short_description }}</p>
+            </div>
+
+            {% if product.buy_now_url %}
+                <a href="{{ product.buy_now_url }}" target="_blank" class="btn-buy-now mb-2">
+                    <i class="fas fa-shopping-cart me-2"></i> BUY NOW (OFFICIAL STORE)
+                </a>
+            {% endif %}
+
             <a href="https://wa.me/91XXXXXXXXXX?text=Hi, I want to order this: {{ product.title }} (Price: ₹{{ product.price }}) - {{ request.build_absolute_uri }}" 
                class="buy-btn mt-4">
                 <i class="fab fa-whatsapp"></i> ORDER ON WHATSAPP
