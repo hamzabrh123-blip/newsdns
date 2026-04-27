@@ -2,23 +2,15 @@ from django.shortcuts import render, get_object_or_404
 from .models import Product, Category
 from .models import HomeSlider # ऊपर इम्पोर्ट कर लेना
 
+# इसे रख (इसमें स्लाइडर भी है)
 def shop_home(request):
     categories = Category.objects.all()
     products = Product.objects.all()
-    sliders = HomeSlider.objects.filter(is_active=True) # एक्टिव स्लाइड्स उठाओ
+    sliders = HomeSlider.objects.filter(is_active=True)
     return render(request, 'shopping/shop_home.html', {
         'categories': categories,
         'products': products,
         'sliders': sliders
-    })
-
-# 1. मेन दुकान का पेज (जहाँ सब कुछ दिखता है)
-def shop_home(request):
-    categories = Category.objects.all()
-    products = Product.objects.all()
-    return render(request, 'shopping/shop_home.html', {
-        'categories': categories,
-        'products': products
     })
 
 # 2. कैटेगरी वाला पेज (जब कोई 'Designer Kurti' पर क्लिक करे)
