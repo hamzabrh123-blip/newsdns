@@ -5,17 +5,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth.models import User
 
-# --- BRANDING: Django ka naam mitao ---
+# --- BRANDING ---
 admin.site.site_header = "Uttar World Management Portal"
 admin.site.site_title = "Admin Control Center"
 admin.site.index_title = "News Engine Dashboard"
-
-# --- Admin Creation Logic (Security ke liye sirf Debug mode mein rakho) ---
-def create_admin(request):
-    if not User.objects.filter(username="admin").exists():
-        User.objects.create_superuser("admin", "admin@example.com", "Halchal@2026")
-        return HttpResponse("<h1>Success: Admin Created!</h1>")
-    return HttpResponse("<h1>Error: Admin already exists!</h1>")
 
 def google_verify(request):
     return HttpResponse(
@@ -24,21 +17,22 @@ def google_verify(request):
     )
 
 urlpatterns = [
+    # 1. Google Verification (Sabse top par)
+    path("google21a82f00fad0f9b3.html", google_verify),
+    
+    # 2. Admin & Editor
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     
-    # 1. शॉपिंग को न्यूज़ से ऊपर रख ताकि न्यूज़ वाला 'slug' इसे न पकड़ ले
+    # 3. SHOPPING (ISKO TOP PAR HI REHNE DO)
+    # Taki news ka slug ise touch na kar paye
     path('shopping/', include('shopping.urls')), 
 
-    # 2. बाकी सब न्यूज़ के हवाले
-    path('news/', include('mynews.urls')), 
+    # 4. NEWS (SIRF EK BAAR INCLUDE KARO)
+    # 'news/' wala rasta hata do, sirf khali '' rakho
     path('', include('mynews.urls')), 
 ]
 
-# 5. Temporary route (Sirf emergency ke liye, use ke baad hata dena)
-if settings.DEBUG:
-    urlpatterns += [path('make-me-admin-2026/', create_admin)]
-
-# 6. Static aur Media files ka setup
+# Static aur Media files
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
