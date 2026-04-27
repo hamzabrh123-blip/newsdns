@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "mynews",
+    'shopping',
     "ckeditor",
     "ckeditor_uploader",
 ]
@@ -99,7 +100,11 @@ DATABASES['default']['OPTIONS'] = {
 # --- STATIC & MEDIA ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "mynews" / "static"]
+STATICFILES_DIRS = [
+    BASE_DIR / "mynews" / "static",
+    BASE_DIR / "shopping" / "static",
+    
+    ]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

@@ -24,7 +24,7 @@ def google_verify(request):
     )
 
 urlpatterns = [
-    # 1. Admin ka rasta badal diya (Extra Security + No Django Feel)
+    # 1. Admin Control
     path('control-panel/', admin.site.urls),
     
     # 2. CKEditor
@@ -33,8 +33,14 @@ urlpatterns = [
     # 3. Google Verification
     path("google21a82f00fad0f9b3.html", google_verify),
 
-    # 4. Main App
-    path('', include('mynews.urls')),  
+    # 4. News Section (uttarworld.com/news)
+    path('news/', include('mynews.urls')),  
+
+    # 5. Shopping Section (uttarworld.com/shopping)
+    path('shopping/', include('shopping.urls')), 
+
+    # 6. Default (Agar koi sirf uttarworld.com khole, toh use kahan bhejna hai?)
+    path('', include('mynews.urls')), # Abhi ke liye news par hi rakhte hain
 ]
 
 # 5. Temporary route (Sirf emergency ke liye, use ke baad hata dena)
