@@ -1,73 +1,75 @@
 import requests
 import base64
 import io
+import os
 from PIL import Image
+try:
+    import pillow_avif # AVIF सपोर्ट के लिए
+except ImportError:
+    pass
 from django.conf import settings
 from django.contrib.staticfiles import finders
 
 def upload_to_imgbb(image_file):
     """
     1. इमेज को WebP में बदलता है।
-    2. 'uttarworld-shopping-icon.png' लोगो को नीचे दाएं कोने में लगाता है।
+    2. 'uttarworld-shopping-icon.png' लोगो चिपकाता है।
     3. ImgBB पर अपलोड करके URL देता है।
     """
     api_key = getattr(settings, 'IMGBB_API_KEY', None)
     if not api_key:
-        print("Upload Error: IMGBB_API_KEY is not defined in settings.py")
+        print("Upload Error: IMGBB_API_KEY missing!")
         return None
 
     try:
-        # 1. इमेज को Pillow से ओपन करें
+        # 1. इमेज ओपन करें
         image_file.seek(0)
         img = Image.open(image_file)
         
-        # अगर इमेज RGBA है तो उसे RGB में बदलें (WebP के लिए बेहतर है)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
+        # ओरिजिनल को RGBA में बदलें ताकि लोगो सही से चिपके
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
 
-        # 2. लोगो चिपकाने का तड़का (Corner Logo)
+        # 2. लोगो चिपकाने का पक्का इंतज़ाम
+        # finders.find सीधा 'images/uttarworld-shopping-icon.png' ढूंढेगा
         logo_path = finders.find('images/uttarworld-shopping-icon.png')
+        
         if logo_path:
-            logo = Image.open(logo_path)
+            logo = Image.open(logo_path).convert('RGBA')
             
-            # लोगो का साइज मेन इमेज की चौड़ाई का 15% रखें
-            logo_width = int(img.width * 0.15)
-            logo_height = int(logo.height * (logo_width / logo.width))
-            logo = logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+            # लोगो साइज (चौड़ाई का 15%)
+            logo_w = int(img.width * 0.15)
+            logo_h = int(logo.height * (logo_w / logo.width))
+            logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
             
-            # पोजीशन: नीचे से 20px और दाएं से 20px छोड़ कर
-            padding = 20
-            position = (img.width - logo_width - padding, img.height - logo_height - padding)
+            # पोजीशन (Bottom-Right)
+            pos = (img.width - logo_w - 20, img.height - logo_h - 20)
             
-            # लोगो पेस्ट करें (Transparency के साथ)
-            if logo.mode == 'RGBA':
-                img.paste(logo, position, logo)
-            else:
-                img.paste(logo, position)
+            # पेस्ट (Masking के साथ ताकि काला डब्बा न आए)
+            img.paste(logo, pos, logo)
+        else:
+            print("Logo Error: Static path par logo nahi mila!")
 
-        # 3. इमेज को मेमोरी (BytesIO) में WebP फॉर्मेट में सेव करें
+        # 3. WebP Conversion
+        img = img.convert('RGB') # Final conversion for WebP
         output = io.BytesIO()
         img.save(output, format="WEBP", quality=80)
         output.seek(0)
 
-        # 4. Base64 Encoding
+        # 4. Upload to ImgBB
         encoded_string = base64.b64encode(output.read())
-        
-        # 5. ImgBB API Request
-        url = "https://api.imgbb.com/1/upload"
-        payload = {
-            "key": api_key,
-            "image": encoded_string,
-        }
-        
-        response = requests.post(url, data=payload)
+        response = requests.post(
+            "https://api.imgbb.com/1/upload",
+            data={"key": api_key, "image": encoded_string},
+            timeout=30
+        )
         
         if response.status_code == 200:
             return response.json()['data']['url']
         else:
-            print(f"ImgBB API Error: {response.text}")
-            
+            print(f"ImgBB Response Error: {response.text}")
+        
     except Exception as e:
-        print(f"Branding & Upload Error: {e}")
+        print(f"Final Upload Error: {e}")
     
     return None
