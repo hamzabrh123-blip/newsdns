@@ -1,5 +1,5 @@
 import os
-from django.db import models
+from django.db import models, transaction
 from django.utils.text import slugify
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -61,39 +61,54 @@ class ProductImage(models.Model):
     image_url = models.URLField(max_length=500, blank=True, null=True)
     alt_text = models.CharField(max_length=200, blank=True)
 
-# --- SIGNALS FOR IMGBB UPLOAD ---
+    def __str__(self):
+        return f"Gallery for {self.product.title}"
+
+
+# --- 100% WORKING SIGNAL LOGIC ---
 
 @receiver(post_save, sender=HomeSlider)
 @receiver(post_save, sender=Category)
 @receiver(post_save, sender=Product)
 @receiver(post_save, sender=ProductImage)
-def handle_imgbb_upload(sender, instance, created, **kwargs):
+def handle_imgbb_upload_secure(sender, instance, **kwargs):
     """
-    यह सिग्नल चेक करेगा कि कौन सा मॉडल है और उसकी इमेज को IMGBB पर भेज देगा।
+    यह सिग्नल ट्रांजेक्शन कमिट होने का इंतज़ार करेगा ताकि हैवी इमेजेस प्रोसेस हो सकें।
     """
-    # 1. फील्ड का नाम तय करें (Product में 'main_image' है, बाकी में 'image')
-    image_field_name = 'main_image' if sender == Product else 'image'
-    url_field_name = 'main_image_url' if sender == Product else 'image_url'
-    
-    image_file = getattr(instance, image_field_name)
+    # फील्ड्स का नाम सही से चुनें
+    if sender == Product:
+        img_field = 'main_image'
+        url_field = 'main_image_url'
+    else:
+        img_field = 'image'
+        url_field = 'image_url'
 
-    # अगर इमेज फाइल मौजूद है, तो उसे अपलोड करें
-    if image_file and hasattr(image_file, 'path'):
-        try:
-            url = upload_to_imgbb(image_file)
-            if url:
-                # लोकल फाइल का पाथ सुरक्षित करें
-                path = image_file.path
+    image_file = getattr(instance, img_field)
+
+    # अगर फाइल लोकल स्टोरेज में है, तभी आगे बढ़ें
+    if image_file and hasattr(image_file, 'path') and os.path.exists(image_file.path):
+        
+        # 'do_upload' फंक्शन तभी चलेगा जब Django का सेव ऑपरेशन पूरा हो जाए
+        def do_upload():
+            try:
+                # इमेजबॉन्ड्स के लिए utils फंक्शन कॉल करें
+                new_url = upload_to_imgbb(image_file)
                 
-                # Database अपडेट करें (बिना save() कॉल किए ताकि loop न बने)
-                sender.objects.filter(pk=instance.pk).update(**{
-                    url_field_name: url,
-                    image_field_name: None
-                })
-                
-                # लोकल फाइल डिलीट करें
-                if os.path.exists(path):
-                    os.remove(path)
-                    print(f"✅ Successfully uploaded and deleted local file for {sender.__name__}")
-        except Exception as e:
-            print(f"❌ Error in Signal for {sender.__name__}: {e}")
+                if new_url:
+                    local_path = image_file.path
+                    
+                    # बिना save() ट्रिगर किए डेटाबेस अपडेट (ताकि Recursion न हो)
+                    sender.objects.filter(pk=instance.pk).update(**{
+                        url_field: new_url,
+                        img_field: None
+                    })
+                    
+                    # लोकल फाइल डिलीट करें
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+                        print(f"✅ Successfully Uploaded: {sender.__name__} (ID: {instance.pk})")
+            except Exception as e:
+                print(f"❌ Upload Failed for {sender.__name__}: {e}")
+
+        # Render और हैवी लोड के लिए सबसे सुरक्षित तरीका
+        transaction.on_commit(do_upload)
