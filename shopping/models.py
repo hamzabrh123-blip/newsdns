@@ -1,18 +1,19 @@
 import os
-from django.db import models
+import uuid
+from django.db import models, transaction
 from django.utils.text import slugify
 from ckeditor_uploader.fields import RichTextUploadingField
 from .utils import upload_to_imgbb
 
-# --- HELPER FUNCTION TO KILL MACHINE FILES ---
+# --- HELPER: फिजिकल फाइल डिलीट करने के लिए ---
 def cleanup_local_file(instance, field_name):
-    """मशीन से फिजिकल फाइल डिलीट करने के लिए"""
     try:
         file_field = getattr(instance, field_name)
-        if file_field and os.path.exists(file_field.path):
+        if file_field and hasattr(file_field, 'path') and os.path.exists(file_field.path):
             os.remove(file_field.path)
-    except Exception:
-        pass
+            print(f"✅ Local file deleted: {file_field.path}")
+    except Exception as e:
+        print(f"⚠️ Cleanup Error: {e}")
 
 # --- 1. HomeSlider ---
 class HomeSlider(models.Model):
@@ -23,20 +24,23 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        is_new = False
-        if not self.id and self.image: is_new = True
-        elif self.id:
-            try:
-                old = HomeSlider.objects.get(id=self.id).image
-                if self.image and self.image != old: is_new = True
-            except: is_new = True
+        is_new_upload = False
+        if self.image:
+            if not self.pk:
+                is_new_upload = True
+            else:
+                old_obj = HomeSlider.objects.filter(pk=self.pk).first()
+                if old_obj and old_obj.image != self.image:
+                    is_new_upload = True
 
         super().save(*args, **kwargs)
-        if is_new:
+
+        if is_new_upload:
+            # save के बाद तुरंत अपलोड और क्लीनअप
             url = upload_to_imgbb(self.image)
             if url:
-                cleanup_local_file(self, 'image') # मशीन से फाइल डिलीट
-                HomeSlider.objects.filter(id=self.id).update(image_url=url, image=None)
+                cleanup_local_file(self, 'image')
+                HomeSlider.objects.filter(pk=self.pk).update(image_url=url, image=None)
 
     def __str__(self):
         return self.title or f"Slider {self.id}"
@@ -50,20 +54,22 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug: self.slug = slugify(self.name)
-        is_new = False
-        if not self.id and self.image: is_new = True
-        elif self.id:
-            try:
-                old = Category.objects.get(id=self.id).image
-                if self.image and self.image != old: is_new = True
-            except: is_new = True
+        is_new_upload = False
+        if self.image:
+            if not self.pk:
+                is_new_upload = True
+            else:
+                old_obj = Category.objects.filter(pk=self.pk).first()
+                if old_obj and old_obj.image != self.image:
+                    is_new_upload = True
 
         super().save(*args, **kwargs)
-        if is_new:
+
+        if is_new_upload:
             url = upload_to_imgbb(self.image)
             if url:
                 cleanup_local_file(self, 'image')
-                Category.objects.filter(id=self.id).update(image_url=url, image=None)
+                Category.objects.filter(pk=self.pk).update(image_url=url, image=None)
 
     def __str__(self):
         return self.name
@@ -86,25 +92,27 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug: self.slug = slugify(self.title)
-        is_new = False
-        if not self.id and self.main_image: is_new = True
-        elif self.id:
-            try:
-                old = Product.objects.get(id=self.id).main_image
-                if self.main_image and self.main_image != old: is_new = True
-            except: is_new = True
+        is_new_upload = False
+        if self.main_image:
+            if not self.pk:
+                is_new_upload = True
+            else:
+                old_obj = Product.objects.filter(pk=self.pk).first()
+                if old_obj and old_obj.main_image != self.main_image:
+                    is_new_upload = True
 
         super().save(*args, **kwargs)
-        if is_new:
+
+        if is_new_upload:
             url = upload_to_imgbb(self.main_image)
             if url:
                 cleanup_local_file(self, 'main_image')
-                Product.objects.filter(id=self.id).update(main_image_url=url, main_image=None)
+                Product.objects.filter(pk=self.pk).update(main_image_url=url, main_image=None)
 
     def __str__(self):
         return self.title
 
-# --- 4. ProductImage ---
+# --- 4. ProductImage (Gallery) ---
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/gallery/', null=True, blank=True)
@@ -112,20 +120,22 @@ class ProductImage(models.Model):
     alt_text = models.CharField(max_length=200, blank=True)
 
     def save(self, *args, **kwargs):
-        is_new = False
-        if not self.id and self.image: is_new = True
-        elif self.id:
-            try:
-                old = ProductImage.objects.get(id=self.id).image
-                if self.image and self.image != old: is_new = True
-            except: is_new = True
+        is_new_upload = False
+        if self.image:
+            if not self.pk:
+                is_new_upload = True
+            else:
+                old_obj = ProductImage.objects.filter(pk=self.pk).first()
+                if old_obj and old_obj.image != self.image:
+                    is_new_upload = True
 
         super().save(*args, **kwargs)
-        if is_new:
+
+        if is_new_upload:
             url = upload_to_imgbb(self.image)
             if url:
                 cleanup_local_file(self, 'image')
-                ProductImage.objects.filter(id=self.id).update(image_url=url, image=None)
+                ProductImage.objects.filter(pk=self.pk).update(image_url=url, image=None)
 
     def __str__(self):
         return f"Gallery Image for {self.product.title}"
