@@ -1,47 +1,73 @@
 import requests
 import base64
+import io
+from PIL import Image
 from django.conf import settings
+from django.contrib.staticfiles import finders
 
 def upload_to_imgbb(image_file):
     """
-    इमेज को ImgBB पर अपलोड करता है और उसका डायरेक्ट URL वापस देता है।
-    API Key को settings.py से IMGBB_API_KEY नाम से उठाता है।
+    1. इमेज को WebP में बदलता है।
+    2. 'uttarworld-shopping-icon.png' लोगो को नीचे दाएं कोने में लगाता है।
+    3. ImgBB पर अपलोड करके URL देता है।
     """
-    # Settings से API Key प्राप्त करें
     api_key = getattr(settings, 'IMGBB_API_KEY', None)
-    
     if not api_key:
         print("Upload Error: IMGBB_API_KEY is not defined in settings.py")
         return None
 
-    url = "https://api.imgbb.com/1/upload"
-    
     try:
-        # फाइल पॉइंटर को शुरुआत में लाएं (ताकि पूरी इमेज पढ़ी जा सके)
+        # 1. इमेज को Pillow से ओपन करें
         image_file.seek(0)
+        img = Image.open(image_file)
         
-        # इमेज डेटा को बाइनरी से Base64 स्ट्रिंग में बदलें
-        image_data = image_file.read()
-        encoded_string = base64.b64encode(image_data)
+        # अगर इमेज RGBA है तो उसे RGB में बदलें (WebP के लिए बेहतर है)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+
+        # 2. लोगो चिपकाने का तड़का (Corner Logo)
+        logo_path = finders.find('images/uttarworld-shopping-icon.png')
+        if logo_path:
+            logo = Image.open(logo_path)
+            
+            # लोगो का साइज मेन इमेज की चौड़ाई का 15% रखें
+            logo_width = int(img.width * 0.15)
+            logo_height = int(logo.height * (logo_width / logo.width))
+            logo = logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+            
+            # पोजीशन: नीचे से 20px और दाएं से 20px छोड़ कर
+            padding = 20
+            position = (img.width - logo_width - padding, img.height - logo_height - padding)
+            
+            # लोगो पेस्ट करें (Transparency के साथ)
+            if logo.mode == 'RGBA':
+                img.paste(logo, position, logo)
+            else:
+                img.paste(logo, position)
+
+        # 3. इमेज को मेमोरी (BytesIO) में WebP फॉर्मेट में सेव करें
+        output = io.BytesIO()
+        img.save(output, format="WEBP", quality=80)
+        output.seek(0)
+
+        # 4. Base64 Encoding
+        encoded_string = base64.b64encode(output.read())
         
-        # API के लिए पेलोड तैयार करें
+        # 5. ImgBB API Request
+        url = "https://api.imgbb.com/1/upload"
         payload = {
             "key": api_key,
             "image": encoded_string,
         }
         
-        # ImgBB API को POST रिक्वेस्ट भेजें
         response = requests.post(url, data=payload)
         
-        # अगर अपलोड सफल रहा (Status Code 200)
         if response.status_code == 200:
-            json_response = response.json()
-            # डायरेक्ट इमेज URL वापस भेजें
-            return json_response['data']['url']
+            return response.json()['data']['url']
         else:
-            print(f"ImgBB API Error: {response.status_code} - {response.text}")
+            print(f"ImgBB API Error: {response.text}")
             
     except Exception as e:
-        print(f"Upload Error: {e}")
+        print(f"Branding & Upload Error: {e}")
     
     return None
