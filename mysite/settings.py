@@ -2,13 +2,12 @@ import os
 from pathlib import Path
 import dj_database_url
 
-# Build paths inside the project
+# 1. Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- DEBUG & SECURITY ---
-# Local pe True rahega, Render pe Environment Variable DEBUG=False set karna
+# 2. SECURITY (All Sensitive Info Removed)
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-123")
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-2026")
 
 ALLOWED_HOSTS = [
     "uttarworld.com", 
@@ -20,7 +19,7 @@ ALLOWED_HOSTS = [
     "*" 
 ]
 
-# --- SSL & CSRF Fix (Only for Production/Render) ---
+# 3. SSL & CSRF Fix (Only for Production/Render)
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -33,7 +32,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://newsdns.onrender.com"
 ]
 
-# --- INSTALLED APPS ---
+# 4. INSTALLED APPS
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -48,6 +47,7 @@ INSTALLED_APPS = [
     "ckeditor_uploader",
 ]
 
+# 5. MIDDLEWARE
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -61,6 +61,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "mysite.urls"
 
+# 6. TEMPLATES
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -81,45 +82,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# --- Database Logic for Local & Production ---
+# 7. DATABASE (Zero-Trace - Environment Based)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-
-if DATABASE_URL:
-    # यह हिस्सा Render पर अपने आप चलेगा
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    # यह तेरा जादुई इंजन (Local PC) है - यहाँ तेरा Supabase लिंक सेट है
-    DATABASES = {
-        'default': dj_database_url.config(
-            default='postgresql://postgres.lnbzfuxggmxixiibixnt:UttarWorld2026@aws-1-ap-south-1.pooler.supabase.com:5432/postgres',
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-
-# SSL settings (Supabase के लिए ज़रूरी है)
-DATABASES['default']['OPTIONS'] = {
-    'sslmode': 'require',
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
-# --- STATIC & MEDIA ---
+DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+
+# 8. STATIC FILES (Optimized)
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "shopping" / "static",
     BASE_DIR / "mynews" / "static",
-    
-    
-    ]
+]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# 9. MEDIA (TERMINATED - No Local Storage)
+# Humne inko zero kar diya hai taaki machine pe kuch save na ho
+MEDIA_URL = "" 
+MEDIA_ROOT = "" 
 
+# 10. STORAGES
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -131,27 +118,12 @@ STORAGES = {
 
 WHITENOISE_MANIFEST_STRICT = False
 
-# --- CKEDITOR CONFIG ---
+# 11. CKEDITOR CONFIG (Safe Mode)
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
-CKEDITOR_CONFIGS = {
-    'default': {
-        'skin': 'moono-lisa',
-        'toolbar': 'Custom',
-        'height': 300,
-        'width': '100%',
-        'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['Link', 'Unlink'],
-            ['Format', 'FontSize', 'TextColor', 'BGColor'],
-            ['RemoveFormat', 'Maximize', 'Source']
-        ],
-        'removePlugins': 'elementspath,resize,flash,smiley,iframe',
-    },
-}
 
-# --- EMAIL & KEYS ---
+# 12. API KEYS & EMAIL (Everything from Environment)
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -159,21 +131,14 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID")
-FB_PAGE_2_ID = os.environ.get("FB_PAGE_2_ID")
 FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- I18N SETTINGS ---
+# 13. I18N SETTINGS
 LANGUAGE_CODE = 'hi'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-# Cloudinary Proxy
-CLOUDINARY_CLOUD_NAME = "dvoqsrkkq"
-CLOUDINARY_BASE_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/fetch/"
-CLOUDINARY_OPTIMIZE_PARAMS = "f_auto,q_auto,w_800/"
