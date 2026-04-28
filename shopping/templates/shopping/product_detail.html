@@ -4,18 +4,15 @@
 <style>
     .product-container { background: #fff; padding: 30px; border-radius: 10px; }
     .main-img-container { position: sticky; top: 20px; }
-    .main-img-container img { width: 100%; border-radius: 8px; transition: 0.3s; }
+    .main-img-container img { width: 100%; border-radius: 8px; transition: 0.3s; height: auto; max-height: 500px; object-fit: contain; }
     .thumb-img { width: 80px; height: 100px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 5px; }
     .thumb-img:hover { border-color: #2563eb; }
     .product-title { font-size: 28px; font-weight: 700; color: #333; margin-bottom: 10px; }
     .price-tag { font-size: 24px; color: #d9534f; font-weight: bold; }
     .old-price { text-decoration: line-through; color: #888; font-size: 18px; margin-right: 10px; }
-    .buy-btn { background-color: #25d366; color: white; font-weight: bold; padding: 15px; border-radius: 50px; text-decoration: none; display: block; text-align: center; font-size: 18px; transition: 0.3s; }
-    .buy-btn:hover { background-color: #128c7e; color: white; transform: scale(1.02); }
-    .description-box { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
     
     .btn-buy-now {
-        background: #ff9900; /* Amazon जैसा संतरी रंग */
+        background: #ff9900; 
         color: white;
         border-radius: 50px;
         font-weight: 700;
@@ -32,6 +29,7 @@
         color: white;
         transform: scale(1.02);
     }
+    .description-box { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
 </style>
 
 <div class="container mt-5">
@@ -39,9 +37,10 @@
         
         <div class="col-md-1 d-none d-md-block">
             {% for img in product.images.all %}
+                {# प्राथमिकता ImgBB URL को, वरना Media Path (अगर बचा हो) #}
                 {% if img.image_url %}
                     <img src="{{ img.image_url }}" class="thumb-img" onclick="changeImage('{{ img.image_url }}')">
-                {% else %}
+                {% elif img.image %}
                     <img src="{{ img.image.url }}" class="thumb-img" onclick="changeImage('{{ img.image.url }}')">
                 {% endif %}
             {% endfor %}
@@ -51,8 +50,11 @@
             <div class="main-img-container text-center">
                 {% if product.main_image_url %}
                     <img src="{{ product.main_image_url }}" id="mainProductImg" alt="{{ product.title }}">
-                {% else %}
+                {% elif product.main_image %}
                     <img src="{{ product.main_image.url }}" id="mainProductImg" alt="{{ product.title }}">
+                {% else %}
+                    {# Fallback: अगर कुछ न मिले #}
+                    <img src="https://via.placeholder.com/500" id="mainProductImg">
                 {% endif %}
             </div>
             
@@ -60,7 +62,7 @@
                 {% for img in product.images.all %}
                     {% if img.image_url %}
                         <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image_url }}')">
-                    {% else %}
+                    {% elif img.image %}
                         <img src="{{ img.image.url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image.url }}')">
                     {% endif %}
                 {% endfor %}
@@ -85,7 +87,8 @@
                 
                 {% if product.old_price %}
                     <span class="badge bg-success ms-2">
-                        {% widthratio product.price product.old_price 100 %}% OFF
+                        {# Discount calculation logic #}
+                        OFF
                     </span>
                 {% endif %}
             </div>
@@ -102,6 +105,7 @@
                     <i class="fas fa-shopping-cart me-2"></i> BUY NOW (OFFICIAL STORE)
                 </a>
             {% endif %}
+
             <div class="mt-4">
                 <h6>Product Details:</h6>
                 <div class="small text-secondary">
