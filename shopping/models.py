@@ -1,7 +1,18 @@
-from django.db import models, transaction
+import os
+from django.db import models
 from django.utils.text import slugify
 from ckeditor_uploader.fields import RichTextUploadingField
 from .utils import upload_to_imgbb
+
+# --- HELPER FUNCTION TO KILL MACHINE FILES ---
+def cleanup_local_file(instance, field_name):
+    """मशीन से फिजिकल फाइल डिलीट करने के लिए"""
+    try:
+        file_field = getattr(instance, field_name)
+        if file_field and os.path.exists(file_field.path):
+            os.remove(file_field.path)
+    except Exception:
+        pass
 
 # --- 1. HomeSlider ---
 class HomeSlider(models.Model):
@@ -12,30 +23,23 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        # पक्का करो कि नई इमेज आई है (Update safe logic)
-        is_new_image = False
-        if not self.id and self.image:
-            is_new_image = True
+        is_new = False
+        if not self.id and self.image: is_new = True
         elif self.id:
-            old_instance = HomeSlider.objects.get(id=self.id)
-            if self.image and self.image != old_instance.image:
-                is_new_image = True
+            try:
+                old = HomeSlider.objects.get(id=self.id).image
+                if self.image and self.image != old: is_new = True
+            except: is_new = True
 
         super().save(*args, **kwargs)
-        
-        if is_new_image:
-            # transaction.on_commit की जगह सीधे handle करो अगर वो काम नहीं कर रहा
-            self.handle_slider_upload()
-
-    def handle_slider_upload(self):
-        url = upload_to_imgbb(self.image)
-        if url:
-            # .update() इस्तेमाल करें ताकि save() दोबारा ट्रिगर न हो
-            HomeSlider.objects.filter(id=self.id).update(image_url=url, image=None)
+        if is_new:
+            url = upload_to_imgbb(self.image)
+            if url:
+                cleanup_local_file(self, 'image') # मशीन से फाइल डिलीट
+                HomeSlider.objects.filter(id=self.id).update(image_url=url, image=None)
 
     def __str__(self):
         return self.title or f"Slider {self.id}"
-
 
 # --- 2. Category ---
 class Category(models.Model):
@@ -45,29 +49,24 @@ class Category(models.Model):
     image_url = models.URLField(max_length=500, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        if not self.slug: self.slug = slugify(self.name)
         is_new = False
         if not self.id and self.image: is_new = True
         elif self.id:
-            old_instance = Category.objects.get(id=self.id)
-            if self.image and self.image != old_instance.image: is_new = True
-            
+            try:
+                old = Category.objects.get(id=self.id).image
+                if self.image and self.image != old: is_new = True
+            except: is_new = True
+
         super().save(*args, **kwargs)
         if is_new:
-            self.handle_cat_upload()
-
-    def handle_cat_upload(self):
-        url = upload_to_imgbb(self.image)
-        if url:
-            Category.objects.filter(id=self.id).update(image_url=url, image=None)
-
-    class Meta:
-        verbose_name_plural = "Categories"
+            url = upload_to_imgbb(self.image)
+            if url:
+                cleanup_local_file(self, 'image')
+                Category.objects.filter(id=self.id).update(image_url=url, image=None)
 
     def __str__(self):
         return self.name
-
 
 # --- 3. Product ---
 class Product(models.Model):
@@ -86,26 +85,24 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
+        if not self.slug: self.slug = slugify(self.title)
         is_new = False
         if not self.id and self.main_image: is_new = True
         elif self.id:
-            old_instance = Product.objects.get(id=self.id)
-            if self.main_image and self.main_image != old_instance.main_image: is_new = True
+            try:
+                old = Product.objects.get(id=self.id).main_image
+                if self.main_image and self.main_image != old: is_new = True
+            except: is_new = True
 
         super().save(*args, **kwargs)
         if is_new:
-            self.handle_product_main_upload()
-
-    def handle_product_main_upload(self):
-        url = upload_to_imgbb(self.main_image)
-        if url:
-            Product.objects.filter(id=self.id).update(main_image_url=url, main_image=None)
+            url = upload_to_imgbb(self.main_image)
+            if url:
+                cleanup_local_file(self, 'main_image')
+                Product.objects.filter(id=self.id).update(main_image_url=url, main_image=None)
 
     def __str__(self):
         return self.title
-
 
 # --- 4. ProductImage ---
 class ProductImage(models.Model):
@@ -118,18 +115,17 @@ class ProductImage(models.Model):
         is_new = False
         if not self.id and self.image: is_new = True
         elif self.id:
-            old_instance = ProductImage.objects.get(id=self.id)
-            if self.image and self.image != old_instance.image: is_new = True
+            try:
+                old = ProductImage.objects.get(id=self.id).image
+                if self.image and self.image != old: is_new = True
+            except: is_new = True
 
         super().save(*args, **kwargs)
         if is_new:
-            self.handle_gallery_upload()
-
-    def handle_gallery_upload(self):
-        url = upload_to_imgbb(self.image)
-        if url:
-            # .update() मारना ज़रूरी है वरना इमेज कभी मीडिया फोल्डर से नहीं हटेगी
-            ProductImage.objects.filter(id=self.id).update(image_url=url, image=None)
+            url = upload_to_imgbb(self.image)
+            if url:
+                cleanup_local_file(self, 'image')
+                ProductImage.objects.filter(id=self.id).update(image_url=url, image=None)
 
     def __str__(self):
         return f"Gallery Image for {self.product.title}"
