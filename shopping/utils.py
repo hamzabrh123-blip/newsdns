@@ -11,11 +11,6 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 
 def upload_to_imgbb(image_file):
-    """
-    1. इमेज को WebP में बदलता है।
-    2. 'uttarworld-shopping-icon.png' लोगो चिपकाता है।
-    3. ImgBB पर अपलोड करके URL देता है।
-    """
     api_key = getattr(settings, 'IMGBB_API_KEY', None)
     if not api_key:
         print("Upload Error: IMGBB_API_KEY missing!")
@@ -26,12 +21,18 @@ def upload_to_imgbb(image_file):
         image_file.seek(0)
         img = Image.open(image_file)
         
-        # ओरिजिनल को RGBA में बदलें ताकि लोगो सही से चिपके
-        if img.mode != 'RGBA':
-            img = img.convert('RGBA')
+        # अगर इमेज में ट्रांसपेरेंसी है, तो उसे सफेद बैकग्राउंड पर पेस्ट करें 
+        # ताकि RGB कन्वर्जन में काला डब्बा न बने
+        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+            background.paste(img, (0, 0), img)
+            img = background
+        else:
+            img = img.convert('RGB')
 
-        # 2. लोगो चिपकाने का पक्का इंतज़ाम
-        # finders.find सीधा 'images/uttarworld-shopping-icon.png' ढूंढेगा
+        # 2. लोगो चिपकाने का इंतज़ाम
         logo_path = finders.find('images/uttarworld-shopping-icon.png')
         
         if logo_path:
@@ -42,18 +43,18 @@ def upload_to_imgbb(image_file):
             logo_h = int(logo.height * (logo_w / logo.width))
             logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
             
-            # पोजीशन (Bottom-Right)
+            # पोजीशन (Bottom-Right, 20px गैप)
             pos = (img.width - logo_w - 20, img.height - logo_h - 20)
             
-            # पेस्ट (Masking के साथ ताकि काला डब्बा न आए)
+            # लोगो पेस्ट करें (लोगो खुद मास्क की तरह काम करेगा)
             img.paste(logo, pos, logo)
+            logo.close() # मेमोरी बचाओ
         else:
-            print("Logo Error: Static path par logo nahi mila!")
+            print("Logo Warning: Logo path nahi mila, bina logo ke upload ho raha hai!")
 
-        # 3. WebP Conversion
-        img = img.convert('RGB') # Final conversion for WebP
+        # 3. WebP Conversion (Best for SEO and Performance)
         output = io.BytesIO()
-        img.save(output, format="WEBP", quality=80)
+        img.save(output, format="WEBP", quality=80, optimize=True)
         output.seek(0)
 
         # 4. Upload to ImgBB
