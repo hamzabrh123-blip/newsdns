@@ -12,10 +12,10 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        # अगर इमेज चुनी गई है और URL खाली है, तो अपलोड करें
-        if self.image and not self.image_url:
+        if self.image:
             url = upload_to_imgbb(self.image)
-            if url: self.image_url = url
+            if url: 
+                self.image_url = url
         super().save(*args, **kwargs)
 
     def __str__(self):
