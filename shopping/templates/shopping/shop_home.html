@@ -25,18 +25,10 @@
     }
 
     /* --- Smart Portrait Category Card --- */
-    .cat-wrapper {
-        perspective: 1000px;
-    }
-    .premium-cat-card {
-        border: none !important;
-        border-radius: 15px !important;
-        background: #fff;
-        position: relative;
-    }
+    .cat-wrapper { perspective: 1000px; }
+    .premium-cat-card { border: none !important; border-radius: 15px !important; background: #fff; position: relative; }
     .img-holder {
         background: #f8f8f8;
-        /* aspect-ratio से डब्बा हमेशा कपड़ों के हिसाब से लंबा रहेगा */
         width: 100%;
         aspect-ratio: 3 / 4; 
         display: flex;
@@ -49,41 +41,26 @@
     .img-holder img {
         height: 100% !important;
         width: 100%;
-        /* object-position: top मॉडल का सिर कटने से बचाएगा */
         object-fit: cover; 
         object-position: top; 
         transition: 0.6s;
     }
-    .premium-cat-card:hover .img-holder img {
-        transform: scale(1.08);
-    }
+    .premium-cat-card:hover .img-holder img { transform: scale(1.08); }
     
-    /* Category Name Overlay */
     .cat-overlay {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 0; left: 0; right: 0;
         background: linear-gradient(transparent, rgba(0,0,0,0.85));
         padding: 40px 10px 15px;
         text-align: center;
         border-radius: 0 0 15px 15px;
     }
     .cat-name-text {
-        color: white;
-        font-weight: 800;
-        font-size: 1rem;
-        text-transform: uppercase;
-        margin-bottom: 2px;
-        letter-spacing: 1px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        color: white; font-weight: 800; font-size: 1rem;
+        text-transform: uppercase; margin-bottom: 2px;
+        letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-    .cat-action-text {
-        color: #ff4d4d;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
+    .cat-action-text { color: #ff4d4d; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 
     /* Price Styling */
     .price-tag { color: #d32f2f; font-weight: 800; font-size: 1.1rem; }
@@ -102,6 +79,7 @@
             {% for slider in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="3000">
                 {% if slider.link %}<a href="{{ slider.link }}">{% endif %}
+                    {# ImgBB Link Check #}
                     {% if slider.image_url %}
                         <img src="{{ slider.image_url }}" class="d-block w-100" alt="{{ slider.title }}">
                     {% elif slider.image %}
@@ -128,6 +106,7 @@
             <a href="/shopping/category/{{ cat.slug }}/" style="text-decoration: none;">
                 <div class="card premium-cat-card shadow-sm">
                     <div class="img-holder">
+                        {# ImgBB Link Check #}
                         {% if cat.image_url %}
                             <img src="{{ cat.image_url }}" alt="{{ cat.name }}">
                         {% elif cat.image %}
@@ -157,6 +136,7 @@
         <div class="col-md-3 col-6 mb-4">
             <div class="card h-100 shadow-sm product-card border-0">
                 <div class="position-relative">
+                    {# ImgBB Link Check #}
                     {% if product.main_image_url %}
                         <img src="{{ product.main_image_url }}" class="card-img-top" style="height: 320px; object-fit: cover; object-position: top;">
                     {% elif product.main_image %}
