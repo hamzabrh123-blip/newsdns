@@ -1,21 +1,23 @@
 import requests
-import re
 import base64
+import io
 import os
 import logging
 import gc
-import io
 from PIL import Image
-import pillow_avif  # AVIF सपोर्ट के लिए ज़रूरी
+try:
+    import pillow_avif
+except ImportError:
+    pass
 from django.conf import settings
 from django.apps import apps
+from django.contrib.staticfiles import finders
 
 logger = logging.getLogger(__name__)
 
-# --- 1. SIDEBAR LOGIC ---
+# --- 1. SIDEBAR LOGIC (No Change) ---
 def get_common_sidebar_data():
     try:
-        # डायनामिक तरीके से मॉडल उठाना ताकि Circular Import न हो
         News = apps.get_model('mynews', 'News') 
         return {
             "bazaar_sidebar": News.objects.filter(category="Market", status='Published').order_by("-date")[:5],
@@ -29,114 +31,126 @@ def get_common_sidebar_data():
         logger.error(f"Sidebar Data Error: {e}")
         return {}
 
-# --- 2. MASTER IMAGE PROCESSING & IMGBB (Universal Engine) ---
+# --- 2. UNIVERSAL IMAGE ENGINE (With Logo & ImgBB) ---
 def process_and_upload_to_imgbb(instance):
     """
-    यह फंक्शन News (Image 1) और NewsImage (Gallery) दोनों के लिए काम करेगा।
-    इसमें वॉटरमार्क लगेगा और फोटो ImgBB पर अपलोड होगी।
+    यह फंक्शन News, NewsImage, और Shopping के सभी मॉडल्स के लिए काम करेगा।
     """
-    # 1. इमेज फील्ड चेक करें
-    image_field = getattr(instance, 'image', None)
+    # पक्का करें कि इमेज फील्ड मौजूद है (Shopping में 'main_image' या 'image' हो सकता है)
+    image_field = getattr(instance, 'image', None) or getattr(instance, 'main_image', None)
+    
     if not image_field:
         return None
 
-    # 2. API Key चेक करें
-    api_key = os.environ.get("IMGBB_API_KEY") or "d0528bc96d36a90b0cfbac9227174e41"
-    
+    api_key = os.environ.get("IMGBB_API_KEY")
+    if not api_key:
+        logger.error("CRITICAL: IMGBB_API_KEY not found in Environment!")
+        return None
+
     try:
-        # RAM बचाने के लिए BytesIO का उपयोग
-        img_data = image_field.read()
-        img = Image.open(io.BytesIO(img_data))
-
-        # AVIF/WebP को RGB में बदलें ताकि वॉटरमार्क लग सके
-        if img.mode in ("RGBA", "P", "LA"):
-            img = img.convert("RGB")
+        # 1. Open Image with RAM control
+        image_field.seek(0)
+        img = Image.open(io.BytesIO(image_field.read()))
         
-        # 512MB RAM के लिए साइज कंट्रोल (1000px काफी है)
-        img.thumbnail((1000, 1000), Image.Resampling.LANCZOS)
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
 
-        # --- Watermark Logic (पक्का रास्ता) ---
-        try:
-            # पहले Django Static से ढूंढो
-            w_path = os.path.join(settings.BASE_DIR, 'mynews', 'static', 'watermark.png')
-            
-            # अगर वहां न मिले तो लोकल PC वाले रास्ते पर देखो
-            if not os.path.exists(w_path):
-                w_path = r"C:\Users\siraj\uttarworld_project\mynews\static\watermark.png"
-            
-            if os.path.exists(w_path):
-                with Image.open(w_path).convert("RGBA") as w_img:
-                    # वॉटरमार्क साइज: मेन इमेज का 18%
-                    w_img.thumbnail((img.width // 5, img.height // 5))
-                    # Bottom Right पोजीशन
-                    pos = (img.width - w_img.width - 20, img.height - w_img.height - 20)
-                    img.paste(w_img, pos, w_img)
-            else:
-                logger.warning(f"Watermark file not found at: {w_path}")
-        except Exception as we:
-            logger.error(f"Watermark Error: {we}")
+        # 2. Watermark Logic (Static based)
+        # न्यूज़ के लिए 'watermark.png' और शॉपिंग के लिए 'uttarworld-shopping-icon.png'
+        # हम दोनों को चेक कर लेंगे
+        logo_path = finders.find('watermark.png') or finders.find('images/uttarworld-shopping-icon.png')
+        
+        if logo_path and os.path.exists(logo_path):
+            with Image.open(logo_path).convert("RGBA") as logo:
+                # Logo size: 18% of main image width
+                logo_w = int(img.width * 0.18)
+                logo_h = int(logo.height * (logo_w / logo.width))
+                logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
+                
+                # Position: Bottom-Right
+                pos = (img.width - logo_w - 20, img.height - logo_h - 20)
+                img.paste(logo, pos, logo)
+                logger.info("✅ Watermark applied successfully.")
 
-        # --- Memory Optimized Saving ---
+        # 3. Memory Optimization & WebP Conversion
+        img = img.convert("RGB")
+        img.thumbnail((1200, 1200), Image.Resampling.LANCZOS) # High quality but small size
+        
         output = io.BytesIO()
-        img.save(output, format='JPEG', quality=85, optimize=True)
+        img.save(output, format='WEBP', quality=80, optimize=True)
         base64_image = base64.b64encode(output.getvalue())
 
-        # भारी डेटा डिलीट करें ताकि RAM खाली हो
+        # Clean up RAM
         img.close()
-        del img_data
         gc.collect()
 
-        # 3. ImgBB पर अपलोड
-        payload = {"key": api_key, "image": base64_image}
-        response = requests.post("https://api.imgbb.com/1/upload", data=payload, timeout=30)
+        # 4. ImgBB Upload
+        response = requests.post(
+            "https://api.imgbb.com/1/upload",
+            data={"key": api_key, "image": base64_image},
+            timeout=30
+        )
 
         if response.status_code == 200:
-            return response.json()['data']['url']
+            new_url = response.json()['data']['url']
+            logger.info(f"🔥 Upload Success: {new_url}")
+            return new_url
         
-        logger.error(f"ImgBB Upload Failed: {response.text}")
+        logger.error(f"❌ ImgBB Fail: {response.text}")
         return None
 
     except Exception as e:
-        logger.error(f"Image Processing Error: {e}")
+        logger.error(f"💥 Fatal Processing Error: {e}")
         return None
     finally:
         gc.collect()
 
-# --- 3. FACEBOOK AUTO-POST ---
+# --- 3. FACEBOOK AUTO-POST (Optimized) ---
 def post_to_facebook(instance):
     access_token = os.environ.get('FB_ACCESS_TOKEN')
     page_ids = [os.environ.get('FB_PAGE_ID'), os.environ.get('FB_PAGE_2_ID')]
     group_id = os.environ.get('FB_GROUP_1_ID') 
 
     if not access_token:
-        logger.error("FB Access Token missing")
         return False
 
     try:
-        # URL स्ट्रक्चर
-        city_slug = instance.url_city if instance.url_city else "news"
-        news_link = f"https://uttarworld.com/{city_slug}/{instance.slug}/"
+        city_slug = getattr(instance, 'url_city', 'news')
+        # News और Product दोनों के लिए लिंक सपोर्ट
+        link_base = "https://uttarworld.com"
+        news_link = f"{link_base}/{city_slug}/{instance.slug}/"
         
-        msg = f"{instance.title}\n\nपूरी खबर यहाँ पढ़ें: {news_link}\n\n#UttarWorld #UPNews #{instance.district}"
+        title = getattr(instance, 'title', 'Uttar World News')
+        district = getattr(instance, 'district', 'UP')
         
-        api_version = "v21.0"
+        msg = f"{title}\n\nपूरी खबर यहाँ पढ़ें: {news_link}\n\n#UttarWorld #UPNews #{district}"
         
-        if instance.image_url:
-            payload = {'url': instance.image_url, 'caption': msg, 'access_token': access_token}
-            suffix = "/photos"
+        # Image URL logic
+        img_url = getattr(instance, 'image_url', None) or getattr(instance, 'main_image_url', None)
+        
+        if img_url:
+            payload = {'url': img_url, 'caption': msg, 'access_token': access_token}
+            endpoint = "photos"
         else:
             payload = {'message': msg, 'link': news_link, 'access_token': access_token}
-            suffix = "/feed"
+            endpoint = "feed"
 
-        # Pages और Groups पर पोस्ट
         for p_id in page_ids:
             if p_id:
-                requests.post(f"https://graph.facebook.com/{api_version}/{p_id}{suffix}", data=payload, timeout=20)
+                requests.post(f"https://graph.facebook.com/v21.0/{p_id}/{endpoint}", data=payload, timeout=20)
 
         if group_id:
-            requests.post(f"https://graph.facebook.com/{api_version}/{group_id}{suffix}", data=payload, timeout=20)
+            requests.post(f"https://graph.facebook.com/v21.0/{group_id}/{endpoint}", data=payload, timeout=20)
 
         return True
     except Exception as e:
-        logger.error(f"FB Auto-Post Error: {e}")
+        logger.error(f"FB Post Error: {e}")
         return False
+
+# Alias for compatibility (ताकि shopping और news दोनों जगह काम करे)
+def upload_to_imgbb(image_file_or_instance):
+    # अगर सीधा मॉडल इंस्टेंस पास हुआ है
+    if hasattr(image_file_or_instance, 'save'):
+        return process_and_upload_to_imgbb(image_file_or_instance)
+    # यह सिर्फ बैकअप के लिए है
+    return None
