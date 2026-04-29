@@ -108,7 +108,7 @@ CKEDITOR_IMAGE_BACKEND = "pillow"
 
 # 10. API KEYS & KEYS
 # Yahan apni ImgBB key likh do agar environment variable nahi hai
-IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY", "YAHAN_APNI_KEY_DALO")
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY", "b853b0baf2f11d6514d3c4024293a0fd")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
