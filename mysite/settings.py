@@ -105,10 +105,25 @@ STORAGES = {
 # 9. CKEditor
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_CONFIGS = {
+    'default': {
+        'skin': 'moono-lisa',
+        'toolbar': 'Custom',
+        'height': 300,
+        'width': '100%',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['Format', 'FontSize', 'TextColor', 'BGColor'],
+            ['RemoveFormat', 'Maximize', 'Source']
+        ],
+        'removePlugins': 'elementspath,resize,flash,smiley,iframe',
+    },
+}
 
-# 10. API KEYS & KEYS
-# Yahan apni ImgBB key likh do agar environment variable nahi hai
-IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY", "b853b0baf2f11d6514d3c4024293a0fd")
+# API Keys from Environment Variables
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
