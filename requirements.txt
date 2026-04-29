@@ -1,4 +1,4 @@
-# --- Existing ---
+# --- Core Packages ---
 asgiref==3.8.1
 dj-database-url==2.3.0
 django==5.1.6
@@ -14,6 +14,5 @@ unidecode==1.3.8
 urllib3==2.3.0
 python-dotenv==1.0.1
 
-# --- Add these for AVIF & RAM Efficiency ---
+# --- Best for Performance & ImgBB ---
 pillow-avif-plugin==1.4.3
-python-magic==0.4.27
