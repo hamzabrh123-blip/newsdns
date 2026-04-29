@@ -1,5 +1,5 @@
 import uuid
-from django.db import models, transaction
+from django.db import models
 from django.utils.text import slugify
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
@@ -8,7 +8,6 @@ from .utils import process_and_upload_to_imgbb  # तेरा न्यूज�
 # --- 1. HomeSlider ---
 class HomeSlider(models.Model):
     title = models.CharField(max_length=200, blank=True)
-    # upload_to='' रखने से कोई फोल्डर नहीं बनेगा
     image = models.ImageField(upload_to='', null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     link = models.URLField(max_length=500, blank=True)
@@ -18,7 +17,7 @@ class HomeSlider(models.Model):
         is_new_img = bool(self.image and not self.image_url)
         super().save(*args, **kwargs)
         if is_new_img:
-            transaction.on_commit(lambda: self.handle_upload())
+            self.handle_upload()
 
     def handle_upload(self):
         try:
@@ -40,7 +39,7 @@ class Category(models.Model):
         is_new_img = bool(self.image and not self.image_url)
         super().save(*args, **kwargs)
         if is_new_img:
-            transaction.on_commit(lambda: self.handle_upload())
+            self.handle_upload()
 
     def handle_upload(self):
         try:
@@ -68,7 +67,10 @@ class Product(models.Model):
             self.slug = f"{slugify(unidecode(self.title))[:80]}-{str(uuid.uuid4())[:6]}"
         super().save(*args, **kwargs)
 
-# --- 4. ProductImage (Gallery - Sateek News Design) ---
+    def __str__(self):
+        return self.title
+
+# --- 4. ProductImage (Gallery) ---
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='', null=True, blank=True)
@@ -79,14 +81,13 @@ class ProductImage(models.Model):
         is_new_img = bool(self.image and not self.image_url)
         super().save(*args, **kwargs)
         if is_new_img:
-            transaction.on_commit(lambda: self.handle_gallery_upload())
+            self.handle_gallery_upload()
 
     def handle_gallery_upload(self):
         try:
-            # यह सीधे RAM से इमेज उठाएगा, लोगो लगाएगा और ImgBB लिंक देगा
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
-                # database से image path उड़ा कर NULL कर देगा
+                # Direct Database Update
                 ProductImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Gallery Error: {e}")
