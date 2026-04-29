@@ -93,8 +93,8 @@ STATICFILES_DIRS = [
 ]
 
 # Media is needed as a fallback even if we use ImgBB
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = ""
+MEDIA_ROOT = BASE_DIR / ""
 
 # 8. Storage Logic
 STORAGES = {
