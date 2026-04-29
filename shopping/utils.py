@@ -1,17 +1,21 @@
+import os
 import requests
 import base64
 import io
-import os
 from PIL import Image
 from django.conf import settings
 from django.contrib.staticfiles import finders
 
 def process_and_upload_to_imgbb(instance):
-    # यह सीधे तेरी settings.py से IMGBB_API_KEY उठाएगा
-    api_key = getattr(settings, 'IMGBB_API_KEY', None)
+    # अब यह सीधे Render के Environment से चाबी उठाएगा
+    api_key = os.environ.get("IMGBB_API_KEY") 
     
+    # अगर वहां नहीं मिली, तो settings.py में ढूंढेगा
     if not api_key:
-        print("Error: settings.py mein IMGBB_API_KEY nahi mili!")
+        api_key = getattr(settings, "IMGBB_API_KEY", None)
+
+    if not api_key:
+        print("DEBUG ERROR: Bhai Key kahin nahi mil rahi!")
         return None
 
     try:
