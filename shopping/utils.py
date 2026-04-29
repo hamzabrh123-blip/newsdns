@@ -2,27 +2,29 @@ import os
 import requests
 import base64
 import io
+import logging
 from PIL import Image
 from django.conf import settings
 from django.contrib.staticfiles import finders
 
+# Logs देखने के लिए logger सेट किया
+logger = logging.getLogger(__name__)
+
 def process_and_upload_to_imgbb(instance):
-    # अब यह सीधे Render के Environment से चाबी उठाएगा
+    # 1. API Key चेक करना
     api_key = os.environ.get("IMGBB_API_KEY") 
-    
-    # अगर वहां नहीं मिली, तो settings.py में ढूंढेगा
     if not api_key:
         api_key = getattr(settings, "IMGBB_API_KEY", None)
 
     if not api_key:
-        print("DEBUG ERROR: Bhai Key kahin nahi mil rahi!")
+        logger.error("CRITICAL ERROR: ImgBB API Key is missing in Render/Settings!")
         return None
 
     try:
         if not instance.image:
             return None
             
-        # अगर पहले से अपलोड है तो दोबारा मेहनत न करे
+        # 2. अगर पहले से i.ibb.co का लिंक है, तो दोबारा अपलोड न करे
         current_url = str(instance.image_url) if instance.image_url else ""
         if "i.ibb.co" in current_url:
             return None
@@ -31,7 +33,7 @@ def process_and_upload_to_imgbb(instance):
         image_file.seek(0)
         img = Image.open(image_file)
         
-        # RGBA to RGB (White background fix)
+        # 3. RGBA to RGB (Transparent background fix)
         if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
             background = Image.new("RGB", img.size, (255, 255, 255))
             if img.mode != 'RGBA':
@@ -41,12 +43,12 @@ def process_and_upload_to_imgbb(instance):
         else:
             img = img.convert('RGB')
 
-        # Resize to 800px
+        # 4. Resize (Max 800px width)
         if img.width > 800:
             new_height = int(img.height * (800 / img.width))
             img = img.resize((800, new_height), Image.Resampling.LANCZOS)
 
-        # Watermark Logic
+        # 5. Watermark Logic
         try:
             logo_path = finders.find('images/uttarworld-shopping-icon.png')
             if logo_path and os.path.exists(logo_path):
@@ -57,10 +59,12 @@ def process_and_upload_to_imgbb(instance):
                     logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
                     pos = (img.width - logo_w - 15, img.height - logo_h - 15)
                     img.paste(logo, pos, logo)
+            else:
+                logger.warning(f"Watermark not found at: {logo_path}")
         except Exception as logo_err:
-            print(f"Logo skipped: {logo_err}")
+            logger.error(f"Watermark processing failed: {logo_err}")
 
-        # WebP Compression (Target 25KB)
+        # 6. WebP Compression (Target 25KB)
         quality = 80
         output = io.BytesIO()
         while True:
@@ -72,9 +76,11 @@ def process_and_upload_to_imgbb(instance):
                 break
             quality -= 10
 
-        # ImgBB Upload
+        # 7. ImgBB Upload
         output.seek(0)
         encoded_string = base64.b64encode(output.read())
+        
+        logger.info(f"Uploading to ImgBB... Size: {file_size:.2f} KB")
         
         response = requests.post(
             "https://api.imgbb.com/1/upload",
@@ -83,9 +89,13 @@ def process_and_upload_to_imgbb(instance):
         )
         
         if response.status_code == 200:
-            return response.json()['data']['url']
+            final_url = response.json()['data']['url']
+            logger.info(f"Upload Success! URL: {final_url}")
+            return final_url
+        else:
+            logger.error(f"ImgBB Failed! Status: {response.status_code}, Response: {response.text}")
         
     except Exception as e:
-        print(f"Upload logic fail: {e}")
+        logger.error(f"Logic failure in process_and_upload_to_imgbb: {str(e)}")
     
     return None
