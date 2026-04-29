@@ -92,6 +92,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "mynews" / "static",
 ]
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # 8. Storage Logic
 STORAGES = {
     "default": {
