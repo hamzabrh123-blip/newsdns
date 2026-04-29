@@ -92,10 +92,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "mynews" / "static",
 ]
 
-# Media is needed as a fallback even if we use ImgBB
-MEDIA_URL = ""
-MEDIA_ROOT = BASE_DIR / ""
-
 # 8. Storage Logic
 STORAGES = {
     "default": {
