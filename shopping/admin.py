@@ -1,39 +1,50 @@
 from django.contrib import admin
 from .models import Category, Product, ProductImage, HomeSlider
 
-# गैलरी के लिए इनलाइन सेटअप (ताकि प्रोडक्ट पेज पर ही 5 फोटो के डब्बे दिखें)
+# --- 1. Product Image Gallery (Inline Setup) ---
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 5 
-    fields = ['image', 'alt_text']
+    fields = ['image', 'image_url', 'alt_text']
+    readonly_fields = ['image_url',] # URL अपने आप आएगा, इसलिए इसे सिर्फ देखने के लिए रखा है
 
+# --- 2. Product Admin ---
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImageInline] # गैलरी जोड़ दी
+    inlines = [ProductImageInline] # गैलरी जोड़ दी
+    
+    # list_display में से 'old_price' हटा दिया गया है
     list_display = ('title', 'price', 'category', 'is_featured', 'is_available')
     list_filter = ('category', 'is_available', 'is_featured')
     search_fields = ('title', 'short_description')
     prepopulated_fields = {'slug': ('title',)}
     
-    # यहाँ ध्यान दे: मैंने 'buy_now_url' को 'Basic Info' में जोड़ दिया है
+    # Fieldsets को मॉडल्स के हिसाब से अपडेट किया गया है
     fieldsets = (
         ('Basic Info', {
             'fields': ('title', 'slug', 'category', 'buy_now_url') 
         }),
         ('Pricing', {
-            'fields': ('old_price', 'price')
+            'fields': ('price',) # यहाँ सिर्फ price रखा है, old_price हटा दिया
         }),
         ('Descriptions', {
             'fields': ('short_description', 'long_description')
         }),
-        ('Main Media', {
-            'fields': ('main_image',)
-        }),
+        # 'Main Media' सेक्शन हटा दिया क्योंकि अब हम Gallery (ProductImage) यूज़ कर रहे हैं
         ('Status', {
             'fields': ('is_available', 'is_featured')
         }),
     )
 
-# कैटेगरी को अलग से रजिस्टर किया
-admin.site.register(Category)
-admin.site.register(HomeSlider)
+# --- 3. HomeSlider Admin ---
+@admin.register(HomeSlider)
+class HomeSliderAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active')
+    readonly_fields = ('image_url',)
+
+# --- 4. Category Admin ---
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ('image_url',)
