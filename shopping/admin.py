@@ -1,12 +1,13 @@
 from django.contrib import admin
 from .models import Category, Product, ProductImage, HomeSlider
 
-# --- 1. Product Image Gallery (Inline Setup) ---
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 5 
-    fields = ['image', 'image_url', 'alt_text']
-    readonly_fields = ['image_url',] # URL अपने आप आएगा, इसलिए इसे सिर्फ देखने के लिए रखा है
+    extra = 2
+    # यहाँ 'image' सिर्फ अपलोड के लिए है, असली चीज़ 'image_url' है
+    fields = ('image', 'image_url') 
+    # readonly_fields का मतलब है कि यहाँ ImgBB का लिंक दिखेगा
+    readonly_fields = ('image_url',)
 
 # --- 2. Product Admin ---
 @admin.register(Product)
