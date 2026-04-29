@@ -1,33 +1,33 @@
 import requests
 import base64
 import io
+import os
 from PIL import Image
 from django.conf import settings
 from django.contrib.staticfiles import finders
 
 def process_and_upload_to_imgbb(instance):
-    """
-    1. इमेज को RAM में पकड़ता है।
-    2. लोगो लगाता है और 25KB के अंदर छोटा करता है।
-    3. तेरी Direct Key का उपयोग करके ImgBB पर भेजता है।
-    """
-    # यहाँ तेरी Direct Key सेट कर दी है
-    api_key = 'b853b0baf2f11d6514d3c4024293a0fd' 
+    # यह सीधे तेरी settings.py से IMGBB_API_KEY उठाएगा
+    api_key = getattr(settings, 'IMGBB_API_KEY', None)
     
     if not api_key:
-        print("Upload Error: API Key missing!")
+        print("Error: settings.py mein IMGBB_API_KEY nahi mili!")
         return None
 
     try:
-        # 1. इमेज को मेमोरी से उठाओ
         if not instance.image:
+            return None
+            
+        # अगर पहले से अपलोड है तो दोबारा मेहनत न करे
+        current_url = str(instance.image_url) if instance.image_url else ""
+        if "i.ibb.co" in current_url:
             return None
             
         image_file = instance.image
         image_file.seek(0)
         img = Image.open(image_file)
         
-        # RGB Conversion (Transparency हैंडल करने के लिए)
+        # RGBA to RGB (White background fix)
         if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
             background = Image.new("RGB", img.size, (255, 255, 255))
             if img.mode != 'RGBA':
@@ -37,41 +37,38 @@ def process_and_upload_to_imgbb(instance):
         else:
             img = img.convert('RGB')
 
-        # [RESIZE] 800px width for optimization
+        # Resize to 800px
         if img.width > 800:
             new_height = int(img.height * (800 / img.width))
             img = img.resize((800, new_height), Image.Resampling.LANCZOS)
 
-        # [LOGO WATERMARK] 
-        # पक्का कर लेना कि यह फाइल static/images/ में मौजूद हो
-        logo_path = finders.find('images/uttarworld-shopping-icon.png')
-        if logo_path:
-            with Image.open(logo_path) as logo:
-                logo = logo.convert('RGBA')
-                # लोगो का साइज 15% रखो
-                logo_w = int(img.width * 0.15)
-                logo_h = int(logo.height * (logo_w / logo.width))
-                logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
-                # नीचे दाएं कोने में पेस्ट करो
-                pos = (img.width - logo_w - 15, img.height - logo_h - 15)
-                img.paste(logo, pos, logo)
+        # Watermark Logic
+        try:
+            logo_path = finders.find('images/uttarworld-shopping-icon.png')
+            if logo_path and os.path.exists(logo_path):
+                with Image.open(logo_path) as logo:
+                    logo = logo.convert('RGBA')
+                    logo_w = int(img.width * 0.15)
+                    logo_h = int(logo.height * (logo_w / logo.width))
+                    logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
+                    pos = (img.width - logo_w - 15, img.height - logo_h - 15)
+                    img.paste(logo, pos, logo)
+        except Exception as logo_err:
+            print(f"Logo skipped: {logo_err}")
 
-        # [COMPRESS TO 25KB]
+        # WebP Compression (Target 25KB)
         quality = 80
         output = io.BytesIO()
-        
         while True:
             output.seek(0)
             output.truncate()
-            # WebP सबसे बेस्ट है साइज कम रखने के लिए
             img.save(output, format="WEBP", quality=quality, optimize=True)
             file_size = output.tell() / 1024
-            
             if file_size <= 25 or quality <= 10:
                 break
-            quality -= 5
+            quality -= 10
 
-        # 2. Final Upload to ImgBB
+        # ImgBB Upload
         output.seek(0)
         encoded_string = base64.b64encode(output.read())
         
@@ -82,12 +79,9 @@ def process_and_upload_to_imgbb(instance):
         )
         
         if response.status_code == 200:
-            res_data = response.json()
-            return res_data['data']['url']
-        
-        print(f"ImgBB Response Error: {response.text}")
+            return response.json()['data']['url']
         
     except Exception as e:
-        print(f"Final Processing/Upload Error: {e}")
+        print(f"Upload logic fail: {e}")
     
     return None
