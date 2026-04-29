@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
-from .utils import process_and_upload_to_imgbb  # तेरा न्यूज़ वाला सटीक फंक्शन
+from .utils import process_and_upload_to_imgbb
 
 # --- 1. HomeSlider ---
 class HomeSlider(models.Model):
@@ -14,7 +14,10 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        is_new_img = bool(self.image and not self.image_url)
+        # Bulletproof check: Image ho aur URL mein ImgBB ka link na ho
+        url_val = str(self.image_url) if self.image_url else ""
+        is_new_img = bool(self.image and "i.ibb.co" not in url_val)
+        
         super().save(*args, **kwargs)
         if is_new_img:
             self.handle_upload()
@@ -23,7 +26,8 @@ class HomeSlider(models.Model):
         try:
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
-                HomeSlider.objects.filter(id=self.id).update(image_url=new_url, image=None)
+                # Update with PK for better reliability
+                HomeSlider.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Slider Error: {e}")
 
@@ -35,8 +39,12 @@ class Category(models.Model):
     image_url = models.URLField(max_length=500, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        if not self.slug: self.slug = slugify(unidecode(self.name))
-        is_new_img = bool(self.image and not self.image_url)
+        if not self.slug: 
+            self.slug = slugify(unidecode(self.name))
+        
+        url_val = str(self.image_url) if self.image_url else ""
+        is_new_img = bool(self.image and "i.ibb.co" not in url_val)
+        
         super().save(*args, **kwargs)
         if is_new_img:
             self.handle_upload()
@@ -45,7 +53,7 @@ class Category(models.Model):
         try:
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
-                Category.objects.filter(id=self.id).update(image_url=new_url, image=None)
+                Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Category Error: {e}")
 
@@ -78,7 +86,9 @@ class ProductImage(models.Model):
     alt_text = models.CharField(max_length=200, blank=True)
 
     def save(self, *args, **kwargs):
-        is_new_img = bool(self.image and not self.image_url)
+        url_val = str(self.image_url) if self.image_url else ""
+        is_new_img = bool(self.image and "i.ibb.co" not in url_val)
+        
         super().save(*args, **kwargs)
         if is_new_img:
             self.handle_gallery_upload()
@@ -87,7 +97,6 @@ class ProductImage(models.Model):
         try:
             new_url = process_and_upload_to_imgbb(self)
             if new_url:
-                # Direct Database Update
-                ProductImage.objects.filter(id=self.id).update(image_url=new_url, image=None)
+                ProductImage.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Gallery Error: {e}")
