@@ -7,18 +7,22 @@ from django.contrib.staticfiles import finders
 
 def process_and_upload_to_imgbb(instance):
     """
-    1. इमेज को RAM में पकड़ता है।
+    1. इमेज को RAM में पकड़ता है।
     2. लोगो लगाता है और 25KB के अंदर छोटा करता है।
-    3. सीधे ImgBB पर भेजता है।
+    3. तेरी Direct Key का उपयोग करके ImgBB पर भेजता है।
     """
-    # 1. API Key चेक (Environment से)
-    api_key = getattr(settings, 'IMGBB_API_KEY', None)
+    # यहाँ तेरी Direct Key सेट कर दी है
+    api_key = 'b853b0baf2f11d6514d3c4024293a0fd' 
+    
     if not api_key:
-        print("Upload Error: IMGBB_API_KEY missing in environment!")
+        print("Upload Error: API Key missing!")
         return None
 
     try:
-        # 2. इमेज को मेमोरी से उठाओ
+        # 1. इमेज को मेमोरी से उठाओ
+        if not instance.image:
+            return None
+            
         image_file = instance.image
         image_file.seek(0)
         img = Image.open(image_file)
@@ -39,6 +43,7 @@ def process_and_upload_to_imgbb(instance):
             img = img.resize((800, new_height), Image.Resampling.LANCZOS)
 
         # [LOGO WATERMARK] 
+        # पक्का कर लेना कि यह फाइल static/images/ में मौजूद हो
         logo_path = finders.find('images/uttarworld-shopping-icon.png')
         if logo_path:
             with Image.open(logo_path) as logo:
@@ -66,7 +71,7 @@ def process_and_upload_to_imgbb(instance):
                 break
             quality -= 5
 
-        # 3. Final Upload to ImgBB
+        # 2. Final Upload to ImgBB
         output.seek(0)
         encoded_string = base64.b64encode(output.read())
         
@@ -80,7 +85,7 @@ def process_and_upload_to_imgbb(instance):
             res_data = response.json()
             return res_data['data']['url']
         
-        print(f"ImgBB Error: {response.text}")
+        print(f"ImgBB Response Error: {response.text}")
         
     except Exception as e:
         print(f"Final Processing/Upload Error: {e}")
