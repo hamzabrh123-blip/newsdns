@@ -69,6 +69,7 @@
 
 <div class="container mt-3">
     
+    <!-- Hero Slider -->
     <div id="homeSlider" class="carousel slide mb-5 shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel">
         <div class="carousel-indicators">
             {% for slider in sliders %}
@@ -79,11 +80,10 @@
             {% for slider in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="3000">
                 {% if slider.link %}<a href="{{ slider.link }}">{% endif %}
-                    {# ImgBB Link Check #}
                     {% if slider.image_url %}
                         <img src="{{ slider.image_url }}" class="d-block w-100" alt="{{ slider.title }}">
-                    {% elif slider.image %}
-                        <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/1200x400?text=Uttar+World+Deals" class="d-block w-100">
                     {% endif %}
                 {% if slider.link %}</a>{% endif %}
             </div>
@@ -95,6 +95,7 @@
         </div>
     </div>
 
+    <!-- Categories Section -->
     <div class="d-flex align-items-center mb-4">
         <div style="width: 5px; height: 30px; background: #d32f2f; margin-right: 12px; border-radius: 10px;"></div>
         <h4 class="fw-bold mb-0">Shop By Category</h4>
@@ -106,13 +107,10 @@
             <a href="/shopping/category/{{ cat.slug }}/" style="text-decoration: none;">
                 <div class="card premium-cat-card shadow-sm">
                     <div class="img-holder">
-                        {# ImgBB Link Check #}
                         {% if cat.image_url %}
                             <img src="{{ cat.image_url }}" alt="{{ cat.name }}">
-                        {% elif cat.image %}
-                            <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
                         {% else %}
-                            <img src="https://via.placeholder.com/300x400?text=Fashion" alt="No Image">
+                            <img src="https://via.placeholder.com/300x400?text={{ cat.name }}" alt="No Image">
                         {% endif %}
                         
                         <div class="cat-overlay">
@@ -126,9 +124,10 @@
         {% endfor %}
     </div>
 
+    <!-- Latest Arrivals Section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0"><i class="fas fa-fire me-2 text-danger"></i> Latest Arrivals</h4>
-        <a href="#" class="text-decoration-none text-danger fw-bold small">VIEW ALL</a>
+        <a href="/shopping/all-products/" class="text-decoration-none text-danger fw-bold small">VIEW ALL</a>
     </div>
 
     <div class="row">
@@ -136,14 +135,14 @@
         <div class="col-md-3 col-6 mb-4">
             <div class="card h-100 shadow-sm product-card border-0">
                 <div class="position-relative">
-                    {# ImgBB Link Check #}
-                    {% if product.main_image_url %}
-                        <img src="{{ product.main_image_url }}" class="card-img-top" style="height: 320px; object-fit: cover; object-position: top;">
-                    {% elif product.main_image %}
-                        <img src="{{ product.main_image.url }}" class="card-img-top" style="height: 320px; object-fit: cover; object-position: top;">
-                    {% else %}
-                        <img src="https://via.placeholder.com/300x400" class="card-img-top" style="height: 320px; object-fit: cover;">
-                    {% endif %}
+                    <!-- गैलरी की पहली इमेज को कार्ड पर दिखाएं -->
+                    {% with first_img=product.images.all|first %}
+                        {% if first_img %}
+                            <img src="{{ first_img.image_url }}" class="card-img-top" style="height: 320px; object-fit: cover; object-position: top;">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x400?text=No+Image" class="card-img-top" style="height: 320px; object-fit: cover;">
+                        {% endif %}
+                    {% endwith %}
 
                     {% if product.old_price %}
                     <span class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 small m-2 rounded-pill fw-bold" style="font-size: 10px;">HOT SALE</span>

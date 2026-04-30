@@ -3,75 +3,67 @@
 {% block content %}
 <style>
     .product-container { background: #fff; padding: 30px; border-radius: 10px; }
-    .main-img-container { position: sticky; top: 20px; }
+    .main-img-container { position: sticky; top: 20px; min-height: 400px; display: flex; align-items: center; justify-content: center; }
     .main-img-container img { width: 100%; border-radius: 8px; transition: 0.3s; height: auto; max-height: 500px; object-fit: contain; }
-    .thumb-img { width: 80px; height: 100px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 5px; }
-    .thumb-img:hover { border-color: #2563eb; }
-    .product-title { font-size: 28px; font-weight: 700; color: #333; margin-bottom: 10px; }
-    .price-tag { font-size: 24px; color: #d9534f; font-weight: bold; }
-    .old-price { text-decoration: line-through; color: #888; font-size: 18px; margin-right: 10px; }
+    .thumb-img { width: 70px; height: 85px; object-fit: cover; cursor: pointer; border: 2px solid #eee; margin-bottom: 10px; border-radius: 5px; transition: 0.2s; }
+    .thumb-img:hover, .thumb-active { border-color: #ff9900; }
+    .product-title { font-size: 26px; font-weight: 700; color: #222; margin-bottom: 10px; }
+    .price-tag { font-size: 28px; color: #b12704; font-weight: bold; }
+    .old-price { text-decoration: line-through; color: #565959; font-size: 16px; margin-right: 8px; }
     
     .btn-buy-now {
-        background: #ff9900; 
-        color: white;
+        background: #ffd814; 
+        color: #0f1111;
         border-radius: 50px;
-        font-weight: 700;
-        padding: 15px;
+        font-weight: 600;
+        padding: 12px;
         text-align: center;
         text-decoration: none;
         display: block;
-        font-size: 18px;
-        transition: 0.3s;
-        border: none;
+        font-size: 17px;
+        border: 1px solid #fcd200;
+        box-shadow: 0 2px 5px rgba(213,217,217,.5);
     }
-    .btn-buy-now:hover {
-        background: #e68a00;
-        color: white;
-        transform: scale(1.02);
-    }
-    .description-box { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+    .btn-buy-now:hover { background: #f7ca00; color: #000; }
+    .description-box { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
 </style>
 
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row product-container shadow-sm">
         
-        <div class="col-md-1 d-none d-md-block">
+        <!-- थंबनेल गैलरी (Desktop Only) -->
+        <div class="col-md-1 d-none d-md-block text-center">
             {% for img in product.images.all %}
-                {# प्राथमिकता ImgBB URL को, वरना Media Path (अगर बचा हो) #}
-                {% if img.image_url %}
-                    <img src="{{ img.image_url }}" class="thumb-img" onclick="changeImage('{{ img.image_url }}')">
-                {% elif img.image %}
-                    <img src="{{ img.image.url }}" class="thumb-img" onclick="changeImage('{{ img.image.url }}')">
-                {% endif %}
+                <img src="{{ img.image_url }}" class="thumb-img {% if forloop.first %}thumb-active{% endif %}" onclick="changeImage(this, '{{ img.image_url }}')">
+            {% empty %}
+                <p class="small text-muted">No Images</p>
             {% endfor %}
         </div>
         
+        <!-- मुख्य इमेज डिस्प्ले -->
         <div class="col-md-5">
             <div class="main-img-container text-center">
-                {% if product.main_image_url %}
-                    <img src="{{ product.main_image_url }}" id="mainProductImg" alt="{{ product.title }}">
-                {% elif product.main_image %}
-                    <img src="{{ product.main_image.url }}" id="mainProductImg" alt="{{ product.title }}">
-                {% else %}
-                    {# Fallback: अगर कुछ न मिले #}
-                    <img src="https://via.placeholder.com/500" id="mainProductImg">
-                {% endif %}
+                {% with first_img=product.images.all|first %}
+                    {% if first_img %}
+                        <img src="{{ first_img.image_url }}" id="mainProductImg" alt="{{ product.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/500?text=No+Image+Available" id="mainProductImg">
+                    {% endif %}
+                {% endwith %}
             </div>
             
+            <!-- थंबनेल गैलरी (Mobile Only) -->
             <div class="d-md-none mt-3 d-flex overflow-auto">
                 {% for img in product.images.all %}
-                    {% if img.image_url %}
-                        <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image_url }}')">
-                    {% elif img.image %}
-                        <img src="{{ img.image.url }}" class="thumb-img me-2" onclick="changeImage('{{ img.image.url }}')">
-                    {% endif %}
+                    <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage(this, '{{ img.image_url }}')">
                 {% endfor %}
             </div>
         </div>
 
+        <!-- प्रोडक्ट जानकारी -->
         <div class="col-md-6">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-2">
                     <li class="breadcrumb-item"><a href="/shopping/">Store</a></li>
                     <li class="breadcrumb-item active">{{ product.category.name }}</li>
                 </ol>
@@ -79,36 +71,35 @@
 
             <h1 class="product-title">{{ product.title }}</h1>
             
-            <div class="mb-3">
+            <div class="mb-2">
                 {% if product.old_price %}
                     <span class="old-price">₹{{ product.old_price }}</span>
                 {% endif %}
                 <span class="price-tag">₹{{ product.price }}</span>
                 
                 {% if product.old_price %}
-                    <span class="badge bg-success ms-2">
-                        {# Discount calculation logic #}
-                        OFF
-                    </span>
+                    <span class="badge bg-danger ms-2">SAVE NOW</span>
                 {% endif %}
             </div>
 
-            <p class="text-muted small">Tax included. Shipping calculated at checkout.</p>
+            <p class="text-success fw-bold small mb-3">In Stock</p>
             
             <div class="description-box">
-                <h5>Product Highlights</h5>
+                <h5>About this item</h5>
                 <p>{{ product.short_description }}</p>
             </div>
 
             {% if product.buy_now_url %}
-                <a href="{{ product.buy_now_url }}" target="_blank" class="btn-buy-now mb-2">
-                    <i class="fas fa-shopping-cart me-2"></i> BUY NOW (OFFICIAL STORE)
-                </a>
+                <div class="mt-4">
+                    <a href="{{ product.buy_now_url }}" target="_blank" class="btn-buy-now w-100">
+                         BUY NOW (Check on Store)
+                    </a>
+                </div>
             {% endif %}
 
-            <div class="mt-4">
-                <h6>Product Details:</h6>
-                <div class="small text-secondary">
+            <div class="mt-4 pt-3 border-top">
+                <h6>Product Specifications:</h6>
+                <div class="small text-dark">
                     {{ product.long_description|safe }}
                 </div>
             </div>
@@ -117,8 +108,16 @@
 </div>
 
 <script>
-    function changeImage(src) {
+    function changeImage(element, src) {
+        // मुख्य इमेज बदलें
         document.getElementById('mainProductImg').src = src;
+        
+        // थंबनेल का बॉर्डर हाइलाइट बदलें
+        let thumbs = document.getElementsByClassName('thumb-img');
+        for (let t of thumbs) {
+            t.classList.remove('thumb-active');
+        }
+        element.classList.add('thumb-active');
     }
 </script>
 {% endblock %}
