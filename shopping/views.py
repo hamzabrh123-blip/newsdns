@@ -1,35 +1,37 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Product, Category
-from .models import HomeSlider # ऊपर इम्पोर्ट कर लेना
+from .models import Product, Category, HomeSlider
 
-# इसे रख (इसमें स्लाइडर भी है)
+# 1. होम पेज (स्लाइडर और लेटेस्ट प्रोडक्ट्स)
 def shop_home(request):
     categories = Category.objects.all()
-    products = Product.objects.all()
-    sliders = HomeSlider.objects.filter(is_active=True)
+    # .order_by('-id') जोड़ा ताकि नई पोस्ट सबसे ऊपर आए
+    products = Product.objects.all().order_by('-id')
+    sliders = HomeSlider.objects.filter(is_active=True).order_by('-id')
+    
     return render(request, 'shopping/shop_home.html', {
         'categories': categories,
         'products': products,
         'sliders': sliders
     })
 
-# 2. कैटेगरी वाला पेज (जब कोई 'Designer Kurti' पर क्लिक करे)
+# 2. कैटेगरी वाला पेज (फिल्टर के साथ लेटेस्ट ऊपर)
 def category_detail(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    # सिर्फ उसी कैटेगरी के माल (Products) फिल्टर होकर आएंगे
-    products = Product.objects.filter(category=category)
-    categories = Category.objects.all() # ताकि ऊपर मेन्यू में बाकी कैटेगरी दिखती रहें
+    # सिर्फ उसी कैटेगरी के माल और वो भी लेटेस्ट सबसे पहले
+    products = Product.objects.filter(category=category).order_by('-id')
+    categories = Category.objects.all() 
+    
     return render(request, 'shopping/shop_home.html', {
         'category': category,
         'products': products,
         'categories': categories
     })
 
-# 3. माल का पूरा ब्यौरा (Shanaya Style Detail Page)
+# 3. प्रोडक्ट डिटेल पेज
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    # यहाँ भी कैटेगरी भेज रहे हैं ताकि नेवबार/मेन्यू में कैटेगरी दिखती रहें
     categories = Category.objects.all() 
+    
     return render(request, 'shopping/product_detail.html', {
         'product': product,
         'categories': categories
