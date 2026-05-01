@@ -76,7 +76,11 @@ def robots_txt(request):
     lines = [
         "User-Agent: *",
         "Allow: /",
-        f"Sitemap: {SITE_URL}/sitemap.xml"
+        "Disallow: /control-panel/",   # तुम्हारा असली एडमिन पाथ यही है
+        "Disallow: /ckeditor/",       # इसकी भी ज़रूरत नहीं है गूगल को
+        "",
+        f"Sitemap: {SITE_URL}/sitemap.xml",      # न्यूज़ वाला सैटमैप
+        f"Sitemap: {SITE_URL}/sitemap-shop.xml"  # नया शॉपिंग सैटमैप
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
