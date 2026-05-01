@@ -4,16 +4,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
-# --- SITEMAP IMPORTS ---
-from django.contrib.sitemaps.views import sitemap
-from shopping.sitemaps import ProductSitemap  # शॉपिंग सैटमैप
-# अपनी न्यूज़ वाली सैटमैप क्लास भी यहाँ इम्पोर्ट कर लेना अगर अलग है
-
-# --- SITEMAP CONFIG ---
-sitemaps = {
-    'products': ProductSitemap,
-    # 'news': NewsSitemap, # अगर न्यूज़ का सैटमैप बना रखा है तो यहाँ जोड़ दे
-}
+# शॉपिंग वाले व्यू से सैटमैप फंक्शन इम्पोर्ट करें
+from shopping.views import sitemap_shop_xml
 
 # --- BRANDING ---
 admin.site.site_header = "Uttar World Management Portal"
@@ -30,8 +22,9 @@ urlpatterns = [
     # 1. Google Verification
     path("google21a82f00fad0f9b3.html", google_verify),
     
-    # 2. Sitemap (नया जोड़ा गया)
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    # 2. Shopping Sitemap (सिर्फ शॉपिंग वाला यहाँ जोड़ा गया है)
+    # इसका नाम sitemap-shop.xml रखा है ताकि न्यूज़ वाले से न टकराए
+    path('sitemap-shop.xml', sitemap_shop_xml, name='sitemap_shop'),
     
     # 3. Admin & Editor
     path('control-panel/', admin.site.urls),
@@ -41,6 +34,7 @@ urlpatterns = [
     path('shopping/', include('shopping.urls')), 
 
     # 5. NEWS
+    # न्यूज़ का सैटमैप इसके अंदर पहले से ही चल रहा है
     path('', include('mynews.urls')), 
 ]
 
