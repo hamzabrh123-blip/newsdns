@@ -47,7 +47,7 @@ def sitemap_shop_xml(request):
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         
         for p in products:
-            product_url = f"{site_url}/shop/product/{p.slug}/"
+            product_url = f"{site_url}/shopping/{p.slug}/"
             last_mod = p.created_at.strftime("%Y-%m-%d") if hasattr(p, 'created_at') else "2026-05-01"
             xml += f'  <url>\n    <loc>{product_url}</loc>\n    <lastmod>{last_mod}</lastmod>\n  </url>\n'
             
