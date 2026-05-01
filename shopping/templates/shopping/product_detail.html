@@ -9,22 +9,26 @@
     .thumb-img:hover, .thumb-active { border-color: #ff9900; }
     .product-title { font-size: 26px; font-weight: 700; color: #222; margin-bottom: 10px; }
     .price-tag { font-size: 28px; color: #b12704; font-weight: bold; }
-    .old-price { text-decoration: line-through; color: #565959; font-size: 16px; margin-right: 8px; }
     
+    /* Multiple Buttons Styling */
     .btn-buy-now {
         background: #ffd814; 
         color: #0f1111;
-        border-radius: 50px;
+        border-radius: 8px; /* बटन को थोड़ा मॉडर्न लुक देने के लिए */
         font-weight: 600;
         padding: 12px;
         text-align: center;
         text-decoration: none;
         display: block;
-        font-size: 17px;
+        font-size: 16px;
         border: 1px solid #fcd200;
         box-shadow: 0 2px 5px rgba(213,217,217,.5);
+        margin-bottom: 10px; /* बटनों के बीच गैप */
+        transition: 0.2s;
     }
-    .btn-buy-now:hover { background: #f7ca00; color: #000; }
+    .btn-buy-now:hover { background: #f7ca00; color: #000; transform: translateY(-2px); }
+    .btn-label { display: block; font-size: 12px; opacity: 0.8; font-weight: 400; }
+    
     .description-box { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
 </style>
 
@@ -72,34 +76,29 @@
             <h1 class="product-title">{{ product.title }}</h1>
             
             <div class="mb-2">
-                {% if product.old_price %}
-                    <span class="old-price">₹{{ product.old_price }}</span>
-                {% endif %}
-                <span class="price-tag">₹{{ product.price }}</span>
-                
-                {% if product.old_price %}
-                    <span class="badge bg-danger ms-2">SAVE NOW</span>
-                {% endif %}
+                <!-- यहाँ price की जगह price_display इस्तेमाल किया है -->
+                <span class="price-tag">₹{{ product.price_display }}</span>
+                <span class="text-success fw-bold small ms-3">In Stock</span>
             </div>
 
-            <p class="text-success fw-bold small mb-3">In Stock</p>
-            
-            <div class="description-box">
-                <h5>About this item</h5>
-                <p>{{ product.short_description }}</p>
-            </div>
-
-            {% if product.buy_now_url %}
-                <div class="mt-4">
-                    <a href="{{ product.buy_now_url }}" target="_blank" class="btn-buy-now w-100">
-                         BUY NOW (Check on Store)
+            <!-- बटन सेक्शन: यहाँ अब लूप चलेगा (Multiple Buttons) -->
+            <div class="mt-4">
+                <h6 class="mb-3">Available on:</h6>
+                {% for link in product.affiliate_links.all %}
+                    <a href="{{ link.url }}" target="_blank" class="btn-buy-now w-100">
+                        <span class="btn-label">Buy via</span>
+                        {{ link.platform_name }}
                     </a>
-                </div>
-            {% endif %}
+                {% empty %}
+                    <p class="text-danger small">Currently unavailable or no links added.</p>
+                {% endfor %}
+            </div>
 
+            <!-- डिस्क्रिप्शन बॉक्स -->
             <div class="mt-4 pt-3 border-top">
-                <h6>Product Specifications:</h6>
+                <h6>Product Details & Description:</h6>
                 <div class="small text-dark">
+                    <!-- short_description हटाकर सीधे long_description दिखाया है -->
                     {{ product.long_description|safe }}
                 </div>
             </div>
@@ -109,10 +108,7 @@
 
 <script>
     function changeImage(element, src) {
-        // मुख्य इमेज बदलें
         document.getElementById('mainProductImg').src = src;
-        
-        // थंबनेल का बॉर्डर हाइलाइट बदलें
         let thumbs = document.getElementsByClassName('thumb-img');
         for (let t of thumbs) {
             t.classList.remove('thumb-active');
