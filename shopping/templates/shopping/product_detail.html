@@ -3,34 +3,51 @@
 {% block content %}
 <style>
     .product-container { background: #fff; padding: 30px; border-radius: 10px; }
-    .main-img-container { position: sticky; top: 20px; min-height: 400px; display: flex; align-items: center; justify-content: center; }
-    .main-img-container img { width: 100%; border-radius: 8px; transition: 0.3s; height: auto; max-height: 500px; object-fit: contain; }
-    .thumb-img { width: 70px; height: 85px; object-fit: cover; cursor: pointer; border: 2px solid #eee; margin-bottom: 10px; border-radius: 5px; transition: 0.2s; }
-    .thumb-img:hover, .thumb-active { border-color: #ff9900; }
-    .product-title { font-size: 26px; font-weight: 700; color: #222; margin-bottom: 10px; }
-    .price-tag { font-size: 28px; color: #b12704; font-weight: bold; }
+    .main-img-container { position: sticky; top: 20px; display: flex; align-items: center; justify-content: center; }
+    .main-img-container img { width: 100%; border-radius: 8px; transition: 0.3s; max-height: 500px; object-fit: contain; }
     
-    /* Amazon Style Rounded Buttons */
+    /* Thumbnail Styling */
+    .thumb-img { width: 70px; height: 85px; object-fit: cover; cursor: pointer; border: 2px solid #eee; margin-bottom: 10px; border-radius: 5px; transition: 0.2s; }
+    .thumb-active { border-color: #d32f2f !important; box-shadow: 0 0 8px rgba(211, 47, 47, 0.2); }
+
+    /* Highlighted Button Effect */
+    .btn-active-variant {
+        border: 2px solid #d32f2f !important;
+        background: #fff5f5 !important;
+        transform: scale(1.03);
+        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3) !important;
+    }
+
+    /* Floating Arrow */
+    .selection-arrow {
+        position: absolute;
+        left: -35px;
+        color: #d32f2f;
+        font-size: 22px;
+        display: none; /* Default Hidden */
+        animation: pointing 0.8s infinite alternate;
+    }
+
+    @keyframes pointing {
+        from { transform: translateX(0); }
+        to { transform: translateX(8px); }
+    }
+
     .btn-buy-now {
         background: #ffd814; 
         color: #0f1111;
-        border-radius: 50px; /* वापस गोल (Pill shape) कर दिया */
+        border-radius: 50px;
         font-weight: 600;
         padding: 12px 20px;
-        text-align: center;
-        text-decoration: none;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 17px;
         border: 1px solid #fcd200;
-        box-shadow: 0 2px 5px rgba(213,217,217,.5);
         margin-bottom: 12px;
-        transition: 0.2s;
+        transition: 0.3s ease;
+        text-decoration: none !important;
     }
-    .btn-buy-now:hover { background: #f7ca00; color: #000; }
 
-    /* Color/Fabric Tag inside button */
     .color-tag {
         background: rgba(0, 0, 0, 0.07);
         padding: 2px 12px;
@@ -38,95 +55,89 @@
         margin-left: 12px;
         font-size: 14px;
         font-weight: 700;
-        color: #333;
-        text-transform: uppercase;
     }
-    
-    .description-box { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
 </style>
 
 <div class="container mt-4">
     <div class="row product-container shadow-sm">
         
-        <!-- थंबनेल गैलरी (Desktop) -->
+        <!-- Sidebar Thumbnails -->
         <div class="col-md-1 d-none d-md-block text-center">
             {% for img in product.images.all %}
-                <img src="{{ img.image_url }}" class="thumb-img {% if forloop.first %}thumb-active{% endif %}" onclick="changeImage(this, '{{ img.image_url }}')">
-            {% empty %}
-                <p class="small text-muted">No Images</p>
+                <img src="{{ img.image_url }}" 
+                     class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
+                     onclick="syncProductView(this, '{{ img.image_url }}', '{{ img.alt_text|slugify }}')">
             {% endfor %}
         </div>
         
-        <!-- मुख्य इमेज -->
+        <!-- Main Product Image -->
         <div class="col-md-5">
-            <div class="main-img-container text-center">
+            <div class="main-img-container">
                 {% with first_img=product.images.all|first %}
-                    {% if first_img %}
-                        <img src="{{ first_img.image_url }}" id="mainProductImg" alt="{{ product.title }}">
-                    {% else %}
-                        <img src="https://via.placeholder.com/500?text=No+Image+Available" id="mainProductImg">
-                    {% endif %}
+                    <img src="{{ first_img.image_url }}" id="mainProductImg">
                 {% endwith %}
-            </div>
-            
-            <!-- थंबनेल गैलरी (Mobile) -->
-            <div class="d-md-none mt-3 d-flex overflow-auto">
-                {% for img in product.images.all %}
-                    <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage(this, '{{ img.image_url }}')">
-                {% endfor %}
             </div>
         </div>
 
-        <!-- जानकारी -->
+        <!-- Links and Details -->
         <div class="col-md-6">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent p-0 mb-2">
-                    <li class="breadcrumb-item"><a href="/shopping/">Store</a></li>
-                    <li class="breadcrumb-item active">{{ product.category.name }}</li>
-                </ol>
-            </nav>
+            <h1 class="fw-bold mb-3">{{ product.title }}</h1>
+            <div class="price-tag mb-4" style="font-size: 28px; color: #b12704; font-weight: bold;">
+                ₹{{ product.price_display }}
+            </div>
 
-            <h1 class="product-title">{{ product.title }}</h1>
+            <h6 class="text-muted mb-3">Available Options (Click image to match):</h6>
             
-            <div class="mb-3">
-                <span class="price-tag">₹{{ product.price_display }}</span>
-                <span class="text-success fw-bold small ms-3">In Stock</span>
-            </div>
-
-            <!-- बटन सेक्शन: यहाँ सुधार किया गया है -->
-            <div class="mt-4">
-                <h6 class="mb-3 text-muted" style="font-size: 14px;">Select Color/Variety to Buy:</h6>
-                {% for link in product.affiliate_links.all %}
-                    <!-- यहाँ earn_karo_url इस्तेमाल किया है ताकि लिंक खुले -->
-                    <a href="{{ link.earn_karo_url }}" target="_blank" class="btn-buy-now w-100">
-                        <span>BUY NOW</span>
-                        <!-- यहाँ एडमिन पैनल वाला नाम मर्ज किया है -->
-                        <span class="color-tag">{{ link.button_name }}</span>
-                    </a>
-                {% empty %}
-                    <p class="text-danger small">No buying links available for this product.</p>
-                {% endfor %}
-            </div>
-
-            <!-- डिस्क्रिप्शन -->
-            <div class="mt-4 pt-3 border-top">
-                <h6>Product Description:</h6>
-                <div class="small text-dark">
-                    {{ product.long_description|safe }}
+            {% for link in product.affiliate_links.all %}
+            <div class="position-relative d-flex align-items-center">
+                <!-- Unique Arrow for each button -->
+                <div class="selection-arrow arrow-target" id="arrow-{{ link.button_name|slugify }}">
+                    <i class="fas fa-hand-point-right"></i>
                 </div>
+
+                <a href="{{ link.earn_karo_url }}" 
+                   target="_blank" 
+                   id="btn-{{ link.button_name|slugify }}"
+                   class="btn-buy-now w-100 variant-btn">
+                    <span>BUY NOW</span>
+                    <span class="color-tag">{{ link.button_name }}</span>
+                </a>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>
 
 <script>
-    function changeImage(element, src) {
-        document.getElementById('mainProductImg').src = src;
-        let thumbs = document.getElementsByClassName('thumb-img');
-        for (let t of thumbs) {
-            t.classList.remove('thumb-active');
-        }
+    function syncProductView(element, imageSrc, variantSlug) {
+        // 1. Image Badlo
+        document.getElementById('mainProductImg').src = imageSrc;
+
+        // 2. Thumbnails Active Class Reset
+        document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
         element.classList.add('thumb-active');
+
+        // 3. Buttons aur Arrows Reset Karo
+        document.querySelectorAll('.variant-btn').forEach(btn => btn.classList.remove('btn-active-variant'));
+        document.querySelectorAll('.arrow-target').forEach(arrow => arrow.style.display = 'none');
+
+        // 4. Matching Button aur Arrow ko Highlight Karo
+        const targetBtn = document.getElementById('btn-' + variantSlug);
+        const targetArrow = document.getElementById('arrow-' + variantSlug);
+
+        if (targetBtn) {
+            targetBtn.classList.add('btn-active-variant');
+            targetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (targetArrow) {
+            targetArrow.style.display = 'block';
+        }
     }
+
+    // Pehla variant auto-select karein
+    window.onload = function() {
+        const firstThumb = document.querySelector('.thumb-img');
+        if (firstThumb) firstThumb.click();
+    };
 </script>
 {% endblock %}
