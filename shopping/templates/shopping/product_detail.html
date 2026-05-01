@@ -10,24 +10,37 @@
     .product-title { font-size: 26px; font-weight: 700; color: #222; margin-bottom: 10px; }
     .price-tag { font-size: 28px; color: #b12704; font-weight: bold; }
     
-    /* Multiple Buttons Styling */
+    /* Amazon Style Rounded Buttons */
     .btn-buy-now {
         background: #ffd814; 
         color: #0f1111;
-        border-radius: 8px; /* बटन को थोड़ा मॉडर्न लुक देने के लिए */
+        border-radius: 50px; /* वापस गोल (Pill shape) कर दिया */
         font-weight: 600;
-        padding: 12px;
+        padding: 12px 20px;
         text-align: center;
         text-decoration: none;
-        display: block;
-        font-size: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 17px;
         border: 1px solid #fcd200;
         box-shadow: 0 2px 5px rgba(213,217,217,.5);
-        margin-bottom: 10px; /* बटनों के बीच गैप */
+        margin-bottom: 12px;
         transition: 0.2s;
     }
-    .btn-buy-now:hover { background: #f7ca00; color: #000; transform: translateY(-2px); }
-    .btn-label { display: block; font-size: 12px; opacity: 0.8; font-weight: 400; }
+    .btn-buy-now:hover { background: #f7ca00; color: #000; }
+
+    /* Color/Fabric Tag inside button */
+    .color-tag {
+        background: rgba(0, 0, 0, 0.07);
+        padding: 2px 12px;
+        border-radius: 20px;
+        margin-left: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+        text-transform: uppercase;
+    }
     
     .description-box { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
 </style>
@@ -35,7 +48,7 @@
 <div class="container mt-4">
     <div class="row product-container shadow-sm">
         
-        <!-- थंबनेल गैलरी (Desktop Only) -->
+        <!-- थंबनेल गैलरी (Desktop) -->
         <div class="col-md-1 d-none d-md-block text-center">
             {% for img in product.images.all %}
                 <img src="{{ img.image_url }}" class="thumb-img {% if forloop.first %}thumb-active{% endif %}" onclick="changeImage(this, '{{ img.image_url }}')">
@@ -44,7 +57,7 @@
             {% endfor %}
         </div>
         
-        <!-- मुख्य इमेज डिस्प्ले -->
+        <!-- मुख्य इमेज -->
         <div class="col-md-5">
             <div class="main-img-container text-center">
                 {% with first_img=product.images.all|first %}
@@ -56,7 +69,7 @@
                 {% endwith %}
             </div>
             
-            <!-- थंबनेल गैलरी (Mobile Only) -->
+            <!-- थंबनेल गैलरी (Mobile) -->
             <div class="d-md-none mt-3 d-flex overflow-auto">
                 {% for img in product.images.all %}
                     <img src="{{ img.image_url }}" class="thumb-img me-2" onclick="changeImage(this, '{{ img.image_url }}')">
@@ -64,7 +77,7 @@
             </div>
         </div>
 
-        <!-- प्रोडक्ट जानकारी -->
+        <!-- जानकारी -->
         <div class="col-md-6">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent p-0 mb-2">
@@ -75,30 +88,30 @@
 
             <h1 class="product-title">{{ product.title }}</h1>
             
-            <div class="mb-2">
-                <!-- यहाँ price की जगह price_display इस्तेमाल किया है -->
+            <div class="mb-3">
                 <span class="price-tag">₹{{ product.price_display }}</span>
                 <span class="text-success fw-bold small ms-3">In Stock</span>
             </div>
 
-            <!-- बटन सेक्शन: यहाँ अब लूप चलेगा (Multiple Buttons) -->
+            <!-- बटन सेक्शन: यहाँ सुधार किया गया है -->
             <div class="mt-4">
-                <h6 class="mb-3">Available on:</h6>
+                <h6 class="mb-3 text-muted" style="font-size: 14px;">Select Color/Variety to Buy:</h6>
                 {% for link in product.affiliate_links.all %}
-                    <a href="{{ link.url }}" target="_blank" class="btn-buy-now w-100">
-                        <span class="btn-label">Buy via</span>
-                        {{ link.platform_name }}
+                    <!-- यहाँ earn_karo_url इस्तेमाल किया है ताकि लिंक खुले -->
+                    <a href="{{ link.earn_karo_url }}" target="_blank" class="btn-buy-now w-100">
+                        <span>BUY NOW</span>
+                        <!-- यहाँ एडमिन पैनल वाला नाम मर्ज किया है -->
+                        <span class="color-tag">{{ link.button_name }}</span>
                     </a>
                 {% empty %}
-                    <p class="text-danger small">Currently unavailable or no links added.</p>
+                    <p class="text-danger small">No buying links available for this product.</p>
                 {% endfor %}
             </div>
 
-            <!-- डिस्क्रिप्शन बॉक्स -->
+            <!-- डिस्क्रिप्शन -->
             <div class="mt-4 pt-3 border-top">
-                <h6>Product Details & Description:</h6>
+                <h6>Product Description:</h6>
                 <div class="small text-dark">
-                    <!-- short_description हटाकर सीधे long_description दिखाया है -->
                     {{ product.long_description|safe }}
                 </div>
             </div>
