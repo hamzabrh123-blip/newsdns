@@ -24,8 +24,7 @@ urlpatterns = [
     
     # 2. Shopping Sitemap (सिर्फ शॉपिंग वाला यहाँ जोड़ा गया है)
     # इसका नाम sitemap-shop.xml रखा है ताकि न्यूज़ वाले से न टकराए
-    path('sitemap-shop.xml', sitemap_shop_xml, name='sitemap_shop'),
-    
+    path('sitemap-shop.xml', sitemap_shop_xml, name='sitemap_shop'),    
     # 3. Admin & Editor
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
