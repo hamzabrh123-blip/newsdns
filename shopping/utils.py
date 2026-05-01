@@ -35,64 +35,74 @@ def get_common_sidebar_data():
         logger.error(f"Sidebar Data Error: {e}")
         return {}
 
-# --- 2. UNIVERSAL IMAGE ENGINE (Merged Logic) ---
-def process_and_upload_to_imgbb(instance):
+# --- 2. UNIVERSAL IMAGE ENGINE (Enhanced News + Shopping) ---
+def process_and_upload_to_imgbb(instance, is_shop=False):
     """
-    यह फंक्शन News, NewsImage, और Shopping (Product/Category) सबके लिए काम करेगा।
+    is_shop=True होने पर शॉपिंग वाला लोगो उठाएगा।
+    is_shop=False (Default) होने पर न्यूज़ वाला लोगो उठाएगा।
     """
-    # 1. डायनामिक फील्ड चेक (News में 'image' है, Shopping में 'main_image' हो सकता है)
+    # 1. डायनामिक फील्ड चेक
     image_field = getattr(instance, 'image', None) or getattr(instance, 'main_image', None)
     
     if not image_field:
         return None
 
-    # 2. API Key चेक (तेरी नई वाली चाबी)
+    # 2. API Key चेक
     api_key = os.environ.get("IMGBB_API_KEY")
     if not api_key:
         logger.error("Bhai, Render me IMGBB_API_KEY nahi mili!")
         return None
 
     try:
-        # 3. Image Loading & Watermark
+        # 3. Image Loading
         image_field.seek(0)
         img = Image.open(io.BytesIO(image_field.read()))
         
         if img.mode != 'RGBA':
             img = img.convert('RGBA')
 
-        # वाटरमार्क ढूंढना (News या Shopping का लोगो)
-        logo_path = finders.find('watermark.png') or finders.find('images/uttarworld-shopping-icon.png')
+        # --- वॉटरमार्क लॉजिक (News vs Shopping) ---
+        if is_shop:
+            # शॉपिंग के लिए स्पेसिफिक लोगो पाथ
+            logo_path = finders.find('images/uttarworld-shopping-icon.png')
+            logger.info("Attempting to apply Shopping Watermark...")
+        else:
+            # न्यूज़ के लिए पुराना वाला वॉटरमार्क
+            logo_path = finders.find('watermark.png')
+            logger.info("Attempting to apply News Watermark...")
         
         if logo_path and os.path.exists(logo_path):
             with Image.open(logo_path).convert("RGBA") as logo:
-                logo_w = int(img.width * 0.18)
+                # शॉपिंग के लिए थोड़ा छोटा (15%) न्यूज़ के लिए (18%)
+                ratio = 0.15 if is_shop else 0.18
+                logo_w = int(img.width * ratio)
                 logo_h = int(logo.height * (logo_w / logo.width))
                 logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
                 
                 # Bottom-Right पोजीशन
                 pos = (img.width - logo_w - 20, img.height - logo_h - 20)
                 img.paste(logo, pos, logo)
-                logger.info("Watermark applied successfully.")
+                logger.info(f"{'Shopping' if is_shop else 'News'} Watermark applied.")
+        else:
+            logger.warning(f"Bhai Logo file nahi mili: {logo_path}")
 
         # 4. Optimization & WebP Conversion
         img = img.convert("RGB")
-        # न्यूज़ के लिए 1200px सही है, शॉपिंग के लिए भी क्वालिटी बनी रहेगी
         if img.width > 1200:
             img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
         
         output = io.BytesIO()
-        # Quality 75-80 बैलेंस है (Size + Clarity)
         img.save(output, format='WEBP', quality=75, optimize=True)
         base64_image = base64.b64encode(output.getvalue())
 
-        # 5. ImgBB POST Request (v1)
+        # 5. ImgBB POST Request
         response = requests.post(
             "https://api.imgbb.com/1/upload",
             data={"key": api_key, "image": base64_image},
             timeout=30
         )
 
-        # Clean up RAM immediately
+        # RAM Clean up
         img.close()
         gc.collect()
 
@@ -123,7 +133,6 @@ def post_to_facebook(instance):
         city_slug = getattr(instance, 'url_city', 'news')
         link_base = "https://uttarworld.com"
         
-        # न्यूज़ या प्रोडक्ट का लिंक
         news_link = f"{link_base}/{city_slug}/{instance.slug}/"
         title = getattr(instance, 'title', 'Uttar World Update')
         district = getattr(instance, 'district', 'UP')
@@ -153,4 +162,7 @@ def post_to_facebook(instance):
 
 # Compatibility Alias
 def upload_to_imgbb(instance):
+    """
+    यह पुराने कोड के लिए है, ताकि एरर न आए।
+    """
     return process_and_upload_to_imgbb(instance)

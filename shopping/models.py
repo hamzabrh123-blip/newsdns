@@ -14,7 +14,6 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        # Bulletproof check: Image ho aur URL mein ImgBB ka link na ho
         url_val = str(self.image_url) if self.image_url else ""
         is_new_img = bool(self.image and "i.ibb.co" not in url_val)
         
@@ -24,9 +23,9 @@ class HomeSlider(models.Model):
 
     def handle_upload(self):
         try:
-            new_url = process_and_upload_to_imgbb(self)
+            # यहाँ is_shop=True जोड़ा गया है
+            new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
-                # Update with PK for better reliability
                 HomeSlider.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
             print(f"Slider Error: {e}")
@@ -51,7 +50,8 @@ class Category(models.Model):
 
     def handle_upload(self):
         try:
-            new_url = process_and_upload_to_imgbb(self)
+            # यहाँ भी is_shop=True ताकि शॉपिंग लोगो लगे
+            new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
                 Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
@@ -95,7 +95,8 @@ class ProductImage(models.Model):
 
     def handle_gallery_upload(self):
         try:
-            new_url = process_and_upload_to_imgbb(self)
+            # गैलरी इमेजेस के लिए भी is_shop=True ज़रूरी है
+            new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
                 ProductImage.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
         except Exception as e:
