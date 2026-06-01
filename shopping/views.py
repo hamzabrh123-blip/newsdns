@@ -5,6 +5,7 @@ import re
 from django.db.models import Q, IntegerField, Value, F, Max, Min
 from django.db.models.functions import Cast, Replace, Abs
 from django.core.paginator import Paginator
+from django.views.decorators.cache import cache_page
 
 # ==========================================
 # HELPER: Nav Data & AdSense
@@ -18,6 +19,8 @@ def get_base_context():
 # ==========================================
 # 1. CORE SHOPPING VIEWS
 # ==========================================
+
+@cache_page(60 * 15) # 15 minute caching
 
 def shop_home(request):
     categories = Category.objects.all()
@@ -51,40 +54,29 @@ def shop_home(request):
         page_obj = paginator.get_page(page_number)
         
         return render(request, 'shopping/shop_home.html', {
-            'categories': categories, 
-            'nav_menus': nav_menus, 
-            'products': page_obj, 
-            'sliders': sliders, 
-            'query': query, 
-            'cat_slug': cat_slug,
+            'categories': categories, 'nav_menus': nav_menus, 'products': page_obj, 
+            'sliders': sliders, 'query': query, 'cat_slug': cat_slug,
         })
 
     else:
+        # Optimized Logic: Ek hi baar saare products lekar filter kar rahe hain (No N+1 query)
+        all_products = Product.objects.prefetch_related('variants').defer('long_description').order_by('-id')
         homepage_sections = []
+        
         for cat in categories:
-            cat_products = Product.objects.filter(category=cat).prefetch_related('variants').defer('long_description').order_by('-id')[:4]
-            if cat_products.exists():
+            # Memory mein filter kar rahe hain, database hit nahi hoga loop mein
+            cat_products = [p for p in all_products if p.category_id == cat.id][:4]
+            if cat_products:
                 homepage_sections.append({
                     'main_category_name': cat.name,
-                    'sub_sections': [{
-                        'sub_category_name': cat.name,
-                        'sub_category_slug': cat.slug,
-                        'products': cat_products
-                    }]
+                    'sub_sections': [{'sub_category_name': cat.name, 'sub_category_slug': cat.slug, 'products': cat_products}]
                 })
 
-        fallback_products = None
-        if not homepage_sections:
-            fallback_products = Product.objects.all().prefetch_related('variants').defer('long_description').order_by('-id')[:12]
-
         return render(request, 'shopping/shop_home.html', {
-            'categories': categories,
-            'nav_menus': nav_menus,
-            'sliders': sliders,
-            'homepage_sections': homepage_sections, 
-            'fallback_products': fallback_products, 
-            'is_homepage': True,
+            'categories': categories, 'nav_menus': nav_menus, 'sliders': sliders,
+            'homepage_sections': homepage_sections, 'is_homepage': True,
         })
+    
 
 def category_detail(request, slug):
     context = get_base_context()
