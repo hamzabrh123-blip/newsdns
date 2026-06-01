@@ -81,37 +81,26 @@
     }
     #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; }
 
-    /* TAGDA ZOOM STYLES */
     .img-zoom-lens {
-        position: absolute;
-        width: 150px; height: 150px;
+        position: absolute; width: 150px; height: 150px;
         border: 2px solid rgba(255, 255, 255, 0.8);
         background-color: rgba(37, 99, 235, 0.2);
-        cursor: crosshair;
-        display: none;
-        z-index: 10;
-        pointer-events: none;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+        cursor: crosshair; display: none; z-index: 10;
+        pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
     }
     .img-zoom-result {
-        position: absolute;
-        width: 500px; height: 500px;
-        top: 0; left: 105%;
-        background-repeat: no-repeat;
-        display: none;
-        z-index: 1000;
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        border: 1px solid #eee;
-        overflow: hidden;
+        position: absolute; width: 500px; height: 500px;
+        top: 0; left: 105%; background-repeat: no-repeat;
+        display: none; z-index: 1000; background-color: white;
+        border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        border: 1px solid #eee; overflow: hidden;
     }
 
     .variant-code-badge-outside { display: inline-block; background: #111827; color: #fff; padding: 6px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
     .price-section { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
     .product-title { font-size: 24px; font-weight: 800; color: #1a1a1a; }
+    .product-description { font-size: 16px; color: #555; margin: 15px 0; line-height: 1.6; }
     .price-tag { font-size: 32px; color: #b12704; font-weight: 800; }
-    .original-price { text-decoration: line-through; color: #888; font-size: 18px; }
     .thumb-img { width: 65px; height: 80px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 12px; transition: 0.2s; }
     .thumb-active { border-color: #2563eb !important; transform: scale(1.05); }
 
@@ -119,21 +108,11 @@
     .store-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
     .store-table tr { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border-radius: 10px; }
     .store-table td { padding: 14px 16px; border: none; }
-    .store-badge { font-weight: 800; font-size: 12px; padding: 5px 12px; border-radius: 6px; text-transform: uppercase; }
-    .badge-ajio { background: #e0f2fe; color: #0369a1; }
-    .badge-myntra { background: #fce7f3; color: #be185d; }
-    .badge-flipkart { background: #fef9c3; color: #a16207; }
-    .badge-amazon { background: #ffedd5; color: #c2410c; }
-    .badge-generic { background: #f1f5f9; color: #475569; }
-    .coupon-tag { background: #f0fdf4; border: 1px dashed #22c55e; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-family: monospace; }
-    
     .btn-main-shop-now { background: linear-gradient(135deg, #ff9900, #ffb300); color: #0f1111; font-weight: 800; padding: 14px 24px; border-radius: 50px; display: block; text-align: center; text-decoration: none; box-shadow: 0 4px 14px rgba(255, 153, 0, 0.3); }
-    .social-icon-btn { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white !important; margin-right: 8px; border: none; }
-    .btn-wa { background: #25D366; } .btn-fb { background: #1877F2; } .btn-x { background: #000; } .btn-tg { background: #0088cc; } .btn-ig { background: #E1306C; } .btn-copy { background: #6c757d; }
 
     @media (max-width: 991px) {
         .img-zoom-result, .img-zoom-lens { display: none !important; }
-        .main-img-viewport { min-height: 320px; cursor: zoom-in; }
+        .main-img-viewport { min-height: 320px; }
     }
 </style>
 
@@ -142,7 +121,7 @@
         <div class="col-md-1 d-none d-md-block text-center p-0">
             {% for variant in product.variants.all %}
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
-                     class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}" data-link="{{ variant.earn_karo_url }}"
+                     class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}"
                      onmouseover="syncVariant(this)" loading="lazy" alt="thumb">
             {% endfor %}
         </div>
@@ -162,6 +141,11 @@
 
         <div class="col-md-6 ps-md-5">
             <h1 class="product-title">{{ product.title }}</h1>
+            
+            <div class="product-description">
+                {{ product.description|linebreaks }}
+            </div>
+
             <div class="price-section"><span class="price-tag">₹{{ product.price_display }}</span></div>
             <div class="store-deal-card">
                 <table class="store-table"><tbody id="storeDealsContainer"></tbody></table>
@@ -176,9 +160,15 @@
     {% for variant in product.variants.all %}
         "{{ variant.variant_code }}": [
             {% for coupon in variant.coupons.all %}
-                { "store_name": "{{ coupon.store_name }}", "selling_price": "{{ coupon.best_price }}", "coupon_code": "{{ coupon.coupon_code|default:'' }}", "discount": "{{ coupon.coupon_discount_value|default:'0' }}", "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" }{% if not forloop.last %},{% endif %}
+                { 
+                    "store_name": "{{ coupon.store_name }}", 
+                    "selling_price": "{{ coupon.best_price }}", 
+                    "coupon_code": "{{ coupon.coupon_code|default:'' }}", 
+                    "discount": "{{ coupon.coupon_discount_value|default:'0' }}", 
+                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" 
+                }{% if not forloop.last %},{% endif %}
             {% empty %}
-                { "store_name": "", "selling_price": "{{ product.price_display }}", "coupon_code": "", "discount": "0", "url": "{{ variant.earn_karo_url }}" }
+                { "store_name": "Store", "selling_price": "{{ product.price_display }}", "coupon_code": "", "discount": "0", "url": "{{ variant.earn_karo_url }}" }
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}
     {% endfor %}
@@ -223,15 +213,26 @@ function syncVariant(element) {
     const mainImg = document.getElementById('mainProductImg');
     mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + element.getAttribute('data-raw-url');
     document.getElementById('variantCodeBadge').innerText = "Code: " + element.getAttribute('data-code');
-    const deals = JSON.parse(document.getElementById('nestedDealsData').textContent)[element.getAttribute('data-code')];
-    document.getElementById('storeDealsContainer').innerHTML = deals.map(d => `<tr><td><span class="store-badge badge-generic">${d.store_name}</span></td><td>${d.coupon_code || 'No Coupon'}</td><td>₹${d.selling_price}</td></tr>`).join('');
+    
+    const allDeals = JSON.parse(document.getElementById('nestedDealsData').textContent);
+    const deals = allDeals[element.getAttribute('data-code')];
+    
+    document.getElementById('storeDealsContainer').innerHTML = deals.map(d => {
+        let savings = parseFloat(d.discount) > 0 ? ` <br><small style="color:green; font-weight:600;">Bachta hai: ₹${d.discount}</small>` : '';
+        return `<tr>
+            <td><span class="store-badge badge-generic" style="background:#f1f5f9; padding:4px 8px; border-radius:4px;">${d.store_name}</span></td>
+            <td>${d.coupon_code || '-'}</td>
+            <td><strong>₹${d.selling_price}</strong>${savings}</td>
+        </tr>`;
+    }).join('');
+    
     document.getElementById('masterShopNowBtn').href = deals[0].url;
     document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
     element.classList.add('thumb-active');
+    
     mainImg.onload = initDesktopZoom;
     initDesktopZoom();
 }
-
 document.addEventListener("DOMContentLoaded", () => syncVariant(document.querySelector('.thumb-img')));
 </script>
 {% endblock %}
