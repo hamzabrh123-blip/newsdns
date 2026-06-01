@@ -14,10 +14,10 @@ DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-2026")
 
 ALLOWED_HOSTS = [
-   'uttarworld.com',         
-   'www.uttarworld.com',      
-   '127.0.0.1',             
-   'localhost',
+    'uttarworld.com',          
+    'www.uttarworld.com',      
+    '127.0.0.1',             
+    'localhost',
 ]
 
 # 3. SSL & CSRF Settings
@@ -42,19 +42,19 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     
-    # ☁️ Cloudinary Apps (staticfiles के बाद और अपनी ऐप्स से पहले)
+    # ☁️ Cloudinary Apps
     "cloudinary_storage",
     "cloudinary",
-    "nested_admin",  # ⚡ इसे यहाँ जोड़ें
+    "nested_admin",  
     "shopping",
-   
+    
     "ckeditor",
     "ckeditor_uploader",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # स्टैटिक फाइल्स के लिए
+    "whitenoise.middleware.WhiteNoiseMiddleware", 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -77,7 +77,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-               
             ],
         },
     },
@@ -85,51 +84,47 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-# 6. DATABASE (Smart PC/Server Switch)
+# 6. DATABASE
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=not DEBUG  # लोकल पीसी पर बिना SSL के चलेगा, Render पर खुद SSL ऑन हो जाएगा
+        ssl_require=not DEBUG
     )
 }
 
 # 7. STATIC & MEDIA SETTINGS
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Agar mynews folder nahi hai toh sirf shopping/static rakhein
 STATICFILES_DIRS = [
     BASE_DIR / "shopping" / "static",
-    BASE_DIR / "mynews" / "static",
 ]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ☁️ CLOUDINARY CONFIGURATION (Render के Env Variables से डेटा उठाएगा)
+# ☁️ CLOUDINARY CONFIGURATION
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get("CLOUDINARY_CLOUD_NAME"),
     'API_KEY': os.environ.get("CLOUDINARY_API_KEY"),
     'API_SECRET': os.environ.get("CLOUDINARY_API_SECRET"),
-    
-    # 🎯 Dynamic Folders Mode चालू
     'AUTO_RENAME_KEY': False,
     'USE_RESOURCE_TYPE_BY_PATH': True,
 }
 
 # 8. Storage Logic
 STORAGES = {
-    # मीडिया फाइलें सीधे क्लाउडिनरी सर्वर पर अपलोड होंगी (लोकल और ऑनलाइन दोनों जगह)
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
-    # सीएसएस, जेएस फाइल्स को व्हाइटनॉइज़ कंप्रेस करके सुपरफास्ट लोड करेगा
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
 # 9. CKEditor
-CKEDITOR_UPLOAD_PATH = "uploads/"  # क्लाउडिनरी में यह "uploads" नाम का डायनामिक फोल्डर अपने आप बना देगा
+CKEDITOR_UPLOAD_PATH = "uploads/" 
 CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_CONFIGS = {
     'default': {
@@ -148,8 +143,6 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-# Backup Keys
-IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # 11. Internationalization
@@ -158,9 +151,8 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Google JSON ka content fetch karo
+# Google JSON
 google_json_str = os.environ.get("GOOGLE_JSON_CONTENT", "{}")
-
 try:
     GOOGLE_JSON_CONTENT = json.loads(google_json_str)
 except json.JSONDecodeError:
