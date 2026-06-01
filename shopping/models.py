@@ -87,7 +87,7 @@ class Product(models.Model):
 
     def __str__(self): return self.title
 
-# --- 4. ProductVariant ---
+# --- 4. ProductVariant (Final Corrected Version) ---
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, related_name='variants', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='variants/', null=True, blank=True)
@@ -96,23 +96,39 @@ class ProductVariant(models.Model):
     variant_code = models.CharField(max_length=20, blank=True, unique=True)
 
     def save(self, *args, **kwargs):
+        # 1. Variant code generation logic
         if not self.variant_code:
             prefix = "".join([word[0] for word in self.product.title.split()[:2]]).upper()
             self.variant_code = f"{prefix}-{str(uuid.uuid4())[:4].upper()}"
         
-        url_val = str(self.image_url) if self.image_url else ""
-        is_new_img = bool(self.image and "i.ibb.co" not in url_val)
+        # 2. Save first to generate PK
         super().save(*args, **kwargs)
-        if is_new_img: self.handle_variant_upload()
+        
+        # 3. Check for new image upload
+        url_val = str(self.image_url) if self.image_url else ""
+        if self.image and "i.ibb.co" not in url_val:
+            self.handle_variant_upload()
 
     def handle_variant_upload(self):
         try:
-            time.sleep(1) # Thoda delay taaki db update ho jaye
+            # Delay for database consistency
+            time.sleep(1)
+            # Fetch fresh instance
+            self.refresh_from_db()
+            
             new_url = process_and_upload_to_imgbb(self, is_shop=True)
-            if new_url: ProductVariant.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
-        except Exception as e: print(f"Variant Upload Error: {e}")
+            
+            if new_url:
+                # Update directly and save, no manual .update() filter needed
+                self.image_url = new_url
+                self.image = None
+                # Use update_fields to avoid recursion and ensure Admin panel reflects changes
+                super().save(update_fields=['image_url', 'image'])
+        except Exception as e:
+            print(f"Variant Upload Error: {e}")
 
-    def __str__(self): return f"{self.product.title} - {self.variant_code}"
+    def __str__(self):
+        return f"{self.product.title} - {self.variant_code}"
 
 # --- 5. VariantStoreCoupon ---
 class VariantStoreCoupon(models.Model):
