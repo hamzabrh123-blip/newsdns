@@ -1,0 +1,237 @@
+{% extends "shopping/shop_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<meta property="og:type" content="product">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{{ product.title }} | Category: {{ product.category.name }}">
+<meta property="og:description" content="Price: ₹{{ product.price_display }} | {{ product.title }} - उपलब्ध सबसे कम कीमत पर उत्तर वर्ल्ड स्टोर पर चेक करें।">
+
+{% with first_variant=product.variants.all|first %}
+    {% if first_variant %}
+        <meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}">
+        <meta property="og:image:secure_url" content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}">
+    {% endif %}
+{% endwith %}
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="product:price:amount" content="{{ product.price_display }}">
+<meta property="product:price:currency" content="INR">
+
+<meta name="twitter:card" content="summary_large_image"> 
+<meta name="twitter:title" content="{{ product.title }} | Category: {{ product.category.name }}">
+<meta name="twitter:description" content="Price: ₹{{ product.price_display }} | उत्तर वर्ल्ड स्टोर पर अभी देखें।">
+<meta name="twitter:image" content="{% with first_variant=product.variants.all|first %}https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}{% endwith %}">
+
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+<link rel="dns-prefetch" href="https://res.cloudinary.com">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.title }}",
+  "image": [
+    {% with first_variant=product.variants.all|first %}"https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}"{% endwith %}
+  ],
+  "description": "{{ product.title }} - उपलब्ध सबसे कम कीमत पर उत्तर वर्ल्ड स्टोर पर चेक करें।",
+  "brand": {
+    "@type": "Brand",
+    "name": "Uttar World"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "INR",
+    "price": "{{ product.price_display }}",
+    "priceValidUntil": "2027-12-31",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+      "@type": "Organization",
+      "name": "Uttar World Shopping"
+    }
+  }
+  {% if product.review_count and product.review_count > 0 %},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.average_rating }}",
+    "reviewCount": "{{ product.review_count }}"
+  }
+  {% else %},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.5",
+    "reviewCount": "1"
+  }
+  {% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; position: relative; }
+    .img-zoom-container { position: relative; display: flex; justify-content: center; touch-action: none; width: 100%; }
+    .main-img-viewport { 
+        position: relative; width: 100%; min-height: 380px; display: flex; 
+        align-items: center; justify-content: center; background: #fbfbfb;
+        border-radius: 12px; overflow: hidden; border: 1px solid #f0f0f0;
+    }
+    #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; }
+
+    /* TAGDA ZOOM STYLES */
+    .img-zoom-lens {
+        position: absolute;
+        width: 150px; height: 150px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        background-color: rgba(37, 99, 235, 0.2);
+        cursor: crosshair;
+        display: none;
+        z-index: 10;
+        pointer-events: none;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+    }
+    .img-zoom-result {
+        position: absolute;
+        width: 500px; height: 500px;
+        top: 0; left: 105%;
+        background-repeat: no-repeat;
+        display: none;
+        z-index: 1000;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        border: 1px solid #eee;
+        overflow: hidden;
+    }
+
+    .variant-code-badge-outside { display: inline-block; background: #111827; color: #fff; padding: 6px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
+    .price-section { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+    .product-title { font-size: 24px; font-weight: 800; color: #1a1a1a; }
+    .price-tag { font-size: 32px; color: #b12704; font-weight: 800; }
+    .original-price { text-decoration: line-through; color: #888; font-size: 18px; }
+    .thumb-img { width: 65px; height: 80px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 12px; transition: 0.2s; }
+    .thumb-active { border-color: #2563eb !important; transform: scale(1.05); }
+
+    .store-deal-card { background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; padding: 20px; }
+    .store-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+    .store-table tr { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border-radius: 10px; }
+    .store-table td { padding: 14px 16px; border: none; }
+    .store-badge { font-weight: 800; font-size: 12px; padding: 5px 12px; border-radius: 6px; text-transform: uppercase; }
+    .badge-ajio { background: #e0f2fe; color: #0369a1; }
+    .badge-myntra { background: #fce7f3; color: #be185d; }
+    .badge-flipkart { background: #fef9c3; color: #a16207; }
+    .badge-amazon { background: #ffedd5; color: #c2410c; }
+    .badge-generic { background: #f1f5f9; color: #475569; }
+    .coupon-tag { background: #f0fdf4; border: 1px dashed #22c55e; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-family: monospace; }
+    
+    .btn-main-shop-now { background: linear-gradient(135deg, #ff9900, #ffb300); color: #0f1111; font-weight: 800; padding: 14px 24px; border-radius: 50px; display: block; text-align: center; text-decoration: none; box-shadow: 0 4px 14px rgba(255, 153, 0, 0.3); }
+    .social-icon-btn { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white !important; margin-right: 8px; border: none; }
+    .btn-wa { background: #25D366; } .btn-fb { background: #1877F2; } .btn-x { background: #000; } .btn-tg { background: #0088cc; } .btn-ig { background: #E1306C; } .btn-copy { background: #6c757d; }
+
+    @media (max-width: 991px) {
+        .img-zoom-result, .img-zoom-lens { display: none !important; }
+        .main-img-viewport { min-height: 320px; cursor: zoom-in; }
+    }
+</style>
+
+<div class="container mt-3 mb-5">
+    <div class="row product-container shadow-sm mx-0">
+        <div class="col-md-1 d-none d-md-block text-center p-0">
+            {% for variant in product.variants.all %}
+                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                     class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}" data-link="{{ variant.earn_karo_url }}"
+                     onmouseover="syncVariant(this)" loading="lazy" alt="thumb">
+            {% endfor %}
+        </div>
+        
+        <div class="col-md-5">
+            <div class="img-zoom-container">
+                <div class="main-img-viewport" id="viewport">
+                    {% with first_variant=product.variants.all|first %}
+                        <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}" 
+                             id="mainProductImg" fetchpriority="high" alt="{{ product.title }}">
+                    {% endwith %}
+                </div>
+                <div id="zoomResult" class="img-zoom-result"></div>
+            </div>
+            <div class="text-center mt-3"><span id="variantCodeBadge" class="variant-code-badge-outside">Code: Loading...</span></div>
+        </div>
+
+        <div class="col-md-6 ps-md-5">
+            <h1 class="product-title">{{ product.title }}</h1>
+            <div class="price-section"><span class="price-tag">₹{{ product.price_display }}</span></div>
+            <div class="store-deal-card">
+                <table class="store-table"><tbody id="storeDealsContainer"></tbody></table>
+                <div class="mt-3"><a href="#" id="masterShopNowBtn" target="_blank" class="btn-main-shop-now">SHOP NOW</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="nestedDealsData" type="application/json">
+{
+    {% for variant in product.variants.all %}
+        "{{ variant.variant_code }}": [
+            {% for coupon in variant.coupons.all %}
+                { "store_name": "{{ coupon.store_name }}", "selling_price": "{{ coupon.best_price }}", "coupon_code": "{{ coupon.coupon_code|default:'' }}", "discount": "{{ coupon.coupon_discount_value|default:'0' }}", "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" }{% if not forloop.last %},{% endif %}
+            {% empty %}
+                { "store_name": "", "selling_price": "{{ product.price_display }}", "coupon_code": "", "discount": "0", "url": "{{ variant.earn_karo_url }}" }
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+    {% endfor %}
+}
+</script>
+
+<script>
+function initDesktopZoom() {
+    if (window.innerWidth < 992) return;
+    var img = document.getElementById("mainProductImg");
+    var result = document.getElementById("zoomResult");
+    var container = document.getElementById("viewport");
+    if (!img || !result || !container) return; 
+
+    var oldLens = document.querySelector('.img-zoom-lens');
+    if (oldLens) oldLens.remove();
+    var lens = document.createElement("DIV");
+    lens.setAttribute("class", "img-zoom-lens");
+    container.insertBefore(lens, img);
+    
+    var zoomFactor = 3; 
+    result.style.backgroundImage = "url('" + img.src + "')";
+    result.style.backgroundSize = (img.width * zoomFactor) + "px " + (img.height * zoomFactor) + "px";
+    
+    container.onmousemove = function(e) {
+        var a = img.getBoundingClientRect();
+        var x = e.pageX - a.left - window.pageXOffset - (lens.offsetWidth / 2);
+        var y = e.pageY - a.top - window.pageYOffset - (lens.offsetHeight / 2);
+        if (x > img.width - lens.offsetWidth) x = img.width - lens.offsetWidth;
+        if (x < 0) x = 0;
+        if (y > img.height - lens.offsetHeight) y = img.height - lens.offsetHeight;
+        if (y < 0) y = 0;
+        lens.style.left = x + "px";
+        lens.style.top = y + "px";
+        result.style.backgroundPosition = "-" + (x * zoomFactor) + "px -" + (y * zoomFactor) + "px";
+    };
+    container.onmouseenter = () => { lens.style.display = "block"; result.style.display = "block"; };
+    container.onmouseleave = () => { lens.style.display = "none"; result.style.display = "none"; };
+}
+
+function syncVariant(element) {
+    const mainImg = document.getElementById('mainProductImg');
+    mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + element.getAttribute('data-raw-url');
+    document.getElementById('variantCodeBadge').innerText = "Code: " + element.getAttribute('data-code');
+    const deals = JSON.parse(document.getElementById('nestedDealsData').textContent)[element.getAttribute('data-code')];
+    document.getElementById('storeDealsContainer').innerHTML = deals.map(d => `<tr><td><span class="store-badge badge-generic">${d.store_name}</span></td><td>${d.coupon_code || 'No Coupon'}</td><td>₹${d.selling_price}</td></tr>`).join('');
+    document.getElementById('masterShopNowBtn').href = deals[0].url;
+    document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
+    element.classList.add('thumb-active');
+    mainImg.onload = initDesktopZoom;
+    initDesktopZoom();
+}
+
+document.addEventListener("DOMContentLoaded", () => syncVariant(document.querySelector('.thumb-img')));
+</script>
+{% endblock %}

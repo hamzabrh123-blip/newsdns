@@ -1,0 +1,125 @@
+{% extends "shopping/shop_base.html" %}
+
+{% block content %}
+<style>
+    .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
+    .product-card { border-radius: 12px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
+    .product-card-link:hover .product-card { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+    .mobile-product-title { font-size: 0.85rem !important; font-weight: 600; line-height: 1.3; color: #212529; margin-bottom: 6px; }
+    .price-tag { color: #d32f2f; font-weight: 700; font-size: 1.15rem; display: inline-block; }
+    .mrp-label { color: #888; font-size: 0.82rem; font-weight: 500; }
+    .old-price-num { text-decoration: line-through; color: #aaa; }
+    .store-text { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
+    .auto-slider-container { position: relative; width: 100%; height: 280px; background: #f8f9fa; overflow: hidden; }
+    @media (max-width: 576px) { .auto-slider-container { height: 230px; } }
+    .product-auto-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.6s ease-in-out; }
+    .product-auto-img.active { opacity: 1; }
+</style>
+
+<div class="container mt-3">
+    <h4 class="fw-bold mb-3">{{ category.name }}</h4>
+    <div class="row gx-2 gy-3">
+        {% for product in products %}
+        <div class="col-md-3 col-6">
+            {% with variants=product.variants.all first_variant=product.variants.all.0 %}
+            <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+                <div class="card shadow-sm product-card border-0 js-product-card" 
+                     data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
+                     data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
+                     data-store-name="{{ first_variant.coupons.all.0.store_name|default:'Hamaramall' }}" 
+                     data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                    
+                    <div class="auto-slider-container">
+                        {% for variant in variants %}
+                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="Product">
+                        {% empty %}
+                            <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active">
+                        {% endfor %}
+                    </div>
+
+                    <div class="card-body p-2">
+                        <h6 class="mobile-product-title">{{ product.title }}</h6>
+                        <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                            <span class="price-tag js-final-price"></span>
+                            <span class="mrp-label js-mrp-wrapper" style="display: none;">MRP: <span class="old-price-num js-mrp-price"></span></span>
+                        </div>
+                        <div class="mt-2 pt-1 border-top text-center">
+                            <span class="store-text js-store-badge"></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endwith %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productCards = document.querySelectorAll('.js-product-card');
+        
+        productCards.forEach(card => {
+            const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
+            const selling = parseFloat(card.getAttribute('data-selling')) || 0;
+            const storeName = card.getAttribute('data-store-name');
+            const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
+
+            const finalPriceEl = card.querySelector('.js-final-price');
+            const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
+            const mrpPriceEl = card.querySelector('.js-mrp-price');
+            const storeBadgeEl = card.querySelector('.js-store-badge');
+
+            if (storeBadgeEl && storeName) {
+                storeBadgeEl.innerText = storeName;
+            }
+
+            if (finalPriceEl) {
+                if (variantsPricesStr) {
+                    const prices = variantsPricesStr.split(',')
+                                                    .map(p => parseFloat(p))
+                                                    .filter(p => !isNaN(p) && p > 0);
+                    
+                    // यहाँ 'Infinity' का चेक लगा दिया है
+                    if (prices.length > 0) {
+                        const minPrice = Math.min(...prices);
+                        const maxPrice = Math.max(...prices);
+                        
+                        if (minPrice !== maxPrice) {
+                            finalPriceEl.innerText = '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0);
+                        } else {
+                            finalPriceEl.innerText = '₹' + minPrice.toFixed(0);
+                        }
+                    } else {
+                        // अगर वेरिएंट प्राइस नहीं है तो selling प्राइस दिखाओ
+                        finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
+                    }
+                } else {
+                    finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
+                }
+            }
+            
+            if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
+                mrpPriceEl.innerText = '₹' + mrp.toFixed(0);
+                mrpWrapperEl.style.display = 'inline-block';
+            } else if (mrpWrapperEl) {
+                mrpWrapperEl.style.display = 'none';
+            }
+        });
+
+        // ऑटो इमेज स्लाइडर लॉजिक (जो तेरा पुराना है)
+        const containers = document.querySelectorAll('.auto-slider-container');
+        containers.forEach(container => {
+            const images = container.querySelectorAll('.product-auto-img');
+            if (images.length > 1) {
+                let currentIndex = 0;
+                setInterval(() => {
+                    images[currentIndex].classList.remove('active');
+                    currentIndex = (currentIndex + 1) % images.length;
+                    images[currentIndex].classList.add('active');
+                }, 3000);
+            }
+        });
+    });
+
+</script>
+{% endblock %}

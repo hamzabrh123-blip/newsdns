@@ -1,0 +1,5 @@
+sb_publishable_W3pb3Jad8TGblGux0a_DQw_HChbXySu
+
+postgresql://postgres:eY64rdQPm1KcAkGr@db.lnbzfuxggmxixiibixnt.supabase.co:5432/postgres
+
+eY64rdQPm1KcAkGr

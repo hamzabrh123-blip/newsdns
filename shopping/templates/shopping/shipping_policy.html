@@ -1,0 +1,34 @@
+{% extends 'shopping/shop_base.html' %}
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="fw-bold mb-4">About Uttar World</h2>
+            <hr class="mb-4">
+            
+            <p class="lead">Welcome to <strong>Uttar World</strong>, your ultimate destination for premium lifestyle, fashion, and innovative gadgets.</p>
+            
+            <p>At Uttar World, we believe that quality should be accessible to everyone. We are a team of passionate individuals dedicated to curating the best global products and bringing them directly to your doorstep. Whether you are looking for the latest fashion trends or smart tech that makes your life easier, we have got you covered.</p>
+            
+            <h4 class="mt-4">Our Mission</h4>
+            <p>Our mission is simple: to provide a <strong>seamless, secure, and delightful shopping experience</strong>. We prioritize customer satisfaction above everything else and work tirelessly to ensure that our product selection meets the highest standards of quality and reliability.</p>
+            
+            <h4 class="mt-4">Why Choose Us?</h4>
+            <ul>
+                <li><strong>Curated Quality:</strong> We hand-pick every item to ensure it meets our strict quality guidelines.</li>
+                <li><strong>Global Reach:</strong> We bring world-class products to the comfort of your home, no matter where you are.</li>
+                <li><strong>Customer-First Approach:</strong> Your feedback drives us to improve, and our support team is always here to assist you.</li>
+                <li><strong>Secure Checkout:</strong> We use industry-standard encryption to ensure your transactions are 100% safe.</li>
+            </ul>
+
+            <h4 class="mt-4">Our Vision</h4>
+            <p>We aim to become the most trusted name in the lifestyle retail sector by fostering long-term relationships with our customers based on trust, transparency, and innovation.</p>
+            
+            <div class="mt-5 p-4 bg-light rounded shadow-sm text-center">
+                <p>Have questions? We'd love to chat.</p>
+                <a href="{% url 'contact' %}" class="btn btn-dark">Contact Us Today</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

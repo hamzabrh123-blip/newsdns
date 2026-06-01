@@ -1,0 +1,39 @@
+<div class="col-md-3 col-6">
+    {% with variants=product.variants.all first_variant=product.variants.all.0 %}
+        <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+            <div class="card shadow-sm product-card border-0 js-product-card"
+                 data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}"
+                 data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}"
+                 data-store-name="{{ first_variant.coupons.all.0.store_name|default:'Hamaramall' }}"
+                 data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                
+                <div class="auto-slider-container">
+                    {% for variant in variants %}
+                        <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                             class="product-auto-img {% if forloop.first %}active{% endif %}" 
+                             {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy" decoding="async"{% endif %}
+                             alt="Product">
+                    {% empty %}
+                        <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active">
+                    {% endfor %}
+                    {% if product.mrp_price %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-0.5 m-2 rounded-pill fw-bold" style="font-size: 9px; z-index: 10;">SALE</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-2">
+                    <h6 class="mobile-product-title">{{ product.title }}</h6>
+                    <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                        <span class="price-tag js-final-price">₹0</span>
+                        <span class="mrp-label js-mrp-wrapper" style="display: none;">
+                            MRP: <span class="old-price-num js-mrp-price">₹0</span>
+                        </span>
+                    </div>
+                    <div class="mt-2 pt-1 border-top text-center">
+                        <span class="store-text js-store-badge">Hamaramall</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    {% endwith %}
+</div>

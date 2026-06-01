@@ -1,0 +1,39 @@
+{% extends 'shopping/shop_base.html' %}
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="fw-bold mb-4">Terms of Service</h2>
+            <hr class="mb-4">
+            
+            <p>Welcome to <strong>Uttar World Elite Lifestyle Store</strong>. These terms and conditions outline the rules and regulations for the use of our website, located at https://uttarworld.com.</p>
+            
+            <h4 class="mt-4">1. Acceptance of Terms</h4>
+            <p>By accessing this website, we assume you accept these terms and conditions. Do not continue to use <strong>Uttar World Elite Lifestyle Store</strong> if you do not agree to all of the terms and conditions stated on this page.</p>
+            
+            <h4 class="mt-4">2. License to Use</h4>
+            <p>Unless otherwise stated, <strong>Uttar World Elite Lifestyle Store</strong> and/or its licensors own the intellectual property rights for all material on this website. You may access this for your own personal use subjected to restrictions set in these terms and conditions.</p>
+            
+            <h4 class="mt-4">3. User Responsibilities</h4>
+            <p>You must not:</p>
+            <ul>
+                <li>Republish material from <strong>Uttar World Elite Lifestyle Store</strong>.</li>
+                <li>Sell, rent, or sub-license material from our website.</li>
+                <li>Reproduce, duplicate, or copy material from our store for commercial purposes.</li>
+                <li>Use this website in any way that causes damage to the website or impairment of accessibility.</li>
+            </ul>
+
+            <h4 class="mt-4">4. Limitation of Liability</h4>
+            <p>In no event shall <strong>Uttar World Elite Lifestyle Store</strong>, nor any of its officers, directors, and employees, be held liable for anything arising out of or in any way connected with your use of this website.</p>
+            
+            <h4 class="mt-4">5. Governing Law</h4>
+            <p>These terms will be governed by and interpreted in accordance with the laws of India, and you submit to the non-exclusive jurisdiction of the courts located in Uttar Pradesh for the resolution of any disputes.</p>
+
+            <div class="mt-5 p-4 bg-light rounded shadow-sm text-center">
+                <p>If you have any questions regarding these Terms, please contact us.</p>
+                <a href="{% url 'contact' %}" class="btn btn-dark">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
