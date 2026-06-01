@@ -2,11 +2,30 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
+    <title>Uttar World Elite Lifestyle Store | Premium Global Fashion & Gadgets</title>
+    
+    <meta name="description" content="Uttar World is your premium destination for curated global fashion, innovative gadgets, and lifestyle essentials. Shop the latest trends with exclusive deals and quality assurance.">
+    
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}?v=1.1">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}?v=1.1">
+    
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"></link>
+
+    <meta name="keywords" content="Uttar World, premium fashion, innovative gadgets, online lifestyle store, curated global products, luxury accessories, buy gadgets online, latest fashion trends"></meta>
+
+
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Uttar World - {{ product.name }}" />
+<meta property="og:description" content="{{ product.description|truncatewords:20 }}" />
+<meta property="og:image" content="{{ product.image.url }}" />
+
+
+
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client }}" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uttar World Elite Lifestyle Store | Premium Global Fashion & Gadgets</title>
-
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
