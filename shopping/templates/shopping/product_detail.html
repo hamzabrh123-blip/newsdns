@@ -1,174 +1,213 @@
 {% extends "shopping/shop_base.html" %}
 {% load static %}
 
-{% block extra_head %}
+{% block content %}
+{% block meta %}
+
+<meta name="description" content="Buy {{ product.title }} at just ₹{{ product.price_display }}. Best deals, high quality, and fast shipping available only on Hamaramall. Shop now!">
+<meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, hamaramall deals, {{ product.category.name|default:'fashion' }} deals">
+<!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
+<meta property="og:title" content="{{ product.title }}">
+<meta property="og:description" content="Price: ₹{{ product.price_display }} | MRP: ₹{{ product.mrp_price }} - Best deal on {{ product.title }}!">
+<!-- Image with Dynamic Price Tag Overlay -->
+<meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="{{ product.title }} | Category: {{ product.category.name }}">
-<meta property="og:description" content="Price: ₹{{ product.price_display }} | {{ product.title }} - उपलब्ध सबसे कम कीमत पर उत्तर वर्ल्ड स्टोर पर चेक करें।">
+<meta property="og:site_name" content="Hamaramall">
 
-{% with first_variant=product.variants.all|first %}
-    {% if first_variant %}
-        <meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}">
-        <meta property="og:image:secure_url" content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}">
-    {% endif %}
-{% endwith %}
-
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<!-- Product Specific Data (Facebook AI ko batane ke liye) -->
 <meta property="product:price:amount" content="{{ product.price_display }}">
 <meta property="product:price:currency" content="INR">
+<meta property="product:availability" content="in stock">
 
-<meta name="twitter:card" content="summary_large_image"> 
-<meta name="twitter:title" content="{{ product.title }} | Category: {{ product.category.name }}">
-<meta name="twitter:description" content="Price: ₹{{ product.price_display }} | उत्तर वर्ल्ड स्टोर पर अभी देखें।">
-<meta name="twitter:image" content="{% with first_variant=product.variants.all|first %}https://res.cloudinary.com/dvoqsrkkq/image/fetch/b_white,c_pad,h_630,w_1200/{{ first_variant.image_url }}{% endwith %}">
-
-<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-<link rel="dns-prefetch" href="https://res.cloudinary.com">
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ product.title }}">
+<meta name="twitter:description" content="Price: ₹{{ product.price_display }} - Premium quality, best price deal!">
+<meta name="twitter:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
+{% endblock %}
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org/",
   "@type": "Product",
   "name": "{{ product.title }}",
-  "image": [
-    {% with first_variant=product.variants.all|first %}"https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}"{% endwith %}
-  ],
-  "description": "{{ product.title }} - उपलब्ध सबसे कम कीमत पर उत्तर वर्ल्ड स्टोर पर चेक करें।",
+  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}",
+  "description": "{{ product.title|escapejs }} - Premium quality product available at best price.",
+  "sku": "{{ product.variants.all.0.variant_code }}",
   "brand": {
     "@type": "Brand",
-    "name": "Uttar World"
+    "name": "Hamaramall"
   },
   "offers": {
     "@type": "Offer",
     "url": "{{ request.build_absolute_uri }}",
     "priceCurrency": "INR",
     "price": "{{ product.price_display }}",
-    "priceValidUntil": "2027-12-31",
     "itemCondition": "https://schema.org/NewCondition",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "Organization",
-      "name": "Uttar World Shopping"
-    }
+    "availability": "https://schema.org/InStock"
   }
-  {% if product.review_count and product.review_count > 0 %},
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "{{ product.average_rating }}",
-    "reviewCount": "{{ product.review_count }}"
-  }
-  {% else %},
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.5",
-    "reviewCount": "1"
-  }
-  {% endif %}
 }
 </script>
-{% endblock %}
-
-{% block content %}
 <style>
-    .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; position: relative; }
-    .img-zoom-container { position: relative; display: flex; justify-content: center; touch-action: none; width: 100%; }
-    .main-img-viewport { 
-        position: relative; width: 100%; min-height: 380px; display: flex; 
-        align-items: center; justify-content: center; background: #fbfbfb;
-        border-radius: 12px; overflow: hidden; border: 1px solid #f0f0f0;
+    .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; }
+    .product-description-box {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.6;
+        max-height: 400px;
+        text-align:justify;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        padding: 15px;
+        border-radius: 8px;
     }
-    #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; }
-
-    .img-zoom-lens {
-        position: absolute; width: 150px; height: 150px;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        background-color: rgba(37, 99, 235, 0.2);
-        cursor: crosshair; display: none; z-index: 10;
-        pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
-    }
-    .img-zoom-result {
-        position: absolute; width: 500px; height: 500px;
-        top: 0; left: 105%; background-repeat: no-repeat;
-        display: none; z-index: 1000; background-color: white;
-        border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        border: 1px solid #eee; overflow: hidden;
+    .product-description-box h3 {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        margin-top: 15px !important;
+        margin-bottom: 8px !important;
+        color: #222;
     }
 
-    .variant-code-badge-outside { display: inline-block; background: #111827; color: #fff; padding: 6px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
-    .price-section { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
-    .product-title { font-size: 24px; font-weight: 800; color: #1a1a1a; }
-    .product-description { font-size: 16px; color: #555; margin: 15px 0; line-height: 1.6; }
-    .price-tag { font-size: 32px; color: #b12704; font-weight: 800; }
-    .thumb-img { width: 65px; height: 80px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 12px; transition: 0.2s; }
-    .thumb-active { border-color: #2563eb !important; transform: scale(1.05); }
-
-    .store-deal-card { background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; padding: 20px; }
-    .store-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-    .store-table tr { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border-radius: 10px; }
-    .store-table td { padding: 14px 16px; border: none; }
-    .btn-main-shop-now { background: linear-gradient(135deg, #ff9900, #ffb300); color: #0f1111; font-weight: 800; padding: 14px 24px; border-radius: 50px; display: block; text-align: center; text-decoration: none; box-shadow: 0 4px 14px rgba(255, 153, 0, 0.3); }
-
-    @media (max-width: 991px) {
-        .img-zoom-result, .img-zoom-lens { display: none !important; }
-        .main-img-viewport { min-height: 320px; }
+    .product-description-box h4 {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        margin-top: 12px !important;
+        margin-bottom: 6px !important;
+        color: #444;
+        text-transform: uppercase; /* Agar alag dikhana hai */
+        letter-spacing: 0.5px;
     }
+
+    /* Description box ke andar ke UL aur LI ko style karo */
+    .product-description-box ul {
+        list-style: none; /* Default bullet hatao */
+        padding-left: 0;
+    }
+
+    .product-description-box li {
+        position: relative;
+        padding-left: 25px; /* Icon ke liye space */
+        margin-bottom: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #444;
+    }
+
+    /* Dynamic Icon (Checkmark) */
+    .product-description-box li::before {
+        content: '✓'; /* Tum yahan koi bhi emoji ya symbol daal sakte ho */
+        position: absolute;
+        left: 0;
+        color: #ff9900; /* Tera button wala color */
+        font-weight: bold;
+    }
+    .product-title { font-size: 18px !important; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; line-height: 1.3; }
+    .img-zoom-container { position: relative; width: 100%; display: flex; justify-content: center; overflow: visible; }
+    .main-img-viewport { position: relative; width: 100%; min-height: 380px; display: flex; align-items: center; justify-content: center; background: #fbfbfb; border-radius: 12px; border: 1px solid #f0f0f0; }
+    #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; cursor: crosshair; }
+    .img-zoom-lens { position: absolute; width: 100px; height: 100px; border: 2px solid #ccc; background: rgba(0,0,0,0.1); cursor: crosshair; display: none; z-index: 10; pointer-events: none; }
+    .img-zoom-result { position: absolute; width: 400px; height: 400px; top: 0; left: 105%; background-repeat: no-repeat; display: none; z-index: 1000; background: #fff; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    .price-tag { font-size: 28px; color: #b12704; font-weight: 800; }
+    .mrp-text { font-size: 18px; color: #888; text-decoration: line-through; margin-left: 10px; }
+    .thumb-img { width: 60px; height: 75px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 10px; transition: 0.2s; }
+    .thumb-active { border-color: #2563eb !important; border-width: 2px; }
+    .btn-main-shop-now { display: block; background: #ff9900; color: #000; text-align: center; padding: 12px; border-radius: 30px; font-weight: 700; text-decoration: none; }
+/* Yahan maine sticky fix kiya hai */
+    .img-zoom-container { 
+        position: sticky; 
+        top: 140px; 
+        width: 100%; 
+        display: flex; 
+        justify-content: center; 
+    }
+
+    .card-img-top { height: 350px; width:100%; object-fit: cover; border-radius: 8px; }
+    .card {margin:-10px; }
+    .card:hover { transform: translateY(-5px); transition: 0.3s; }
 </style>
 
-<div class="container mt-3 mb-5">
-    <div class="row product-container shadow-sm mx-0">
-        <div class="col-md-1 d-none d-md-block text-center p-0">
+<div class="container mt-4">
+    <div class="row product-container">
+        <div class="col-md-1 d-none d-md-block">
             {% for variant in product.variants.all %}
-                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
-                     class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}"
-                     onmouseover="syncVariant(this)" loading="lazy" alt="thumb">
+                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}" onmouseover="syncVariant(this)">
             {% endfor %}
         </div>
         
         <div class="col-md-5">
-            <div class="img-zoom-container">
-                <div class="main-img-viewport" id="viewport">
-                    {% with first_variant=product.variants.all|first %}
-                        <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}" 
-                             id="mainProductImg" fetchpriority="high" alt="{{ product.title }}">
-                    {% endwith %}
+            <div class="img-zoom-container" id="viewport">
+                <div class="main-img-viewport">
+                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}">
+                    <div id="lens" class="img-zoom-lens"></div>
                 </div>
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
-            <div class="text-center mt-3"><span id="variantCodeBadge" class="variant-code-badge-outside">Code: Loading...</span></div>
         </div>
 
-        <div class="col-md-6 ps-md-5">
+        <div class="col-md-6">
             <h1 class="product-title">{{ product.title }}</h1>
-            
-            <div class="product-description">
-                {{ product.description|linebreaks }}
+            <div class="price-section">
+                <span class="price-tag">₹{{ product.price_display }}</span>
+                {% if product.mrp_price %}<span class="mrp-text">₹{{ product.mrp_price }}</span>{% endif %}
             </div>
-
-            <div class="price-section"><span class="price-tag">₹{{ product.price_display }}</span></div>
-            <div class="store-deal-card">
-                <table class="store-table"><tbody id="storeDealsContainer"></tbody></table>
-                <div class="mt-3"><a href="#" id="masterShopNowBtn" target="_blank" class="btn-main-shop-now">SHOP NOW</a></div>
+            <div class="store-deal-card mt-3">
+                <table class="table">
+                    <thead><tr><th>Store</th><th>Coupon</th><th>Price</th></tr></thead>
+                    <tbody id="storeDealsContainer"></tbody>
+                </table>
+                <a href="#" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
             </div>
+            <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
+    <i class="bi bi-share"></i> SHARE THIS DEAL
+</button>
+            <div class="mt-4 product-description-box">{{ product.long_description|safe }}</div>
         </div>
     </div>
 </div>
+<hr>
 
+<div class="container mt-5">
+    <h4 class="mb-4">Related Products</h4>
+    <div class="row">
+        {% for item in related_products %}
+        <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
+                <div class="card-body">
+                    <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
+                    <p style="font size:12px;" class="card-text text-danger font-weight-bold">₹{{ item.price_display }} 
+                        {% if product.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">₹{{ product.mrp_price }}</span></span>{% endif %}
+                    </p>
+                    <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<hr>
+<!-- Full Width Category CTA -->
+<div class="container-fluid my-5">
+    <div class="row">
+        <div class="col-12 text-center py-5" style="background: #ffffff; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+            <h4 class="mb-3" style="font-weight: 700;">Discover the Best Deals on {{ product.category.name }}!</h4>
+            <p class="text-muted mb-4">We have curated the finest and most affordable {{ product.category.name }} collection just for you.</p>
+            
+            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" 
+               style="background: #ff9900; color: #000; border-radius: 50px; font-size: 18px; font-weight: 800; text-transform: uppercase;">
+                Explore All {{ product.category.name|upper }} <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in product.variants.all %}
         "{{ variant.variant_code }}": [
             {% for coupon in variant.coupons.all %}
-                { 
-                    "store_name": "{{ coupon.store_name }}", 
-                    "selling_price": "{{ coupon.best_price }}", 
-                    "coupon_code": "{{ coupon.coupon_code|default:'' }}", 
-                    "discount": "{{ coupon.coupon_discount_value|default:'0' }}", 
-                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" 
-                }{% if not forloop.last %},{% endif %}
-            {% empty %}
-                { "store_name": "Store", "selling_price": "{{ product.price_display }}", "coupon_code": "", "discount": "0", "url": "{{ variant.earn_karo_url }}" }
+                { "store_name": "{{ coupon.store_name }}", "selling_price": "{{ coupon.selling_price|default:product.price_display }}", "coupon_code": "{{ coupon.coupon_code|default:'-' }}", "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}
     {% endfor %}
@@ -176,63 +215,69 @@
 </script>
 
 <script>
-function initDesktopZoom() {
-    if (window.innerWidth < 992) return;
-    var img = document.getElementById("mainProductImg");
-    var result = document.getElementById("zoomResult");
-    var container = document.getElementById("viewport");
-    if (!img || !result || !container) return; 
-
-    var oldLens = document.querySelector('.img-zoom-lens');
-    if (oldLens) oldLens.remove();
-    var lens = document.createElement("DIV");
-    lens.setAttribute("class", "img-zoom-lens");
-    container.insertBefore(lens, img);
-    
-    var zoomFactor = 3; 
-    result.style.backgroundImage = "url('" + img.src + "')";
-    result.style.backgroundSize = (img.width * zoomFactor) + "px " + (img.height * zoomFactor) + "px";
-    
-    container.onmousemove = function(e) {
-        var a = img.getBoundingClientRect();
-        var x = e.pageX - a.left - window.pageXOffset - (lens.offsetWidth / 2);
-        var y = e.pageY - a.top - window.pageYOffset - (lens.offsetHeight / 2);
-        if (x > img.width - lens.offsetWidth) x = img.width - lens.offsetWidth;
-        if (x < 0) x = 0;
-        if (y > img.height - lens.offsetHeight) y = img.height - lens.offsetHeight;
-        if (y < 0) y = 0;
-        lens.style.left = x + "px";
-        lens.style.top = y + "px";
-        result.style.backgroundPosition = "-" + (x * zoomFactor) + "px -" + (y * zoomFactor) + "px";
-    };
-    container.onmouseenter = () => { lens.style.display = "block"; result.style.display = "block"; };
-    container.onmouseleave = () => { lens.style.display = "none"; result.style.display = "none"; };
-}
-
-function syncVariant(element) {
+function syncVariant(el) {
     const mainImg = document.getElementById('mainProductImg');
-    mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + element.getAttribute('data-raw-url');
-    document.getElementById('variantCodeBadge').innerText = "Code: " + element.getAttribute('data-code');
+    const result = document.getElementById("zoomResult");
+    const lens = document.getElementById("lens");
+    const allData = JSON.parse(document.getElementById('nestedDealsData').textContent);
+    const code = el.getAttribute('data-code');
+    const deals = allData[code];
+
+    mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
     
-    const allDeals = JSON.parse(document.getElementById('nestedDealsData').textContent);
-    const deals = allDeals[element.getAttribute('data-code')];
+    if(deals) {
+        document.getElementById('storeDealsContainer').innerHTML = deals.map(d => 
+            `<tr><td>${d.store_name}</td><td>${d.coupon_code}</td><td><strong>₹${d.selling_price}</strong></td></tr>`
+        ).join('');
+        document.getElementById('masterShopNowBtn').href = deals[0].url;
+    }
     
-    document.getElementById('storeDealsContainer').innerHTML = deals.map(d => {
-        let savings = parseFloat(d.discount) > 0 ? ` <br><small style="color:green; font-weight:600;">Bachta hai: ₹${d.discount}</small>` : '';
-        return `<tr>
-            <td><span class="store-badge badge-generic" style="background:#f1f5f9; padding:4px 8px; border-radius:4px;">${d.store_name}</span></td>
-            <td>${d.coupon_code || '-'}</td>
-            <td><strong>₹${d.selling_price}</strong>${savings}</td>
-        </tr>`;
-    }).join('');
-    
-    document.getElementById('masterShopNowBtn').href = deals[0].url;
     document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
-    element.classList.add('thumb-active');
-    
-    mainImg.onload = initDesktopZoom;
-    initDesktopZoom();
+    el.classList.add('thumb-active');
+
+    mainImg.onload = () => {
+        // Zoom ka background size set karo (3x zoom)
+        result.style.backgroundImage = "url('" + mainImg.src + "')";
+        result.style.backgroundSize = (mainImg.width * 3) + "px " + (mainImg.height * 3) + "px";
+        
+        mainImg.onmousemove = (e) => {
+            const pos = mainImg.getBoundingClientRect();
+            let x = e.clientX - pos.left;
+            let y = e.clientY - pos.top;
+            
+            lens.style.display = "block";
+            result.style.display = "block";
+            
+            // Lens ko mouse ke beech mein rakho
+            lens.style.left = (x - 50) + "px";
+            lens.style.top = (y - 50) + "px";
+            
+            // Result position (3x zoom ke hisaab se)
+            result.style.backgroundPosition = "-" + (x * 3 - 200) + "px -" + (y * 3 - 200) + "px";
+        };
+        mainImg.onmouseleave = () => { lens.style.display = "none"; result.style.display = "none"; };
+    };
 }
 document.addEventListener("DOMContentLoaded", () => syncVariant(document.querySelector('.thumb-img')));
+
+document.getElementById('shareButton').addEventListener('click', async () => {
+    const shareData = {
+        title: "{{ product.title }}",
+        text: "Check out this amazing deal: {{ product.title }} at a great price!",
+        url: window.location.href // Ye current page ka link share karega
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            // Agar browser support nahi karta, toh link copy kar lo
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link copied to clipboard!");
+        }
+    } catch (err) {
+        console.error('Error sharing:', err);
+    }
+});
 </script>
 {% endblock %}

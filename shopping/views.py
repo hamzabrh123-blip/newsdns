@@ -88,7 +88,17 @@ def category_detail(request, slug):
 
 def product_detail(request, slug):
     context = get_base_context()
-    context['product'] = get_object_or_404(Product.objects.prefetch_related('variants'), slug=slug)
+    
+    # 1. Product fetch karo
+    product = get_object_or_404(Product.objects.prefetch_related('variants'), slug=slug)
+    context['product'] = product
+    
+    context['related_products'] = Product.objects.filter(
+        category=product.category
+    ).exclude(
+        id=product.id
+    ).order_by('-id')[:4]
+    
     return render(request, 'shopping/product_detail.html', context)
 
 def product_search(request):
