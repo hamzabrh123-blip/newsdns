@@ -1,12 +1,30 @@
 {% extends 'shopping/shop_base.html' %}
+{% load static %}
+
 {% block content %}
+<!-- Terms of Service Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Terms of Service - Uttar World Elite Lifestyle Store",
+  "description": "Read our terms and conditions for using Uttar World Elite Lifestyle Store.",
+  "url": "{{ request.build_absolute_uri }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <h2 class="fw-bold mb-4">Terms of Service</h2>
             <hr class="mb-4">
             
-            <p>Welcome to <strong>Uttar World Elite Lifestyle Store</strong>. These terms and conditions outline the rules and regulations for the use of our website, located at https://uttarworld.com.</p>
+            <p>Welcome to <strong>Uttar World Elite Lifestyle Store</strong>. These terms and conditions outline the rules and regulations for the use of our website, located at <a href="https://uttarworld.com">https://uttarworld.com</a>.</p>
             
             <h4 class="mt-4">1. Acceptance of Terms</h4>
             <p>By accessing this website, we assume you accept these terms and conditions. Do not continue to use <strong>Uttar World Elite Lifestyle Store</strong> if you do not agree to all of the terms and conditions stated on this page.</p>

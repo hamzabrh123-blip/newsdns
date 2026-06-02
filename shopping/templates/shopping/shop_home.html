@@ -1,6 +1,24 @@
 {% extends "shopping/shop_base.html" %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Products at Uttar World",
+  "description": "Explore our wide collection of home, kitchen, and lifestyle products.",
+  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "itemListElement": [
+    {% for product in products %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link rel="preconnect" href="https://i.ibb.co" crossorigin>
 <link rel="dns-prefetch" href="https://res.cloudinary.com">

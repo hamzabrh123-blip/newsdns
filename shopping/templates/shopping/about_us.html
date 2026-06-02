@@ -1,5 +1,23 @@
 {% extends 'shopping/shop_base.html' %}
+{% load static %}
+
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "About Us - Uttar World",
+  "description": "Learn more about Uttar World, your trusted source for home, kitchen, and lifestyle products.",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}"
+  }
+}
+</script>
+
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">

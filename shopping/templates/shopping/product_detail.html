@@ -45,7 +45,26 @@
     "priceCurrency": "INR",
     "price": "{{ product.price_display }}",
     "itemCondition": "https://schema.org/NewCondition",
-    "availability": "https://schema.org/InStock"
+    "availability": "https://schema.org/InStock",
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "IN",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 10
+    },
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": 0,
+        "currency": "INR"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+        "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5 }
+      }
+    }
   }
 }
 </script>

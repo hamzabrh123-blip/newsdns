@@ -1,8 +1,25 @@
 {% extends 'shopping/shop_base.html' %}
+{% load static %}
 
 {% block title %}Privacy Policy | Uttar World Elite Store{% endblock %}
 
 {% block content %}
+<!-- Privacy Policy Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Privacy Policy - Uttar World Elite Store",
+  "description": "Our commitment to protecting your privacy, how we handle navigation data, and our affiliate disclosure.",
+  "url": "{{ request.build_absolute_uri }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Uttar World",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+
 <div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333;">
     
     <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Privacy Policy</h1>
@@ -39,7 +56,7 @@
     <h3 style="color: #2c3e50; margin-top: 25px;">7. Contact Us</h3>
     <p>If you have any questions regarding this Privacy Policy or your experience at Uttar World Elite Store, please contact us:</p>
     <p>
-        <strong>Email:</strong> <a href="mailto:support@uttarworld.com">support@uttarworld.com</a><br>
+        <strong>Email:</strong> <a href="mailto:uttarworld.com@gmail.com">uttarworld.com@gmail.com</a><br>
         <strong>Website:</strong> <a href="https://uttarworld.com">https://uttarworld.com</a>
     </p>
 

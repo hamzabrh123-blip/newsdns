@@ -1,6 +1,32 @@
 {% extends "shopping/shop_base.html" %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ category.name }}",
+  "description": "Explore our collection of {{ category.name }} at Uttar World.",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for product in products %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "Product",
+          "name": "{{ product.title }}",
+          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
+          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}"
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
 <style>
     .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
     .product-card { border-radius: 12px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
