@@ -178,7 +178,7 @@
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
                     <p style="font size:12px;" class="card-text text-danger font-weight-bold">₹{{ item.price_display }} 
-                        {% if product.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">₹{{ product.mrp_price }}</span></span>{% endif %}
+                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">₹{{ item.mrp_price }}</span></span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
                 </div>
