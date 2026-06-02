@@ -21,7 +21,7 @@ def get_base_context():
 # 1. CORE SHOPPING VIEWS
 # ==========================================
 
-
+@cache_page(60 * 5)
 
 def shop_home(request):
     # 1. Categories aur Sliders ko Random Order mein set kiya
