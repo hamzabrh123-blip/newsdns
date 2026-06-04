@@ -1,5 +1,6 @@
-from django.urls import path
+from django.urls import path, re_path
 from django.http import HttpResponse
+from django.views.generic.base import RedirectView
 from . import views
 
 # --- SEO & Utility Functions ---
@@ -21,9 +22,14 @@ urlpatterns = [
     # 2. सर्च और फिल्टर
     path('search/', views.product_search, name='product_search'), 
     
-    # 3. कैटेगरी और प्रोडक्ट
+    # 3. कैटेगरी और प्रोडक्ट (Main Structure)
     path('category/<slug:slug>/', views.category_detail, name='category_detail'),
     path('product/<slug:slug>/', views.product_detail, name='product_detail'),
+    
+    # --- SEO Redirects (Purane /shopping/ links ko fix karne ke liye) ---
+    path('shopping/', RedirectView.as_view(url='/', permanent=True)),
+    re_path(r'^shopping/category/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/category/%(slug)s/', permanent=True)),
+    re_path(r'^shopping/product/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
     
     # 4. ELITE POLICY & ABOUT PAGES
     path('about_us/', views.about_us, name='about_us'),

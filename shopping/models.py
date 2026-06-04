@@ -39,19 +39,29 @@ class Category(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     image = models.ImageField(upload_to='categories/', null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
+    
+    # SEO फील्ड्स
+    description = RichTextUploadingField(blank=True, null=True, help_text="कैटेगरी के बारे में विस्तार से लिखें")
+    meta_keywords = models.TextField(blank=True, null=True, help_text="कीवर्ड्स को कॉमा (,) से अलग करें")
 
     def save(self, *args, **kwargs):
-        if not self.slug: self.slug = slugify(unidecode(self.name))
+        if not self.slug: 
+            self.slug = slugify(unidecode(self.name))
+        
         url_val = str(self.image_url) if self.image_url else ""
         is_new_img = bool(self.image and "i.ibb.co" not in url_val)
         super().save(*args, **kwargs)
-        if is_new_img: self.handle_upload()
+        
+        if is_new_img: 
+            self.handle_upload()
 
     def handle_upload(self):
         try:
             new_url = process_and_upload_to_imgbb(self, is_shop=True)
-            if new_url: Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
-        except Exception as e: print(f"Category Error: {e}")
+            if new_url: 
+                Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
+        except Exception as e: 
+            print(f"Category Error: {e}")
 
     def __str__(self): return self.name
 
@@ -87,43 +97,44 @@ class Product(models.Model):
 
     def __str__(self): return self.title
 
-# --- 4. ProductVariant (Final Corrected Version) ---
 class ProductVariant(models.Model):
-    product = models.ForeignKey(Product, related_name='variants', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', related_name='variants', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='variants/', null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     earn_karo_url = models.URLField(max_length=700)
     variant_code = models.CharField(max_length=20, blank=True, unique=True)
 
     def save(self, *args, **kwargs):
-        # 1. Variant code generation logic
+        # 1. Variant Code Logic
         if not self.variant_code:
             prefix = "".join([word[0] for word in self.product.title.split()[:2]]).upper()
             self.variant_code = f"{prefix}-{str(uuid.uuid4())[:4].upper()}"
         
-        # 2. Save first to generate PK
+        # 2. Pehle save karo taaki object ka primary key (ID) mil jaye
         super().save(*args, **kwargs)
         
-        # 3. Check for new image upload
+        # 3. Image check (Is "i.ibb.co" check se hum bar-bar upload hone se bachenge)
         url_val = str(self.image_url) if self.image_url else ""
         if self.image and "i.ibb.co" not in url_val:
             self.handle_variant_upload()
 
     def handle_variant_upload(self):
         try:
-            # Delay for database consistency
-            time.sleep(1)
-            # Fetch fresh instance
-            self.refresh_from_db()
+            # Database ko sync hone ka chhota sa time do
+            time.sleep(0.5)
             
+            # Naya URL get karo
             new_url = process_and_upload_to_imgbb(self, is_shop=True)
             
             if new_url:
-                # Update directly and save, no manual .update() filter needed
+                # Sirf image_url aur image fields ko update karo
                 self.image_url = new_url
                 self.image = None
-                # Use update_fields to avoid recursion and ensure Admin panel reflects changes
+                
+                # IMPORTANT: yahan 'force_update=True' mat use karna, 
+                # update_fields se hi kaam chal jayega bina recursion ke.
                 super().save(update_fields=['image_url', 'image'])
+                
         except Exception as e:
             print(f"Variant Upload Error: {e}")
 

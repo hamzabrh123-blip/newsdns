@@ -6,7 +6,8 @@
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "{{ category.name }}",
-  "description": "Explore our collection of {{ category.name }} at Uttar World.",
+  "description": "{{ category.description|striptags|truncatechars:160 }}",
+  "keywords": "{{ category.meta_keywords }}",
   "url": "{{ request.build_absolute_uri }}",
   "mainEntity": {
     "@type": "ItemList",
@@ -27,6 +28,7 @@
   }
 }
 </script>
+
 <style>
     .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
     .product-card { border-radius: 12px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
@@ -40,10 +42,14 @@
     @media (max-width: 576px) { .auto-slider-container { height: 230px; } }
     .product-auto-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.6s ease-in-out; }
     .product-auto-img.active { opacity: 1; }
+    .seo-text { color: #555; font-size: 0.9rem; line-height: 1.6; margin-top: 40px; padding: 20px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; }
 </style>
 
 <div class="container mt-3">
+    <!-- Category Name -->
     <h4 class="fw-bold mb-3">{{ category.name }}</h4>
+    
+    <!-- Product Grid -->
     <div class="row gx-2 gy-3">
         {% for product in products %}
         <div class="col-md-3 col-6">
@@ -57,7 +63,7 @@
                     
                     <div class="auto-slider-container">
                         {% for variant in variants %}
-                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="Product">
+                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="{{ product.title }}">
                         {% empty %}
                             <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active">
                         {% endfor %}
@@ -79,60 +85,64 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ products.number }} / {{ products.paginator.num_pages }}</span></li>
+            {% if products.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ products.paginator.num_pages }}">Last &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- SEO Description Section Moved to Bottom -->
+    {% if category.description %}
+    <div class="seo-text">
+        {{ category.description|safe }}
+    </div>
+    {% endif %}
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const productCards = document.querySelectorAll('.js-product-card');
-        
         productCards.forEach(card => {
             const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
             const selling = parseFloat(card.getAttribute('data-selling')) || 0;
             const storeName = card.getAttribute('data-store-name');
             const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
-
             const finalPriceEl = card.querySelector('.js-final-price');
             const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
             const mrpPriceEl = card.querySelector('.js-mrp-price');
             const storeBadgeEl = card.querySelector('.js-store-badge');
 
-            if (storeBadgeEl && storeName) {
-                storeBadgeEl.innerText = storeName;
-            }
-
+            if (storeBadgeEl && storeName) storeBadgeEl.innerText = storeName;
             if (finalPriceEl) {
                 if (variantsPricesStr) {
-                    const prices = variantsPricesStr.split(',')
-                                                    .map(p => parseFloat(p))
-                                                    .filter(p => !isNaN(p) && p > 0);
-                    
-                    // यहाँ 'Infinity' का चेक लगा दिया है
+                    const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        
-                        if (minPrice !== maxPrice) {
-                            finalPriceEl.innerText = '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0);
-                        } else {
-                            finalPriceEl.innerText = '₹' + minPrice.toFixed(0);
-                        }
+                        finalPriceEl.innerText = (minPrice !== maxPrice) ? '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0) : '₹' + minPrice.toFixed(0);
                     } else {
-                        // अगर वेरिएंट प्राइस नहीं है तो selling प्राइस दिखाओ
                         finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
                     }
                 } else {
                     finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
                 }
             }
-            
             if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
                 mrpPriceEl.innerText = '₹' + mrp.toFixed(0);
                 mrpWrapperEl.style.display = 'inline-block';
-            } else if (mrpWrapperEl) {
-                mrpWrapperEl.style.display = 'none';
             }
         });
 
-        // ऑटो इमेज स्लाइडर लॉजिक (जो तेरा पुराना है)
         const containers = document.querySelectorAll('.auto-slider-container');
         containers.forEach(container => {
             const images = container.querySelectorAll('.product-auto-img');
@@ -146,6 +156,5 @@
             }
         });
     });
-
 </script>
 {% endblock %}

@@ -139,7 +139,10 @@ class HomeSliderAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'category_icon')
-    fields = ('name', 'slug', 'image', 'image_url')
+    
+    # Yahan description aur meta_keywords add kar diye hain
+    fields = ('name', 'slug', 'image', 'image_url', 'description', 'meta_keywords')
+    
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('image_url',)
 
@@ -153,8 +156,7 @@ class CategoryAdmin(admin.ModelAdmin):
                 pass
         return "No Icon"
     category_icon.short_description = 'Icon'
-
-
+    
 # --- 6. Dropdown Menu Manager Admin 🚀 ---
 @admin.register(DropdownMenu)
 class DropdownMenuAdmin(admin.ModelAdmin):

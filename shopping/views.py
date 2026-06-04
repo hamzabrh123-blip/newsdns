@@ -82,20 +82,26 @@ def shop_home(request):
         })
 
 def category_detail(request, slug):
-    context = get_base_context()
+    # 1. Base context (Menu aur doosri common cheezein yahan se aati hain)
+    context = get_base_context() 
+    
+    # 2. Category fetch karo
     category = get_object_or_404(Category, slug=slug)
     
-    # Yahan .order_by('?') add kiya hai taaki products shuffle hote rahein
-    products = Product.objects.filter(category=category).prefetch_related('variants').order_by('?')
+    # 3. Products filter karo
+    products_list = Product.objects.filter(category=category, is_available=True).prefetch_related('variants').order_by('-id')
     
-    paginator = Paginator(products, 24)
+    # 4. Paginator logic
+    paginator = Paginator(products_list, 24)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    products = paginator.get_page(page_number)
     
+    # 5. Context update karo (Menu + Category + Products)
     context.update({
-        'category': category, 
-        'products': page_obj
+        'category': category,
+        'products': products,
     })
+    
     return render(request, 'shopping/category_detail.html', context)
 
 def product_detail(request, slug):
