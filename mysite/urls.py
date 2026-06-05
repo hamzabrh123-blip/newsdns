@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
 
 # Shopping views se sitemap
 from shopping.views import sitemap_shop_xml
@@ -21,6 +22,8 @@ def google_verify(request):
 urlpatterns = [
     # 1. Google Verification
     path("google21a82f00fad0f9b3.html", google_verify),
+
+    path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
     
     # 2. Shopping Sitemap
     path('sitemap.xml', sitemap_shop_xml, name='sitemap_shop'),    
