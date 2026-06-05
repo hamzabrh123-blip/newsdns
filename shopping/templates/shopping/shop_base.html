@@ -10,7 +10,7 @@
 <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
 
 
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"></link>
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 
     <meta name="keywords" content="Uttar World, premium fashion, innovative gadgets, online lifestyle store, curated global products, luxury accessories, buy gadgets online, latest fashion trends"></meta>
 
@@ -27,17 +27,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <script type="application/ld+json">
+   <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Uttar World Elite Lifestyle Store",
+  "url": "https://www.uttarworld.com",
+  "logo": "https://www.uttarworld.com/static/images/logo.png"
+}
+</script>
+
+<script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "Uttar World",
-  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "name": "Uttar World Elite Lifestyle Store",
+  "url": "https://www.uttarworld.com",
   "potentialAction": {
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'product_search' %}?q={search_term_string}"
+      "urlTemplate": "https://www.uttarworld.com/search/?q={search_term_string}"
     },
     "query-input": "required name=search_term_string"
   }
