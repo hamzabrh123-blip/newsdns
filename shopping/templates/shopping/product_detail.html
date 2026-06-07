@@ -226,7 +226,12 @@
     {% for variant in product.variants.all %}
         "{{ variant.variant_code }}": [
             {% for coupon in variant.coupons.all %}
-                { "store_name": "{{ coupon.store_name }}", "selling_price": "{{ coupon.selling_price|default:product.price_display }}", "coupon_code": "{{ coupon.coupon_code|default:'-' }}", "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" }{% if not forloop.last %},{% endif %}
+                { 
+                    "store_name": "{{ coupon.store_name }}", 
+                    "selling_price": "{{ coupon.selling_price|default:product.price_display }}", 
+                    "coupon_code": "{{ coupon.coupon_code|default:'-' }}", 
+                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" 
+                }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}
     {% endfor %}
