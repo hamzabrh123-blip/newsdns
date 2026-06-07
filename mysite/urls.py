@@ -24,7 +24,7 @@ urlpatterns = [
     path("google21a82f00fad0f9b3.html", google_verify),
 
     path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
-    
+    path('images/favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
     # 2. Shopping Sitemap
     path('sitemap.xml', sitemap_shop_xml, name='sitemap_shop'),    
     
