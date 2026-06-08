@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "cloudinary",
     "nested_admin",  
     "shopping",
+    "import_export",
     
     "ckeditor",
     "ckeditor_uploader",
