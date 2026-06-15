@@ -1,6 +1,5 @@
 # Sensitive files
 service_account.json
-shopping/indexing_utils.py
 
 shopping/credentials.json
 .env
