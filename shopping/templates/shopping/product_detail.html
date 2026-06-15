@@ -63,7 +63,7 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.title|escapejs }} | ₹{{ product.price_display }} Available" />
-<meta property="og:description" content="Best deals on {{ product.title }}. Buy now on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Life Style Store' }}." />
+<meta property="og:description" content="Get this for ₹{{ product.price_display }} (MRP ₹{{ product.mrp_price }}). Save ₹{{ product.mrp_price|add:product.price_display|stringformat:'s'|slice:'1:' }} on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Life Style Store' }}!" />
 <!-- Image with Dynamic Price Tag Overlay -->
 <meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}" />
 <meta property="og:image:width" content="1200" />
