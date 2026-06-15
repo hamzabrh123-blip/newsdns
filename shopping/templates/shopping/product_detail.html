@@ -58,12 +58,12 @@
 
 {% block meta %}
 
-<meta name="description" content="Buy {{ product.title }} at just ₹{{ product.price_display }}. Best deals, high quality, and fast shipping available only on Hamaramall. Shop now!">
-<meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, hamaramall deals, {{ product.category.name|default:'fashion' }} deals">
+<meta name="description" content="Buy {{ product.title }} at just ₹{{ product.price_display }}. Best deals, high quality, and fast shipping available only on Uttar World Elite Life Style Store. Shop now!">
+<meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, Uttar World Elite Life Style Store deals, {{ product.category.name|default:'fashion' }} deals">
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.title|escapejs }} | ₹{{ product.price_display }} Available" />
-<meta property="og:description" content="Best deals on {{ product.title }}. Buy now on Hamaramall." />
+<meta property="og:description" content="Best deals on {{ product.title }}. Buy now on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Life Style Store' }}." />
 <!-- Image with Dynamic Price Tag Overlay -->
 <meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}" />
 <meta property="og:image:width" content="1200" />
@@ -78,7 +78,7 @@
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ product.title }}">
-<meta name="twitter:description" content="Price: ₹{{ product.price_display }} - Premium quality, best price deal!">
+<meta name="twitter:description" content="Price: ₹{{ product.price_display }} - Premium quality deals at {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Lifestyle Store' }}!">
 <meta name="twitter:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
 {% endblock %}
 
