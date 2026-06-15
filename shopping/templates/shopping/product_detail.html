@@ -13,35 +13,46 @@
     "@type": "Brand",
     "name": "Uttar World Elite Lifestyle Store"
   },
-  "offers": {
-    "@type": "Offer",
-    "url": "{{ request.build_absolute_uri }}",
-    "priceCurrency": "INR",
-    "price": {{ product.price_display|slugify|cut:'-'|cut:' ' }},
-    "priceValidUntil": "2026-12-31",
-    "itemCondition": "https://schema.org/NewCondition",
-    "availability": "https://schema.org/InStock",
-    "hasMerchantReturnPolicy": {
-  "@type": "MerchantReturnPolicy",
-  "applicableCountry": "IN",
-  "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-  "merchantReturnDays": 10
-},
-"shippingDetails": {
-  "@type": "OfferShippingDetails",
-  "shippingRate": {
-    "@type": "MonetaryAmount",
-    "value": 0,
-    "currency": "INR"
+ "offers": {
+  "@type": "Offer",
+  "url": "{{ request.build_absolute_uri }}",
+  "priceCurrency": "INR",
+  "price": {{ product.price_display|slugify|cut:'-'|cut:' ' }},
+  "priceValidUntil": "2026-12-31",
+  "itemCondition": "https://schema.org/NewCondition",
+  "availability": "https://schema.org/InStock",
+  "hasMerchantReturnPolicy": {
+    "@type": "MerchantReturnPolicy",
+    "applicableCountry": "IN",
+    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+    "merchantReturnDays": 10
   },
-  "deliveryTime": {
-    "@type": "ShippingDeliveryTime",
-    "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
-    "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 7 }
+  "shippingDetails": {
+    "@type": "OfferShippingDetails",
+    "shippingRate": {
+      "@type": "MonetaryAmount",
+      "value": 0,
+      "currency": "INR"
+    },
+    "shippingDestination": {
+      "@type": "DefinedRegion",
+      "addressCountry": "IN"
+    },
+    "deliveryTime": {
+      "@type": "ShippingDeliveryTime",
+      "handlingTime": {
+        "@type": "QuantitativeValue",
+        "minValue": 1,
+        "maxValue": 2
+      },
+      "transitTime": {
+        "@type": "QuantitativeValue",
+        "minValue": 3,
+        "maxValue": 7
+      }
+    }
   }
-}
-  }
-}
+}}
 </script>
 {% endblock %}
 
