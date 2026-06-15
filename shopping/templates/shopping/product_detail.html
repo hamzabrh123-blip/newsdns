@@ -1,7 +1,37 @@
 {% extends "shopping/shop_base.html" %}
 {% load static %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.title|escapejs }}",
+  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}",
+  "description": "{{ product.title|escapejs|truncatechars:150 }}",
+  "sku": "{{ product.variants.all.0.variant_code|default:'N/A' }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "Uttar World Elite Lifestyle Store"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "INR",
+    "price": {{ product.price_display|slugify|cut:'-'|cut:' ' }},
+    "priceValidUntil": "2026-12-31",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "https://schema.org/InStock",
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "IN",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 10
+    }
+  }
+}
+</script>
+{% endblock %}
 
-{% block content %}
 {% block meta %}
 
 <meta name="description" content="Buy {{ product.title }} at just ₹{{ product.price_display }}. Best deals, high quality, and fast shipping available only on Hamaramall. Shop now!">
@@ -27,49 +57,9 @@
 <meta name="twitter:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
 {% endblock %}
 
-<script type="application/ld+json">
-{% with clean_price=product.price_display|slugify|cut:"-"|cut:" " %}
-{
-  "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": "{{ product.title|escapejs }}",
-  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}",
-  "description": "{{ product.title|escapejs }} - Premium quality product available at best price.",
-  "sku": "{{ product.variants.all.0.variant_code|default:'N/A' }}",
-  "brand": {
-    "@type": "Brand",
-    "name": "Uttar World Elite Lifestyle Store"
-  },
-  "offers": {
-    "@type": "Offer",
-    "url": "{{ request.build_absolute_uri }}",
-    "priceCurrency": "INR",
-    "price": "{{ clean_price }}",
-    "itemCondition": "https://schema.org/NewCondition",
-    "availability": "https://schema.org/InStock",
-    "hasMerchantReturnPolicy": {
-      "@type": "MerchantReturnPolicy",
-      "applicableCountry": "IN",
-      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": 10
-    },
-    "shippingDetails": {
-      "@type": "OfferShippingDetails",
-      "shippingRate": {
-        "@type": "MonetaryAmount",
-        "value": 0,
-        "currency": "INR"
-      },
-      "deliveryTime": {
-        "@type": "ShippingDeliveryTime",
-        "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
-        "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5 }
-      }
-    }
-  }
-}
-{% endwith %}
-</script>
+{% block content %}
+
+
 <style>
     .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; }
     .product-description-box {

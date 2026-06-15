@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from .models import Product, Category, HomeSlider, DropdownMenu
 import re
 import random
+from django.template.loader import render_to_string
+from django.http import JsonResponse
 from django.db.models import Q, IntegerField, Value, F, Max, Min
 from django.db.models.functions import Cast, Replace, Abs
 from django.core.paginator import Paginator
@@ -119,6 +121,27 @@ def product_detail(request, slug):
     ).order_by('?')[:12]  # Limit 12 aur Random Order
     
     return render(request, 'shopping/product_detail.html', context)
+
+def load_more_products(request):
+    page = int(request.GET.get('page', 1))
+    cat_slug = request.GET.get('cat_slug') # Yahan wo category slug aayega jis par click hua
+    
+    # Simple query: Agar category slug hai to uska product, warna sab
+    products = Product.objects.all().prefetch_related('variants').order_by('?')
+    if cat_slug:
+        products = products.filter(category__slug=cat_slug)
+        
+    paginator = Paginator(products, 8) # Ek baar mein 8 products load honge
+    page_obj = paginator.get_page(page)
+    
+    products_html = render_to_string('shopping/product_list_partial.html', {'products': page_obj})
+    
+    return JsonResponse({
+        'html': products_html,
+        'has_next': page_obj.has_next(),
+    })
+
+
 
 def product_search(request):
     context = get_base_context()

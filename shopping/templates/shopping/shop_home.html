@@ -43,7 +43,6 @@
     {% if is_homepage %}
         {% for main_section in homepage_sections %}
             <div class="mb-4 mt-5">
-                <h4 class="fw-bold text-dark border-start border-danger border-4 ps-2">{{ main_section.main_category_name }}</h4>
                 <hr class="mt-2 mb-4 text-muted opacity-25">
             </div>
             {% for sub_section in main_section.sub_sections %}
@@ -106,6 +105,16 @@
         </div>
     {% endif %}
 </div>
+
+{% if products.has_next %}
+    <div class="text-center mt-5 mb-5">
+        <button id="load-more-btn" class="btn btn-primary" data-page="2" 
+                data-cat="{{ category.slug|default:cat_slug|default:'' }}" 
+                data-q="{{ query|default:'' }}">
+            Load More Products
+        </button>
+    </div>
+{% endif %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const productCards = document.querySelectorAll('.js-product-card');

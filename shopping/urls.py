@@ -21,6 +21,8 @@ urlpatterns = [
     
     # 2. सर्च और फिल्टर
     path('search/', views.product_search, name='product_search'), 
+
+    path('load-more/', views.load_more_products, name='load_more_products'),
     
     # 3. कैटेगरी और प्रोडक्ट (Main Structure)
     path('category/<slug:slug>/', views.category_detail, name='category_detail'),
