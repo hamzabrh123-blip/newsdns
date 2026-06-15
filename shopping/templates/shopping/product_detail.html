@@ -22,11 +22,24 @@
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "https://schema.org/InStock",
     "hasMerchantReturnPolicy": {
-      "@type": "MerchantReturnPolicy",
-      "applicableCountry": "IN",
-      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": 10
-    }
+  "@type": "MerchantReturnPolicy",
+  "applicableCountry": "IN",
+  "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+  "merchantReturnDays": 10
+},
+"shippingDetails": {
+  "@type": "OfferShippingDetails",
+  "shippingRate": {
+    "@type": "MonetaryAmount",
+    "value": 0,
+    "currency": "INR"
+  },
+  "deliveryTime": {
+    "@type": "ShippingDeliveryTime",
+    "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+    "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 7 }
+  }
+}
   }
 }
 </script>
@@ -38,12 +51,13 @@
 <meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, hamaramall deals, {{ product.category.name|default:'fashion' }} deals">
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
-<meta property="og:title" content="{{ product.title }}">
-<meta property="og:description" content="Price: ₹{{ product.price_display }} | MRP: ₹{{ product.mrp_price }} - Best deal on {{ product.title }}!">
+<meta property="og:title" content="{{ product.title|escapejs }} | ₹{{ product.price_display }} Available" />
+<meta property="og:description" content="Best deals on {{ product.title }}. Buy now on Hamaramall." />
 <!-- Image with Dynamic Price Tag Overlay -->
-<meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
+<meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:site_name" content="Hamaramall">
 
 <!-- Product Specific Data (Facebook AI ko batane ke liye) -->
 <meta property="product:price:amount" content="{{ product.price_display }}">
