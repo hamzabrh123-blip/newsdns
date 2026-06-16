@@ -62,7 +62,7 @@
 <meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, Uttar World Elite Life Style Store deals, {{ product.category.name|default:'fashion' }} deals">
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
-<meta property="og:title" content="{{ product.title|escapejs }} | ₹{{ product.price_display }} Available" />
+<meta property="og:title" content="{{ product.title|safe }} | ₹{{ product.price_display }} Available" />
 <meta property="og:description" content="Get this for just ₹{{ product.variants.all.0.coupons.all.0.selling_price|default:product.price_display }}! Save ₹{{ product.price_display|add:product.variants.all.0.coupons.all.0.selling_price|stringformat:'s'|slice:'1:' }} with coupon on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Lifestyle Store' }}." />
 <!-- Image with Dynamic Price Tag Overlay -->
 <meta property="og:image" content="{{ product.variants.all.0.image_url }}" />
