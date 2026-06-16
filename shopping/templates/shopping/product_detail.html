@@ -65,8 +65,7 @@
 <meta property="og:title" content="{{ product.title|escapejs }} | ₹{{ product.price_display }} Available" />
 <meta property="og:description" content="Get this for just ₹{{ product.variants.all.0.coupons.all.0.selling_price|default:product.price_display }}! Save ₹{{ product.price_display|add:product.variants.all.0.coupons.all.0.selling_price|stringformat:'s'|slice:'1:' }} with coupon on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Lifestyle Store' }}." />
 <!-- Image with Dynamic Price Tag Overlay -->
-<meta property="og:image" content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}" />
-
+<meta property="og:image" content="{{ product.variants.all.0.image_url }}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
