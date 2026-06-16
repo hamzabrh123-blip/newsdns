@@ -3,45 +3,28 @@
 <html lang="hi">
 <head>
     <title>{% block title %}Uttar World Elite Lifestyle Store{% endblock %}</title>
-
 {% block meta %}
-<meta charset="UTF-8">
-<meta name="description" content="Uttar World is your premium destination for curated global fashion, innovative gadgets, and lifestyle essentials. Shop the latest trends with exclusive deals and quality assurance.">
-<meta name="keywords" content="Uttar World, premium fashion, innovative gadgets, online lifestyle store, curated global products, luxury accessories, buy gadgets online, latest fashion trends"></meta>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Uttar World is your premium destination for curated global fashion, innovative gadgets, and lifestyle essentials.">
+        
+        <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+        <meta property="og:type" content="website" />
 
-<meta property="og:url" content="{{ request.build_absolute_uri }}" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Uttar World - {{ product.name }}" />
-<meta property="og:description" content="{{ product.description|truncatewords:20 }}" />
-<meta property="og:image" content="{{ product.image.url }}" />
-
-{% endblock %}
-{% block extra_meta %}
-    <meta property="og:image" content="{{ category.image.url }}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-{% endblock %}
-
-
-{% block meta %}
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Product ka logic sirf tab chala jab product page ho -->
-{% if product %}
-    <meta property="og:title" content="Uttar World - {{ product.title }}">
-    <meta property="og:description" content="{{ product.description|truncatewords:20 }}">
-    <meta property="og:image" content="{{ product.variants.all.0.image_url }}">
-{% else %}
-    <!-- Category ya home page ke liye default -->
-    <meta property="og:title" content="Uttar World Elite Lifestyle Store">
-    <meta property="og:description" content="Shop premium fashion and gadgets at Uttar World.">
-    {% if category and category.image %}
-        <meta property="og:image" content="{{ category.image.url }}">
-    {% else %}
-        <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png">
-    {% endif %}
-{% endif %}
-{% endblock %}
+        {% if product %}
+            <meta property="og:title" content="Uttar World - {{ product.title }}">
+            <meta property="og:description" content="{{ product.description|truncatewords:20 }}">
+            <meta property="og:image" content="{{ product.variants.all.0.image_url }}">
+        {% else %}
+            <meta property="og:title" content="Uttar World Elite Lifestyle Store">
+            <meta property="og:description" content="Shop premium fashion and gadgets at Uttar World.">
+            {% if category and category.image %}
+                <meta property="og:image" content="{{ category.image.url }}">
+            {% else %}
+                <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png">
+            {% endif %}
+        {% endif %}
+    {% endblock %}
 
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client }}" crossorigin="anonymous"></script>
     
