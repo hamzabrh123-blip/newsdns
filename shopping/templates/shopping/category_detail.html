@@ -1,4 +1,14 @@
 {% extends "shopping/shop_base.html" %}
+{% block meta_tags %}
+    
+    <!-- Facebook Meta Tags -->
+    <meta property="og:title" content="{{ category.name }}" />
+    <meta property="og:image" content="{{ category.image.url }}" />
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Uttar World Elite Lifestyle Store" />
+
+{% endblock %}
 
 {% block content %}
 <script type="application/ld+json">
