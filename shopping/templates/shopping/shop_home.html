@@ -1,15 +1,15 @@
 {% extends "shopping/shop_base.html" %}
 
-{% block content %}
+{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "Products at Uttar World Elite Lifestyle Store",
   "description": "Explore our wide collection of home, kitchen, and lifestyle products.",
-  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "url": "{{ request.build_absolute_uri }}",
   "itemListElement": [
-    {% for product in products %}
+    {% for product in products|slice:":20" %}
     {
       "@type": "ListItem",
       "position": {{ forloop.counter }},
@@ -19,6 +19,12 @@
   ]
 }
 </script>
+{% endblock %}
+
+
+
+{% block content %}
+
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link rel="preconnect" href="https://i.ibb.co" crossorigin>
 <link rel="dns-prefetch" href="https://res.cloudinary.com">

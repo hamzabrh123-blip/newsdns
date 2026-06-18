@@ -1,8 +1,7 @@
 {% extends 'shopping/shop_base.html' %}
 {% load static %}
 
-{% block content %}
-<!-- Refund & Returns Policy Schema -->
+{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -12,9 +11,13 @@
   "merchantReturnDays": 7,
   "refundType": "https://schema.org/FullRefund",
   "customerRemorseReturnFees": "https://schema.org/FreeReturn",
-  "returnMethod": "https://schema.org/ReturnByMail"
+  "returnMethod": "https://schema.org/ReturnByMail",
+  "url": "{{ request.build_absolute_uri }}"
 }
 </script>
+{% endblock %}
+
+{% block content %}
 
 <div class="container my-5" style="max-width: 800px;">
     <h2 class="fw-bold mb-4">Refund & Returns Policy</h2>

@@ -1,8 +1,7 @@
 {% extends 'shopping/shop_base.html' %}
 {% load static %}
 
-{% block content %}
-<!-- Terms of Service Schema -->
+{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,6 +16,8 @@
   }
 }
 </script>
+{% endblock %}
+{% block content %}
 
 <div class="container my-5">
     <div class="row justify-content-center">

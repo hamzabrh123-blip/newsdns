@@ -1,10 +1,7 @@
 {% extends 'shopping/shop_base.html' %}
 {% load static %}
 
-{% block title %}Privacy Policy | Uttar World Elite Store{% endblock %}
-
-{% block content %}
-<!-- Privacy Policy Schema -->
+{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -19,6 +16,11 @@
   }
 }
 </script>
+{% endblock %}
+
+{% block title %}Privacy Policy | Uttar World Elite Store{% endblock %}
+
+{% block content %}
 
 <div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333;">
     

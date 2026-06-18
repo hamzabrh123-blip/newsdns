@@ -1,8 +1,6 @@
 {% extends 'shopping/shop_base.html' %}
 {% load static %}
-
-{% block content %}
-<!-- Shipping Policy Schema -->
+{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -19,12 +17,15 @@
     },
     "deliveryTime": {
       "@type": "ShippingDeliveryTime",
-      "handlingTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 3 },
-      "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 10 }
+      "handlingTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 3, "unitCode": "d" },
+      "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 10, "unitCode": "d" }
     }
   }
 }
 </script>
+{% endblock %}
+
+{% block content %}
 
 <div class="container my-5" style="max-width: 800px;">
     <h2 class="fw-bold mb-4">Shipping & Delivery Policy</h2>

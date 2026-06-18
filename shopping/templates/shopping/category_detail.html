@@ -1,4 +1,34 @@
 {% extends "shopping/shop_base.html" %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ category.name|escapejs }}",
+  "description": "{{ category.description|striptags|truncatechars:160|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for product in products|slice:":20" %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "Product",
+          "name": "{{ product.title|escapejs }}",
+          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
+          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url|default:'/static/images/default.png' }}"
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
 {% block meta %}
     <meta property="og:title" content="{{ category.name }} | Uttar World" />
     <meta property="og:url" content="{{ request.build_absolute_uri }}" />
@@ -15,33 +45,7 @@
 {% endblock %}
 
 {% block content %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": "{{ category.name }}",
-  "description": "{{ category.description|striptags|truncatechars:160 }}",
-  "keywords": "{{ category.meta_keywords }}",
-  "url": "{{ request.build_absolute_uri }}",
-  "mainEntity": {
-    "@type": "ItemList",
-    "itemListElement": [
-      {% for product in products %}
-      {
-        "@type": "ListItem",
-        "position": {{ forloop.counter }},
-        "item": {
-          "@type": "Product",
-          "name": "{{ product.title }}",
-          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
-          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}"
-        }
-      }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ]
-  }
-}
-</script>
+
 
 <style>
     .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }

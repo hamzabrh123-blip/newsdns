@@ -29,12 +29,14 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client }}" crossorigin="anonymous"></script>
     
 {% block extra_head %}
-   <script type="application/ld+json">
+<script type="application/ld+json">
+{
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Uttar World Elite Lifestyle Store",
   "url": "https://www.uttarworld.com",
   "logo": "https://www.uttarworld.com/static/images/uttarworld-shopping-icon.png"
+}
 </script>
 
 <script type="application/ld+json">
@@ -54,7 +56,6 @@
 }
 </script>
 {% endblock %}
-
 <link rel="icon" href="{% static 'images/favicon.ico' %}">
 <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
 <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
