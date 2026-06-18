@@ -57,25 +57,18 @@
 {% endblock %}
 
 {% block meta %}
-
 <meta name="description" content="Buy {{ product.title }} at just ₹{{ product.price_display }}. Best deals, high quality, and fast shipping available only on Uttar World Elite Life Style Store. Shop now!">
 <meta name="keywords" content="{{ product.title }}, {{ product.title|slugify }}, online shopping india, best price {{ product.title }}, buy {{ product.title }} online, Uttar World Elite Life Style Store deals, {{ product.category.name|default:'fashion' }} deals">
-<!-- Open Graph / Facebook -->
 <meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.title|safe }} | ₹{{ product.price_display }} Available" />
 <meta property="og:description" content="Get this for just ₹{{ product.variants.all.0.coupons.all.0.selling_price|default:product.price_display }}! Save ₹{{ product.price_display|add:product.variants.all.0.coupons.all.0.selling_price|stringformat:'s'|slice:'1:' }} with coupon on {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Lifestyle Store' }}." />
-<!-- Image with Dynamic Price Tag Overlay -->
 <meta property="og:image" content="{{ product.variants.all.0.image_url }}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-
-<!-- Product Specific Data (Facebook AI ko batane ke liye) -->
 <meta property="product:price:amount" content="{{ product.price_display }}">
 <meta property="product:price:currency" content="INR">
 <meta property="product:availability" content="in stock">
-
-<!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ product.title }}">
 <meta name="twitter:description" content="Price: ₹{{ product.price_display }} - Premium quality deals at {{ product.variants.all.0.coupons.all.0.store_name|default:'Uttar World Elite Lifestyle Store' }}!">
@@ -83,64 +76,10 @@
 {% endblock %}
 
 {% block content %}
-
-
 <style>
     .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; }
-    .product-description-box {
-        font-size: 13px;
-        color: #555;
-        line-height: 1.6;
-        max-height: 400px;
-        text-align:justify;
-        overflow-y: auto;
-        border: 1px solid #eee;
-        padding: 15px;
-        border-radius: 8px;
-    }
-    .product-description-box h3 {
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        margin-top: 15px !important;
-        margin-bottom: 8px !important;
-        color: #222;
-    }
-
-    .product-description-box h4 {
-        font-size: 14px !important;
-        font-weight: 700 !important;
-        margin-top: 12px !important;
-        margin-bottom: 6px !important;
-        color: #444;
-        text-transform: uppercase; /* Agar alag dikhana hai */
-        letter-spacing: 0.5px;
-    }
-
-    /* Description box ke andar ke UL aur LI ko style karo */
-    .product-description-box ul {
-        list-style: none; /* Default bullet hatao */
-        padding-left: 0;
-    }
-
-    .product-description-box li {
-        position: relative;
-        padding-left: 25px; /* Icon ke liye space */
-        margin-bottom: 12px;
-        font-size: 14px;
-        line-height: 1.5;
-        color: #444;
-    }
-
-    /* Dynamic Icon (Checkmark) */
-    .product-description-box li::before {
-        content: '✓'; /* Tum yahan koi bhi emoji ya symbol daal sakte ho */
-        position: absolute;
-        left: 0;
-        color: #ff9900; /* Tera button wala color */
-        font-weight: bold;
-    }
-    .product-title { font-size: 18px !important; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; line-height: 1.3; }
-    .img-zoom-container { position: relative; width: 100%; display: flex; justify-content: center; overflow: visible; }
+    .product-description-box { font-size: 13px; color: #555; line-height: 1.6; max-height: 400px; text-align:justify; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 8px; }
+    .img-zoom-container { position: sticky; top: 140px; width: 100%; display: flex; justify-content: center; }
     .main-img-viewport { position: relative; width: 100%; min-height: 380px; display: flex; align-items: center; justify-content: center; background: #fbfbfb; border-radius: 12px; border: 1px solid #f0f0f0; }
     #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; cursor: crosshair; }
     .img-zoom-lens { position: absolute; width: 100px; height: 100px; border: 2px solid #ccc; background: rgba(0,0,0,0.1); cursor: crosshair; display: none; z-index: 10; pointer-events: none; }
@@ -150,18 +89,7 @@
     .thumb-img { width: 60px; height: 75px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 10px; transition: 0.2s; }
     .thumb-active { border-color: #2563eb !important; border-width: 2px; }
     .btn-main-shop-now { display: block; background: #ff9900; color: #000; text-align: center; padding: 12px; border-radius: 30px; font-weight: 700; text-decoration: none; }
-/* Yahan maine sticky fix kiya hai */
-    .img-zoom-container { 
-        position: sticky; 
-        top: 140px; 
-        width: 100%; 
-        display: flex; 
-        justify-content: center; 
-    }
-
     .card-img-top { height: 350px; width:100%; object-fit: cover; border-radius: 8px; }
-    .card {margin:-10px; }
-    .card:hover { transform: translateY(-5px); transition: 0.3s; }
 </style>
 
 <div class="container mt-4">
@@ -183,8 +111,9 @@
         </div>
 
         <div class="col-md-6">
-            <h1 class="product-title">{{ product.title }}</h1>
+            <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
+               
                 <span class="price-tag">₹{{ product.price_display|slugify|cut:'-'|cut:' ' }}</span>
                 {% if product.mrp_price %}<span class="mrp-text">₹{{ product.mrp_price }}</span>{% endif %}
             </div>
@@ -193,11 +122,16 @@
                     <thead><tr><th>Store</th><th>Coupon</th><th>Price</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
+                 <div class="product-code-display text-center mt-3">
+                <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
+                    Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
+                </span>
+            </div><hr>
                 <a href="#" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
             </div>
             <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
-    <i class="bi bi-share"></i> SHARE THIS DEAL
-</button>
+                <i class="bi bi-share"></i> SHARE THIS DEAL
+            </button>
             <div class="mt-4 product-description-box">{{ product.long_description|safe }}</div>
         </div>
     </div>
@@ -213,7 +147,7 @@
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <p style="font size:12px;" class="card-text text-danger font-weight-bold">₹{{ item.price_display }} 
+                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">₹{{ item.price_display }} 
                         {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">₹{{ item.mrp_price }}</span></span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
@@ -223,21 +157,18 @@
         {% endfor %}
     </div>
 </div>
-<hr>
-<!-- Full Width Category CTA -->
+
 <div class="container-fluid my-5">
     <div class="row">
         <div class="col-12 text-center py-5" style="background: #ffffff; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
             <h4 class="mb-3" style="font-weight: 700;">Discover the Best Deals on {{ product.category.name }}!</h4>
-            <p class="text-muted mb-4">We have curated the finest and most affordable {{ product.category.name }} collection just for you.</p>
-            
-            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" 
-               style="background: #ff9900; color: #000; border-radius: 50px; font-size: 18px; font-weight: 800; text-transform: uppercase;">
+            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" style="background: #ff9900; color: #000; border-radius: 50px; font-size: 18px; font-weight: 800; text-transform: uppercase;">
                 Explore All {{ product.category.name|upper }} <i class="bi bi-chevron-right"></i>
             </a>
         </div>
     </div>
 </div>
+
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in product.variants.all %}
@@ -264,6 +195,7 @@ function syncVariant(el) {
     const code = el.getAttribute('data-code');
     const deals = allData[code];
 
+    document.getElementById('displayVariantCode').innerText = code;
     mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
     
     if(deals) {
@@ -277,23 +209,16 @@ function syncVariant(el) {
     el.classList.add('thumb-active');
 
     mainImg.onload = () => {
-        // Zoom ka background size set karo (3x zoom)
         result.style.backgroundImage = "url('" + mainImg.src + "')";
         result.style.backgroundSize = (mainImg.width * 3) + "px " + (mainImg.height * 3) + "px";
-        
         mainImg.onmousemove = (e) => {
             const pos = mainImg.getBoundingClientRect();
             let x = e.clientX - pos.left;
             let y = e.clientY - pos.top;
-            
             lens.style.display = "block";
             result.style.display = "block";
-            
-            // Lens ko mouse ke beech mein rakho
             lens.style.left = (x - 50) + "px";
             lens.style.top = (y - 50) + "px";
-            
-            // Result position (3x zoom ke hisaab se)
             result.style.backgroundPosition = "-" + (x * 3 - 200) + "px -" + (y * 3 - 200) + "px";
         };
         mainImg.onmouseleave = () => { lens.style.display = "none"; result.style.display = "none"; };
@@ -305,14 +230,12 @@ document.getElementById('shareButton').addEventListener('click', async () => {
     const shareData = {
         title: "{{ product.title }}",
         text: "Check out this amazing deal: {{ product.title }} at a great price!",
-        url: window.location.href // Ye current page ka link share karega
+        url: window.location.href
     };
-
     try {
         if (navigator.share) {
             await navigator.share(shareData);
         } else {
-            // Agar browser support nahi karta, toh link copy kar lo
             navigator.clipboard.writeText(window.location.href);
             alert("Link copied to clipboard!");
         }
