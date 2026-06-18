@@ -5,8 +5,10 @@ from . import views
 
 # --- SEO & Utility Functions ---
 
+
 def robots_txt(request):
-    content = "User-agent: *\nDisallow: /admin/\nAllow: /\n\nSitemap: https://uttarworld.com/sitemap.xml"
+    # Yahan 'control-panel' update kar diya hai
+    content = "User-agent: *\nDisallow: /control-panel/\nAllow: /\n\nSitemap: https://uttarworld.com/sitemap.xml"
     return HttpResponse(content, content_type="text/plain")
 
 def ads_txt(request):
