@@ -36,7 +36,10 @@ urlpatterns = [
     path('', include('shopping.urls')), 
 ]
 
-# PC par testing ke liye
+# PC par testing ke liye (Sahi tarika)
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Static files ke liye STATICFILES_DIRS ka use karo, STATIC_ROOT ka nahi
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0] if hasattr(settings, 'STATICFILES_DIRS') else settings.STATIC_ROOT)
+    
+    # Media files ke liye yeh sahi hai
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

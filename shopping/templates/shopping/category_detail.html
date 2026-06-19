@@ -1,6 +1,5 @@
 {% extends "shopping/shop_base.html" %}
 
-{% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -16,7 +15,7 @@
         "@type": "ListItem",
         "position": {{ forloop.counter }},
         "item": {
-          "@type": "Product",
+          "@type": "WebPage", 
           "name": "{{ product.title|escapejs }}",
           "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
           "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url|default:'/static/images/default.png' }}"

@@ -55,15 +55,23 @@ class ProductVariantInline(nested_admin.NestedTabularInline):
 @admin.action(description='Google Indexing: Notify Update')
 def notify_google_indexing_action(modeladmin, request, queryset):
     count = 0
-    for product in queryset:
-        url = f"https://uttarworld.com/product/{product.slug}/"
-        try:
-            notify_google_indexing(url)
-            count += 1
-        except Exception as e:
-            modeladmin.message_user(request, f"Error: {str(e)}", level=messages.ERROR)
+    for obj in queryset:
+        # Check karo ki object Category hai ya Product
+        if hasattr(obj, 'slug'):
+            # URL determine karo
+            if modeladmin.model.__name__ == 'Category':
+                url = f"https://uttarworld.com/category/{obj.slug}/"
+            else:
+                url = f"https://uttarworld.com/product/{obj.slug}/"
+            
+            try:
+                notify_google_indexing(url)
+                count += 1
+            except Exception as e:
+                modeladmin.message_user(request, f"Error on {obj}: {str(e)}", level=messages.ERROR)
+    
     if count > 0:
-        modeladmin.message_user(request, f"Successfully notified for {count} products!")
+        modeladmin.message_user(request, f"Successfully notified for {count} items!")
 
 # --- Registrations ---
 @admin.register(Product)
@@ -103,9 +111,27 @@ class HomeSliderAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+    list_display = ('name', 'slug', 'category_image_preview')
     prepopulated_fields = {'slug': ('name',)}
+    actions = [notify_google_indexing_action]
 
+    def category_image_preview(self, obj):
+        # 1. Sabse pehle 'image_url' check karo (jo ImgBB link hai)
+        if obj.image_url:
+            return format_html(
+                '<img src="{}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />', 
+                obj.image_url
+            )
+        
+        # 2. Agar 'image_url' nahi hai, tabhi 'image.url' check karo
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />', 
+                obj.image.url
+            )
+            
+        return "No Image"
+    
 @admin.register(DropdownMenu)
 class DropdownMenuAdmin(admin.ModelAdmin):
     list_display = ['menu_name', 'order', 'is_active']
