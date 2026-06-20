@@ -17,6 +17,13 @@ def ads_txt(request):
 
 # --- URL Patterns ---
 
+def bing_site_auth(request):
+    content = """<?xml version="1.0"?>
+<users>
+	<user>F9E053E76BF260C42C803CEFC20E9791</user>
+</users>"""
+    return HttpResponse(content, content_type="application/xml")
+
 urlpatterns = [
     # 1. होम पेज
     path('', views.shop_home, name='shop_home'),
@@ -47,4 +54,7 @@ urlpatterns = [
     path('sitemap.xml', views.sitemap_shop_xml, name='sitemap_shop_xml'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('ads.txt', ads_txt, name='ads_txt'),
+
+    # Ye add karo:
+    path('BingSiteAuth.xml', bing_site_auth, name='bing_site_auth'),
 ]
