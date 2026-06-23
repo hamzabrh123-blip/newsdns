@@ -70,7 +70,7 @@ def shop_home(request):
         
         for cat in categories:
             # Yahan limit [:4] wapas laga di hai taaki layout na bigde
-            cat_products = [p for p in all_products if p.category_id == cat.id][:4]
+            cat_products = [p for p in all_products if p.category_id == cat.id][:6]
             
             if cat_products:
                 homepage_sections.append({
