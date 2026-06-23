@@ -142,18 +142,24 @@ def load_more_products(request):
     })
 
 
+# ==========================================
+# product search karna hai 
+# ==========================================
 
 def product_search(request):
     context = get_base_context()
     query = request.GET.get('q', '').strip()
     max_price = request.GET.get('max_price', '').strip()
     
-    products = Product.objects.all().order_by('-id')
+    # Base products query
+    products = Product.objects.all()
     
+    # Price annotation (clean_price)
     products = products.annotate(
         clean_price=Replace(Replace('price_display', Value(','), Value('')), Value('-'), Value('')),
     ).annotate(price_as_int=Cast('clean_price', output_field=IntegerField()))
 
+    # --- 1. Query logic (Search bar) ---
     if query:
         if query.isdigit():
             products = products.filter(price_as_int=int(query))
@@ -163,19 +169,37 @@ def product_search(request):
                 if term:
                     products = products.filter(title__icontains=term)
     
+    # --- 2. Nearest Neighbors Logic (Price filter) ---
     if max_price and max_price.isdigit():
         val = int(max_price)
-        exact_match = products.filter(price_as_int=val)
-        if exact_match.exists():
-            products = exact_match
+        
+        # Exact matches dhoondo
+        exact_matches = products.filter(price_as_int=val)
+        
+        if exact_matches.exists():
+            # Agar match hai, to saare dikhao
+            final_products = exact_matches.order_by('-id')
         else:
-            products = products.annotate(diff=Abs(F('price_as_int') - val)).order_by('diff')
+            # Match nahi hai, to sirf nearest 2 neighbors (lower and upper)
+            lower = products.filter(price_as_int__lte=val).order_by('-price_as_int').first()
+            upper = products.filter(price_as_int__gt=val).order_by('price_as_int').first()
+            final_products = [p for p in [lower, upper] if p is not None]
+        
+        # List pass ki (paginator bypass kiya)
+        context.update({'products': final_products})
+    
+    else:
+        # Normal search (paginated)
+        paginator = Paginator(products.order_by('-id'), 24)
+        context.update({'products': paginator.get_page(request.GET.get('page'))})
 
-    paginator = Paginator(products, 24)
+    # Common context updates
     context.update({
-        'products': paginator.get_page(request.GET.get('page')), 
         'query': query,
-        'is_search': True 
+        'is_search': True,
+        'max_price': max_price,
+        'category': None,
+        'cat_slug': ''
     })
     
     return render(request, 'shopping/shop_home.html', context)
@@ -209,3 +233,4 @@ def sitemap_shop_xml(request):
         xml += f'  <url><loc>{site_url}/category/{c.slug}/</loc><changefreq>weekly</changefreq></url>\n'
     xml += '</urlset>'
     return HttpResponse(xml, content_type="application/xml")
+

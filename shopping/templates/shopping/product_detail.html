@@ -38,6 +38,16 @@
     .thumb-active { border-color: #2563eb !important; border-width: 2px; }
     .btn-main-shop-now { display: block; background: #ff9900; color: #000; text-align: center; padding: 12px; border-radius: 30px; font-weight: 700; text-decoration: none; }
     .card-img-top { height: 350px; width:100%; object-fit: cover; border-radius: 8px; }
+
+    /* Desktop par agar class 'zoom-active' hai to hi dikhao */
+    @media (min-width: 769px) {
+        .zoom-active { display: block !important; }
+    }
+    
+    /* Mobile par humesha band */
+    @media (max-width: 768px) {
+        .img-zoom-lens, .img-zoom-result { display: none !important; }
+    }
 </style>
 
 <div class="container mt-4">
@@ -143,8 +153,14 @@ function syncVariant(el) {
     const code = el.getAttribute('data-code');
     const deals = allData[code];
 
-    document.getElementById('displayVariantCode').innerText = code;
+    // 1. Force Image Update (No onload dependency)
     mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
+    
+    // 2. Hide Zoom instantly on switch
+    if (lens) lens.style.display = 'none';
+    if (result) result.style.display = 'none';
+
+    document.getElementById('displayVariantCode').innerText = code;
     
     if(deals) {
         document.getElementById('storeDealsContainer').innerHTML = deals.map(d => 
@@ -156,9 +172,14 @@ function syncVariant(el) {
     document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
     el.classList.add('thumb-active');
 
-    mainImg.onload = () => {
+    // 3. Desktop zoom setup (yahan se onload hataya)
+    if (window.innerWidth > 768) {
         result.style.backgroundImage = "url('" + mainImg.src + "')";
-        result.style.backgroundSize = (mainImg.width * 3) + "px " + (mainImg.height * 3) + "px";
+        // Image dimensions check karke backgroundSize update karo
+        mainImg.onload = function() {
+            result.style.backgroundSize = (this.width * 3) + "px " + (this.height * 3) + "px";
+        };
+        
         mainImg.onmousemove = (e) => {
             const pos = mainImg.getBoundingClientRect();
             let x = e.clientX - pos.left;
@@ -169,27 +190,12 @@ function syncVariant(el) {
             lens.style.top = (y - 50) + "px";
             result.style.backgroundPosition = "-" + (x * 3 - 200) + "px -" + (y * 3 - 200) + "px";
         };
-        mainImg.onmouseleave = () => { lens.style.display = "none"; result.style.display = "none"; };
-    };
-}
-document.addEventListener("DOMContentLoaded", () => syncVariant(document.querySelector('.thumb-img')));
-
-document.getElementById('shareButton').addEventListener('click', async () => {
-    const shareData = {
-        title: "{{ product.title }}",
-        text: "Check out this amazing deal: {{ product.title }} at a great price!",
-        url: window.location.href
-    };
-    try {
-        if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link copied to clipboard!");
-        }
-    } catch (err) {
-        console.error('Error sharing:', err);
+        
+        mainImg.onmouseleave = () => { 
+            lens.style.display = "none"; 
+            result.style.display = "none"; 
+        };
     }
-});
+}
 </script>
 {% endblock %}

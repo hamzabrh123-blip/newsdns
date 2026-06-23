@@ -112,14 +112,17 @@
     {% endif %}
 </div>
 
-{% if products.has_next %}
-    <div class="text-center mt-5 mb-5">
-        <button id="load-more-btn" class="btn btn-primary" data-page="2" 
-                data-cat="{{ category.slug|default:cat_slug|default:'' }}" 
-                data-q="{{ query|default:'' }}">
-            Load More Products
-        </button>
-    </div>
+{% if products.paginator %}
+    {% if products.has_next %}
+        <div class="text-center mt-5 mb-5">
+            <button id="load-more-btn" class="btn btn-primary" data-page="{{ products.next_page_number }}" 
+                    data-cat="{{ category.slug|default:cat_slug|default:'' }}" 
+                    data-q="{{ query|default:'' }}">
+                Load More Products
+            </button>
+        </div>
+    {% endif %}
+
 {% endif %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {

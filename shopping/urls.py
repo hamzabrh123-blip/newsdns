@@ -25,6 +25,22 @@ def bing_site_auth(request):
     return HttpResponse(content, content_type="application/xml")
 
 urlpatterns = [
+
+   # --- 1. SABSE PEHLE: Purane "Pareshan" karne wale URLs ka Redirect ---
+    
+    # 1.1 /shopping/ aur uske sabhi sub-pages ko handle karo
+    path('shopping/', RedirectView.as_view(url='/', permanent=True)),
+    re_path(r'^shopping/category/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/category/%(slug)s/', permanent=True)),
+    re_path(r'^shopping/product/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
+    # Yeh wala rule tumhare us error URL (jo 'product' word miss kar raha tha) ko fix karega:
+    re_path(r'^shopping/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
+
+    # 1.2 /international/ aur news category ko handle karo
+    # 'international' aur baki purani categories ko permanent 410 (Gone) ya Homepage par bhejo
+    re_path(r'^international/.*$', RedirectView.as_view(url='/', permanent=True)),
+    re_path(r'^category/international/.*$', RedirectView.as_view(url='/category/lifestyle/', permanent=True)), # Ya kisi sahi category par
+    re_path(r'^news/.*$', RedirectView.as_view(url='/', permanent=True)),
+
     # 1. होम पेज
     path('', views.shop_home, name='shop_home'),
     
@@ -37,10 +53,7 @@ urlpatterns = [
     path('category/<slug:slug>/', views.category_detail, name='category_detail'),
     path('product/<slug:slug>/', views.product_detail, name='product_detail'),
     
-    # --- SEO Redirects (Purane /shopping/ links ko fix karne ke liye) ---
-    path('shopping/', RedirectView.as_view(url='/', permanent=True)),
-    re_path(r'^shopping/category/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/category/%(slug)s/', permanent=True)),
-    re_path(r'^shopping/product/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
+
     
     # 4. ELITE POLICY & ABOUT PAGES
     path('about_us/', views.about_us, name='about_us'),
