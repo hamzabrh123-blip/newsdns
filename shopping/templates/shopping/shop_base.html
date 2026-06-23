@@ -2,85 +2,7 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <title>{% block title %}Uttar World Elite Lifestyle Store{% endblock %}</title>
-{% block meta %}
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Uttar World is your premium destination for curated global fashion, innovative gadgets, and lifestyle essentials.">
-        
-        <meta property="og:url" content="{{ request.build_absolute_uri }}" />
-        <meta property="og:type" content="website" />
-
-        {% if product %}
-            <meta property="og:title" content="Uttar World - {{ product.title }}">
-            <meta property="og:description" content="{{ product.description|truncatewords:20 }}">
-            <meta property="og:image" content="{{ product.variants.all.0.image_url }}">
-        {% else %}
-            <meta property="og:title" content="Uttar World Elite Lifestyle Store">
-            <meta property="og:description" content="Shop premium fashion and gadgets at Uttar World.">
-            {% if category and category.image %}
-                <meta property="og:image" content="{{ category.image.url }}">
-            {% else %}
-                <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png">
-            {% endif %}
-        {% endif %}
-    {% endblock %}
-
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client }}" crossorigin="anonymous"></script>
-    
-{% block extra_head %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Uttar World Elite Lifestyle Store",
-  "url": "https://www.uttarworld.com",
-  "logo": "https://www.uttarworld.com/static/images/uttarworld-shopping-icon.png"
-}
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Uttar World Elite Lifestyle Store",
-  "url": "https://www.uttarworld.com",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://www.uttarworld.com/search/?q={search_term_string}"
-    },
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
-{% endblock %}
-<link rel="icon" href="{% static 'images/favicon.ico' %}">
-<link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
-<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <style>
-        :root { --amazon-orange: #ff9900; --deep-black: #1a1a1a; }
-        body { background-color: #f8f9fa; font-family: 'Poppins', sans-serif; }
-        
-        .shop-navbar { background: #ffffff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; padding: 10px 0; }
-        .brand-logo-img { height: 40px; }
-        
-        /* Search Bar Styles */
-        .search-form { display: flex; align-items: center; }
-        .search-input { border-radius: 20px 0 0 20px; border: 1px solid #ced4da; padding: 8px 15px; }
-        .search-btn { border-radius: 0 20px 20px 0; background: var(--amazon-orange); color: white; border: none; padding: 8px 15px; }
-        
-        .dynamic-nav-strip { background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); padding: 12px 0; border-top: 3px solid var(--amazon-orange); }
-        .nav-link-custom { color: #e2e8f0 !important; font-size: 13px; font-weight: 700; text-transform: uppercase; text-decoration: none; }
-        
-        .carousel-item img { height: 450px; width: 100%; object-fit: cover; }
-        @media (max-width: 768px) { .carousel-item img { height: 250px; } }
-    </style>
+    {% include "shopping/includes/head.html" %}
 </head>
 <body>
 
@@ -95,11 +17,21 @@
                     <img src="{% static 'images/logo.png' %}" alt="UW" class="brand-logo-img">
                 </a>
 
-                <form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1">
-    <input type="text" name="q" class="form-control search-input" value="{{ query }}" placeholder="Search products, stores or price...">
-    
-    <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
-</form>
+                <form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1 d-flex">
+                    <input type="text" name="q" class="form-control search-input" value="{{ query }}" placeholder="Search products, stores or price...">
+                    
+                    <div class="dropdown mx-2">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <div class="dropdown-menu p-3 shadow" style="width: 250px;">
+                            <label class="mb-2 fw-bold">Max Price (₹)</label>
+                            <input type="number" name="max_price" class="form-control mb-3" placeholder="Enter amount" value="{{ request.GET.max_price }}">
+                            <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
+                        </div>
+                    </div>
+                    <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
+                </form>
             </div>
         </div>
 
@@ -143,7 +75,7 @@
         <div class="carousel-inner">
             {% for slider in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <a href="{{ slider.link|default:'#' }}"><img src="{{ slider.image_url }}" alt="Slide"></a>
+                <a href="{{ slider.link|default:'#' }}"><img src="{{ slider.image_url }}" alt="Slide" class="d-block w-100"></a>
             </div>
             {% endfor %}
         </div>
@@ -153,43 +85,14 @@
     {% endif %}
 
     <div class="container mt-4 mb-5" style="min-height: 70vh;">
-    <div class="row">
-        <div class="col-lg-3 d-none d-lg-block">
-            <div class="filter-section shadow-sm p-3 bg-white border">
-                <div class="fw-bold mb-3"><i class="fas fa-filter"></i> Advanced Filter</div>
-                <form action="{% url 'product_search' %}" method="GET">
-                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
-                    
-                    <input type="number" name="max_price" class="form-control mb-3" 
-                           placeholder="Max Price (₹)" value="{{ request.GET.max_price }}">
-                    
-                    <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
-                    
-                    {% if request.GET.max_price %}
-                        <a href="{% url 'product_search' %}{% if query %}?q={{ query }}{% endif %}" 
-                           class="btn btn-link w-100 text-muted mt-2">Clear Filter</a>
-                    {% endif %}
-                </form>
+        <div class="row">
+            <div class="col-12">
+                {% block content %}{% endblock %}
             </div>
         </div>
-
-        <div class="col-lg-9 col-12">
-            {% block content %}{% endblock %}
-        </div>
     </div>
-</div>
 
-  <footer class="py-4 bg-white border-top text-center mt-auto">
-    <p class="mb-2">© 2026 Uttar World. All Rights Reserved.</p>
-    <div class="d-flex justify-content-center flex-wrap gap-3">
-        <a href="{% url 'about_us' %}" class="text-muted text-decoration-none">About Us</a>
-        <a href="{% url 'shipping_policy' %}" class="text-muted text-decoration-none">Shipping Policy</a>
-        <a href="{% url 'refund_policy' %}" class="text-muted text-decoration-none">Refund Policy</a>
-        <a href="{% url 'terms' %}" class="text-muted text-decoration-none">Terms of Service</a>
-        <a href="{% url 'privacy_policy' %}" class="text-muted text-decoration-none">Privacy Policy</a>
-        <a href="{% url 'contact' %}" class="text-muted text-decoration-none">Contact Us</a>
-    </div>
-</footer>
+    {% include "shopping/includes/footer.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

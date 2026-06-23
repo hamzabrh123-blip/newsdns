@@ -26,7 +26,17 @@
 {% block content %}
 <style>
     .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; }
-    .product-description-box { font-size: 13px; color: #555; line-height: 1.6; max-height: 400px; text-align:justify; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 8px; }
+    .product-description-box { 
+    font-size: 13px; 
+    color: #555; 
+    line-height: 1.6; 
+    max-height: none !important; /* Fixed: scroll hata diya */
+    text-align: justify; 
+    overflow-y: visible !important; /* Fixed: scrollbar band */
+    border: 1px solid #eee; 
+    padding: 15px; 
+    border-radius: 8px; 
+}
     .img-zoom-container { position: sticky; top: 140px; width: 100%; display: flex; justify-content: center; }
     .main-img-viewport { position: relative; width: 100%; min-height: 380px; display: flex; align-items: center; justify-content: center; background: #fbfbfb; border-radius: 12px; border: 1px solid #f0f0f0; }
     #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; cursor: crosshair; }
@@ -44,10 +54,43 @@
         .zoom-active { display: block !important; }
     }
     
-    /* Mobile par humesha band */
-    @media (max-width: 768px) {
-        .img-zoom-lens, .img-zoom-result { display: none !important; }
+    /* Mobile Optimized Styles */
+@media (max-width: 768px) {
+    .product-container { 
+        padding: 15px !important; 
     }
+
+    .img-zoom-container { 
+        position: relative !important; 
+        top: 0 !important; 
+    }
+
+    .main-img-viewport { 
+        min-height: 250px !important; 
+    }
+
+    #mainProductImg { 
+        max-height: 250px !important; 
+    }
+    
+    /* Zoom lens aur result ko band kiya */
+    .img-zoom-lens, 
+    .img-zoom-result { 
+        display: none !important; 
+    }
+    
+    .price-tag { 
+        font-size: 20px !important; 
+    }
+
+    /* Description box se cursor/scroll hatane ke liye */
+    .product-description-box {
+        overflow-y: visible !important;
+        max-height: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+}
 </style>
 
 <div class="container mt-4">
