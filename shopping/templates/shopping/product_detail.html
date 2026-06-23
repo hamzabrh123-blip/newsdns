@@ -109,12 +109,22 @@
                 </div>
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
+
+            <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
+                {% for variant in product.variants.all %}
+                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                         class="thumb-img" 
+                         style="width: 60px; height: 75px; object-fit: cover; border: 1px solid #ddd; border-radius: 5px;"
+                         onclick="syncVariant(this)" 
+                         data-raw-url="{{ variant.image_url }}" 
+                         data-code="{{ variant.variant_code }}">
+                {% endfor %}
+            </div>
         </div>
 
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
-               
                 <span class="price-tag">₹{{ product.price_display|slugify|cut:'-'|cut:' ' }}</span>
                 {% if product.mrp_price %}<span class="mrp-text">₹{{ product.mrp_price }}</span>{% endif %}
             </div>
