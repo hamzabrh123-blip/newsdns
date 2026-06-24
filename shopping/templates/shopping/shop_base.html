@@ -16,22 +16,22 @@
                 <a href="{% url 'shop_home' %}" class="me-3">
                     <img src="{% static 'images/logo.png' %}" alt="UW" class="brand-logo-img">
                 </a>
-
-                <form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1 d-flex">
-                    <input type="text" name="q" class="form-control search-input" value="{{ query }}" placeholder="Search products, stores or price...">
-                    
-                    <div class="dropdown mx-2">
-                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-filter"></i>
-                        </button>
-                        <div class="dropdown-menu p-3 shadow" style="width: 250px;">
-                            <label class="mb-2 fw-bold">Max Price (₹)</label>
-                            <input type="number" name="max_price" class="form-control mb-3" placeholder="Enter amount" value="{{ request.GET.max_price }}">
-                            <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
-                        </div>
-                    </div>
-                    <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
-                </form>
+<form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1 d-flex">
+    <input type="text" name="q" class="form-control search-input" value="{{ request.GET.q }}" placeholder="Search products, stores or price...">
+    
+    <div class="dropdown mx-2">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-filter"></i>
+        </button>
+        <div class="dropdown-menu p-3 shadow" style="width: 250px;">
+            <label class="mb-2 fw-bold">Max Price (₹)</label>
+            <input type="number" name="max_price" class="form-control mb-3" placeholder="Enter max amount" value="{{ request.GET.max_price }}">
+            <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
+        </div>
+    </div>
+    
+    <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
+</form>
             </div>
         </div>
 
@@ -69,7 +69,23 @@
             </div>
         </div>
     </nav>
+<style>
+        .auto-slider-container {
+    position: relative;
+    width: 100%;
+    height: 180px; /* Ya jo bhi height tumne rakhi hai */
+    background: #f8f9fa;
+    overflow: hidden;
+    border-radius: 8px; /* Taaki corners round rahein */
+}
 
+.product-auto-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Image ko box mein fit karega, stretch nahi hone dega */
+    object-position: center;
+}
+</style>
     {% if sliders %}
     <div id="heroSlider" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
@@ -97,3 +113,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.querySelector('.search-form');
+
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+
+            const q = searchForm.querySelector('input[name="q"]').value;
+            const maxPrice = searchForm.querySelector('input[name="max_price"]').value;
+
+            // Template tag ki jagah seedha path use karo
+            let url = "/search/"; 
+            let params = new URLSearchParams();
+            
+            if (q && q.trim() !== "") params.append('q', q);
+            if (maxPrice && maxPrice.trim() !== "") params.append('max_price', maxPrice);
+
+            // Final Redirect
+            window.location.href = url + '?' + params.toString();
+        });
+    }
+});
+</script>

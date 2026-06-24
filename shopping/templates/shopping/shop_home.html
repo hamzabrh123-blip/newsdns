@@ -64,7 +64,6 @@
     }
     .view-all-btn:hover { background: #e0e0e0; }
 </style>
-
 <div class="container-fluid px-3">
     {% for main_section in homepage_sections %}
         {% for sub_section in main_section.sub_sections %}
@@ -93,13 +92,18 @@
                                     </div>
                                     
                                     <div class="card-body p-2">
-                                        <h6 class="mobile-product-title">{{ product.title }}</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="price-tag js-final-price"></span>
-                                        </div>
-                                        <div class="mt-2 pt-1 border-top text-center">
-                                            <span class="store-text js-store-badge"></span>
-                                        </div>
+                                         <h6 class="mobile-product-title">{{ product.title }}</h6>
+    
+                                          <div class="d-flex flex-column">
+                                              <small class="text-muted" style="text-decoration: line-through; font-size: 0.75rem;">
+                                                     MRP: ₹{{ product.mrp_price|default:product.price_display }}
+                                              </small>
+                                              <span class="price-tag js-final-price"></span>
+                                          </div>
+
+                                           <div class="mt-2 pt-1 border-top text-center">
+                                                <span class="store-text js-store-badge"></span>
+                                           </div>
                                     </div>
                                 </div>
                             </a>

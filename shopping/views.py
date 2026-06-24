@@ -6,7 +6,7 @@ import random
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.db.models import Q, IntegerField, Value, F, Max, Min
-from django.db.models.functions import Cast, Replace, Abs
+from django.db.models.functions import Cast, Replace, Abs, Coalesce
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 
@@ -145,64 +145,36 @@ def load_more_products(request):
 # ==========================================
 # product search karna hai 
 # ==========================================
-
 def product_search(request):
-    context = get_base_context()
+    # 1. Input parameters lo
     query = request.GET.get('q', '').strip()
     max_price = request.GET.get('max_price', '').strip()
-    
-    # Base products query
-    products = Product.objects.all()
-    
-    # Price annotation (clean_price)
-    products = products.annotate(
-        clean_price=Replace(Replace('price_display', Value(','), Value('')), Value('-'), Value('')),
-    ).annotate(price_as_int=Cast('clean_price', output_field=IntegerField()))
 
-    # --- 1. Query logic (Search bar) ---
+    # 2. Product filter karo
+    products = Product.objects.filter(is_available=True)
+
     if query:
-        if query.isdigit():
-            products = products.filter(price_as_int=int(query))
-        else:
-            search_terms = re.split(r'[.\s]+', query)
-            for term in search_terms:
-                if term:
-                    products = products.filter(title__icontains=term)
-    
-    # --- 2. Nearest Neighbors Logic (Price filter) ---
+        products = products.filter(title__icontains=query)
+        
     if max_price and max_price.isdigit():
-        val = int(max_price)
-        
-        # Exact matches dhoondo
-        exact_matches = products.filter(price_as_int=val)
-        
-        if exact_matches.exists():
-            # Agar match hai, to saare dikhao
-            final_products = exact_matches.order_by('-id')
-        else:
-            # Match nahi hai, to sirf nearest 2 neighbors (lower and upper)
-            lower = products.filter(price_as_int__lte=val).order_by('-price_as_int').first()
-            upper = products.filter(price_as_int__gt=val).order_by('price_as_int').first()
-            final_products = [p for p in [lower, upper] if p is not None]
-        
-        # List pass ki (paginator bypass kiya)
-        context.update({'products': final_products})
-    
-    else:
-        # Normal search (paginated)
-        paginator = Paginator(products.order_by('-id'), 24)
-        context.update({'products': paginator.get_page(request.GET.get('page'))})
+        products = products.filter(variants__coupons__selling_price__lte=int(max_price))
 
-    # Common context updates
-    context.update({
+    products = products.distinct().order_by('-id')
+
+    # 3. GLOBAL DATA FETCH KARO (Navbar aur Slider ke liye)
+    # Yeh wahi data hai jo tumhare home page par navbar render karta hai
+    nav_menus = DropdownMenu.objects.prefetch_related('categories').all()
+    sliders = HomeSlider.objects.all()
+
+    # 4. Ab sab kuch context ke saath pass karo
+    return render(request, 'shopping/search_results.html', {
+        'products': products,
         'query': query,
-        'is_search': True,
         'max_price': max_price,
-        'category': None,
-        'cat_slug': ''
+        'is_search': True,
+        'nav_menus': nav_menus,  # Navbar wapas aa jayega
+        'sliders': sliders,      # Slider agar chahiye toh
     })
-    
-    return render(request, 'shopping/shop_home.html', context)
 
 # ==========================================
 # 2. ELITE POLICY & ABOUT PAGES

@@ -1,0 +1,115 @@
+{% extends "shopping/shop_base.html" %}
+
+{% block content %}
+<style>
+    /* Home page wali CSS yahan rakhi hai taaki design same rahe */
+    .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
+    .product-card { border-radius: 8px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
+    .product-card-link:hover .product-card { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+    .mobile-product-title { font-size: 0.75rem !important; height: 36px; overflow: hidden; color: #212529; font-weight: 600; margin-bottom: 6px; }
+    .price-tag { color: #d32f2f; font-weight: 700; font-size: 0.95rem; display: inline-block; }
+    .store-text { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
+    .auto-slider-container { position: relative; width: 100%; height: 180px; background: #f8f9fa; overflow: hidden; }
+    .product-auto-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.6s ease-in-out; }
+    .product-auto-img.active { opacity: 1; }
+
+    @media (min-width: 992px) { .col-lg-2-custom { flex: 0 0 16.666667%; max-width: 16.666667%; } }
+</style>
+
+<div class="container-fluid px-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+        <h5 class="fw-bold mb-0 text-dark">
+        {% if query and max_price %}
+            Results for "{{ query }}" under ₹{{ max_price }}
+        {% elif query %}
+            Search Results for "{{ query }}"
+        {% elif max_price %}
+            Products under ₹{{ max_price }}
+        {% else %}
+            All Products
+        {% endif %}
+    </h5>
+    </div>
+
+    <div class="row gx-2 gy-2">
+        {% for product in products %}
+            <div class="col-6 col-md-3 col-lg-2-custom">
+                {% with variants=product.variants.all first_variant=product.variants.first %}
+                    <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
+                        <div class="card shadow-sm product-card border-0 js-product-card" 
+                             data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
+                             data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
+                             data-store-name="{{ first_variant.coupons.all.0.store_name|default:'UTTARWORLD.COM' }}" 
+                             data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                            
+                            <div class="auto-slider-container">
+                                {% for variant in variants %}
+                                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="Product">
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="card-body p-2">
+                                 <h6 class="mobile-product-title">{{ product.title }}</h6>
+    
+                                 <div class="d-flex flex-column">
+                                     <small class="text-muted" style="text-decoration: line-through; font-size: 0.75rem;">
+                                             MRP: ₹{{ product.mrp_price|default:product.price_display }}
+                                     </small>
+                                        <span class="price-tag js-final-price"></span>
+                                 </div>
+
+                                 <div class="mt-2 pt-1 border-top text-center">
+                                      <span class="store-text js-store-badge"></span>
+                                 </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endwith %}
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <h5>No products found.</h5>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Tera wahi script jo home page par chal raha hai
+    document.addEventListener("DOMContentLoaded", function () {
+        const productCards = document.querySelectorAll('.js-product-card');
+        productCards.forEach(card => {
+            const selling = parseFloat(card.getAttribute('data-selling')) || 0;
+            const storeName = card.getAttribute('data-store-name');
+            const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
+            const finalPriceEl = card.querySelector('.js-final-price');
+            const storeBadgeEl = card.querySelector('.js-store-badge');
+            
+            if (storeBadgeEl && storeName) storeBadgeEl.innerText = storeName;
+            if (finalPriceEl) {
+                if (variantsPricesStr) {
+                    const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
+                    if (prices.length > 0) {
+                        const minPrice = Math.min(...prices);
+                        const maxPrice = Math.max(...prices);
+                        finalPriceEl.innerText = (minPrice !== maxPrice) ? '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0) : '₹' + minPrice.toFixed(0);
+                    } else { finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price'; }
+                } else { finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price'; }
+            }
+        });
+
+        const containers = document.querySelectorAll('.auto-slider-container');
+        containers.forEach(container => {
+            const images = container.querySelectorAll('.product-auto-img');
+            if (images.length > 1) {
+                let currentIndex = 0;
+                setInterval(() => {
+                    images[currentIndex].classList.remove('active');
+                    currentIndex = (currentIndex + 1) % images.length;
+                    images[currentIndex].classList.add('active');
+                }, 3000);
+            }
+        });
+    });
+</script>
+{% endblock %}

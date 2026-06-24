@@ -60,6 +60,20 @@ class Category(models.Model):
 
     def __str__(self): return self.name
 
+class ProductManager(models.Manager):
+    def search_and_filter(self, query=None, max_price=None):
+        queryset = self.get_queryset().filter(is_available=True)
+        
+        # Search by Title
+        if query:
+            queryset = queryset.filter(title__icontains=query)
+            
+        # Filter by Price (via Variant -> Coupon relationship)
+        if max_price and max_price.isdigit():
+            queryset = queryset.filter(variants__coupons__selling_price__lte=int(max_price))
+            
+        return queryset.distinct()    
+
 # --- 3. Product ---
 class Product(models.Model):
     title = models.CharField(max_length=255)
