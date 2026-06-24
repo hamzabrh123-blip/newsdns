@@ -1,14 +1,29 @@
 from django.urls import path, re_path
 from django.http import HttpResponse
 from django.views.generic.base import RedirectView
+from django.views.decorators.cache import cache_page
 from . import views
 
 # --- SEO & Utility Functions ---
-
-
+@cache_page(60 * 60 * 24)
 def robots_txt(request):
-    # Yahan 'control-panel' update kar diya hai
-    content = "User-agent: *\nDisallow: /control-panel/\nAllow: /\n\nSitemap: https://uttarworld.com/sitemap.xml"
+    # Googlebot ke liye allow, baki bots ke liye delay aur restrictions
+    content = (
+        "User-agent: Googlebot\n"
+        "Allow: /\n\n"
+        
+        "User-agent: Mediapartners-Google\n"
+        "Allow: /\n\n"
+        
+        "User-agent: *\n"
+        "Disallow: /search/\n"
+        "Disallow: /control-panel/\n"
+        "Disallow: /cart/\n"
+        "Disallow: /checkout/\n"
+        "Crawl-delay: 10\n\n"
+        
+        "Sitemap: https://uttarworld.com/sitemap.xml"
+    )
     return HttpResponse(content, content_type="text/plain")
 
 def ads_txt(request):
