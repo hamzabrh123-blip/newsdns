@@ -1,49 +1,5 @@
 {% extends "shopping/shop_base.html" %}
 
-{% block extra_head %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": "{{ category.name|escapejs }}",
-  "description": "{{ category.description|striptags|truncatechars:160|escapejs }}",
-  "url": "{{ request.build_absolute_uri }}",
-  "mainEntity": {
-    "@type": "ItemList",
-    "itemListElement": [
-      {% for product in products|slice:":20" %}
-      {
-        "@type": "ListItem",
-        "position": {{ forloop.counter }},
-        "item": {
-          "@type": "WebPage", 
-          "name": "{{ product.title|escapejs }}",
-          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
-          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url|default:'/static/images/default.png' }}"
-        }
-      }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ]
-  }
-}
-</script>
-{% endblock %}
-
-{% block meta %}
-    <meta property="og:title" content="{{ category.name }} | Uttar World" />
-    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
-    <meta property="og:type" content="website" />
-    
-    {% if category.image_url %}
-        <meta property="og:image" content="{{ category.image_url }}" />
-    {% else %}
-        <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png" />
-    {% endif %}
-    
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-{% endblock %}
-
 {% block content %}
 
 

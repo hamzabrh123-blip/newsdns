@@ -1,0 +1,27 @@
+{% comment %} catagory_meta.html {% endcomment %}
+
+{# 1. Page Title #}
+<title>{{ category.name }} | Uttar World Elite Lifestyle Store</title>
+
+{# 2. SEO Description #}
+<meta name="description" content="Explore our premium collection of {{ category.name }} at Uttar World Elite Lifestyle Store. Best quality, trending styles, and great deals. Shop now!">
+
+{# 3. Open Graph Tags (Facebook/WhatsApp) #}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ category.name|safe }} | Uttar World Elite Lifestyle Store" />
+<meta property="og:description" content="Shop the latest {{ category.name }} collection. Discover top deals and premium quality products at Uttar World Elite Lifestyle Store." />
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+{# 4. Image Logic #}
+{% if category.image_url %}
+    <meta property="og:image" content="{{ category.image_url }}" />
+{% else %}
+    <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png" />
+{% endif %}
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+{# 5. Twitter Card #}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ category.name|safe }}">
+<meta name="twitter:description" content="Shop premium {{ category.name }} at Uttar World Elite Lifestyle Store.">
