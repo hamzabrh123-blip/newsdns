@@ -42,15 +42,7 @@
             <div class="store-deal-card mt-3">
                 <table class="table">
                     <thead><tr><th>Store</th><th>Coupon/Offer</th><th>Final Price</th></tr></thead>
-                    <tbody id="storeDealsContainer">
-                        {% for coupon in product.variants.all.0.coupons.all %}
-        <tr>
-            <td>{{ coupon.store_name }}</td>
-            <td>{{ coupon.coupon_code|default:"-" }}</td>
-            <td><strong>₹{{ coupon.selling_price }}</strong></td>
-        </tr>
-        {% endfor %}
-                    </tbody>
+                    <tbody id="storeDealsContainer"></tbody>
                 </table>
                  <div class="product-code-display text-center mt-3">
                 <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
@@ -102,13 +94,13 @@
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in product.variants.all %}
-        "{{ variant.variant_code }}": [
+        "{{ variant.variant_code|escapejs }}": [
             {% for coupon in variant.coupons.all %}
                 { 
-                    "store_name": "{{ coupon.store_name }}", 
-                    "selling_price": "{{ coupon.selling_price|default:product.price_display }}", 
-                    "coupon_code": "{{ coupon.coupon_code|default:'-' }}", 
-                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url }}" 
+                    "store_name": "{{ coupon.store_name|escapejs }}", 
+                    "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}", 
+                    "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
+                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}" 
                 }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}
@@ -117,57 +109,52 @@
 </script>
 
 <script>
-function syncVariant(el) {
-    const mainImg = document.getElementById('mainProductImg');
-    const result = document.getElementById("zoomResult");
-    const lens = document.getElementById("lens");
-    const allData = JSON.parse(document.getElementById('nestedDealsData').textContent);
-    const code = el.getAttribute('data-code');
-    const deals = allData[code];
 
-    // 1. Force Image Update (No onload dependency)
-    mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
-    
-    // 2. Hide Zoom instantly on switch
-    if (lens) lens.style.display = 'none';
-    if (result) result.style.display = 'none';
-
-    document.getElementById('displayVariantCode').innerText = code;
-    
-    if(deals) {
-        document.getElementById('storeDealsContainer').innerHTML = deals.map(d => 
-            `<tr><td>${d.store_name}</td><td>${d.coupon_code}</td><td><strong>₹${d.selling_price}</strong></td></tr>`
-        ).join('');
-        document.getElementById('masterShopNowBtn').href = deals[0].url;
-    }
-    
-    document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
-    el.classList.add('thumb-active');
-
-    // 3. Desktop zoom setup (yahan se onload hataya)
-    if (window.innerWidth > 768) {
-        result.style.backgroundImage = "url('" + mainImg.src + "')";
-        // Image dimensions check karke backgroundSize update karo
-        mainImg.onload = function() {
-            result.style.backgroundSize = (this.width * 3) + "px " + (this.height * 3) + "px";
-        };
+    function syncVariant(el) {
+    try {
+        const mainImg = document.getElementById('mainProductImg');
+        const dataScript = document.getElementById('nestedDealsData');
         
-        mainImg.onmousemove = (e) => {
-            const pos = mainImg.getBoundingClientRect();
-            let x = e.clientX - pos.left;
-            let y = e.clientY - pos.top;
-            lens.style.display = "block";
-            result.style.display = "block";
-            lens.style.left = (x - 50) + "px";
-            lens.style.top = (y - 50) + "px";
-            result.style.backgroundPosition = "-" + (x * 3 - 200) + "px -" + (y * 3 - 200) + "px";
-        };
+        if (!dataScript) return;
+
+        const allData = JSON.parse(dataScript.textContent);
+        const code = el.getAttribute('data-code');
+        const deals = allData[code];
+
+        // 1. Image Update
+        mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
         
-        mainImg.onmouseleave = () => { 
-            lens.style.display = "none"; 
-            result.style.display = "none"; 
-        };
+        // 2. Code Display
+        const codeDisplay = document.getElementById('displayVariantCode');
+        if (codeDisplay) codeDisplay.innerText = code;
+        
+        // 3. Table Update
+        const container = document.getElementById('storeDealsContainer');
+        const shopBtn = document.getElementById('masterShopNowBtn');
+        
+        if (container && deals && deals.length > 0) {
+            container.innerHTML = deals.map(d => 
+                `<tr><td>${d.store_name}</td><td>${d.coupon_code}</td><td><strong>₹${d.selling_price}</strong></td></tr>`
+            ).join('');
+            
+            if (shopBtn) shopBtn.href = deals[0].url;
+        }
+
+        // 4. Thumb Styling
+        document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
+        el.classList.add('thumb-active');
+        
+    } catch (err) {
+        console.error("Sync Error:", err);
     }
 }
+
+// Page load hote hi chalane ke liye (Sabse safe tarika)
+document.addEventListener("DOMContentLoaded", function() {
+    const firstThumb = document.querySelector('.thumb-img');
+    if (firstThumb) {
+        syncVariant(firstThumb);
+    }
+});
 </script>
 {% endblock %}
