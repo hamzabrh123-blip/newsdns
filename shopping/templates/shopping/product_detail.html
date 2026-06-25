@@ -2,74 +2,7 @@
 {% load static %}
 
 {% block content %}
-<style>
-    .product-container { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; }
-    .product-description-box { 
-    font-size: 13px; 
-    color: #555; 
-    line-height: 1.6; 
-    max-height: none !important; /* Fixed: scroll hata diya */
-    text-align: justify; 
-    overflow-y: visible !important; /* Fixed: scrollbar band */
-    border: 1px solid #eee; 
-    padding: 15px; 
-    border-radius: 8px; 
-}
-    .img-zoom-container { position: sticky; top: 140px; width: 100%; display: flex; justify-content: center; }
-    .main-img-viewport { position: relative; width: 100%; min-height: 380px; display: flex; align-items: center; justify-content: center; background: #fbfbfb; border-radius: 12px; border: 1px solid #f0f0f0; }
-    #mainProductImg { max-width: 100%; height: auto; max-height: 500px; object-fit: contain; cursor: crosshair; }
-    .img-zoom-lens { position: absolute; width: 100px; height: 100px; border: 2px solid #ccc; background: rgba(0,0,0,0.1); cursor: crosshair; display: none; z-index: 10; pointer-events: none; }
-    .img-zoom-result { position: absolute; width: 400px; height: 400px; top: 0; left: 105%; background-repeat: no-repeat; display: none; z-index: 1000; background: #fff; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-    .price-tag { font-size: 28px; color: #b12704; font-weight: 800; }
-    .mrp-text { font-size: 18px; color: #888; text-decoration: line-through; margin-left: 10px; }
-    .thumb-img { width: 60px; height: 75px; object-fit: cover; cursor: pointer; border: 2px solid #f0f0f0; border-radius: 8px; margin-bottom: 10px; transition: 0.2s; }
-    .thumb-active { border-color: #2563eb !important; border-width: 2px; }
-    .btn-main-shop-now { display: block; background: #ff9900; color: #000; text-align: center; padding: 12px; border-radius: 30px; font-weight: 700; text-decoration: none; }
-    .card-img-top { height: 350px; width:100%; object-fit: cover; border-radius: 8px; }
 
-    /* Desktop par agar class 'zoom-active' hai to hi dikhao */
-    @media (min-width: 769px) {
-        .zoom-active { display: block !important; }
-    }
-    
-    /* Mobile Optimized Styles */
-@media (max-width: 768px) {
-    .product-container { 
-        padding: 15px !important; 
-    }
-
-    .img-zoom-container { 
-        position: relative !important; 
-        top: 0 !important; 
-    }
-
-    .main-img-viewport { 
-        min-height: 250px !important; 
-    }
-
-    #mainProductImg { 
-        max-height: 250px !important; 
-    }
-    
-    /* Zoom lens aur result ko band kiya */
-    .img-zoom-lens, 
-    .img-zoom-result { 
-        display: none !important; 
-    }
-    
-    .price-tag { 
-        font-size: 20px !important; 
-    }
-
-    /* Description box se cursor/scroll hatane ke liye */
-    .product-description-box {
-        overflow-y: visible !important;
-        max-height: none !important;
-        border: none !important;
-        padding: 0 !important;
-    }
-}
-</style>
 
 <div class="container mt-4">
     <div class="row product-container">
@@ -108,15 +41,23 @@
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
-                    <thead><tr><th>Store</th><th>Coupon</th><th>Price</th></tr></thead>
-                    <tbody id="storeDealsContainer"></tbody>
+                    <thead><tr><th>Store</th><th>Coupon/Offer</th><th>Final Price</th></tr></thead>
+                    <tbody id="storeDealsContainer">
+                        {% for coupon in product.variants.all.0.coupons.all %}
+        <tr>
+            <td>{{ coupon.store_name }}</td>
+            <td>{{ coupon.coupon_code|default:"-" }}</td>
+            <td><strong>₹{{ coupon.selling_price }}</strong></td>
+        </tr>
+        {% endfor %}
+                    </tbody>
                 </table>
                  <div class="product-code-display text-center mt-3">
                 <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
                     Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
                 </span>
             </div><hr>
-                <a href="#" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
+                <a href="{{ product.variants.all.0.coupons.all.0.store_affiliate_url|default:'' }}" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
             </div>
             <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
