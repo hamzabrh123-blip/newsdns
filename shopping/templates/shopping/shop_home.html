@@ -1,155 +1,305 @@
 {% extends "shopping/shop_base.html" %}
 
 {% block content %}
-<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-<link rel="preconnect" href="https://i.ibb.co" crossorigin>
-<style>
-    .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
-    .product-card { border-radius: 12px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
-    .product-card-link:hover .product-card { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
-    .mobile-product-title { font-size: 0.85rem !important; font-weight: 600; line-height: 1.3; color: #212529; margin-bottom: 6px; }
-    .price-tag { color: #d32f2f; font-weight: 700; font-size: 1.15rem; display: inline-block; }
-    .mrp-label { color: #888; font-size: 0.82rem; font-weight: 500; }
-    .old-price-num { text-decoration: line-through; color: #aaa; }
-    .store-text { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
-    .auto-slider-container { position: relative; width: 100%; height: 280px; background: #f8f9fa; overflow: hidden; }
-    @media (max-width: 576px) { .auto-slider-container { height: 230px; } }
-    .product-auto-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.6s ease-in-out; }
-    .product-auto-img.active { opacity: 1; }
 
-    /* 6 Products per row for Large Screens */
-    @media (min-width: 992px) {
-        .col-lg-2-custom { flex: 0 0 16.666667%; max-width: 16.666667%; }
-    }
-    
-    .product-card { border-radius: 8px; }
-    .auto-slider-container { height: 180px; } /* Card chhota kiya */
-    .mobile-product-title { 
-        font-size: 0.75rem !important; 
-        height: 36px; /* Do line se zyada na ho */
-        overflow: hidden;
-    }
-    .price-tag { font-size: 0.95rem; }
-    .store-text { font-size: 9px; }
-    
-    /* View All Button Styling */
-    .view-all-btn { 
-        background: #f0f0f0; 
-        padding: 4px 12px; 
-        border-radius: 4px; 
-        font-size: 10px; 
-        color: #333; 
-        text-decoration: none; 
-    }
-    .view-all-btn:hover { background: #e0e0e0; }
-</style>
-<div class="container-fluid px-3">
-    {% for main_section in homepage_sections %}
-        {% for sub_section in main_section.sub_sections %}
-            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
-                <h5 class="fw-bold mb-0 text-dark">{{ sub_section.sub_category_name }}</h5>
-                <a href="{% url 'category_detail' slug=sub_section.sub_category_slug %}" class="view-all-btn">
-                    VIEW ALL PRODUCT <i class="fas fa-chevron-right ms-1"></i>
-                </a>
+<div class="container-fluid px-2 px-md-3">
+
+
+<!-- HOME CATEGORY GRID -->
+{% if home_sections %}
+
+<div class="row g-3 mb-4">
+
+    {% for section in home_sections %}
+
+    <div class="col-6 col-md-4 col-lg-3">
+
+        {% if section.category.slug %}
+
+        <a
+            href="{% url 'category_detail' section.category.slug %}"
+            class="text-decoration-none"
+        >
+
+        {% endif %}
+
+        <div
+            class="position-relative overflow-hidden rounded-4 shadow-sm"
+            style="
+            height:220px;
+            "
+        >
+
+            {% if section.image %}
+
+            <img
+                src="{{ section.image.url }}"
+                class="w-100 h-100"
+                style="
+                object-fit:cover;
+                "
+                alt="{{ section.category.name }}"
+            >
+
+            {% endif %}
+
+
+            <!-- CATEGORY NAME -->
+            <div
+                class="position-absolute bottom-0 start-0 w-100"
+                style="
+                background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
+                padding:30px 15px 12px;
+                "
+            >
+
+                <h5
+                    style="
+                    color:#fff;
+                    font-size:18px;
+                    font-weight:700;
+                    margin:0;
+                    "
+                >
+                    {{ section.category.name }}
+                </h5>
+
             </div>
 
-            <div class="row gx-2 gy-2">
-                {% for product in sub_section.products %}
-                    <div class="col-6 col-md-3 col-lg-2-custom">
-                        {% with variants=product.variants.all first_variant=product.variants.all.0 %}
-                            <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
-                                <div class="card shadow-sm product-card border-0 js-product-card" 
-                                     data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
-                                     data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
-                                     data-store-name="{{ first_variant.coupons.all.0.store_name|default:'UTTARWORLD.COM' }}" 
-                                     data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                                    
-                                    <div class="auto-slider-container">
-                                        {% for variant in variants %}
-                                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="Product">
-                                        {% endfor %}
-                                    </div>
-                                    
-                                    <div class="card-body p-2">
-                                         <h6 class="mobile-product-title">{{ product.title }}</h6>
-    
-                                          <div class="d-flex flex-column">
-                                              <small class="text-muted" style="text-decoration: line-through; font-size: 0.75rem;">
-                                                     MRP: ₹{{ product.mrp_price|default:product.price_display }}
-                                              </small>
-                                              <span class="price-tag js-final-price"></span>
-                                          </div>
+        </div>
 
-                                           <div class="mt-2 pt-1 border-top text-center">
-                                                <span class="store-text js-store-badge"></span>
-                                           </div>
-                                    </div>
-                                </div>
-                            </a>
-                        {% endwith %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+        {% if section.category.slug %}
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
     {% endfor %}
+
+</div>
+
+{% endif %}
+
+
+
+<!-- HEADING -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+
+    <h3
+        style="
+        font-size:28px;
+        font-weight:800;
+        color:#111;
+        margin:0;
+        "
+    >
+        Latest Products
+    </h3>
+
 </div>
 
 
-{% if products.paginator %}
-    {% if products.has_next %}
-        <div class="text-center mt-5 mb-5">
-            <button id="load-more-btn" class="btn btn-primary" data-page="{{ products.next_page_number }}" data-cat="{{ category.slug|default:cat_slug|default:'' }}" data-q="{{ query|default:'' }}">Load More Products</button>
-        </div>
-    {% endif %}
+
+<!-- PRODUCTS -->
+<div class="row g-2">
+
+    {% for product in products %}
+
+    {% with first_variant=product.variants.first %}
+
+    <div class="col-6 col-md-3 col-lg-2">
+
+        <a
+            href="{% url 'product_detail' product.slug %}"
+            class="text-decoration-none text-dark"
+        >
+
+            <div
+                class="card border-0 shadow-sm h-100 rounded-4"
+                style="
+                transition:.2s;
+                "
+            >
+
+                {% if first_variant.image_url %}
+
+                <img
+                    src="{{ first_variant.image_url }}"
+                    class="card-img-top p-2"
+                    style="
+                    height:220px;
+                    object-fit:contain;
+                    "
+                >
+
+                {% endif %}
+
+                <div class="card-body p-2">
+
+                    <h6
+                        style="
+                        font-size:13px;
+                        height:38px;
+                        overflow:hidden;
+                        line-height:1.4;
+                        font-weight:600;
+                        "
+                    >
+                        {{ product.title }}
+                    </h6>
+
+
+                    <!-- STORE NAME -->
+                    {% if first_variant.coupons.first.store_name %}
+
+                    <div
+                        style="
+                        font-size:12px;
+                        color:#666;
+                        margin-bottom:4px;
+                        font-weight:500;
+                        "
+                    >
+                        {{ first_variant.coupons.first.store_name }}
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- MRP -->
+                    <div>
+
+                        <small
+                            class="text-muted"
+                            style="
+                            text-decoration:line-through;
+                            font-size:13px;
+                            "
+                        >
+                            ₹{{ product.mrp_price }}
+                        </small>
+
+                    </div>
+
+
+                    <!-- SELLING PRICE -->
+                    <div
+                        style="
+                        font-size:19px;
+                        font-weight:800;
+                        color:#000;
+                        "
+                    >
+
+                        {% if first_variant.coupons.first.selling_price %}
+
+                            ₹{{ first_variant.coupons.first.selling_price }}
+
+                        {% else %}
+
+                            ₹{{ product.price_display }}
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+    {% endwith %}
+
+    {% endfor %}
+
+</div>
+
+
+
+<!-- PAGINATION -->
+{% if products.has_other_pages %}
+
+<div class="d-flex justify-content-center mt-5">
+
+    <nav>
+
+        <ul class="pagination">
+
+            {% if products.has_previous %}
+
+            <li class="page-item">
+
+                <a
+                    class="page-link"
+                    href="?page={{ products.previous_page_number }}"
+                >
+                    Previous
+                </a>
+
+            </li>
+
+            {% endif %}
+
+
+            {% for num in products.paginator.page_range %}
+
+                {% if products.number == num %}
+
+                <li class="page-item active">
+
+                    <span class="page-link">
+                        {{ num }}
+                    </span>
+
+                </li>
+
+                {% else %}
+
+                <li class="page-item">
+
+                    <a
+                        class="page-link"
+                        href="?page={{ num }}"
+                    >
+                        {{ num }}
+                    </a>
+
+                </li>
+
+                {% endif %}
+
+            {% endfor %}
+
+
+            {% if products.has_next %}
+
+            <li class="page-item">
+
+                <a
+                    class="page-link"
+                    href="?page={{ products.next_page_number }}"
+                >
+                    Next
+                </a>
+
+            </li>
+
+            {% endif %}
+
+        </ul>
+
+    </nav>
+
+</div>
+
 {% endif %}
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const productCards = document.querySelectorAll('.js-product-card');
-        productCards.forEach(card => {
-            const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
-            const selling = parseFloat(card.getAttribute('data-selling')) || 0;
-            const storeName = card.getAttribute('data-store-name');
-            const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
-            const finalPriceEl = card.querySelector('.js-final-price');
-            const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
-            const mrpPriceEl = card.querySelector('.js-mrp-price');
-            const storeBadgeEl = card.querySelector('.js-store-badge');
 
-            if (storeBadgeEl && storeName) storeBadgeEl.innerText = storeName;
+</div>
 
-            if (finalPriceEl) {
-                if (variantsPricesStr) {
-                    const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
-                    if (prices.length > 0) {
-                        const minPrice = Math.min(...prices);
-                        const maxPrice = Math.max(...prices);
-                        finalPriceEl.innerText = (minPrice !== maxPrice) ? '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0) : '₹' + minPrice.toFixed(0);
-                    } else {
-                        finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
-                    }
-                } else {
-                    finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
-                }
-            }
-            if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
-                mrpPriceEl.innerText = '₹' + mrp.toFixed(0);
-                mrpWrapperEl.style.display = 'inline-block';
-            }
-        });
-
-        const containers = document.querySelectorAll('.auto-slider-container');
-        containers.forEach(container => {
-            const images = container.querySelectorAll('.product-auto-img');
-            if (images.length > 1) {
-                let currentIndex = 0;
-                setInterval(() => {
-                    images[currentIndex].classList.remove('active');
-                    currentIndex = (currentIndex + 1) % images.length;
-                    images[currentIndex].classList.add('active');
-                }, 3000);
-            }
-        });
-    });
-</script>
 {% endblock %}
