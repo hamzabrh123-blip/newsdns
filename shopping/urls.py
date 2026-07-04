@@ -44,8 +44,8 @@ def bing_site_auth(request):
 
 urlpatterns = [
     
-    re_path(r'(?i)^(?!category/|product/)(shopping|international|news|market|gonda|amethi|bahraich|bijnor|bollywood|Basti|Farrukhabad|Kanpur-Dehat|gorakhpur|district|new-delhi|goa|mumbai|lucknow|national|google|delhi|kannauj|market-news|sports|varanasi|toronto-canada|mathura|mainpuri|n)/.*$', gone_view),   
-   
+    re_path(r'^(shopping|hyderabad|international|news|market|gonda|amethi|bahraich|bijnor|bollywood|Basti|Farrukhabad|Kanpur-Dehat|gorakhpur|district|new-delhi|goa|mumbai|lucknow|national|google|delhi|kannauj|market-news|sports|varanasi|toronto-canada|mathura|mainpuri|n)/.*$', gone_view),   
+    re_path(r'^category/(ambedkar-nagar|gonda|lucknow|Basti|pilibhit)/.*$', gone_view),
     # 1. होम पेज
     path('', views.shop_home, name='shop_home'),
     
