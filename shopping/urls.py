@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
-from .redirects import seo_urlpatterns
+from .redirects import seo_urlpatterns  # Ye import hona zaroori hai
 
 
 
@@ -42,6 +42,7 @@ def bing_site_auth(request):
     return HttpResponse(content, content_type="application/xml")
 
 urlpatterns = [
+    *seo_urlpatterns,
     
     # 1. होम पेज
     path('', views.shop_home, name='shop_home'),
