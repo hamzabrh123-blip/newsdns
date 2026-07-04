@@ -1,8 +1,11 @@
 from django.urls import path, re_path
 from django.http import HttpResponse
-from django.views.generic.base import RedirectView
 from django.views.decorators.cache import cache_page
 from . import views
+from .views import gone_view
+
+
+
 
 # --- SEO & Utility Functions ---
 @cache_page(60 * 60 * 24)
@@ -40,22 +43,9 @@ def bing_site_auth(request):
     return HttpResponse(content, content_type="application/xml")
 
 urlpatterns = [
-
-   # --- 1. SABSE PEHLE: Purane "Pareshan" karne wale URLs ka Redirect ---
     
-    # 1.1 /shopping/ aur uske sabhi sub-pages ko handle karo
-    path('shopping/', RedirectView.as_view(url='/', permanent=True)),
-    re_path(r'^shopping/category/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/category/%(slug)s/', permanent=True)),
-    re_path(r'^shopping/product/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
-    # Yeh wala rule tumhare us error URL (jo 'product' word miss kar raha tha) ko fix karega:
-    re_path(r'^shopping/(?P<slug>[-\w]+)/$', RedirectView.as_view(url='/product/%(slug)s/', permanent=True)),
-
-    # 1.2 /international/ aur news category ko handle karo
-    # 'international' aur baki purani categories ko permanent 410 (Gone) ya Homepage par bhejo
-    re_path(r'^international/.*$', RedirectView.as_view(url='/', permanent=True)),
-    re_path(r'^category/international/.*$', RedirectView.as_view(url='/category/lifestyle/', permanent=True)), # Ya kisi sahi category par
-    re_path(r'^news/.*$', RedirectView.as_view(url='/', permanent=True)),
-
+    re_path(r'(?i)^(?!category/|product/)(shopping|international|news|market|gonda|amethi|bahraich|bijnor|bollywood|Basti|Farrukhabad|Kanpur-Dehat|gorakhpur|district|new-delhi|goa|mumbai|lucknow|national|google|delhi|kannauj|market-news|sports|varanasi|toronto-canada|mathura|mainpuri|n)/.*$', gone_view),   
+   
     # 1. होम पेज
     path('', views.shop_home, name='shop_home'),
     

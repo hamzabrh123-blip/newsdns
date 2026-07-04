@@ -28,6 +28,10 @@ from .models import (
     HomeSection
 )
 
+def gone_view(request, *args, **kwargs):
+    return HttpResponse("Page Gone", status=410)
+
+
 # ==========================================
 # HELPER: NAV DATA
 # ==========================================
