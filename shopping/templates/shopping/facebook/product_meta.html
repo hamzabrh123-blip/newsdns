@@ -1,18 +1,22 @@
-<meta name="description" content="{{ product.meta_description }}">
-<meta name="keywords" content="{{ product.meta_keywords }}">
-
 <meta property="og:type" content="product">
-<meta property="og:title" content="{{ product.title|safe }} | ₹{{ product.price_display }} Available">
-<meta property="og:description" content="{{ product.meta_description }}">
+
+<meta property="og:title"
+content="{{ product.title|truncatechars:70 }}">
+
+<meta property="og:description"
+content="{{ product.meta_description|truncatechars:180 }}">
+
 <meta property="og:image"
-content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="product:price:amount" content="{{ product.price_display }}">
-<meta property="product:price:currency" content="INR">
-<meta property="product:availability" content="in stock">
-<meta name="twitter:card" content="summary_large_image">
+content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/c_fit,w_600,h_315,q_auto/{{ product.variants.all.0.image_url }}">
+
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="315">
+
+<meta property="og:url"
+content="{{ request.build_absolute_uri }}">
+
+<meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="{{ product.title }}">
 <meta name="twitter:description" content="{{ product.meta_description }}">
-<meta name="twitter:image" content="https://res.cloudinary.com/dvoqsrkkq/image/upload/c_pad,h_630,w_1200/l_text:Arial_60_bold:₹{{ product.price_display|urlencode }},co_rgb:b12704,g_south_east,x_50,y_50/{{ product.variants.all.0.image_url }}">
+<meta name="twitter:image"
+content="https://res.cloudinary.com/dvoqsrkkq/image/fetch/c_fit,w_600,h_315,q_auto/{{ product.variants.all.0.image_url }}">
