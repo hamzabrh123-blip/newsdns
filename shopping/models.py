@@ -533,3 +533,33 @@ class HomeSection(models.Model):
             return self.category.name
 
         return "Home Section"
+
+
+class HomePageSEO(models.Model):
+    title = models.CharField(max_length=255)
+
+    meta_description = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    meta_keywords = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    seo_content = RichTextUploadingField(
+        blank=True,
+        null=True
+    )
+
+    og_image = models.ImageField(
+        upload_to='seo/',
+        blank=True,
+        null=True
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Homepage SEO"

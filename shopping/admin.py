@@ -16,6 +16,7 @@ from .models import (
     VariantStoreCoupon,
     DropdownMenu,
     HomeSection,
+    HomePageSEO,
 )
 
 from .indexing_utils import notify_google_indexing
@@ -414,6 +415,54 @@ class DropdownMenuAdmin(admin.ModelAdmin):
         'slug': ('menu_name',)
     }
 
+# =========================================================
+# HOME PAGE SEO ADMIN
+# =========================================================
+
+@admin.register(HomePageSEO)
+class HomePageSEOAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'title',
+        'updated_at',
+    )
+
+    search_fields = (
+        'title',
+    )
+
+    fieldsets = (
+
+        (
+            'SEO Settings',
+            {
+                'fields': (
+                    'title',
+                    'meta_description',
+                    'meta_keywords',
+                )
+            }
+        ),
+
+        (
+            'Homepage Content',
+            {
+                'fields': (
+                    'seo_content',
+                )
+            }
+        ),
+
+        (
+            'Social Media Image',
+            {
+                'fields': (
+                    'og_image',
+                )
+            }
+        ),
+
+    )
 
 # =========================================================
 # HIDE UNUSED MODELS FROM SIDEBAR

@@ -1,44 +1,55 @@
 {% comment %} home_meta.html {% endcomment %}
 
-{# 1. Home Page Title #}
 <title>
-Uttar World Elite Lifestyle Store | Online Shopping for Fashion, Electronics & Lifestyle
+{{ home_seo.title }}
 </title>
 
-{# 2. Meta Description #}
-<meta name="description"content="
+<meta name="description"
+content="{{ home_seo.meta_description|default:''|striptags }}">
 
-Shop premium fashion, trending electronics, beauty products, lifestyle essentials, kids wear, gadgets, 
-home & kitchen products at Uttar World Elite Lifestyle Store. Discover top online deals, stylish collections, 
-and affordable shopping in India.
+<meta name="keywords"
+content="{{ home_seo.meta_keywords|default:'' }}">
 
-">
-{# 3. Open Graph Tags (Facebook/WhatsApp) #}
+<meta name="robots" content="index, follow">
+
 <meta property="og:type" content="website">
-<meta property="og:title" content="Uttar World Elite Lifestyle Store | Premium Shopping Experience" />
 
+<meta property="og:title"
+content="{{ home_seo.title }}" />
 
-{# 3. SEO Meta Keywords #} <meta name="keywords" content="
+<meta property="og:description"
+content="{{ home_seo.meta_description|default:''|striptags }}" />
 
-Uttar World, Uttar World Elite Lifestyle Store, online shopping India, fashion store, electronics store, 
-lifestyle products, beauty products, kids fashion, women fashion, men fashion, gadgets online, home and kitchen products, 
-premium shopping, affordable shopping India, trending products online
-">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:url"
+content="{{ request.build_absolute_uri }}">
 
-{# 4. Home Page Branding Image #}
-<meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png" />
+{% if home_seo.og_image %}
+<meta property="og:image"
+content="{{ home_seo.og_image.url }}" />
+{% else %}
+<meta property="og:image"
+content="https://www.uttarworld.com/static/images/logo.png" />
+{% endif %}
+
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 
-{# 5. Twitter Card #}
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Uttar World Elite Lifestyle Store">
+<meta name="twitter:card"
+content="summary_large_image">
+
+<meta name="twitter:title"
+content="{{ home_seo.title }}">
+
 <meta name="twitter:description"
-content="Premium online shopping destination for fashion, electronics, lifestyle and trending products in India.">
-<meta name="twitter:image" content="https://www.uttarworld.com/static/images/logo.png">
+content="{{ home_seo.meta_description|default:''|striptags }}">
 
+{% if home_seo.og_image %}
+<meta name="twitter:image"
+content="{{ home_seo.og_image.url }}">
+{% else %}
+<meta name="twitter:image"
+content="https://www.uttarworld.com/static/images/logo.png">
+{% endif %}
 
-{# 6. Canonical URL #}
-
-<link rel="canonical" href="https://www.uttarworld.com/">
+<link rel="canonical"
+href="https://www.uttarworld.com/">

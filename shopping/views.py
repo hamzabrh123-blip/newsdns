@@ -25,7 +25,8 @@ from .models import (
     Category,
     HomeSlider,
     DropdownMenu,
-    HomeSection
+    HomeSection,
+    HomePageSEO
 )
 
 def gone_view(request, *args, **kwargs):
@@ -38,7 +39,10 @@ def gone_view(request, *args, **kwargs):
 
 def get_base_context():
 
+    home_seo = HomePageSEO.objects.first()
+
     return {
+
         'nav_menus': DropdownMenu.objects.filter(
             is_active=True
         ).prefetch_related(
@@ -47,50 +51,60 @@ def get_base_context():
             'order'
         ),
 
-        'adsense_client': 'ca-pub-3171847065256414'
+        'adsense_client': 'ca-pub-3171847065256414',
+
+        'home_seo': home_seo,
+
     }
 
 
 # ==========================================
 # 1. HOME PAGE
 # ==========================================
-
 @cache_page(60 * 5)
 def shop_home(request):
 
+    context = get_base_context()
+
     categories = Category.objects.all().order_by('?')
+
     sliders = HomeSlider.objects.filter(
         is_active=True
     ).order_by('?')
 
-    nav_menus = DropdownMenu.objects.filter(
-        is_active=True
-    ).prefetch_related('categories').order_by('order')
-
     # HOME SECTION IMAGE
     home_sections = HomeSection.objects.filter(
         is_active=True
-    ).select_related('category').order_by('order')
+    ).select_related(
+        'category'
+    ).order_by(
+        'order'
+    )
 
     # MIX PRODUCTS
     products_list = Product.objects.filter(
         is_available=True
-    ).prefetch_related('variants').defer(
+    ).prefetch_related(
+        'variants'
+    ).defer(
         'long_description'
     ).order_by('?')
 
     # PAGINATION
-    paginator = Paginator(products_list, 24)
+    paginator = Paginator(
+        products_list,
+        24
+    )
 
     page_number = request.GET.get('page')
 
-    products = paginator.get_page(page_number)
+    products = paginator.get_page(
+        page_number
+    )
 
-    return render(request, 'shopping/shop_home.html', {
+    context.update({
 
         'categories': categories,
-
-        'nav_menus': nav_menus,
 
         'sliders': sliders,
 
@@ -101,6 +115,14 @@ def shop_home(request):
         'is_homepage': True,
 
     })
+
+    return render(
+        request,
+        'shopping/shop_home.html',
+        context
+    )
+
+
 # ==========================================
 # CATEGORY DETAIL
 # ==========================================
@@ -137,6 +159,7 @@ def category_detail(request, slug):
     context.update({
 
         'category': category,
+
         'products': products,
 
     })
@@ -146,7 +169,6 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
-
 
 # ==========================================
 # PRODUCT DETAIL

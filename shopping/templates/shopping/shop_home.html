@@ -53,16 +53,15 @@
                 "
             >
 
-                <h5
+                <h2
                     style="
                     color:#fff;
-                    font-size:18px;
+                     font-size:18px;
                     font-weight:700;
                     margin:0;
-                    "
-                >
+                     ">
                     {{ section.category.name }}
-                </h5>
+                </h2>   
 
             </div>
 
@@ -87,16 +86,16 @@
 <!-- HEADING -->
 <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
 
-    <h3
-        style="
-        font-size:28px;
-        font-weight:800;
-        color:#111;
-        margin:0;
-        "
-    >
-        Latest Products
-    </h3>
+    <h1
+    style="
+    font-size:32px;
+    font-weight:800;
+    color:#111;
+    margin:0;
+    "
+>
+    Uttar World Elite Lifestyle Store
+</h1>
 
 </div>
 
@@ -138,18 +137,16 @@
 
                 <div class="card-body p-2">
 
-                    <h6
+                    <h3
                         style="
                         font-size:13px;
-                        height:38px;
-                        overflow:hidden;
-                        line-height:1.4;
-                        font-weight:600;
-                        "
-                    >
-                        {{ product.title }}
-                    </h6>
-
+                         height:38px;
+                         overflow:hidden;
+                         line-height:1.4;
+                         font-weight:600;
+                            ">
+                            {{ product.title }}
+                    </h3>
 
                     <!-- STORE NAME -->
                     {% if first_variant.coupons.first.store_name %}
@@ -246,30 +243,36 @@
             {% endif %}
 
 
+            {# ONLY SHOW 3 PAGES #}
+
             {% for num in products.paginator.page_range %}
 
-                {% if products.number == num %}
+                {% if num >= products.number|add:'-1' and num <= products.number|add:'1' %}
 
-                <li class="page-item active">
+                    {% if products.number == num %}
 
-                    <span class="page-link">
-                        {{ num }}
-                    </span>
+                    <li class="page-item active">
 
-                </li>
+                        <span class="page-link">
+                            {{ num }}
+                        </span>
 
-                {% else %}
+                    </li>
 
-                <li class="page-item">
+                    {% else %}
 
-                    <a
-                        class="page-link"
-                        href="?page={{ num }}"
-                    >
-                        {{ num }}
-                    </a>
+                    <li class="page-item">
 
-                </li>
+                        <a
+                            class="page-link"
+                            href="?page={{ num }}"
+                        >
+                            {{ num }}
+                        </a>
+
+                    </li>
+
+                    {% endif %}
 
                 {% endif %}
 
