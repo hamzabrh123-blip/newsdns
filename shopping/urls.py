@@ -7,7 +7,6 @@ from .redirects import seo_urlpatterns  # Ye import hona zaroori hai
 
 
 # --- SEO & Utility Functions ---
-@cache_page(60 * 60 * 24)
 def robots_txt(request):
     # Googlebot ke liye allow, baki bots ke liye delay aur restrictions
     content = (

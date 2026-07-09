@@ -61,7 +61,6 @@ def get_base_context():
 # ==========================================
 # 1. HOME PAGE
 # ==========================================
-@cache_page(60 * 5)
 def shop_home(request):
 
     context = get_base_context()
