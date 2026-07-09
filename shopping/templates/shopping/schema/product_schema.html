@@ -12,12 +12,12 @@
   },
   "offers": {
     "@type": "Offer",
-    "url": "{{ request.build_absolute_uri }}",
+    "url": "https://www.uttarworld.com{{request.path}}",
     "priceCurrency": "INR",
-    "price": "{{ product.price_display|slugify|cut:'-'|cut:' ' }}",
+    "price": "{{ product.price_float_value }}",
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
-    "availability": "https://schema.org/InStock",
+    "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
     "hasMerchantReturnPolicy": {
       "@type": "MerchantReturnPolicy",
       "applicableCountry": "IN",

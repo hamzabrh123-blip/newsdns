@@ -2,9 +2,15 @@
 {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
+
   "name": "{{ category.name|escapejs }}",
-  "description": "{{ category.description|striptags|truncatechars:160|escapejs }}",
-  "url": "{{ request.build_absolute_uri }}",
+
+  "description": "{{ category.meta_description|default:category.description|striptags|truncatechars:300|escapejs }}",
+
+  "keywords": "{{ category.meta_keywords|escapejs }}",
+
+  "url": "https://www.uttarworld.com{{request.path}}",
+
   "mainEntity": {
     "@type": "ItemList",
     "itemListElement": [
@@ -13,7 +19,7 @@
         "@type": "ListItem",
         "position": {{ forloop.counter }},
         "item": {
-          "@type": "WebPage", 
+          "@type": "WebPage",
           "name": "{{ product.title|escapejs }}",
           "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
           "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url|default:'/static/images/default.png' }}"

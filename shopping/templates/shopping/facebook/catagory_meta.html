@@ -4,14 +4,14 @@
 <title>{{ category.name }} | Uttar World Elite Lifestyle Store</title>
 
 {# 2. SEO Description #}
-<meta name="description" content="Explore our premium collection of {{ category.name }} at Uttar World Elite Lifestyle Store. Best quality, trending styles, and great deals. Shop now!">
+<meta name="description" content="{{ category.description|striptags|truncatechars:160 }}">
 <meta name="keywords" content="{{ category.meta_keywords }}">
 
 {# 3. Open Graph Tags (Facebook/WhatsApp) #}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ category.name|safe }} | Uttar World Elite Lifestyle Store" />
-<meta property="og:description" content="Shop the latest {{ category.name }} collection. Discover top deals and premium quality products at Uttar World Elite Lifestyle Store." />
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:description" content="{{ category.description|striptags|truncatechars:160 }}" />
+<meta property="og:url" content="https://uttarworld.com{{ request.path }}">
 
 {# 4. Image Logic #}
 {% if category.image_url %}
@@ -25,4 +25,4 @@
 {# 5. Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ category.name|safe }}">
-<meta name="twitter:description" content="Shop premium {{ category.name }} at Uttar World Elite Lifestyle Store.">
+<meta name="twitter:description" content="{{ category.description|striptags|truncatechars:160 }}">
