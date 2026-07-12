@@ -4,13 +4,13 @@ from django.views.decorators.cache import cache_page
 from . import views
 from .redirects import seo_urlpatterns  # Ye import hona zaroori hai
 
-
-
-# --- SEO & Utility Functions ---
+# robotstxt ke liye----
 def robots_txt(request):
-    # Googlebot ke liye allow, baki bots ke liye delay aur restrictions
     content = (
         "User-agent: Googlebot\n"
+        "Allow: /\n\n"
+        
+        "User-agent: Pinterestbot\n"  # Pinterest ke liye alag se permission
         "Allow: /\n\n"
         
         "User-agent: Mediapartners-Google\n"
@@ -21,14 +21,10 @@ def robots_txt(request):
         "Disallow: /control-panel/\n"
         "Disallow: /cart/\n"
         "Disallow: /checkout/\n"
-        "Crawl-delay: 10\n\n"
-        
+        # Crawl-delay ko hata do, Pinterest ise ignore karta hai aur ye Google ko bhi slow kar sakta hai
+        "\n" 
         "Sitemap: https://uttarworld.com/sitemap.xml"
     )
-    return HttpResponse(content, content_type="text/plain")
-
-def ads_txt(request):
-    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
 
 # --- URL Patterns ---
