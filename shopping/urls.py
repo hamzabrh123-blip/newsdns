@@ -4,7 +4,9 @@ from django.views.decorators.cache import cache_page
 from . import views
 from .redirects import seo_urlpatterns  # Ye import hona zaroori hai
 
-# robotstxt ke liye----
+
+
+# --- SEO & Utility Functions ---
 def robots_txt(request):
     content = (
         "User-agent: Googlebot\n"
@@ -25,6 +27,10 @@ def robots_txt(request):
         "\n" 
         "Sitemap: https://uttarworld.com/sitemap.xml"
     )
+    return HttpResponse(content, content_type="text/plain")
+
+def ads_txt(request):
+    content = "google.com, pub-3171847065256414, DIRECT, f08c47fec0942fa0"
     return HttpResponse(content, content_type="text/plain")
 
 # --- URL Patterns ---
