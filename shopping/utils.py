@@ -91,3 +91,39 @@ def ping_google_indexing(url):
             
     except Exception as e:
         return f"❌ Indexing Error: {str(e)}"
+    
+# --- 3. PINTEREST PUBLISHING ENGINE ---
+def publish_to_pinterest(title, description, image_url, destination_link, access_token):
+    """
+    Pinterest API v5 Pins creation
+    """
+    url = "https://api.pinterest.com/v5/pins"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Payload as per Pinterest v5 Docs
+    payload = {
+        "title": title[:100],  # Max 100 chars
+        "description": description[:500],  # Max 500 chars
+        "media_source": {
+            "source_type": "image_url",
+            "url": image_url
+        },
+        "link": destination_link
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=20)
+        
+        if response.status_code == 201:
+            logger.info(f"✅ Pinterest Success: {title}")
+            return True, "Published"
+        else:
+            logger.error(f"❌ Pinterest Error ({response.status_code}): {response.text}")
+            return False, response.text
+            
+    except Exception as e:
+        logger.error(f"❌ Pinterest Connection Error: {e}")
+        return False, str(e)

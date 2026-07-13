@@ -9,6 +9,16 @@ from unidecode import unidecode
 
 from .utils import process_and_upload_to_imgbb, ping_google_indexing
 
+class PinterestPost(models.Model):
+    title = models.CharField(max_length=255)
+    image_url = models.URLField(max_length=500)
+    link = models.URLField(max_length=500)
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
 
 # ==========================================
 # 1. CATEGORY

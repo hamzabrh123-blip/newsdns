@@ -1,25 +1,55 @@
 
+import os
 from django.contrib import admin, messages
 from django.utils.html import format_html
-
 import nested_admin
-
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
 
-from .models import (
-    Category,
-    Product,
-    ProductVariant,
-    HomeSlider,
-    VariantStoreCoupon,
-    DropdownMenu,
-    HomeSection,
-    HomePageSEO,
-)
+from .models import ( Category, Product, ProductVariant, HomeSlider, VariantStoreCoupon, DropdownMenu, HomeSection, HomePageSEO, PinterestPost)
 
 from .indexing_utils import notify_google_indexing
+
+from .utils import publish_to_pinterest
+
+@admin.action(description='Bulk Dispatch to Pinterest')
+def bulk_pinterest_dispatch(modeladmin, request, queryset):
+    # Apna Access Token yahan se access karo (Environment Variable recommended)
+    token = os.environ.get("PINTEREST_ACCESS_TOKEN") 
+    
+    success_count = 0
+    for post in queryset:
+        if not post.is_published:
+            # utils.py wala function call ho raha hai
+            success, message = publish_to_pinterest(
+                title=post.title,
+                description="Explore elite lifestyle at Uttar World.",
+                image_url=post.image_url,
+                destination_link=post.link,
+                access_token=token
+            )
+            
+            if success:
+                post.is_published = True
+                post.save()
+                success_count += 1
+            else:
+                modeladmin.message_user(request, f"Error on {post.title}: {message}")
+                
+    modeladmin.message_user(request, f"{success_count} posts successfully sent to Pinterest!")
+
+# --- PinterestPost Admin ---
+@admin.register(PinterestPost)
+class PinterestPostAdmin(admin.ModelAdmin):
+    list_display = ['image_preview', 'title', 'is_published', 'created_at']
+    actions = [bulk_pinterest_dispatch] # <--- Yahan ye list mein hona chahiye
+    
+    def image_preview(self, obj):
+        if obj.image_url:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit:cover;" />', obj.image_url)
+        return "No Image"
+    image_preview.short_description = "Image"
 
 
 # =========================================================
