@@ -19,7 +19,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',             
     'localhost',
 ]
-
+PREPEND_WWW = False  # Kyunki aap bina www ke site chalana chahte hain
 # 3. SSL & CSRF Settings
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -158,3 +158,4 @@ try:
 except json.JSONDecodeError:
     GOOGLE_JSON_CONTENT = {}
     print("WARNING: GOOGLE_JSON_CONTENT is not a valid JSON!")
+
