@@ -12,9 +12,9 @@
   },
   "offers": {
     "@type": "Offer",
-    "url": "https://www.uttarworld.com{{request.path}}",
+    "url": "https://www.uttarworld.com{{ request.path }}",
     "priceCurrency": "INR",
-    "price": "{{ product.price_float_value }}",
+    "price": "{{ product.price_display|slugify|cut:'-' }}",
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
@@ -26,26 +26,29 @@
     },
     "shippingDetails": {
       "@type": "OfferShippingDetails",
-      "shippingRate": { 
-        "@type": "MonetaryAmount", 
-        "value": "0", 
-        "currency": "INR" 
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "0",
+        "currency": "INR"
       },
-      "shippingDestination": { 
-        "@type": "DefinedRegion", 
-        "addressCountry": "IN" 
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "IN"
       },
       "deliveryTime": {
         "@type": "ShippingDeliveryTime",
-        "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
-        "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 7 }
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 1,
+          "maxValue": 2
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 3,
+          "maxValue": 7
+        }
       }
     }
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.5",
-    "reviewCount": "55"
   }
 }
 </script>
