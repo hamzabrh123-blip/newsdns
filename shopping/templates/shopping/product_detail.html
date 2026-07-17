@@ -44,6 +44,7 @@
                     <thead><tr><th>Store</th><th>Coupon/Offer</th><th>Final Price</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
+
                  <div class="product-code-display text-center mt-3">
                 <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
                     Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
@@ -54,9 +55,25 @@
             <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
             </button>
+             
             <div class="mt-4 product-description-box">{{ product.long_description|safe }}</div>
+                        
         </div>
     </div>
+</div>
+  <div style="background:#fff8e1;border-left:5px solid #ff9800;padding:15px;margin:20px 0;border-radius:6px;font-size:14px;line-height:1.8;">
+   <h2> <strong>⚠️  Price & Availability Notice</strong></h2>
+    <ul style="margin:8px 0 0 18px;padding:0;">
+        <li>Product prices, offers and discounts may change at any time without prior notice.</li>
+        <li>The final price, availability and offers will be displayed on the seller's website before purchase.</li>
+        <li>Some products may become unavailable or out of stock without prior notice.</li>
+        <li>Uttar World Elite Lifestyle Store is an affiliate platform and does not sell, stock or ship products directly.</li>
+        <li>All purchases, payments, deliveries, returns, refunds, warranties and product availability are handled solely by the respective seller.</li>
+        <li>Uttar World Elite Lifestyle Store is not responsible for any price changes, product availability, order cancellations, delivery issues or seller policies.</li>
+        <li>
+For the most accurate and up-to-date information, click the yellow colour <b style="color:red;">SHOP NOW</b> button below. On the seller's website, you can view the latest price, coupon codes, discounts, bank offers, EMI options, exchange offers, delivery details, return policy, warranty, product availability, and all other relevant information before making your purchase.
+</li>
+    </ul>
 </div>
 <hr>
 
