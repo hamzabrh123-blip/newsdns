@@ -25,9 +25,7 @@ urlpatterns = [
 
     path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
     path('images/favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
-    # 2. Shopping Sitemap
-    path('sitemap.xml', sitemap_shop_xml, name='sitemap_shop'),    
-    
+        
     # 3. Admin & Editor
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),

@@ -65,29 +65,15 @@ def shop_home(request):
 
     context = get_base_context()
 
-    categories = Category.objects.all().order_by('?')
-
-    sliders = HomeSlider.objects.filter(
-        is_active=True
-    ).order_by('?')
+    categories = Category.objects.filter( products__is_available=True ).distinct().order_by('name')
+    
+    sliders = HomeSlider.objects.filter(is_active=True).order_by('?')
 
     # HOME SECTION IMAGE
-    home_sections = HomeSection.objects.filter(
-        is_active=True
-    ).select_related(
-        'category'
-    ).order_by(
-        'order'
-    )
+    home_sections = HomeSection.objects.filter( is_active=True).select_related(    'category' ).order_by(  'order')
 
     # MIX PRODUCTS
-    products_list = Product.objects.filter(
-        is_available=True
-    ).prefetch_related(
-        'variants'
-    ).defer(
-        'long_description'
-    ).order_by('?')
+    products_list = Product.objects.filter( is_available=True).prefetch_related('variants' ).defer( 'long_description').order_by('-created_at')
 
     # PAGINATION
     paginator = Paginator(
@@ -458,134 +444,70 @@ def product_search(request):
 # STATIC PAGES
 # ==========================================
 
-def about_us(request):
-
-    return render(
-        request,
-        'shopping/about_us.html',
-        get_base_context()
-    )
+def about_us(request): return render(  request,  'shopping/about_us.html',  get_base_context() )
 
 
-def privacy_policy(request):
-
-    return render(
-        request,
-        'shopping/privacy_policy.html',
-        get_base_context()
-    )
+def privacy_policy(request): return render(  request, 'shopping/privacy_policy.html', get_base_context() )
 
 
-def refund_policy(request):
+def refund_policy(request): return render( request, 'shopping/refund_policy.html', get_base_context() )
 
-    return render(
-        request,
-        'shopping/refund_policy.html',
-        get_base_context()
-    )
+def shipping_policy(request): return render(request, 'shopping/shipping_policy.html', get_base_context() )
 
+def terms_of_service(request): return render( request, 'shopping/terms.html',get_base_context())
 
-def shipping_policy(request):
-
-    return render(
-        request,
-        'shopping/shipping_policy.html',
-        get_base_context()
-    )
-
-
-def terms_of_service(request):
-
-    return render(
-        request,
-        'shopping/terms.html',
-        get_base_context()
-    )
-
-
-def contact_us(request):
-
-    return render(
-        request,
-        'shopping/contact.html',
-        get_base_context()
-    )
+def contact_us(request): return render( request, 'shopping/contact.html', get_base_context())
 
 
 # ==========================================
 # SITEMAP
 # ==========================================
-
 def sitemap_shop_xml(request):
 
     products = Product.objects.filter(
         is_available=True
-    ).order_by('-id')
+    ).order_by("-created_at")
 
-    categories = Category.objects.all()
+    categories = Category.objects.filter(
+        products__is_available=True
+    ).distinct().order_by("name")
 
     site_url = "https://uttarworld.com"
 
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
 
-    pages = [
+    # Home
+    xml += f"""
+    <url>
+        <loc>{site_url}/</loc>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    """
 
-        '/',
-        '/about/',
-        '/privacy-policy/',
-        '/refund-policy/',
-        '/shipping-policy/',
-        '/terms/',
-        '/contact/'
-
-    ]
-
-    # ==========================================
-    # STATIC PAGES
-    # ==========================================
-
-    for page in pages:
-
-        xml += f'''
-        <url>
-           <loc>{site_url}{page}</loc>
-           <changefreq>weekly</changefreq>
-           <priority>1.0</priority>
-        </url>
-        '''
-
-    # ==========================================
-    # PRODUCT PAGES
-    # ==========================================
-
-    for p in products:
-
-        xml += f'''
-        <url>
-            <loc>{site_url}/product/{p.slug}/</loc>
-            <lastmod>{p.created_at.strftime("%Y-%m-%d")}</lastmod>
-            <changefreq>daily</changefreq>
-            <priority>0.8</priority>
-        </url>
-        '''
-
-    # ==========================================
-    # CATEGORY PAGES
-    # ==========================================
-
+    # Categories
     for c in categories:
-
-        xml += f'''
+        xml += f"""
         <url>
             <loc>{site_url}/category/{c.slug}/</loc>
             <changefreq>weekly</changefreq>
             <priority>0.9</priority>
         </url>
-        '''
+        """
 
-    xml += '</urlset>'
+    # Products
+    for p in products:
+        xml += f"""
+        <url>
+            <loc>{site_url}/product/{p.slug}/</loc>
+            <lastmod>{p.created_at.strftime("%Y-%m-%d")}</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.8</priority>
+        </url>
+        """
+
+    xml += "</urlset>"
 
     return HttpResponse(
         xml,
