@@ -149,21 +149,25 @@
                     </h3>
 
                     <!-- STORE NAME -->
-                    {% if first_variant.coupons.first.store_name %}
+                   {% if first_variant.coupons.first.store_name %}
 
-                    <div
-                        style="
-                        font-size:12px;
-                        color:#666;
-                        margin-bottom:4px;
-                        font-weight:500;
-                        "
-                    >
-                        {{ first_variant.coupons.first.store_name }}
-                    </div>
+<div class="text-center mb-2">
 
-                    {% endif %}
+    <img
+        src="/static/store_logo/{{ first_variant.coupons.first.store_name|lower|cut:'.com'|cut:'.co.in'|cut:'.in'|cut:' '|cut:'-'|cut:'_' }}.png"
+        onerror="this.src='/static/store_logo/default.png'"
+        style="
+            height:26px;
+            max-width:110px;
+            width:auto;
+            object-fit:contain;
+        "
+        alt="{{ first_variant.coupons.first.store_name }}"
+    >
 
+</div>
+
+{% endif %}
 
                     <!-- MRP -->
                     <div>

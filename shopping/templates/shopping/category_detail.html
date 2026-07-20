@@ -11,7 +11,7 @@
         {% for product in products %}
         <div class="col-md-3 col-6">
             {% with variants=product.variants.all first_variant=product.variants.all.0 %}
-            <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+            <a href="{% url 'product_detail' product.slug %}" class="product-card-link ">
                 <div class="card shadow-sm product-card border-0 js-product-card" 
                      data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
                      data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
@@ -20,7 +20,7 @@
                     
                     <div class="auto-slider-container">
                         {% for variant in variants %}
-                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="{{ product.title }}">
+                            <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img{% if forloop.first %} active{% endif %}" alt="{{ product.title }}">
                         {% empty %}
                             <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active">
                         {% endfor %}
@@ -79,7 +79,30 @@
             const mrpPriceEl = card.querySelector('.js-mrp-price');
             const storeBadgeEl = card.querySelector('.js-store-badge');
 
-            if (storeBadgeEl && storeName) storeBadgeEl.innerText = storeName;
+           
+            if (storeBadgeEl && storeName) {
+
+                  let storeKey = storeName
+                    .replace(/\.co\.in$/i, "")
+                    .replace(/\.com$/i, "")
+                    .replace(/\.in$/i, "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, "")
+                    .replace(/[-_.]/g, "");
+                let bg = "transparent";
+
+                switch (storeKey) { case "ajio": bg = "#000";
+                        break;
+}
+                    storeBadgeEl.innerHTML = `
+                            <img src="/static/store_logo/${storeKey}.png"
+                                  onerror="this.src='/static/store_logo/default.png'"
+                                  style="height:26px;width:auto;max-width:120px;object-fit:contain;">
+                         `;
+                        }
+
+
             if (finalPriceEl) {
                 if (variantsPricesStr) {
                     const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);

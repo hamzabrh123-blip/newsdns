@@ -125,53 +125,5 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 }
 </script>
 
-<script>
-
-    function syncVariant(el) {
-    try {
-        const mainImg = document.getElementById('mainProductImg');
-        const dataScript = document.getElementById('nestedDealsData');
-        
-        if (!dataScript) return;
-
-        const allData = JSON.parse(dataScript.textContent);
-        const code = el.getAttribute('data-code');
-        const deals = allData[code];
-
-        // 1. Image Update
-        mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + el.getAttribute('data-raw-url');
-        
-        // 2. Code Display
-        const codeDisplay = document.getElementById('displayVariantCode');
-        if (codeDisplay) codeDisplay.innerText = code;
-        
-        // 3. Table Update
-        const container = document.getElementById('storeDealsContainer');
-        const shopBtn = document.getElementById('masterShopNowBtn');
-        
-        if (container && deals && deals.length > 0) {
-            container.innerHTML = deals.map(d => 
-                `<tr><td>${d.store_name}</td><td>${d.coupon_code}</td><td><strong>₹${d.selling_price}</strong></td></tr>`
-            ).join('');
-            
-            if (shopBtn) shopBtn.href = deals[0].url;
-        }
-
-        // 4. Thumb Styling
-        document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('thumb-active'));
-        el.classList.add('thumb-active');
-        
-    } catch (err) {
-        console.error("Sync Error:", err);
-    }
-}
-
-// Page load hote hi chalane ke liye (Sabse safe tarika)
-document.addEventListener("DOMContentLoaded", function() {
-    const firstThumb = document.querySelector('.thumb-img');
-    if (firstThumb) {
-        syncVariant(firstThumb);
-    }
-});
-</script>
+<script src="{% static 'js/product.js' %}"></script>
 {% endblock %}
