@@ -6,6 +6,7 @@ import nested_admin
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
+from .models import StoreLogoUpload
 
 from .models import ( Category, Product, ProductVariant, HomeSlider, VariantStoreCoupon, DropdownMenu, HomeSection, HomePageSEO, PinterestPost)
 
@@ -199,6 +200,8 @@ def notify_google_indexing_action(
 # =========================================================
 # HOME SECTION ADMIN
 # =========================================================
+
+
 
 # =========================================================
 # HOME SECTION ADMIN
@@ -494,6 +497,7 @@ class HomePageSEOAdmin(admin.ModelAdmin):
 
     )
 
+admin.site.register(StoreLogoUpload)
 # =========================================================
 # HIDE UNUSED MODELS FROM SIDEBAR
 # =========================================================

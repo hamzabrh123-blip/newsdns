@@ -9,6 +9,12 @@ from unidecode import unidecode
 
 from .utils import process_and_upload_to_imgbb, ping_google_indexing
 
+class StoreLogoUpload(models.Model):
+    logo = models.ImageField(upload_to='store_logos/')
+
+    def __str__(self):
+        return f"Logo {self.id}"
+
 class PinterestPost(models.Model):
     title = models.CharField(max_length=255)
     image_url = models.URLField(max_length=500)
