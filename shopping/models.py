@@ -11,7 +11,7 @@ from .utils import process_and_upload_to_imgbb, ping_google_indexing
 
 
 class StoreLogoUpload(models.Model):
-    logo = models.ImageField(upload_to='store_logo/')
+    logo_path = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"Logo {self.id}"
