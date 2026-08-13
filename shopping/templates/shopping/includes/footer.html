@@ -1,11 +1,16 @@
 <footer class="py-4 bg-white border-top text-center mt-auto">
-    <p class="mb-2">© 2026 Uttar World. All Rights Reserved.</p>
-    <div class="d-flex justify-content-center flex-wrap gap-3">
-        <a href="{% url 'about_us' %}" class="text-muted text-decoration-none">About Us</a>
-        <a href="{% url 'shipping_policy' %}" class="text-muted text-decoration-none">Shipping Policy</a>
-        <a href="{% url 'refund_policy' %}" class="text-muted text-decoration-none">Refund Policy</a>
-        <a href="{% url 'terms' %}" class="text-muted text-decoration-none">Terms of Service</a>
-        <a href="{% url 'privacy_policy' %}" class="text-muted text-decoration-none">Privacy Policy</a>
-        <a href="{% url 'contact' %}" class="text-muted text-decoration-none">Contact Us</a>
+    <div class="container px-3">
+        <p class="small mb-2" style="font-size: 12px; line-height: 1.5; color: #dc3545;">
+            <strong>Disclaimer:</strong> This website participates in affiliate marketing programs. All product names, logos, and brands are the property of their respective owners. Use of these names and logos is for identification purposes only and does not imply endorsement. If any brand or company has any issue with their logo displayed on this site, please email our legal advisor immediately at <a href="mailto:qamarnaimadvocate@gmail.com" style="color: #dc3545; font-weight: bold; text-decoration: underline;">qamarnaimadvocate@gmail.com</a>, and the respective logo will be removed instantly.
+        </p>
+        <p class="mb-2 text-muted">© 2026 Uttar World. All Rights Reserved.</p>
+        <div class="d-flex justify-content-center flex-wrap gap-3">
+            <a href="{% url 'about_us' %}" class="text-muted text-decoration-none">About Us</a>
+            <a href="{% url 'shipping_policy' %}" class="text-muted text-decoration-none">Shipping Policy</a>
+            <a href="{% url 'refund_policy' %}" class="text-muted text-decoration-none">Refund Policy</a>
+            <a href="{% url 'terms' %}" class="text-muted text-decoration-none">Terms of Service</a>
+            <a href="{% url 'privacy_policy' %}" class="text-muted text-decoration-none">Privacy Policy</a>
+            <a href="{% url 'contact' %}" class="text-muted text-decoration-none">Contact Us</a>
+        </div>
     </div>
 </footer>
