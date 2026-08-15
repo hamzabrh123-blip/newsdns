@@ -37,6 +37,7 @@
                 {% with variants=product.variants.all first_variant=product.variants.first %}
                     <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
                         <div class="card shadow-sm product-card border-0 js-product-card" 
+                             data-currency="{{ product.currency|default:'₹' }}"
                              data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
                              data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
                              data-store-name="{{ first_variant.coupons.all.0.store_name|default:'UTTARWORLD.COM' }}" 
@@ -53,7 +54,7 @@
     
                                  <div class="d-flex flex-column">
                                      <small class="text-muted" style="text-decoration: line-through; font-size: 0.75rem;">
-                                             MRP: ₹{{ product.mrp_price|default:product.price_display }}
+                                             MRP: {{ product.currency|default:'₹' }}{{ product.mrp_price|default:product.price_display }}
                                      </small>
                                         <span class="price-tag js-final-price"></span>
                                  </div>
@@ -75,10 +76,10 @@
 </div>
 
 <script>
-    // Tera wahi script jo home page par chal raha hai
     document.addEventListener("DOMContentLoaded", function () {
         const productCards = document.querySelectorAll('.js-product-card');
         productCards.forEach(card => {
+            const currency = card.getAttribute('data-currency') || '₹';
             const selling = parseFloat(card.getAttribute('data-selling')) || 0;
             const storeName = card.getAttribute('data-store-name');
             const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
@@ -92,9 +93,9 @@
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        finalPriceEl.innerText = (minPrice !== maxPrice) ? '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0) : '₹' + minPrice.toFixed(0);
-                    } else { finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price'; }
-                } else { finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price'; }
+                        finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + '-' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
+                    } else { finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; }
+                } else { finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; }
             }
         });
 

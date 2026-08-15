@@ -13,7 +13,7 @@
   "offers": {
     "@type": "Offer",
     "url": "{{ request.build_absolute_uri }}",
-    "priceCurrency": "INR",
+    "priceCurrency": "{% if product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% else %}INR{% endif %}",
     "price": "{{ product.price_display|slugify|cut:'-'|cut:' ' }}",
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
@@ -29,7 +29,7 @@
       "shippingRate": { 
         "@type": "MonetaryAmount", 
         "value": "0", 
-        "currency": "INR" 
+        "currency": "{% if product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% else %}INR{% endif %}" 
       },
       "shippingDestination": { 
         "@type": "DefinedRegion", 

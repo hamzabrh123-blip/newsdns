@@ -6,6 +6,10 @@
 /* Image Zoom Container */
 .img-zoom-container {
     position: relative;
+    width: 100%;
+    display: block; /* Flex hata kar block kar de taaki extra stretch na ho */
+    margin: 0;
+    padding: 0;
 }
 
 /* Zoom Lens */
@@ -71,8 +75,9 @@
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
-                <span class="price-tag">₹{{ product.price_display|slugify|cut:'-'|cut:' ' }}</span>
-                {% if product.mrp_price %}<span class="mrp-text">₹{{ product.mrp_price }}</span>{% endif %}
+                <!-- Dynamic Currency Symbol added here -->
+                <span class="price-tag">{{ product.currency }}{{ product.price_display|slugify|cut:'-'|cut:' ' }}</span>
+                {% if product.mrp_price %}<span class="mrp-text">{{ product.currency }}{{ product.mrp_price }}</span>{% endif %}
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
@@ -122,8 +127,9 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">₹{{ item.price_display }} 
-                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">₹{{ item.mrp_price }}</span></span>{% endif %}
+                    <!-- Dynamic Currency for Related Products -->
+                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.price_display }} 
+                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">{{ item.currency }}{{ item.mrp_price }}</span></span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
                 </div>

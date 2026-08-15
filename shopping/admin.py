@@ -1,4 +1,3 @@
-
 import os
 from django.contrib import admin, messages
 from django.utils.html import format_html
@@ -74,6 +73,7 @@ class ProductResource(resources.ModelResource):
             'title',
             'slug',
             'category',
+            'currency',
             'mrp_price',
             'price_display',
         )
@@ -201,12 +201,6 @@ def notify_google_indexing_action(
 # HOME SECTION ADMIN
 # =========================================================
 
-
-
-# =========================================================
-# HOME SECTION ADMIN
-# =========================================================
-
 @admin.register(HomeSection)
 class HomeSectionAdmin(admin.ModelAdmin):
 
@@ -270,6 +264,7 @@ class ProductAdmin(
 
     list_display = (
         'title',
+        'currency',
         'mrp_price',
         'price_display',
         'category',
@@ -280,11 +275,13 @@ class ProductAdmin(
 
     list_filter = (
         'category',
+        'currency',
         'is_available',
         'is_featured',
     )
 
     list_editable = (
+        'currency',
         'is_featured',
         'is_available',
     )
@@ -310,6 +307,7 @@ class ProductAdmin(
                     'title',
                     'slug',
                     'category',
+                    'currency',
                     'mrp_price',
                     'price_display',
                 )
@@ -511,4 +509,3 @@ try:
     admin.site.unregister(VariantStoreCoupon)
 except admin.sites.NotRegistered:
     pass
-

@@ -176,6 +176,19 @@ class Product(models.Model):
         max_length=100
     )
 
+    # --- NEW CURRENCY FIELD ADDED HERE ---
+    CURRENCY_CHOICES = [
+        ('₹', 'INR (₹)'),
+        ('$', 'USD ($)'),
+        ('€', 'EUR (€)'),
+    ]
+    currency = models.CharField(
+        max_length=5,
+        choices=CURRENCY_CHOICES,
+        default='₹'
+    )
+    # -------------------------------------
+
     long_description = RichTextUploadingField()
 
     meta_description = models.TextField(

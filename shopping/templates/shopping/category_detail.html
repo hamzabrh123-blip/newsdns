@@ -11,8 +11,9 @@
         {% for product in products %}
         <div class="col-md-3 col-6">
             {% with variants=product.variants.all first_variant=product.variants.all.0 %}
-            <a href="{% url 'product_detail' product.slug %}" class="product-card-link ">
+            <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
                 <div class="card shadow-sm product-card border-0 js-product-card" 
+                     data-currency="{{ product.currency }}"
                      data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
                      data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
                      data-store-name="{{ first_variant.coupons.all.0.store_name|default:'Hamaramall' }}" 
@@ -70,6 +71,7 @@
     document.addEventListener("DOMContentLoaded", function () {
         const productCards = document.querySelectorAll('.js-product-card');
         productCards.forEach(card => {
+            const currency = card.getAttribute('data-currency') || '₹';
             const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
             const selling = parseFloat(card.getAttribute('data-selling')) || 0;
             const storeName = card.getAttribute('data-store-name');
@@ -97,10 +99,10 @@
 }
                     storeBadgeEl.innerHTML = `
                             <img src="/static/store_logo/${storeKey}.png"
-                                  onerror="this.src='/static/store_logo/default.png'"
-                                  style="height:26px;width:auto;max-width:120px;object-fit:contain;">
+                                 onerror="this.src='/static/store_logo/default.png'"
+                                 style="height:26px;width:auto;max-width:120px;object-fit:contain;">
                          `;
-                        }
+                         }
 
 
             if (finalPriceEl) {
@@ -109,16 +111,16 @@
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        finalPriceEl.innerText = (minPrice !== maxPrice) ? '₹' + minPrice.toFixed(0) + '-₹' + maxPrice.toFixed(0) : '₹' + minPrice.toFixed(0);
+                        finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + '-' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
                     } else {
-                        finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
+                        finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price';
                     }
                 } else {
-                    finalPriceEl.innerText = selling > 0 ? '₹' + selling.toFixed(0) : 'Check Price';
+                    finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price';
                 }
             }
             if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
-                mrpPriceEl.innerText = '₹' + mrp.toFixed(0);
+                mrpPriceEl.innerText = currency + mrp.toFixed(0);
                 mrpWrapperEl.style.display = 'inline-block';
             }
         });

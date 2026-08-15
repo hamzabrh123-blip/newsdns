@@ -179,7 +179,7 @@
                             font-size:13px;
                             "
                         >
-                            ₹{{ product.mrp_price }}
+                            {{ product.currency }}{{ product.mrp_price }}
                         </small>
 
                     </div>
@@ -196,11 +196,11 @@
 
                         {% if first_variant.coupons.first.selling_price %}
 
-                            ₹{{ first_variant.coupons.first.selling_price }}
+                            {{ product.currency }}{{ first_variant.coupons.first.selling_price }}
 
                         {% else %}
 
-                            ₹{{ product.price_display }}
+                            {{ product.currency }}{{ product.price_display }}
 
                         {% endif %}
 
