@@ -76,7 +76,7 @@
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
                 <!-- Dynamic Currency Symbol added here -->
-                <span class="price-tag">{{ product.currency }}{{ product.price_display|slugify|cut:'-'|cut:' ' }}</span>
+                    <span class="price-tag">{{ product.currency }}{{ product.price_display }}</span>
                 {% if product.mrp_price %}<span class="mrp-text">{{ product.currency }}{{ product.mrp_price }}</span>{% endif %}
             </div>
             <div class="store-deal-card mt-3">
@@ -149,7 +149,6 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
         </div>
     </div>
 </div>
-
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in product.variants.all %}
@@ -159,7 +158,8 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                     "store_name": "{{ coupon.store_name|escapejs }}", 
                     "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}", 
                     "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
-                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}" 
+                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}",
+                    "currency": "{{ product.currency|escapejs }}"
                 }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}

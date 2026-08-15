@@ -32,7 +32,7 @@ function syncVariant(el) {
                 `<tr>
                     <td>${d.store_name}</td>
                     <td>${d.coupon_code}</td>
-                    <td><strong>₹${d.selling_price}</strong></td>
+                    <td><strong>${d.currency}${d.selling_price}</strong></td>
                 </tr>`
             ).join('');
 
