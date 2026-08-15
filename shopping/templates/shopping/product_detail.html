@@ -2,7 +2,40 @@
 {% load static %}
 
 {% block content %}
+<style>
+/* Image Zoom Container */
+.img-zoom-container {
+    position: relative;
+}
 
+/* Zoom Lens */
+.img-zoom-lens {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    width: 80px;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.4);
+    display: none;
+    z-index: 10;
+    cursor: crosshair;
+    pointer-events: none; /* <-- Yeh sabse zaroori hai, taaki lens mouse events block na kare */
+}
+
+/* Zoom Result Box (Right Side mein dikhega) */
+.img-zoom-result {
+    border: 1px solid #d4d4d4;
+    width: 500px;  /* Yahan se size bada kar le */
+    height: 500px; /* Yahan se size bada kar le */
+    position: absolute;
+    top: 0;
+    left: 102%;
+    z-index: 9999;
+    background-repeat: no-repeat;
+    display: none;
+    background-color: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+</style>
 
 <div class="container mt-4">
     <div class="row product-container">
@@ -13,11 +46,13 @@
         </div>
         
         <div class="col-md-5">
+            <!-- Zoom Container ke andar Viewport aur Zoom Result dono alag hain -->
             <div class="img-zoom-container" id="viewport">
                 <div class="main-img-viewport">
                     <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}">
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
+                <!-- Zoom Result ab Viewport ke BAHAR hai taaki kate nahi -->
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
 
@@ -61,8 +96,9 @@
         </div>
     </div>
 </div>
-  <div style="background:#fff8e1;border-left:5px solid #ff9800;padding:15px;margin:20px 0;border-radius:6px;font-size:14px;line-height:1.8;">
-   <h2> <strong>⚠️  Price & Availability Notice</strong></h2>
+
+<div style="background:#fff8e1;border-left:5px solid #ff9800;padding:15px;margin:20px 0;border-radius:6px;font-size:14px;line-height:1.8;">
+   <h2><strong>⚠️ Price & Availability Notice</strong></h2>
     <ul style="margin:8px 0 0 18px;padding:0;">
         <li>Product prices, offers and discounts may change at any time without prior notice.</li>
         <li>The final price, availability and offers will be displayed on the seller's website before purchase.</li>
