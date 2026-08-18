@@ -39,6 +39,14 @@ class Category(models.Model):
         unique=True,
         blank=True
     )
+    # --- YE FIELD NAYA ADD KARNA HAI ---
+    meta_title = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Custom SEO title for Google India ranking"
+    )
+    # -----------------------------------
 
     image = models.ImageField(
         upload_to='categories/',

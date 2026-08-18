@@ -1,16 +1,16 @@
 {% comment %} catagory_meta.html {% endcomment %}
 
-{# 1. Page Title #}
-<title>{{ category.name }} | Uttar World Elite Lifestyle Store</title>
+{# 1. Page Title (Directly from Admin Meta Title, fallback to just Category Name) #}
+<title>{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}</title>
 
-{# 2. SEO Description #}
-<meta name="description" content="{{ category.description|striptags|truncatechars:160 }}">
+{# 2. SEO Description & Keywords #}
+<meta name="description" content="{{ category.meta_description }}">
 <meta name="keywords" content="{{ category.meta_keywords }}">
 
 {# 3. Open Graph Tags (Facebook/WhatsApp) #}
 <meta property="og:type" content="website">
-<meta property="og:title" content="{{ category.name|safe }} | Uttar World Elite Lifestyle Store" />
-<meta property="og:description" content="{{ category.description|striptags|truncatechars:160 }}" />
+<meta property="og:title" content="{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}" />
+<meta property="og:description" content="{{ category.meta_description }}" />
 <meta property="og:url" content="https://uttarworld.com{{ request.path }}">
 
 {# 4. Image Logic #}
@@ -24,5 +24,5 @@
 
 {# 5. Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ category.name|safe }}">
-<meta name="twitter:description" content="{{ category.description|striptags|truncatechars:160 }}">
+<meta name="twitter:title" content="{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}">
+<meta name="twitter:description" content="{{ category.meta_description }}">
