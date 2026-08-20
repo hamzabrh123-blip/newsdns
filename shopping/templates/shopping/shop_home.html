@@ -4,329 +4,52 @@
 
 <div class="container-fluid px-2 px-md-3">
 
-
 <!-- HOME CATEGORY GRID -->
 {% if home_sections %}
-
 <div class="row g-3 mb-4">
-
     {% for section in home_sections %}
-
     <div class="col-6 col-md-4 col-lg-3">
-
         {% if section.category.slug %}
-
-        <a
-            href="{% url 'category_detail' section.category.slug %}"
-            class="text-decoration-none"
-        >
-
+        <a href="{% url 'category_detail' section.category.slug %}" class="text-decoration-none">
         {% endif %}
 
-        <div
-            class="position-relative overflow-hidden rounded-4 shadow-sm"
-            style="
-            height:220px;
-            "
-        >
-
+        <div class="position-relative overflow-hidden rounded-4 shadow-sm" style="height:220px;">
             {% if section.image %}
-
-            <img
-                src="{{ section.image.url }}"
-                class="w-100 h-100"
-                style="
-                object-fit:cover;
-                "
-                alt="{{ section.category.name }}"
-            >
-
+            <img src="{{ section.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}">
             {% endif %}
 
-
             <!-- CATEGORY NAME -->
-            <div
-                class="position-absolute bottom-0 start-0 w-100"
-                style="
-                background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
-                padding:30px 15px 12px;
-                "
-            >
-
-                <h2
-                    style="
-                    color:#fff;
-                     font-size:18px;
-                    font-weight:700;
-                    margin:0;
-                     ">
+            <div class="position-absolute bottom-0 start-0 w-100" style="background:linear-gradient(to top,rgba(0,0,0,.7),transparent); padding:30px 15px 12px;">
+                <h2 style="color:#fff; font-size:18px; font-weight:700; margin:0;">
                     {{ section.category.name }}
                 </h2>   
-
             </div>
-
         </div>
 
         {% if section.category.slug %}
-
         </a>
-
         {% endif %}
-
     </div>
-
     {% endfor %}
-
 </div>
-
 {% endif %}
-
-
 
 <!-- HEADING -->
 <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-
-    <h1
-    style="
-    font-size:32px;
-    font-weight:800;
-    color:#111;
-    margin:0;
-    "
->
-    Uttar World Elite Lifestyle Store
-</h1>
-
+    <h1 style="font-size:32px; font-weight:800; color:#111; margin:0;">
+        Uttar World Elite Lifestyle Store
+    </h1>
 </div>
 
-
-
-<!-- PRODUCTS -->
-<div class="row g-2">
-
-    {% for product in products %}
-
-    {% with first_variant=product.variants.first %}
-
-    <div class="col-6 col-md-3 col-lg-2">
-
-        <a
-            href="{% url 'product_detail' product.slug %}"
-            class="text-decoration-none text-dark"
-        >
-
-            <div
-                class="card border-0 shadow-sm h-100 rounded-4"
-                style="
-                transition:.2s;
-                "
-            >
-
-                {% if first_variant.image_url %}
-
-                <img
-                    src="{{ first_variant.image_url }}"
-                    class="card-img-top p-2"
-                    style="
-                    height:220px;
-                    object-fit:contain;
-                    "
-                >
-
-                {% endif %}
-
-                <div class="card-body p-2">
-
-                    <h3
-                        style="
-                        font-size:13px;
-                         height:38px;
-                         overflow:hidden;
-                         line-height:1.4;
-                         font-weight:600;
-                            ">
-                            {{ product.title }}
-                    </h3>
-
-                    <!-- STORE NAME -->
-                   {% if first_variant.coupons.first.store_name %}
-
-<div class="text-center mb-2">
-
-    <img
-        src="/static/store_logo/{{ first_variant.coupons.first.store_name|lower|cut:'.com'|cut:'.co.in'|cut:'.in'|cut:' '|cut:'-'|cut:'_' }}.png"
-        onerror="this.src='/static/store_logo/default.png'"
-        style="
-            height:26px;
-            max-width:110px;
-            width:auto;
-            object-fit:contain;
-        "
-        alt="{{ first_variant.coupons.first.store_name }}"
-    >
-
-</div>
-
-{% endif %}
-
-                    <!-- MRP -->
-                    <div>
-
-                        <small
-                            class="text-muted"
-                            style="
-                            text-decoration:line-through;
-                            font-size:13px;
-                            "
-                        >
-                            {{ product.currency }}{{ product.mrp_price }}
-                        </small>
-
-                    </div>
-
-
-                    <!-- SELLING PRICE -->
-                    <div
-                        style="
-                        font-size:19px;
-                        font-weight:800;
-                        color:#000;
-                        "
-                    >
-
-                        {% if first_variant.coupons.first.selling_price %}
-
-                            {{ product.currency }}{{ first_variant.coupons.first.selling_price }}
-
-                        {% else %}
-
-                            {{ product.currency }}{{ product.price_display }}
-
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </a>
-
-    </div>
-
-    {% endwith %}
-
-    {% endfor %}
-
-</div>
-
-
-
-<!-- PAGINATION -->
-{% if products.has_other_pages %}
-
-<div class="d-flex justify-content-center mt-5">
-
-    <nav>
-
-        <ul class="pagination">
-
-            {% if products.has_previous %}
-
-            <li class="page-item">
-
-                <a
-                    class="page-link"
-                    href="?page={{ products.previous_page_number }}"
-                >
-                    Previous
-                </a>
-
-            </li>
-
-            {% endif %}
-
-
-            {# ONLY SHOW 3 PAGES #}
-
-            {% for num in products.paginator.page_range %}
-
-                {% if num >= products.number|add:'-1' and num <= products.number|add:'1' %}
-
-                    {% if products.number == num %}
-
-                    <li class="page-item active">
-
-                        <span class="page-link">
-                            {{ num }}
-                        </span>
-
-                    </li>
-
-                    {% else %}
-
-                    <li class="page-item">
-
-                        <a
-                            class="page-link"
-                            href="?page={{ num }}"
-                        >
-                            {{ num }}
-                        </a>
-
-                    </li>
-
-                    {% endif %}
-
-                {% endif %}
-
-            {% endfor %}
-
-
-            {% if products.has_next %}
-
-            <li class="page-item">
-
-                <a
-                    class="page-link"
-                    href="?page={{ products.next_page_number }}"
-                >
-                    Next
-                </a>
-
-            </li>
-
-            {% endif %}
-
-        </ul>
-
-    </nav>
-
-</div>
-
-{% endif %}
+<!-- (Products wala section yahan se poora hata diya gaya hai, ab yeh sirf categories dikhayega!) -->
 
 {% if home_seo.seo_content %}
-
 <div class="container mt-5">
-
-    <div
-        class="seo-content"
-        style="
-        font-size:16px;
-        line-height:1.9;
-        color:#333;
-        "
-    >
-
+    <div class="seo-content" style="font-size:16px; line-height:1.9; color:#333;">
         {{ home_seo.seo_content|safe }}
-
     </div>
-
 </div>
-
 {% endif %}
-
 
 </div>
 

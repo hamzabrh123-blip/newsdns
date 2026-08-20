@@ -1,13 +1,50 @@
 import uuid
 import time
+import requests
+import json
 
 from django.db import models
+from django.conf import settings
 from django.utils.text import slugify
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
 
 from .utils import process_and_upload_to_imgbb, ping_google_indexing
+
+
+# ==========================================
+# BING INDEXING HELPER FUNCTION
+# ==========================================
+def ping_bing_indexing(url):
+    """
+    Function to submit URLs to Bing Webmaster Tools API automatically.
+    """
+    api_key = getattr(settings, "BING_API_KEY", "")
+    if not api_key:
+        return False
+        
+    endpoint = f"https://bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey={api_key}"
+    
+    headers = {
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
+    payload = {
+        "siteUrl": "https://uttarworld.com",
+        "urlList": [url]
+    }
+    
+    try:
+        response = requests.post(endpoint, data=json.dumps(payload), headers=headers, timeout=5)
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"Bing Indexing Failed: {response.status_code} - {response.text}")
+            return False
+    except Exception as e:
+        print(f"Bing Indexing Error: {e}")
+        return False
 
 
 class StoreLogoUpload(models.Model):
@@ -39,14 +76,13 @@ class Category(models.Model):
         unique=True,
         blank=True
     )
-    # --- YE FIELD NAYA ADD KARNA HAI ---
+    
     meta_title = models.CharField(
         max_length=255,
         blank=True,
         null=True,
-        help_text="Custom SEO title for Google India ranking"
+        help_text="Custom SEO title for Google & Bing ranking"
     )
-    # -----------------------------------
 
     image = models.ImageField(
         upload_to='categories/',
@@ -184,7 +220,6 @@ class Product(models.Model):
         max_length=100
     )
 
-    # --- NEW CURRENCY FIELD ADDED HERE ---
     CURRENCY_CHOICES = [
         ('₹', 'INR (₹)'),
         ('$', 'USD ($)'),
@@ -195,7 +230,6 @@ class Product(models.Model):
         choices=CURRENCY_CHOICES,
         default='₹'
     )
-    # -------------------------------------
 
     long_description = RichTextUploadingField()
 
@@ -229,10 +263,10 @@ class Product(models.Model):
 
     def get_absolute_url(self):
 
-        return f"/product/{self.slug}/"
+        return f"/shopping/product/{self.slug}/"
 
     # ==========================================
-    # SAVE
+    # SAVE (Google & Bing Indexing Ping Added)
     # ==========================================
 
     def save(self, *args, **kwargs):
@@ -246,15 +280,19 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
+        target_url = f"https://uttarworld.com{self.get_absolute_url()}"
+
+        # Ping Google Indexing API
         try:
-
-            ping_google_indexing(
-                f"https://uttarworld.com{self.get_absolute_url()}"
-            )
-
+            ping_google_indexing(target_url)
         except Exception as e:
-
             print(f"Google Indexing Error: {e}")
+
+        # Ping Bing Indexing API
+        try:
+            ping_bing_indexing(target_url)
+        except Exception as e:
+            print(f"Bing Indexing Error: {e}")
 
     def __str__(self):
 
@@ -454,13 +492,13 @@ class HomeSlider(models.Model):
 
         image_url_val = str(self.image_url) if self.image_url else ""
 
-        is_new_image = bool(
+        is_new_file = bool(
             self.image and "i.ibb.co" not in image_url_val
         )
 
         super().save(*args, **kwargs)
 
-        if is_new_image:
+        if is_new_file:
             self.handle_upload()
 
     # ==========================================
@@ -558,7 +596,7 @@ class HomeSection(models.Model):
         blank=True
     )
 
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=ngo if False else 0) # simplified
 
     is_active = models.BooleanField(default=True)
 

@@ -2,15 +2,76 @@
 
 {% block content %}
 <style>
-    /* Home page wali CSS yahan rakhi hai taaki design same rahe */
+    /* Modern Product Card Styling (Matched with Category Page) */
     .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
-    .product-card { border-radius: 8px; overflow: hidden; transition: 0.3s ease-in-out; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
-    .product-card-link:hover .product-card { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
-    .mobile-product-title { font-size: 0.75rem !important; height: 36px; overflow: hidden; color: #212529; font-weight: 600; margin-bottom: 6px; }
-    .price-tag { color: #d32f2f; font-weight: 700; font-size: 0.95rem; display: inline-block; }
-    .store-text { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
-    .auto-slider-container { position: relative; width: 100%; height: 180px; background: #f8f9fa; overflow: hidden; }
-    .product-auto-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.6s ease-in-out; }
+    .product-card { border-radius: 8px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
+    .product-card-link:hover .product-card { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; }
+    
+    .mobile-product-title { 
+        font-size: 13px; 
+        height: 36px; 
+        overflow: hidden; 
+        color: #333; 
+        font-weight: 500; 
+        margin-bottom: 6px; 
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+    }
+
+    /* Attractive Price Design with Red Highlight */
+    .price-section {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+    }
+    .price-tag { 
+        color: #d32f2f; /* Eye-catching Red Color */
+        font-weight: 800; 
+        font-size: 17px; 
+        letter-spacing: -0.3px;
+    }
+    .old-price-num {
+        text-decoration: line-through;
+        color: #888;
+        font-size: 13px;
+        font-weight: 400;
+    }
+    .discount-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: #2e7d32;
+        background: #e8f5e9;
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+
+    /* Taller, Cleaner Image Slider */
+    .auto-slider-container { 
+        position: relative; 
+        width: 100%; 
+        height: 260px; 
+        background: #f8f9fa; 
+        overflow: hidden; 
+    }
+    @media (min-width: 768px) {
+        .auto-slider-container {
+            height: 320px;
+        }
+    }
+    .product-auto-img { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        opacity: 0; 
+        transition: opacity 0.5s ease-in-out; 
+    }
     .product-auto-img.active { opacity: 1; }
 
     @media (min-width: 992px) { .col-lg-2-custom { flex: 0 0 16.666667%; max-width: 16.666667%; } }
@@ -31,7 +92,7 @@
     </h5>
     </div>
 
-    <div class="row gx-2 gy-2">
+    <div class="row gx-2 gy-3">
         {% for product in products %}
             <div class="col-6 col-md-3 col-lg-2-custom">
                 {% with variants=product.variants.all first_variant=product.variants.first %}
@@ -40,28 +101,29 @@
                              data-currency="{{ product.currency|default:'₹' }}"
                              data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
                              data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
-                             data-store-name="{{ first_variant.coupons.all.0.store_name|default:'UTTARWORLD.COM' }}" 
                              data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
                             
+                            <!-- Image Slider -->
                             <div class="auto-slider-container">
                                 {% for variant in variants %}
-                                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="Product">
+                                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="{{ product.title }}">
+                                {% empty %}
+                                    <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active" alt="No Image">
                                 {% endfor %}
                             </div>
                             
+                            <!-- Product Info -->
                             <div class="card-body p-2">
-                                 <h6 class="mobile-product-title">{{ product.title }}</h6>
-    
-                                 <div class="d-flex flex-column">
-                                     <small class="text-muted" style="text-decoration: line-through; font-size: 0.75rem;">
-                                             MRP: {{ product.currency|default:'₹' }}{{ product.mrp_price|default:product.price_display }}
-                                     </small>
-                                        <span class="price-tag js-final-price"></span>
-                                 </div>
-
-                                 <div class="mt-2 pt-1 border-top text-center">
-                                      <span class="store-text js-store-badge"></span>
-                                 </div>
+                                <h6 class="mobile-product-title">{{ product.title }}</h6>
+        
+                                <!-- Attractive Price & Discount Row -->
+                                <div class="price-section">
+                                    <span class="price-tag js-final-price"></span>
+                                    <span class="mrp-label js-mrp-wrapper" style="display: none;">
+                                        <span class="old-price-num js-mrp-price"></span>
+                                    </span>
+                                    <span class="discount-badge js-discount-badge" style="display: none;"></span>
+                                </div>
                             </div>
                         </div>
                     </a>
@@ -80,25 +142,46 @@
         const productCards = document.querySelectorAll('.js-product-card');
         productCards.forEach(card => {
             const currency = card.getAttribute('data-currency') || '₹';
+            const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
             const selling = parseFloat(card.getAttribute('data-selling')) || 0;
-            const storeName = card.getAttribute('data-store-name');
             const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
             const finalPriceEl = card.querySelector('.js-final-price');
-            const storeBadgeEl = card.querySelector('.js-store-badge');
-            
-            if (storeBadgeEl && storeName) storeBadgeEl.innerText = storeName;
+            const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
+            const mrpPriceEl = card.querySelector('.js-mrp-price');
+            const discountBadgeEl = card.querySelector('.js-discount-badge');
+
+            let displayPrice = selling;
             if (finalPriceEl) {
                 if (variantsPricesStr) {
                     const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + '-' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
-                    } else { finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; }
-                } else { finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; }
+                        displayPrice = minPrice;
+                        finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + ' - ' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
+                    } else { 
+                        finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; 
+                    }
+                } else { 
+                    finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; 
+                }
+            }
+
+            if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
+                mrpPriceEl.innerText = currency + mrp.toFixed(0);
+                mrpWrapperEl.style.display = 'inline';
+
+                if (mrp > displayPrice && displayPrice > 0) {
+                    const discountPercent = Math.round(((mrp - displayPrice) / mrp) * 100);
+                    if (discountPercent > 0 && discountBadgeEl) {
+                        discountBadgeEl.innerText = discountPercent + '% off';
+                        discountBadgeEl.style.display = 'inline-block';
+                    }
+                }
             }
         });
 
+        // Image Auto Slider
         const containers = document.querySelectorAll('.auto-slider-container');
         containers.forEach(container => {
             const images = container.querySelectorAll('.product-auto-img');

@@ -11,17 +11,18 @@ from .models import ( Category, Product, ProductVariant, HomeSlider, VariantStor
 
 from .indexing_utils import notify_google_indexing
 
+# Import ya Define Bing Indexing Function
+from .models import ping_bing_indexing
+
 from .utils import publish_to_pinterest
 
 @admin.action(description='Bulk Dispatch to Pinterest')
 def bulk_pinterest_dispatch(modeladmin, request, queryset):
-    # Apna Access Token yahan se access karo (Environment Variable recommended)
     token = os.environ.get("PINTEREST_ACCESS_TOKEN") 
     
     success_count = 0
     for post in queryset:
         if not post.is_published:
-            # utils.py wala function call ho raha hai
             success, message = publish_to_pinterest(
                 title=post.title,
                 description="Explore elite lifestyle at Uttar World.",
@@ -43,7 +44,7 @@ def bulk_pinterest_dispatch(modeladmin, request, queryset):
 @admin.register(PinterestPost)
 class PinterestPostAdmin(admin.ModelAdmin):
     list_display = ['image_preview', 'title', 'is_published', 'created_at']
-    actions = [bulk_pinterest_dispatch] # <--- Yahan ye list mein hona chahiye
+    actions = [bulk_pinterest_dispatch]
     
     def image_preview(self, obj):
         if obj.image_url:
@@ -193,7 +194,58 @@ def notify_google_indexing_action(
 
         modeladmin.message_user(
             request,
-            f"Successfully notified for {success_count} items!"
+            f"Successfully notified Google for {success_count} items!"
+        )
+
+
+# =========================================================
+# BING INDEXING ACTION (NEW)
+# =========================================================
+
+@admin.action(description='Notify Bing Indexing')
+def notify_bing_indexing_action(
+    modeladmin,
+    request,
+    queryset
+):
+
+    success_count = 0
+
+    for obj in queryset:
+
+        if hasattr(obj, 'slug'):
+
+            try:
+
+                if modeladmin.model.__name__ == 'Category':
+
+                    url = (
+                        f"https://uttarworld.com/category/{obj.slug}/"
+                    )
+
+                else:
+
+                    url = (
+                        f"https://uttarworld.com/product/{obj.slug}/"
+                    )
+
+                ping_bing_indexing(url)
+
+                success_count += 1
+
+            except Exception as e:
+
+                modeladmin.message_user(
+                    request,
+                    f"Error on {obj}: {str(e)}",
+                    level=messages.ERROR
+                )
+
+    if success_count > 0:
+
+        modeladmin.message_user(
+            request,
+            f"Successfully notified Bing for {success_count} items!"
         )
 
 
@@ -248,6 +300,7 @@ class HomeSectionAdmin(admin.ModelAdmin):
 
     section_image_preview.short_description = "Preview"
 
+
 # =========================================================
 # PRODUCT ADMIN
 # =========================================================
@@ -295,7 +348,8 @@ class ProductAdmin(
     }
 
     actions = [
-        notify_google_indexing_action
+        notify_google_indexing_action,
+        notify_bing_indexing_action,  # <--- Yahan Bing dropdown action add ho gaya hai
     ]
 
     fieldsets = (
@@ -400,7 +454,8 @@ class CategoryAdmin(admin.ModelAdmin):
     }
 
     actions = [
-        notify_google_indexing_action
+        notify_google_indexing_action,
+        notify_bing_indexing_action,  # <--- Category mein bhi Bing action add kar diya
     ]
 
     def category_image_preview(self, obj):
@@ -468,6 +523,7 @@ class HomePageSEOAdmin(admin.ModelAdmin):
             'SEO Settings',
             {
                 'fields': (
+                    'meta_title',
                     'title',
                     'meta_description',
                     'meta_keywords',
@@ -496,6 +552,7 @@ class HomePageSEOAdmin(admin.ModelAdmin):
     )
 
 admin.site.register(StoreLogoUpload)
+
 # =========================================================
 # HIDE UNUSED MODELS FROM SIDEBAR
 # =========================================================

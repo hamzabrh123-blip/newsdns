@@ -159,3 +159,4 @@ except json.JSONDecodeError:
     GOOGLE_JSON_CONTENT = {}
     print("WARNING: GOOGLE_JSON_CONTENT is not a valid JSON!")
 
+BING_API_KEY = os.environ.get("BING_API_KEY", "")
