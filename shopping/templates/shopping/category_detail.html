@@ -74,21 +74,39 @@
         transition: opacity 0.5s ease-in-out; 
     }
     .product-auto-img.active { opacity: 1; }
+
+    /* Category SEO Content Box Styling (Bottom) */
+    .category-seo-box {
+        background: #f9fbfd;
+        border-left: 4px solid #0d6efd;
+        padding: 20px;
+        border-radius: 6px;
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #495057;
+        line-height: 1.6;
+    }
 </style>
 
 <div class="container py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-        <h5 class="fw-bold mb-0 text-dark">
-        {% if query and max_price %}
-            Results for "{{ query }}" under ₹{{ max_price }}
-        {% elif query %}
-            Search Results for "{{ query }}"
-        {% elif max_price %}
-            Products under ₹{{ max_price }}
-        {% else %}
-            All Products
-        {% endif %}
-    </h5>
+    <!-- Dynamic Category Title Section (Upar sirf Title rahega) -->
+    <div class="mb-3 mt-2">
+        <h1 class="fw-bold mb-2 text-dark fs-4">
+            {% if category.name %}
+                {{ category.name }}
+            {% elif category_title %}
+                {{ category_title }}
+            {% elif query and max_price %}
+                Results for "{{ query }}" under ₹{{ max_price }}
+            {% elif query %}
+                Search Results for "{{ query }}"
+            {% elif max_price %}
+                Products under ₹{{ max_price }}
+            {% else %}
+                Bath Soaps & Skincare Collection - Uttar World
+            {% endif %}
+        </h1>
     </div>
 
     <!-- Desktop par 4 products per row (col-lg-3) -->
@@ -154,13 +172,24 @@
     </nav>
     {% endwith %}
     {% endif %}
+
+    <!-- CONTENT / DESCRIPTION SECTION (Ab Products aur Pagination ke NEECHE aayega) -->
+    {% if category.description %}
+        <div class="category-seo-box">
+            {{ category.description|safe }}
+        </div>
+    {% elif category_description %}
+        <div class="category-seo-box">
+            {{ category_description|safe }}
+        </div>
+    {% endif %}
 </div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const productCards = document.querySelectorAll('.js-product-card');
         productCards.forEach(card => {
-            const currency = card.getAttribute('data-currency') || '₹';
+            const currency = '₹'; 
             const mrp = parseFloat((card.getAttribute('data-mrp') || '0').replace(/[^\d.]/g, '')) || 0;
             const selling = parseFloat((card.getAttribute('data-selling') || '0').replace(/[^\d.]/g, '')) || 0;
             const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
@@ -169,7 +198,6 @@
             const mrpPriceEl = card.querySelector('.js-mrp-price');
             const discountBadgeEl = card.querySelector('.js-discount-badge');
 
-            let displayPrice = selling;
             if (finalPriceEl) {
                 if (variantsPricesStr && variantsPricesStr.trim() !== '') {
                     const prices = variantsPricesStr.split(',')
@@ -179,9 +207,8 @@
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        displayPrice = minPrice;
                         
-                        if (minPrice !== maxPrice) {
+                        if (minPrice < maxPrice) {
                             finalPriceEl.innerText = currency + minPrice.toFixed(0) + ' ~ ' + currency + maxPrice.toFixed(0);
                         } else {
                             finalPriceEl.innerText = currency + minPrice.toFixed(0);
@@ -198,8 +225,9 @@
                 mrpPriceEl.innerText = currency + mrp.toFixed(0);
                 mrpWrapperEl.style.display = 'inline';
 
-                if (mrp > displayPrice && displayPrice > 0) {
-                    const discountPercent = Math.round(((mrp - displayPrice) / mrp) * 100);
+                let effectivePrice = selling > 0 ? selling : 0;
+                if (mrp > effectivePrice && effectivePrice > 0) {
+                    const discountPercent = Math.round(((mrp - effectivePrice) / mrp) * 100);
                     if (discountPercent > 0 && discountBadgeEl) {
                         discountBadgeEl.innerText = discountPercent + '% off';
                         discountBadgeEl.style.display = 'inline-block';
