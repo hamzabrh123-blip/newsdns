@@ -1,6 +1,6 @@
 {% comment %} catagory_meta.html {% endcomment %}
 
-{# 1. Page Title (Directly from Admin Meta Title, fallback to just Category Name) #}
+{# 1. Page Title (Directly from Admin Meta Title, fallback to category name) #}
 <title>{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}</title>
 
 {# 2. SEO Description & Keywords #}
