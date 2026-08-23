@@ -1,4 +1,7 @@
 <!-- Open Graph / Facebook Meta Tags -->
+<title>{{ product.title|truncatechars:60 }}</title>
+<meta name="description" content="{{ product.meta_description|truncatechars:160 }}">
+
 <meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.title|truncatechars:60 }}">
 <meta property="og:description" content="{{ product.meta_description|truncatechars:160 }}">

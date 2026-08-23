@@ -46,7 +46,13 @@
     <div class="row product-container">
         <div class="col-md-1 d-none d-md-block">
             {% for variant in product.variants.all %}
-                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="thumb-img" data-raw-url="{{ variant.image_url }}" data-code="{{ variant.variant_code }}" onmouseover="syncVariant(this)">
+                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                     class="thumb-img" data-raw-url="{{ variant.image_url }}" 
+                      data-code="{{ variant.variant_code }}" 
+                      onmouseover="syncVariant(this)"
+                      alt="{{ product.title }}"
+                
+                >
             {% endfor %}
         </div>
         
@@ -54,7 +60,10 @@
             <!-- Zoom Container ke andar Viewport aur Zoom Result dono alag hain -->
             <div class="img-zoom-container" id="viewport">
                 <div class="main-img-viewport">
-                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}">
+                    <img id="mainProductImg" 
+                            src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}"
+                        alt="{{ product.title }}"
+                        >
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
                 <!-- Zoom Result ab Viewport ke BAHAR hai taaki kate nahi -->
@@ -68,13 +77,15 @@
                          style="width: 60px; height: 75px; object-fit: cover; border: 1px solid #ddd; border-radius: 5px;"
                          onclick="syncVariant(this)" 
                          data-raw-url="{{ variant.image_url }}" 
-                         data-code="{{ variant.variant_code }}">
+                         data-code="{{ variant.variant_code }}"
+                         alt="{{ product.title }}"
+                         >
                 {% endfor %}
             </div>
         </div>
 
         <div class="col-md-6">
-            
+
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
                 <!-- Dynamic Currency Symbol added here -->
