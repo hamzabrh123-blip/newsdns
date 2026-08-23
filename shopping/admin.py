@@ -523,8 +523,7 @@ class HomePageSEOAdmin(admin.ModelAdmin):
             'SEO Settings',
             {
                 'fields': (
-                    'meta_title',
-                    'title',
+                    'title',  # <--- Yahan se 'meta_title' hata diya hai
                     'meta_description',
                     'meta_keywords',
                 )
@@ -550,8 +549,6 @@ class HomePageSEOAdmin(admin.ModelAdmin):
         ),
 
     )
-
-admin.site.register(StoreLogoUpload)
 
 # =========================================================
 # HIDE UNUSED MODELS FROM SIDEBAR
