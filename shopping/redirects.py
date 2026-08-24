@@ -15,8 +15,6 @@ def old_product_redirect(request, path):
     Old product URL ko current shopping product URL par
     301 Permanent Redirect karta hai.
 
-    Examples:
-
     /product/slug/
         ->
     /shopping/product/slug/
@@ -25,10 +23,8 @@ def old_product_redirect(request, path):
         ->
     /shopping/product/slug/
 
-    Sirf wahi product redirect hoga jo database mein
-    available hai.
-
-    Product nahi mila to 410 Gone.
+    Product available hai -> 301
+    Product nahi mila -> 410 Gone
     """
 
     slug = path.strip("/")
@@ -53,14 +49,11 @@ def old_product_redirect(request, path):
 
 seo_urlpatterns = [
 
-
     # =====================================================
     # 1. OLD PRODUCT URL
     #
     # /product/slug/
-    #
     #        ↓ 301
-    #
     # /shopping/product/slug/
     # =====================================================
 
@@ -74,19 +67,13 @@ seo_urlpatterns = [
     # 2. OLD SHOPPING PRODUCT URL
     #
     # /shopping/slug/
-    #
-    #        ↓
-    #
+    #        ↓ 301
     # /shopping/product/slug/
     #
-    # Sirf existing product hone par 301.
-    #
     # IMPORTANT:
-    #
     # /shopping/product/...
     # /shopping/category/...
-    #
-    # ko ye rule TOUCH NAHI karega.
+    # ko ye rule touch nahi karega.
     # =====================================================
 
     re_path(
@@ -98,17 +85,10 @@ seo_urlpatterns = [
     # =====================================================
     # 3. OLD CATEGORY URLS
     #
-    # /category/kaushambi/
-    # /category/sant-kabir-nagar/
-    # /category/Agra/
-    # /category/Jhansi/
-    # /category/Other-State/
-    # /category/UP-National/
+    # /category/anything/
+    #        ↓ 410 Gone
     #
-    # Koi bhi old category URL -> 410
-    #
-    # Future mein koi nayi purani category bhi ban jaye,
-    # ye rule automatically cover karega.
+    # Isse purani category URLs automatically cover hongi.
     # =====================================================
 
     re_path(
@@ -120,23 +100,16 @@ seo_urlpatterns = [
     # =====================================================
     # 4. OLD NEWS / CITY / DISTRICT / CONTENT URLS
     #
-    # Sab old content URLs -> 410 Gone
+    # Ye purane content prefixes 410 Gone honge.
     #
-    # Uppercase / lowercase dono handle honge.
-    #
-    # Examples:
-    #
-    # /agra/old-news/
-    # /Agra/old-news/
-    # /international/old-news/
-    # /INTERNATIONAL/old-news/
-    # /kanpur-dehat/old-news/
-    #
-    # sab -> 410
+    # IMPORTANT:
+    # (?i) use nahi kiya gaya hai, kyunki Django URL
+    # resolver ke saath "Non-reversible reg-exp portion"
+    # error aa sakta hai.
     # =====================================================
 
     re_path(
-        r'(?i)^('
+        r'^(?:'
 
         # General / News
         r'ai|'
@@ -218,10 +191,7 @@ seo_urlpatterns = [
         r'sambhal|'
         r'ujjain|'
         r'varanasi|'
-        r'goa|'
-
-        # Other old locations/content prefixes
-        r'new-delhi'
+        r'goa'
 
         r')/.*$',
         gone_view
