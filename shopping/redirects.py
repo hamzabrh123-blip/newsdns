@@ -3,44 +3,46 @@
 from django.urls import re_path
 from django.shortcuts import redirect
 from .views import gone_view
-from .models import Product
 
 
 # =========================================================
-# OLD PRODUCT URL -> CURRENT PRODUCT URL
+# 1. OLD PRODUCT URL
+#
+# /product/<slug>/
+#        ↓ 301
+# /shopping/product/<slug>/
 # =========================================================
 
 def old_product_redirect(request, path):
-    """
-    Old product URL ko current shopping product URL par
-    301 Permanent Redirect karta hai.
-
-    /product/slug/
-        ->
-    /shopping/product/slug/
-
-    /shopping/slug/
-        ->
-    /shopping/product/slug/
-
-    Product available hai -> 301
-    Product nahi mila -> 410 Gone
-    """
 
     slug = path.strip("/")
 
-    product = Product.objects.filter(
-        slug=slug,
-        is_available=True
-    ).first()
+    return redirect(
+        f"/shopping/product/{slug}/",
+        permanent=True
+    )
 
-    if product:
-        return redirect(
-            f"/shopping/product/{product.slug}/",
-            permanent=True
-        )
 
-    return gone_view(request)
+# =========================================================
+# 2. OLD SHOPPING SLUG
+#
+# /shopping/<slug>/
+#        ↓ 301
+# /shopping/category/<slug>/
+#
+# IMPORTANT:
+# /shopping/product/<slug>/   -> untouched
+# /shopping/category/<slug>/  -> untouched
+# =========================================================
+
+def old_shopping_category_redirect(request, path):
+
+    slug = path.strip("/")
+
+    return redirect(
+        f"/shopping/category/{slug}/",
+        permanent=True
+    )
 
 
 # =========================================================
@@ -50,10 +52,10 @@ def old_product_redirect(request, path):
 seo_urlpatterns = [
 
     # =====================================================
-    # 1. OLD PRODUCT URL
+    # 1. OLD PRODUCT
     #
     # /product/slug/
-    #        ↓ 301
+    #       ↓ 301
     # /shopping/product/slug/
     # =====================================================
 
@@ -64,136 +66,55 @@ seo_urlpatterns = [
 
 
     # =====================================================
-    # 2. OLD SHOPPING PRODUCT URL
+    # 2. OLD SHOPPING SLUG
     #
     # /shopping/slug/
-    #        ↓ 301
-    # /shopping/product/slug/
+    #       ↓ 301
+    # /shopping/category/slug/
     #
-    # IMPORTANT:
-    # /shopping/product/...
-    # /shopping/category/...
-    # ko ye rule touch nahi karega.
+    # /shopping/product/...   NOT TOUCHED
+    # /shopping/category/...  NOT TOUCHED
     # =====================================================
 
     re_path(
         r'^shopping/(?!product/|category/)(?P<path>[^/]+)/$',
-        old_product_redirect
+        old_shopping_category_redirect
     ),
 
 
     # =====================================================
-    # 3. OLD CATEGORY URLS
+    # 3. EVERYTHING ELSE OLD/UNWANTED -> 410
     #
-    # /category/anything/
-    #        ↓ 410 Gone
+    # PROTECTED:
     #
-    # Isse purani category URLs automatically cover hongi.
+    # /shopping/...
+    # /search/...
+    # /shipping-policy/
+    # /about_us/
+    # /refund-policy/
+    # /terms/
+    # /privacy-policy/
+    # /contact/
+    # /static/store_logo/...
+    #
+    # /product/<slug>/ is handled above.
+    #
+    # EVERYTHING ELSE -> 410
     # =====================================================
 
     re_path(
-        r'^category/.*$',
-        gone_view
-    ),
-
-
-    # =====================================================
-    # 4. OLD NEWS / CITY / DISTRICT / CONTENT URLS
-    #
-    # Ye purane content prefixes 410 Gone honge.
-    #
-    # IMPORTANT:
-    # (?i) use nahi kiya gaya hai, kyunki Django URL
-    # resolver ke saath "Non-reversible reg-exp portion"
-    # error aa sakta hai.
-    # =====================================================
-
-    re_path(
-        r'^(?:'
-
-        # General / News
-        r'ai|'
-        r'news|'
-        r'n|'
-        r'national|'
-        r'district|'
-        r'other-state|'
-        r'other-states|'
-        r'uttar-pradesh|'
-        r'uttarpradesh|'
-        r'up-national|'
-
-        # Technology / Google / AI
-        r'technology|'
-        r'google|'
-
-        # Entertainment
-        r'bollywood|'
-        r'hollywood|'
-
-        # International
-        r'international|'
-        r'toronto-canada|'
-
-        # Market / Sports
-        r'market|'
-        r'market-news|'
-        r'sports|'
-
-        # Uttar Pradesh districts / cities
-        r'agra|'
-        r'amethi|'
-        r'auraiya|'
-        r'baghpat|'
-        r'bahraich|'
-        r'balrampur|'
-        r'banda|'
-        r'barabanki|'
-        r'basti|'
-        r'bijnor|'
-        r'chandauli|'
-        r'deoria|'
-        r'delhi|'
-        r'etah|'
-        r'farrukhabad|'
-        r'firozabad|'
-        r'gautam-buddha-nagar|'
-        r'ghaziabad|'
-        r'gonda|'
-        r'gorakhpur|'
-        r'gorakhpur-lucknow|'
-        r'hapur|'
-        r'hyderabad|'
-        r'jhansi|'
-        r'kanpur|'
-        r'kanpur-dehat|'
-        r'kanpur-nagar|'
-        r'kannauj|'
-        r'kaushambi|'
-        r'lucknow|'
-        r'mahoba|'
-        r'mainpuri|'
-        r'mathura|'
-        r'meerut|'
-        r'moradabad|'
-        r'mumbai|'
-        r'new-delhi|'
-        r'pilibhit|'
-        r'prayagraj|'
-        r'rae-bareli|'
-        r'rampur|'
-        r'saharanpur|'
-        r'shamli|'
-        r'shahjahanpur|'
-        r'shravasti|'
-        r'sitapur|'
-        r'sultanpur|'
-        r'sambhal|'
-        r'ujjain|'
-        r'varanasi|'
-        r'goa'
-
-        r')/.*$',
+        r'^(?!'
+        r'shopping(?:/|$)|'
+        r'search(?:/|$)|'
+        r'shipping-policy(?:/|$)|'
+        r'about_us(?:/|$)|'
+        r'refund-policy(?:/|$)|'
+        r'terms(?:/|$)|'
+        r'privacy-policy(?:/|$)|'
+        r'contact(?:/|$)|'
+        r'static/store_logo(?:/|$)|'
+        r'product(?:/|$)'
+        r').*$',
         gone_view
     ),
 ]
