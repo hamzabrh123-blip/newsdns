@@ -458,7 +458,6 @@ def terms_of_service(request): return render( request, 'shopping/terms.html',get
 
 def contact_us(request): return render( request, 'shopping/contact.html', get_base_context())
 
-
 # ==========================================
 # SITEMAP
 # ==========================================
@@ -490,7 +489,7 @@ def sitemap_shop_xml(request):
     for c in categories:
         xml += f"""
         <url>
-            <loc>{site_url}/category/{c.slug}/</loc>
+            <loc>{site_url}/shopping/category/{c.slug}/</loc>
             <changefreq>weekly</changefreq>
             <priority>0.9</priority>
         </url>
@@ -500,7 +499,7 @@ def sitemap_shop_xml(request):
     for p in products:
         xml += f"""
         <url>
-            <loc>{site_url}/product/{p.slug}/</loc>
+            <loc>{site_url}/shopping/product/{p.slug}/</loc>
             <lastmod>{p.created_at.strftime("%Y-%m-%d")}</lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.8</priority>
