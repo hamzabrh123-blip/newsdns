@@ -1,23 +1,229 @@
 # shopping/redirects.py
+
 from django.urls import re_path
-from django.views.generic import RedirectView
+from django.shortcuts import redirect
 from .views import gone_view
+from .models import Product
 
-# Sirf SEO/Redirects wale patterns
+
+# =========================================================
+# OLD PRODUCT URL -> CURRENT PRODUCT URL
+# =========================================================
+
+def old_product_redirect(request, path):
+    """
+    Old product URL ko current shopping product URL par
+    301 Permanent Redirect karta hai.
+
+    Examples:
+
+    /product/slug/
+        ->
+    /shopping/product/slug/
+
+    /shopping/slug/
+        ->
+    /shopping/product/slug/
+
+    Sirf wahi product redirect hoga jo database mein
+    available hai.
+
+    Product nahi mila to 410 Gone.
+    """
+
+    slug = path.strip("/")
+
+    product = Product.objects.filter(
+        slug=slug,
+        is_available=True
+    ).first()
+
+    if product:
+        return redirect(
+            f"/shopping/product/{product.slug}/",
+            permanent=True
+        )
+
+    return gone_view(request)
+
+
+# =========================================================
+# OLD URL PATTERNS
+# =========================================================
+
 seo_urlpatterns = [
-    
-    # 1. Jo categories/products 100% active hain aur sirf unka path /shopping/ hua hai, unhe hi redirect karein.
-    # Agar koi specific dead category hai, toh use yahan se hata kar neeche gone_view mein dalein.
-    re_path(r'^product/(?P<path>.*)$', RedirectView.as_view(url='/shopping/product/%(path)s', permanent=True)),
-    
-    # 2. Baaki saare dead/news/location patterns jinko 410 (Gone) bhejna hai
-    re_path(r'^(ai|basti|hollywood|gorakhpur-lucknow|sitapur|sambhal|prayagraj|ujjain|deoria|ghaziabad|technology|other-state|mahoba|agra|hyderabad|international|news|market|gonda|amethi|bahraich|bijnor|bollywood|Basti|Farrukhabad|kanpur-nagar|Kanpur-Dehat|gorakhpur|district|new-delhi|goa|mumbai|lucknow|national|google|delhi|saharanpur|shahjahanpur|shravasti|kannauj|market-news|sports|varanasi|toronto-canada|mathura|hapur|mainpuri|n)/.*$', gone_view), 
-    
-    # 3. Jo shopping categories dead hain, unhe seedha 410 bhejne ke liye yeh rule upar rakhen
-    re_path(r'^shopping/category/(auraiya|ambedkar-nagar|Other-State|etah|Sonbhadra|kanpur|mainpuri|gorakhpur|UP-National|gautam-buddha-nagar|uttar-pradesh|kanpur-nagar|varanasi|sports|Sitapur|Shravasti|Moradabad|meerut|Rampur|chandauli|Farrukhabad|Prayagraj|Kanpur-Dehat|Shamli|etah|gonda|lucknow|Basti|pilibhit)/.*$', gone_view),
 
-    # 4. GENERIC CATCH-ALL FOR OLD CATEGORIES: 
-    # Agar aapki baaki saari purani categories bhi dead hain, toh unhe redirect karne ki bajaye seedha gone_view par bhejo, 
-    # ya phir sirf unhi ko redirect karo jo database mein exist karti hain.
-    re_path(r'^category/(?P<path>.*)$', gone_view),  # Agar saari purani categories khatam kar di hain toh redirect ki jagah gone_view lagayein!
+
+    # =====================================================
+    # 1. OLD PRODUCT URL
+    #
+    # /product/slug/
+    #
+    #        ↓ 301
+    #
+    # /shopping/product/slug/
+    # =====================================================
+
+    re_path(
+        r'^product/(?P<path>[^/]+)/$',
+        old_product_redirect
+    ),
+
+
+    # =====================================================
+    # 2. OLD SHOPPING PRODUCT URL
+    #
+    # /shopping/slug/
+    #
+    #        ↓
+    #
+    # /shopping/product/slug/
+    #
+    # Sirf existing product hone par 301.
+    #
+    # IMPORTANT:
+    #
+    # /shopping/product/...
+    # /shopping/category/...
+    #
+    # ko ye rule TOUCH NAHI karega.
+    # =====================================================
+
+    re_path(
+        r'^shopping/(?!product/|category/)(?P<path>[^/]+)/$',
+        old_product_redirect
+    ),
+
+
+    # =====================================================
+    # 3. OLD CATEGORY URLS
+    #
+    # /category/kaushambi/
+    # /category/sant-kabir-nagar/
+    # /category/Agra/
+    # /category/Jhansi/
+    # /category/Other-State/
+    # /category/UP-National/
+    #
+    # Koi bhi old category URL -> 410
+    #
+    # Future mein koi nayi purani category bhi ban jaye,
+    # ye rule automatically cover karega.
+    # =====================================================
+
+    re_path(
+        r'^category/.*$',
+        gone_view
+    ),
+
+
+    # =====================================================
+    # 4. OLD NEWS / CITY / DISTRICT / CONTENT URLS
+    #
+    # Sab old content URLs -> 410 Gone
+    #
+    # Uppercase / lowercase dono handle honge.
+    #
+    # Examples:
+    #
+    # /agra/old-news/
+    # /Agra/old-news/
+    # /international/old-news/
+    # /INTERNATIONAL/old-news/
+    # /kanpur-dehat/old-news/
+    #
+    # sab -> 410
+    # =====================================================
+
+    re_path(
+        r'(?i)^('
+
+        # General / News
+        r'ai|'
+        r'news|'
+        r'n|'
+        r'national|'
+        r'district|'
+        r'other-state|'
+        r'other-states|'
+        r'uttar-pradesh|'
+        r'uttarpradesh|'
+        r'up-national|'
+
+        # Technology / Google / AI
+        r'technology|'
+        r'google|'
+
+        # Entertainment
+        r'bollywood|'
+        r'hollywood|'
+
+        # International
+        r'international|'
+        r'toronto-canada|'
+
+        # Market / Sports
+        r'market|'
+        r'market-news|'
+        r'sports|'
+
+        # Uttar Pradesh districts / cities
+        r'agra|'
+        r'amethi|'
+        r'auraiya|'
+        r'baghpat|'
+        r'bahraich|'
+        r'balrampur|'
+        r'banda|'
+        r'barabanki|'
+        r'basti|'
+        r'bijnor|'
+        r'chandauli|'
+        r'deoria|'
+        r'delhi|'
+        r'etah|'
+        r'farrukhabad|'
+        r'firozabad|'
+        r'gautam-buddha-nagar|'
+        r'ghaziabad|'
+        r'gonda|'
+        r'gorakhpur|'
+        r'gorakhpur-lucknow|'
+        r'hapur|'
+        r'hyderabad|'
+        r'jhansi|'
+        r'kanpur|'
+        r'kanpur-dehat|'
+        r'kanpur-nagar|'
+        r'kannauj|'
+        r'kaushambi|'
+        r'lucknow|'
+        r'mahoba|'
+        r'mainpuri|'
+        r'mathura|'
+        r'meerut|'
+        r'moradabad|'
+        r'mumbai|'
+        r'new-delhi|'
+        r'pilibhit|'
+        r'prayagraj|'
+        r'rae-bareli|'
+        r'rampur|'
+        r'saharanpur|'
+        r'shamli|'
+        r'shahjahanpur|'
+        r'shravasti|'
+        r'sitapur|'
+        r'sultanpur|'
+        r'sambhal|'
+        r'ujjain|'
+        r'varanasi|'
+        r'goa|'
+
+        # Other old locations/content prefixes
+        r'new-delhi'
+
+        r')/.*$',
+        gone_view
+    ),
 ]
