@@ -3,6 +3,7 @@
 from django.urls import re_path
 from django.shortcuts import redirect
 from .views import gone_view
+from .models import Product, Category
 
 
 # =========================================================
@@ -14,9 +15,7 @@ from .views import gone_view
 # =========================================================
 
 def old_product_redirect(request, path):
-
     slug = path.strip("/")
-
     return redirect(
         f"/shopping/product/{slug}/",
         permanent=True
@@ -24,25 +23,30 @@ def old_product_redirect(request, path):
 
 
 # =========================================================
-# 2. OLD SHOPPING SLUG
-#
-# /shopping/<slug>/
-#        ↓ 301
-# /shopping/category/<slug>/
-#
-# IMPORTANT:
-# /shopping/product/<slug>/   -> untouched
-# /shopping/category/<slug>/  -> untouched
+# 2. OLD SHOPPING SLUG (Smart Dual Check: Product or Category)
 # =========================================================
 
 def old_shopping_category_redirect(request, path):
-
     slug = path.strip("/")
 
-    return redirect(
-        f"/shopping/category/{slug}/",
-        permanent=True
-    )
+    # Pehle database mein check kar ki kya ye ek valid Product hai?
+    product = Product.objects.filter(slug__iexact=slug).first()
+    if product:
+        return redirect(
+            f"/shopping/product/{product.slug}/",
+            permanent=True
+        )
+
+    # Phir check kar ki kya ye ek valid Category hai?
+    category = Category.objects.filter(slug__iexact=slug).first()
+    if category:
+        return redirect(
+            f"/shopping/category/{category.slug}/",
+            permanent=True
+        )
+
+    # Agar na product hai na category, tabhi 410 Gone bhej
+    return gone_view(request)
 
 
 # =========================================================
@@ -53,55 +57,23 @@ seo_urlpatterns = [
 
     # =====================================================
     # 1. OLD PRODUCT
-    #
-    # /product/slug/
-    #       ↓ 301
-    # /shopping/product/slug/
     # =====================================================
-
     re_path(
         r'^product/(?P<path>[^/]+)/$',
         old_product_redirect
     ),
 
-
     # =====================================================
     # 2. OLD SHOPPING SLUG
-    #
-    # /shopping/slug/
-    #       ↓ 301
-    # /shopping/category/slug/
-    #
-    # /shopping/product/...   NOT TOUCHED
-    # /shopping/category/...  NOT TOUCHED
     # =====================================================
-
     re_path(
         r'^shopping/(?!product/|category/)(?P<path>[^/]+)/$',
         old_shopping_category_redirect
     ),
 
-
     # =====================================================
     # 3. EVERYTHING ELSE OLD/UNWANTED -> 410
-    #
-    # PROTECTED:
-    #
-    # /shopping/...
-    # /search/...
-    # /shipping-policy/
-    # /about_us/
-    # /refund-policy/
-    # /terms/
-    # /privacy-policy/
-    # /contact/
-    # /static/store_logo/...
-    #
-    # /product/<slug>/ is handled above.
-    #
-    # EVERYTHING ELSE -> 410
     # =====================================================
-
     re_path(
         r'^(?!'
         r'shopping(?:/|$)|'
