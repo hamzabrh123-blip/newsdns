@@ -132,7 +132,7 @@ def category_detail(request, slug):
 
     paginator = Paginator(
         products_list,
-        24
+        100
     )
 
     page_number = request.GET.get('page')
