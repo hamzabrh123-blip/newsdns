@@ -21,7 +21,6 @@ def ping_bing_indexing(url):
     """
     Submit a single URL to Bing Webmaster Tools.
     """
-
     api_key = getattr(settings, "BING_API_KEY", "")
 
     if not api_key:
@@ -43,7 +42,6 @@ def ping_bing_indexing(url):
     }
 
     try:
-
         response = requests.post(
             endpoint,
             data=json.dumps(payload),
@@ -52,7 +50,6 @@ def ping_bing_indexing(url):
         )
 
         if response.status_code == 200:
-
             print(f"Bing URL submitted: {url}")
             return True
 
@@ -60,11 +57,9 @@ def ping_bing_indexing(url):
             f"Bing Indexing Failed: "
             f"{response.status_code} - {response.text}"
         )
-
         return False
 
     except Exception as e:
-
         print(f"Bing Indexing Error: {e}")
         return False
 
@@ -72,14 +67,11 @@ def ping_bing_indexing(url):
 def ping_bing_indexing_batch(urls):
     """
     Submit multiple URLs to Bing Webmaster Tools.
-
     URLs are automatically divided into batches of 500.
     """
-
     api_key = getattr(settings, "BING_API_KEY", "")
 
     if not api_key:
-
         print("BING_API_KEY is missing.")
         return False
 
@@ -92,7 +84,6 @@ def ping_bing_indexing_batch(urls):
         "Content-Type": "application/json; charset=utf-8"
     }
 
-    # Remove empty URLs and duplicates
     urls = list(
         dict.fromkeys(
             url for url in urls
@@ -101,17 +92,14 @@ def ping_bing_indexing_batch(urls):
     )
 
     if not urls:
-
         print("No URLs available for Bing submission.")
         return False
 
     batch_size = 500
-
     total_urls = len(urls)
     submitted_urls = 0
 
     for start in range(0, total_urls, batch_size):
-
         batch = urls[start:start + batch_size]
 
         payload = {
@@ -120,7 +108,6 @@ def ping_bing_indexing_batch(urls):
         }
 
         try:
-
             response = requests.post(
                 endpoint,
                 data=json.dumps(payload),
@@ -129,23 +116,18 @@ def ping_bing_indexing_batch(urls):
             )
 
             if response.status_code == 200:
-
                 submitted_urls += len(batch)
-
                 print(
                     f"Bing batch submitted successfully: "
                     f"{len(batch)} URLs"
                 )
-
             else:
-
                 print(
                     f"Bing batch failed: "
                     f"{response.status_code} - {response.text}"
                 )
 
         except Exception as e:
-
             print(
                 f"Bing batch error: {e}"
             )
@@ -161,11 +143,7 @@ def ping_bing_indexing_batch(urls):
 def submit_all_products_to_bing():
     """
     Submit all currently available Product URLs to Bing.
-
-    This uses the actual Product slug from the database,
-    therefore only current/final product URLs are submitted.
     """
-
     products = Product.objects.filter(
         is_available=True
     ).exclude(
@@ -197,7 +175,6 @@ class StoreLogoUpload(models.Model):
     )
 
     def __str__(self):
-
         return f"Logo {self.id}"
 
 
@@ -228,7 +205,6 @@ class PinterestPost(models.Model):
     )
 
     def __str__(self):
-
         return self.title
 
 
@@ -282,9 +258,7 @@ class Category(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
         if not self.slug:
-
             self.slug = slugify(
                 unidecode(self.name)
             )
@@ -297,26 +271,22 @@ class Category(models.Model):
 
         is_new_image = bool(
             self.image
-            and "i.ibb.co" not in image_url_val
+            and not image_url_val
         )
 
         super().save(*args, **kwargs)
 
         if is_new_image:
-
             self.handle_upload()
 
     def handle_upload(self):
-
         try:
-
             new_url = process_and_upload_to_imgbb(
                 self,
                 is_shop=True
             )
 
             if new_url:
-
                 Category.objects.filter(
                     pk=self.pk
                 ).update(
@@ -325,13 +295,11 @@ class Category(models.Model):
                 )
 
         except Exception as e:
-
             print(
                 f"Category Upload Error: {e}"
             )
 
     def __str__(self):
-
         return self.name
 
 
@@ -346,19 +314,16 @@ class ProductManager(models.Manager):
         query=None,
         max_price=None
     ):
-
         queryset = self.get_queryset().filter(
             is_available=True
         )
 
         if query:
-
             queryset = queryset.filter(
                 title__icontains=query
             )
 
         if max_price and str(max_price).isdigit():
-
             queryset = queryset.filter(
                 variants__coupons__selling_price__lte=int(
                     max_price
@@ -437,22 +402,11 @@ class Product(models.Model):
 
     objects = ProductManager()
 
-    # ==========================================
-    # PRODUCT URL
-    # ==========================================
-
     def get_absolute_url(self):
-
         return f"/shopping/product/{self.slug}/"
 
-    # ==========================================
-    # SAVE
-    # ==========================================
-
     def save(self, *args, **kwargs):
-
         if not self.slug:
-
             self.slug = (
                 f"{slugify(unidecode(self.title))[:80]}"
                 f"-{str(uuid.uuid4())[:6]}"
@@ -465,45 +419,30 @@ class Product(models.Model):
             f"{self.get_absolute_url()}"
         )
 
-        # ======================================
-        # GOOGLE INDEXING API
-        # ======================================
-
         try:
-
             ping_google_indexing(
                 target_url
             )
-
         except Exception as e:
-
             print(
                 f"Google Indexing Error: {e}"
             )
 
-        # ======================================
-        # BING INDEXING API
-        # ======================================
-
         try:
-
             ping_bing_indexing(
                 target_url
             )
-
         except Exception as e:
-
             print(
                 f"Bing Indexing Error: {e}"
             )
 
     def __str__(self):
-
         return self.title
 
 
 # ==========================================
-# 6. PRODUCT VARIANT
+# 6. PRODUCT VARIANT (UPLOAD REMOVED)
 # ==========================================
 
 class ProductVariant(models.Model):
@@ -512,12 +451,6 @@ class ProductVariant(models.Model):
         Product,
         related_name="variants",
         on_delete=models.CASCADE
-    )
-
-    image = models.ImageField(
-        upload_to="variants/",
-        null=True,
-        blank=True
     )
 
     image_url = models.URLField(
@@ -537,9 +470,7 @@ class ProductVariant(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
         if not self.variant_code:
-
             prefix = "".join(
                 [
                     word[0]
@@ -553,49 +484,7 @@ class ProductVariant(models.Model):
 
         super().save(*args, **kwargs)
 
-        image_url_val = (
-            str(self.image_url)
-            if self.image_url
-            else ""
-        )
-
-        is_new_image = bool(
-            self.image
-            and "i.ibb.co" not in image_url_val
-        )
-
-        if is_new_image:
-
-            self.handle_variant_upload()
-
-    def handle_variant_upload(self):
-
-        try:
-
-            time.sleep(0.5)
-
-            new_url = process_and_upload_to_imgbb(
-                self,
-                is_shop=True
-            )
-
-            if new_url:
-
-                ProductVariant.objects.filter(
-                    pk=self.pk
-                ).update(
-                    image_url=new_url,
-                    image=None
-                )
-
-        except Exception as e:
-
-            print(
-                f"Variant Upload Error: {e}"
-            )
-
     def __str__(self):
-
         return (
             f"{self.product.title} - "
             f"{self.variant_code}"
@@ -633,11 +522,8 @@ class VariantStoreCoupon(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
         if self.store_name and not self.coupon_code:
-
             try:
-
                 from .models import StoreConfiguration
 
                 config = StoreConfiguration.objects.filter(
@@ -645,19 +531,16 @@ class VariantStoreCoupon(models.Model):
                 ).first()
 
                 if config:
-
                     self.coupon_code = (
                         config.default_coupon_code
                     )
 
             except Exception:
-
                 pass
 
         super().save(*args, **kwargs)
 
     def __str__(self):
-
         return (
             f"{self.store_name} - "
             f"{self.coupon_code}"
@@ -697,7 +580,6 @@ class HomeSlider(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
         image_url_val = (
             str(self.image_url)
             if self.image_url
@@ -706,26 +588,22 @@ class HomeSlider(models.Model):
 
         is_new_file = bool(
             self.image
-            and "i.ibb.co" not in image_url_val
+            and not image_url_val
         )
 
         super().save(*args, **kwargs)
 
         if is_new_file:
-
             self.handle_upload()
 
     def handle_upload(self):
-
         try:
-
             new_url = process_and_upload_to_imgbb(
                 self,
                 is_shop=True
             )
 
             if new_url:
-
                 HomeSlider.objects.filter(
                     pk=self.pk
                 ).update(
@@ -734,13 +612,11 @@ class HomeSlider(models.Model):
                 )
 
         except Exception as e:
-
             print(
                 f"Slider Upload Error: {e}"
             )
 
     def __str__(self):
-
         return (
             self.title
             if self.title
@@ -778,9 +654,7 @@ class DropdownMenu(models.Model):
     )
 
     def save(self, *args, **kwargs):
-
         if not self.slug:
-
             self.slug = slugify(
                 unidecode(self.menu_name)
             )
@@ -788,7 +662,6 @@ class DropdownMenu(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-
         return self.menu_name
 
 
@@ -821,13 +694,10 @@ class HomeSection(models.Model):
     )
 
     class Meta:
-
         ordering = ["order"]
 
     def __str__(self):
-
         if self.category:
-
             return self.category.name
 
         return "Home Section"
@@ -869,5 +739,4 @@ class HomePageSEO(models.Model):
     )
 
     def __str__(self):
-
         return "Homepage SEO"

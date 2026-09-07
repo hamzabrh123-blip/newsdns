@@ -120,7 +120,7 @@ class ProductVariantInline(
 
     fields = (
         'variant_code',
-        'image',
+        'image_url',
         'display_image',
         'earn_karo_url',
     )
@@ -129,17 +129,11 @@ class ProductVariantInline(
 
     def display_image(self, obj):
 
-        if obj and (obj.image_url or obj.image):
-
-            image_src = (
-                obj.image_url
-                if obj.image_url
-                else obj.image.url
-            )
+        if obj and obj.image_url:
 
             return format_html(
                 '<img src="{}" width="60" height="60" style="object-fit:contain;" />',
-                image_src
+                obj.image_url
             )
 
         return "—"
@@ -199,7 +193,7 @@ def notify_google_indexing_action(
 
 
 # =========================================================
-# BING INDEXING ACTION (NEW)
+# BING INDEXING ACTION
 # =========================================================
 
 @admin.action(description='Notify Bing Indexing')
@@ -349,7 +343,7 @@ class ProductAdmin(
 
     actions = [
         notify_google_indexing_action,
-        notify_bing_indexing_action,  # <--- Yahan Bing dropdown action add ho gaya hai
+        notify_bing_indexing_action,
     ]
 
     fieldsets = (
@@ -403,19 +397,11 @@ class ProductAdmin(
 
         first_variant = obj.variants.first()
 
-        if first_variant and (
-            first_variant.image_url or first_variant.image
-        ):
-
-            image_src = (
-                first_variant.image_url
-                if first_variant.image_url
-                else first_variant.image.url
-            )
+        if first_variant and first_variant.image_url:
 
             return format_html(
                 '<img src="{}" width="50" height="50" style="object-fit:contain;" />',
-                image_src
+                first_variant.image_url
             )
 
         return "—"
@@ -455,7 +441,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     actions = [
         notify_google_indexing_action,
-        notify_bing_indexing_action,  # <--- Category mein bhi Bing action add kar diya
+        notify_bing_indexing_action,
     ]
 
     def category_image_preview(self, obj):
@@ -523,7 +509,7 @@ class HomePageSEOAdmin(admin.ModelAdmin):
             'SEO Settings',
             {
                 'fields': (
-                    'title',  # <--- Yahan se 'meta_title' hata diya hai
+                    'title',
                     'meta_description',
                     'meta_keywords',
                 )

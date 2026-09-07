@@ -61,9 +61,9 @@
             <div class="img-zoom-container" id="viewport">
                 <div class="main-img-viewport">
                     <img id="mainProductImg" 
-                            src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}"
-                        alt="{{ product.title }}"
-                        >
+     src="{{ product.variants.all.0.image_url }}"
+     alt="{{ product.title }}"
+>
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
                 <!-- Zoom Result ab Viewport ke BAHAR hai taaki kate nahi -->
@@ -72,14 +72,12 @@
 
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
                 {% for variant in product.variants.all %}
-                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
-                         class="thumb-img" 
-                         style="width: 60px; height: 75px; object-fit: cover; border: 1px solid #ddd; border-radius: 5px;"
-                         onclick="syncVariant(this)" 
-                         data-raw-url="{{ variant.image_url }}" 
-                         data-code="{{ variant.variant_code }}"
-                         alt="{{ product.title }}"
-                         >
+                    <img src="{{ variant.image_url }}" 
+     class="thumb-img" data-raw-url="{{ variant.image_url }}" 
+     data-code="{{ variant.variant_code }}" 
+     onmouseover="syncVariant(this)"
+     alt="{{ product.title }}"
+>
                 {% endfor %}
             </div>
         </div>
