@@ -442,7 +442,7 @@ class Product(models.Model):
 
 
 # ==========================================
-# 6. PRODUCT VARIANT (UPLOAD REMOVED)
+# 6. PRODUCT VARIANT (VIDEO URL KE SAATH, VARIANT CODE EDITABLE)
 # ==========================================
 
 class ProductVariant(models.Model):
@@ -459,6 +459,13 @@ class ProductVariant(models.Model):
         null=True
     )
 
+    video_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Variant-specific showcase video URL"
+    )
+
     earn_karo_url = models.URLField(
         max_length=700
     )
@@ -466,7 +473,8 @@ class ProductVariant(models.Model):
     variant_code = models.CharField(
         max_length=20,
         blank=True,
-        unique=True
+        unique=True,
+        help_text="Leave blank to auto-generate, or type your own code"
     )
 
     def save(self, *args, **kwargs):
@@ -740,3 +748,27 @@ class HomePageSEO(models.Model):
 
     def __str__(self):
         return "Homepage SEO"
+
+
+# ==========================================
+# 12. STORE CONFIGURATION
+# ==========================================
+
+class StoreConfiguration(models.Model):
+
+    store_name = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
+    default_coupon_code = models.CharField(
+        max_length=50,
+        blank=True
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
+
+    def __str__(self):
+        return self.store_name

@@ -1,8 +1,9 @@
 // ================= MERGED PRODUCT & ZOOM SCRIPT =================
-
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
+        const mainVideo = document.getElementById('mainProductVideo');
+        const mediaTab = document.getElementById('mediaSwitcherTab');
         const result = document.getElementById("zoomResult");
         const dataScript = document.getElementById('nestedDealsData');
 
@@ -12,10 +13,31 @@ function syncVariant(el) {
         const code = el.getAttribute('data-code');
         const deals = allData[code];
 
-        // Image Change via Cloudinary
+        // 1. Get Variant Data (Image & Video)
         const rawUrl = el.getAttribute('data-raw-url');
-        const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
-        mainImg.src = imgUrl;
+        const videoUrl = el.getAttribute('data-video-url');
+
+        // 2. Handle Image & Video Switch Viewports
+        if (videoUrl && videoUrl.trim() !== "") {
+            // Agar video hai, toh video set karo aur video view dikhao
+            if (mainVideo) mainVideo.src = videoUrl;
+            if (mediaTab) mediaTab.style.display = 'flex';
+            
+            // By default video tab activate kar sakte hain ya user choice chhod sakte hain
+            if (typeof switchMedia === 'function') {
+                switchMedia('video');
+            }
+        } else {
+            // Agar video nahi hai, toh image load karo
+            const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
+            if (mainImg) mainImg.src = imgUrl;
+            if (mainVideo) mainVideo.src = "";
+            if (mediaTab) mediaTab.style.display = 'none';
+            
+            if (typeof switchMedia === 'function') {
+                switchMedia('image');
+            }
+        }
         
         // Hide zoom result temporarily on variant switch
         if (result) result.style.display = 'none';
@@ -108,15 +130,17 @@ function syncVariant(el) {
         el.classList.add("thumb-active");
 
         // Trigger Zoom after image loads completely
-        mainImg.onload = function () {
-            if (window.innerWidth > 768 && typeof initZoom === "function") {
-                initZoom("mainProductImg", "zoomResult");
-            }
-        };
+        if (mainImg) {
+            mainImg.onload = function () {
+                if (window.innerWidth > 768 && typeof initZoom === "function") {
+                    initZoom("mainProductImg", "zoomResult");
+                }
+            };
 
-        if (mainImg.complete) {
-            if (window.innerWidth > 768 && typeof initZoom === "function") {
-                initZoom("mainProductImg", "zoomResult");
+            if (mainImg.complete) {
+                if (window.innerWidth > 768 && typeof initZoom === "function") {
+                    initZoom("mainProductImg", "zoomResult");
+                }
             }
         }
 
@@ -124,15 +148,6 @@ function syncVariant(el) {
         console.error("Sync Error:", err);
     }
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-    const firstThumb = document.querySelector(".thumb-img");
-    if (firstThumb) {
-        syncVariant(firstThumb);
-    }
-});
-
-
 // ================= FOOLPROOF DIRECT ZOOM & MOVEMENT SCRIPT =================
 
 function initZoom(imgID, resultID) {

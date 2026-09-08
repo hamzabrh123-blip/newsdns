@@ -1,551 +1,117 @@
-import os
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.utils.html import format_html
-import nested_admin
-from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
-from import_export.widgets import ForeignKeyWidget
-from .models import StoreLogoUpload
+import nested_admin
 
-from .models import ( Category, Product, ProductVariant, HomeSlider, VariantStoreCoupon, DropdownMenu, HomeSection, HomePageSEO, PinterestPost)
+from .models import (
+    StoreLogoUpload,
+    PinterestPost,
+    Category,
+    Product,
+    ProductVariant,
+    VariantStoreCoupon,
+    HomeSlider,
+    DropdownMenu,
+    HomeSection,
+    HomePageSEO,
+    StoreConfiguration,
+    submit_all_products_to_bing,
+)
 
-from .indexing_utils import notify_google_indexing
 
-# Import ya Define Bing Indexing Function
-from .models import ping_bing_indexing
+@admin.register(StoreLogoUpload)
+class StoreLogoUploadAdmin(admin.ModelAdmin):
+    list_display = ("id", "logo_path")
 
-from .utils import publish_to_pinterest
 
-@admin.action(description='Bulk Dispatch to Pinterest')
-def bulk_pinterest_dispatch(modeladmin, request, queryset):
-    token = os.environ.get("PINTEREST_ACCESS_TOKEN") 
-    
-    success_count = 0
-    for post in queryset:
-        if not post.is_published:
-            success, message = publish_to_pinterest(
-                title=post.title,
-                description="Explore elite lifestyle at Uttar World.",
-                image_url=post.image_url,
-                destination_link=post.link,
-                access_token=token
-            )
-            
-            if success:
-                post.is_published = True
-                post.save()
-                success_count += 1
-            else:
-                modeladmin.message_user(request, f"Error on {post.title}: {message}")
-                
-    modeladmin.message_user(request, f"{success_count} posts successfully sent to Pinterest!")
-
-# --- PinterestPost Admin ---
 @admin.register(PinterestPost)
 class PinterestPostAdmin(admin.ModelAdmin):
-    list_display = ['image_preview', 'title', 'is_published', 'created_at']
-    actions = [bulk_pinterest_dispatch]
-    
-    def image_preview(self, obj):
-        if obj.image_url:
-            return format_html('<img src="{}" width="50" height="50" style="object-fit:cover;" />', obj.image_url)
-        return "No Image"
-    image_preview.short_description = "Image"
+    list_display = ("title", "is_published", "created_at")
+    list_filter = ("is_published", "created_at")
+    search_fields = ("title", "link")
 
 
-# =========================================================
-# IMPORT EXPORT RESOURCES
-# =========================================================
-
-class ProductResource(resources.ModelResource):
-
-    category = fields.Field(
-        column_name='category',
-        attribute='category',
-        widget=ForeignKeyWidget(Category, 'pk')
-    )
-
-    class Meta:
-
-        model = Product
-
-        fields = (
-            'id',
-            'title',
-            'slug',
-            'category',
-            'currency',
-            'mrp_price',
-            'price_display',
-        )
-
-        import_id_fields = ('id',)
+@admin.register(Category)
+class CategoryAdmin(ImportExportModelAdmin):
+    list_display = ("name", "slug", "meta_title")
+    search_fields = ("name", "meta_title")
+    prepopulated_fields = {"slug": ("name",)}
 
 
-# =========================================================
-# INLINE: COUPONS
-# =========================================================
-
-class VariantStoreCouponInline(
-    nested_admin.NestedTabularInline
-):
-
+class VariantStoreCouponInline(nested_admin.NestedTabularInline):
     model = VariantStoreCoupon
-
-    extra = 0
-
-    fields = (
-        'store_name',
-        'selling_price',
-        'coupon_code',
-    )
+    extra = 1
 
 
-# =========================================================
-# INLINE: PRODUCT VARIANTS
-# =========================================================
-
-class ProductVariantInline(
-    nested_admin.NestedTabularInline
-):
-
+class ProductVariantInline(nested_admin.NestedStackedInline):
     model = ProductVariant
-
-    extra = 0
-
-    readonly_fields = (
-        'variant_code',
-        'display_image',
-    )
-
-    fields = (
-        'variant_code',
-        'image_url',
-        'display_image',
-        'earn_karo_url',
-    )
-
     inlines = [VariantStoreCouponInline]
+    extra = 1
+    classes = ("collapse",)
 
-    def display_image(self, obj):
-
-        if obj and obj.image_url:
-
-            return format_html(
-                '<img src="{}" width="60" height="60" style="object-fit:contain;" />',
-                obj.image_url
-            )
-
-        return "—"
-
-    display_image.short_description = "Preview"
-
-
-# =========================================================
-# GOOGLE INDEXING ACTION
-# =========================================================
-
-@admin.action(description='Notify Google Indexing')
-def notify_google_indexing_action(
-    modeladmin,
-    request,
-    queryset
-):
-
-    success_count = 0
-
-    for obj in queryset:
-
-        if hasattr(obj, 'slug'):
-
-            try:
-
-                if modeladmin.model.__name__ == 'Category':
-
-                    url = (
-                        f"https://uttarworld.com/category/{obj.slug}/"
-                    )
-
-                else:
-
-                    url = (
-                        f"https://uttarworld.com/product/{obj.slug}/"
-                    )
-
-                notify_google_indexing(url)
-
-                success_count += 1
-
-            except Exception as e:
-
-                modeladmin.message_user(
-                    request,
-                    f"Error on {obj}: {str(e)}",
-                    level=messages.ERROR
-                )
-
-    if success_count > 0:
-
-        modeladmin.message_user(
-            request,
-            f"Successfully notified Google for {success_count} items!"
-        )
-
-
-# =========================================================
-# BING INDEXING ACTION
-# =========================================================
-
-@admin.action(description='Notify Bing Indexing')
-def notify_bing_indexing_action(
-    modeladmin,
-    request,
-    queryset
-):
-
-    success_count = 0
-
-    for obj in queryset:
-
-        if hasattr(obj, 'slug'):
-
-            try:
-
-                if modeladmin.model.__name__ == 'Category':
-
-                    url = (
-                        f"https://uttarworld.com/category/{obj.slug}/"
-                    )
-
-                else:
-
-                    url = (
-                        f"https://uttarworld.com/product/{obj.slug}/"
-                    )
-
-                ping_bing_indexing(url)
-
-                success_count += 1
-
-            except Exception as e:
-
-                modeladmin.message_user(
-                    request,
-                    f"Error on {obj}: {str(e)}",
-                    level=messages.ERROR
-                )
-
-    if success_count > 0:
-
-        modeladmin.message_user(
-            request,
-            f"Successfully notified Bing for {success_count} items!"
-        )
-
-
-# =========================================================
-# HOME SECTION ADMIN
-# =========================================================
-
-@admin.register(HomeSection)
-class HomeSectionAdmin(admin.ModelAdmin):
-
-    list_display = (
-        'category',
-        'order',
-        'is_active',
-    )
-
-    list_editable = (
-        'order',
-        'is_active',
-    )
-
-    list_filter = (
-        'is_active',
-    )
-
-    search_fields = (
-        'category__name',
-    )
-
-    readonly_fields = (
-        'section_image_preview',
-    )
-
-    fields = (
-        'image',
-        'section_image_preview',
-        'category',
-        'order',
-        'is_active',
-    )
-
-    def section_image_preview(self, obj):
-
-        if obj.image:
-
-            return format_html(
-                '<img src="{}" width="120" style="border-radius:8px;" />',
-                obj.image.url
-            )
-
-        return "No Image"
-
-    section_image_preview.short_description = "Preview"
-
-
-# =========================================================
-# PRODUCT ADMIN
-# =========================================================
 
 @admin.register(Product)
-class ProductAdmin(
-    ImportExportModelAdmin,
-    nested_admin.NestedModelAdmin
-):
-
-    resource_class = ProductResource
-
-    inlines = [ProductVariantInline]
-
+class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
     list_display = (
-        'title',
-        'currency',
-        'mrp_price',
-        'price_display',
-        'category',
-        'is_featured',
-        'is_available',
-        'main_image_preview',
+        "title",
+        "price_display",
+        "category",
+        "variant_thumbnail",
+        "created_at",
     )
+    list_filter = ("category", "currency")
+    search_fields = ("title", "slug", "meta_keywords")
+    prepopulated_fields = {"slug": ("title",)}
+    inlines = [ProductVariantInline]
+    actions = ["trigger_bing_submission"]
 
-    list_filter = (
-        'category',
-        'currency',
-        'is_available',
-        'is_featured',
-    )
-
-    list_editable = (
-        'currency',
-        'is_featured',
-        'is_available',
-    )
-
-    search_fields = (
-        'title',
-    )
-
-    prepopulated_fields = {
-        'slug': ('title',)
-    }
-
-    actions = [
-        notify_google_indexing_action,
-        notify_bing_indexing_action,
-    ]
-
-    fieldsets = (
-
-        (
-            'Basic Information',
-            {
-                'fields': (
-                    'title',
-                    'slug',
-                    'category',
-                    'currency',
-                    'mrp_price',
-                    'price_display',
-                )
-            }
-        ),
-
-        (
-            'SEO Settings',
-            {
-                'fields': (
-                    'meta_description',
-                    'meta_keywords',
-                )
-            }
-        ),
-
-        (
-            'Content',
-            {
-                'fields': (
-                    'long_description',
-                )
-            }
-        ),
-
-        (
-            'Status',
-            {
-                'fields': (
-                    'is_available',
-                    'is_featured',
-                )
-            }
-        ),
-
-    )
-
-    def main_image_preview(self, obj):
-
+    def variant_thumbnail(self, obj):
+        """Display the image of the first product variant in the admin list."""
         first_variant = obj.variants.first()
-
         if first_variant and first_variant.image_url:
-
             return format_html(
-                '<img src="{}" width="50" height="50" style="object-fit:contain;" />',
+                '<img src="{}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />',
                 first_variant.image_url
             )
+        return "No Image"
 
-        return "—"
+    variant_thumbnail.short_description = "Variant Image"
 
-    main_image_preview.short_description = "Preview"
+    @admin.action(description="Submit selected/all available products to Bing")
+    def trigger_bing_submission(self, request, queryset):
+        success = submit_all_products_to_bing()
+        if success:
+            self.message_user(request, "Successfully submitted products to Bing!")
+        else:
+            self.message_user(request, "Bing submission completed with some errors. Check logs.", level="WARNING")
 
-
-# =========================================================
-# HOME SLIDER ADMIN
-# =========================================================
 
 @admin.register(HomeSlider)
 class HomeSliderAdmin(admin.ModelAdmin):
+    list_display = ("title", "link", "is_active")
+    list_filter = ("is_active",)
 
-    list_display = (
-        'title',
-        'is_active',
-    )
-
-
-# =========================================================
-# CATEGORY ADMIN
-# =========================================================
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-
-    list_display = (
-        'name',
-        'slug',
-        'category_image_preview',
-    )
-
-    prepopulated_fields = {
-        'slug': ('name',)
-    }
-
-    actions = [
-        notify_google_indexing_action,
-        notify_bing_indexing_action,
-    ]
-
-    def category_image_preview(self, obj):
-
-        if obj.image_url:
-
-            return format_html(
-                '<img src="{}" width="60" height="60" style="object-fit:cover;border-radius:4px;" />',
-                obj.image_url
-            )
-
-        if obj.image:
-
-            return format_html(
-                '<img src="{}" width="60" height="60" style="object-fit:cover;border-radius:4px;" />',
-                obj.image.url
-            )
-
-        return "No Image"
-
-    category_image_preview.short_description = "Preview"
-
-
-# =========================================================
-# DROPDOWN MENU ADMIN
-# =========================================================
 
 @admin.register(DropdownMenu)
 class DropdownMenuAdmin(admin.ModelAdmin):
+    list_display = ("menu_name", "order", "is_active")
+    list_filter = ("is_active",)
+    filter_horizontal = ("categories",)
 
-    list_display = (
-        'menu_name',
-        'order',
-        'is_active',
-    )
 
-    list_editable = (
-        'order',
-        'is_active',
-    )
+@admin.register(HomeSection)
+class HomeSectionAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "order", "is_active")
+    list_filter = ("is_active", "category")
+    list_editable = ("order", "is_active")
 
-    prepopulated_fields = {
-        'slug': ('menu_name',)
-    }
-
-# =========================================================
-# HOME PAGE SEO ADMIN
-# =========================================================
 
 @admin.register(HomePageSEO)
 class HomePageSEOAdmin(admin.ModelAdmin):
+    list_display = ("title", "updated_at")
 
-    list_display = (
-        'title',
-        'updated_at',
-    )
 
-    search_fields = (
-        'title',
-    )
-
-    fieldsets = (
-
-        (
-            'SEO Settings',
-            {
-                'fields': (
-                    'title',
-                    'meta_description',
-                    'meta_keywords',
-                )
-            }
-        ),
-
-        (
-            'Homepage Content',
-            {
-                'fields': (
-                    'seo_content',
-                )
-            }
-        ),
-
-        (
-            'Social Media Image',
-            {
-                'fields': (
-                    'og_image',
-                )
-            }
-        ),
-
-    )
-
-# =========================================================
-# HIDE UNUSED MODELS FROM SIDEBAR
-# =========================================================
-
-try:
-    admin.site.unregister(ProductVariant)
-except admin.sites.NotRegistered:
-    pass
-
-try:
-    admin.site.unregister(VariantStoreCoupon)
-except admin.sites.NotRegistered:
-    pass
+@admin.register(StoreConfiguration)
+class StoreConfigurationAdmin(admin.ModelAdmin):
+    list_display = ("store_name", "default_coupon_code", "is_active")
+    list_filter = ("is_active",)

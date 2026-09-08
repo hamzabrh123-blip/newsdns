@@ -8,7 +8,7 @@
 .img-zoom-container {
     position: relative;
     width: 100%;
-    display: block; /* Flex hata kar block kar de taaki extra stretch na ho */
+    display: block;
     margin: 0;
     padding: 0;
 }
@@ -23,14 +23,14 @@
     display: none;
     z-index: 10;
     cursor: crosshair;
-    pointer-events: none; /* <-- Yeh sabse zaroori hai, taaki lens mouse events block na kare */
+    pointer-events: none;
 }
 
-/* Zoom Result Box (Right Side mein dikhega) */
+/* Zoom Result Box */
 .img-zoom-result {
     border: 1px solid #d4d4d4;
-    width: 500px;  /* Yahan se size bada kar le */
-    height: 500px; /* Yahan se size bada kar le */
+    width: 500px;
+    height: 500px;
     position: absolute;
     top: 0;
     left: 102%;
@@ -44,50 +44,73 @@
 
 <div class="container mt-4">
     <div class="row product-container">
+        <!-- Desktop Thumbnails -->
         <div class="col-md-1 d-none d-md-block">
             {% for variant in product.variants.all %}
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
-                     class="thumb-img" data-raw-url="{{ variant.image_url }}" 
-                      data-code="{{ variant.variant_code }}" 
-                      onmouseover="syncVariant(this)"
-                      alt="{{ product.title }}"
-                
-                >
+                     class="thumb-img" 
+                     data-raw-url="{{ variant.image_url }}" 
+                     data-video-url="{{ variant.video_url|default:'' }}"
+                     data-code="{{ variant.variant_code }}" 
+                     onmouseover="syncVariant(this)"
+                     alt="{{ product.title }}">
             {% endfor %}
         </div>
         
         <div class="col-md-5">
-            <!-- Zoom Container ke andar Viewport aur Zoom Result dono alag hain -->
-            <div class="img-zoom-container" id="viewport">
+            <!-- Media Toggle Switcher Tabs -->
+            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; {% if not product.variants.all.0.video_url %}display: none !important;{% endif %}">
+                <button type="button" class="btn btn-sm {% if product.variants.all.0.video_url %}btn-outline-dark{% else %}btn-dark active{% endif %}" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
+                    <i class="bi bi-image"></i> Photo
+                </button>
+                <button type="button" class="btn btn-sm {% if product.variants.all.0.video_url %}btn-dark active{% else %}btn-outline-dark{% endif %}" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
+                    <i class="bi bi-play-btn"></i> Video
+                </button>
+            </div>
+
+            <!-- Image Viewport Container -->
+            <div class="img-zoom-container" id="viewport" style="display: {% if product.variants.all.0.video_url %}none{% else %}block{% endif %};">
                 <div class="main-img-viewport">
-                    <img id="mainProductImg" 
-     src="{{ product.variants.all.0.image_url }}"
-     alt="{{ product.title }}"
->
+                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}" alt="{{ product.title }}">
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
-                <!-- Zoom Result ab Viewport ke BAHAR hai taaki kate nahi -->
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
 
+            <!-- Video Viewport Container -->
+            <div id="videoViewport" class="product-video-container" style="display: {% if product.variants.all.0.video_url %}block{% else %}none{% endif %}; width: 100%;">
+                <video 
+                    id="mainProductVideo"
+                    src="{{ product.variants.all.0.video_url }}" 
+                    controls 
+                    autoplay 
+                    muted 
+                    loop 
+                    playsinline
+                    style="width: 100%; max-height: 480px; border-radius: 8px; object-fit: cover;"
+                >
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <!-- Mobile Thumbnails -->
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
                 {% for variant in product.variants.all %}
                     <img src="{{ variant.image_url }}" 
-     class="thumb-img" data-raw-url="{{ variant.image_url }}" 
-     data-code="{{ variant.variant_code }}" 
-     onmouseover="syncVariant(this)"
-     alt="{{ product.title }}"
->
+                         class="thumb-img" 
+                         data-raw-url="{{ variant.image_url }}" 
+                         data-video-url="{{ variant.video_url|default:'' }}"
+                         data-code="{{ variant.variant_code }}" 
+                         onmouseover="syncVariant(this)"
+                         alt="{{ product.title }}">
                 {% endfor %}
             </div>
         </div>
 
         <div class="col-md-6">
-
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section">
-                <!-- Dynamic Currency Symbol added here -->
-                    <span class="price-tag">{{ product.currency }}{{ product.price_display }}</span>
+                <span class="price-tag">{{ product.currency }}{{ product.price_display }}</span>
                 {% if product.mrp_price %}<span class="mrp-text">{{ product.currency }}{{ product.mrp_price }}</span>{% endif %}
             </div>
             <div class="store-deal-card mt-3">
@@ -96,11 +119,11 @@
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
 
-                 <div class="product-code-display text-center mt-3">
-                <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
-                    Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
-                </span>
-            </div><hr>
+                <div class="product-code-display text-center mt-3">
+                    <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
+                        Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
+                    </span>
+                </div><hr>
                 <a href="{{ product.variants.all.0.coupons.all.0.store_affiliate_url|default:'' }}" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
             </div>
             <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
@@ -108,13 +131,12 @@
             </button>
              
             <div class="mt-4 product-description-box">{{ product.long_description|replace_h1_with_h3|safe }}</div>
-                        
         </div>
     </div>
 </div>
 
 <div style="background:#fff8e1;border-left:5px solid #ff9800;padding:15px;margin:20px 0;border-radius:6px;font-size:14px;line-height:1.8;">
-   <h2><strong>⚠️ Price & Availability Notice</strong></h2>
+    <h2><strong>⚠️ Price & Availability Notice</strong></h2>
     <ul style="margin:8px 0 0 18px;padding:0;">
         <li>Product prices, offers and discounts may change at any time without prior notice.</li>
         <li>The final price, availability and offers will be displayed on the seller's website before purchase.</li>
@@ -124,7 +146,7 @@
         <li>Uttar World Elite Lifestyle Store is not responsible for any price changes, product availability, order cancellations, delivery issues or seller policies.</li>
         <li>
 For the most accurate and up-to-date information, click the yellow colour <b style="color:red;">SHOP NOW</b> button below. On the seller's website, you can view the latest price, coupon codes, discounts, bank offers, EMI options, exchange offers, delivery details, return policy, warranty, product availability, and all other relevant information before making your purchase.
-</li>
+        </li>
     </ul>
 </div>
 <hr>
@@ -138,7 +160,6 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <!-- Dynamic Currency for Related Products -->
                     <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.price_display }} 
                         {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">{{ item.currency }}{{ item.mrp_price }}</span></span>{% endif %}
                     </p>
@@ -160,6 +181,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
         </div>
     </div>
 </div>
+
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in product.variants.all %}
@@ -175,6 +197,66 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
             {% endfor %}
         ]{% if not forloop.last %},{% endif %}
     {% endfor %}
+}
+</script>
+
+<script>
+function switchMedia(type) {
+    const imgContainer = document.getElementById('viewport');
+    const videoContainer = document.getElementById('videoViewport');
+    const imgBtn = document.getElementById('showImgBtn');
+    const videoBtn = document.getElementById('showVideoBtn');
+    const mainVideo = document.getElementById('mainProductVideo');
+
+    if (type === 'image') {
+        if(imgContainer) imgContainer.style.display = 'block';
+        if(videoContainer) videoContainer.style.display = 'none';
+        if(mainVideo) mainVideo.pause();
+        if(imgBtn) { imgBtn.classList.add('btn-dark'); imgBtn.classList.remove('btn-outline-dark'); }
+        if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark'); }
+    } else if (type === 'video') {
+        if(imgContainer) imgContainer.style.display = 'none';
+        if(videoContainer) videoContainer.style.display = 'block';
+        if(mainVideo) mainVideo.play();
+        if(videoBtn) { videoBtn.classList.add('btn-dark'); videoBtn.classList.remove('btn-outline-dark'); }
+        if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark'); }
+    }
+}
+
+function syncVariant(element) {
+    const rawUrl = element.getAttribute('data-raw-url');
+    const videoUrl = element.getAttribute('data-video-url');
+    const variantCode = element.getAttribute('data-code');
+    
+    // Update Image with Cloudinary Prefix
+    const mainImg = document.getElementById('mainProductImg');
+    if (mainImg) {
+        mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
+    }
+
+    // Update Video & Media Switcher Tabs visibility based on variant
+    const mainVideo = document.getElementById('mainProductVideo');
+    const mediaTab = document.getElementById('mediaSwitcherTab');
+    
+    if (mainVideo) {
+        if (videoUrl && videoUrl.trim() !== "") {
+            mainVideo.src = videoUrl;
+            if (mediaTab) mediaTab.style.display = 'flex';
+            switchMedia('video'); // Automatically show video if available for this variant
+        } else {
+            mainVideo.src = "";
+            if (mediaTab) mediaTab.style.display = 'none';
+            switchMedia('image'); // Fallback to photo if no video exists
+        }
+    }
+
+    // Update Variant Code & Deals
+    const codeDisplay = document.getElementById('displayVariantCode');
+    if (codeDisplay) codeDisplay.innerText = variantCode;
+    
+    if (typeof updateDealsByVariant === 'function') {
+        updateDealsByVariant(variantCode);
+    }
 }
 </script>
 
