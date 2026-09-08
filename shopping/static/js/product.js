@@ -19,16 +19,13 @@ function syncVariant(el) {
 
         // 2. Handle Image & Video Switch Viewports
         if (videoUrl && videoUrl.trim() !== "") {
-            // Agar video hai, toh video set karo aur video view dikhao
             if (mainVideo) mainVideo.src = videoUrl;
             if (mediaTab) mediaTab.style.display = 'flex';
             
-            // By default video tab activate kar sakte hain ya user choice chhod sakte hain
             if (typeof switchMedia === 'function') {
                 switchMedia('video');
             }
         } else {
-            // Agar video nahi hai, toh image load karo
             const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
             if (mainImg) mainImg.src = imgUrl;
             if (mainVideo) mainVideo.src = "";
@@ -73,10 +70,11 @@ function syncVariant(el) {
                     .replace(/\s+/g, "")
                     .replace(/[-_.]/g, "");
 
+                // Added pointer-events: none so clicks pass through to the <a> tag seamlessly
                 shopBtn.innerHTML = `
-                    <div style="display:flex;align-items:center;justify-content:center; width:100%; height:100%; gap:12px;">
+                    <div style="display:flex;align-items:center;justify-content:center; width:100%; height:100%; gap:12px; pointer-events:none;">
                         <span style="font-size:22px;font-weight:800;letter-spacing:1px;">SHOP NOW</span>
-                        <img src="/static/store_logo/${storeKey}.png" onerror="this.src='/static/store_logo/default.png'"
+                        <img src="/static/store_logo/${storeKey}.png" onerror="this.style.display='none'"
                         style="height:100%; max-height:42px; width:auto; object-fit:contain;">
                     </div>`;
 
@@ -157,7 +155,6 @@ function initZoom(imgID, resultID) {
 
     if (!img || !result || !viewport) return;
 
-    // Purana lens agar CSS mein ho toh hata do taaki rukaavat na ho
     const existingLens = viewport.querySelector(".img-zoom-lens");
     if (existingLens) existingLens.remove();
 
@@ -169,7 +166,6 @@ function initZoom(imgID, resultID) {
 
     function setup() {
         result.style.backgroundImage = `url('${img.src}')`;
-        // Zoom bada karne ke liye yahan multiplier set hai (e.g., 2.5x)
         const zoomFactor = 2.5; 
         result.style.backgroundSize = `${tempImg.width * zoomFactor}px ${tempImg.height * zoomFactor}px`;
     }
@@ -185,11 +181,9 @@ function initZoom(imgID, resultID) {
     viewport.onmousemove = function(e) {
         const rect = img.getBoundingClientRect();
         
-        // Mouse position inside the image
         let x = e.clientX - rect.left;
         let y = e.clientY - rect.top;
 
-        // Agar mouse image ke bahar ho toh roko
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
             result.style.display = "none";
             return;
@@ -197,7 +191,6 @@ function initZoom(imgID, resultID) {
             result.style.display = "block";
         }
 
-        // Percentage calculation for smooth movement
         let xPercent = x / rect.width;
         let yPercent = y / rect.height;
 

@@ -34,11 +34,38 @@
     position: absolute;
     top: 0;
     left: 102%;
-    z-index: 9999;
+    z-index: 100;
     background-repeat: no-repeat;
     display: none;
     background-color: #fff;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* Clean Master Shop Now Button - No Menu Overlap */
+#masterShopNowBtn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 48px !important;
+    padding: 10px 16px !important;
+    text-decoration: none !important;
+    border-radius: 8px !important;
+    font-weight: 800 !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 5 !important;
+}
+
+#masterShopNowBtn img {
+    height: 22px !important;
+    width: auto !important;
+    max-width: 80px !important;
+    object-fit: contain !important;
+    pointer-events: none !important;
 }
 </style>
 
@@ -48,7 +75,7 @@
         <div class="col-md-1 d-none d-md-block">
             {% for variant in product.variants.all %}
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
-                     class="thumb-img" 
+                     class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                      data-raw-url="{{ variant.image_url }}" 
                      data-video-url="{{ variant.video_url|default:'' }}"
                      data-code="{{ variant.variant_code }}" 
@@ -60,16 +87,16 @@
         <div class="col-md-5">
             <!-- Media Toggle Switcher Tabs -->
             <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; {% if not product.variants.all.0.video_url %}display: none !important;{% endif %}">
-                <button type="button" class="btn btn-sm {% if product.variants.all.0.video_url %}btn-outline-dark{% else %}btn-dark active{% endif %}" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
+                <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
                 </button>
-                <button type="button" class="btn btn-sm {% if product.variants.all.0.video_url %}btn-dark active{% else %}btn-outline-dark{% endif %}" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
+                <button type="button" class="btn btn-sm btn-outline-dark" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-play-btn"></i> Video
                 </button>
             </div>
 
-            <!-- Image Viewport Container -->
-            <div class="img-zoom-container" id="viewport" style="display: {% if product.variants.all.0.video_url %}none{% else %}block{% endif %};">
+            <!-- Image Viewport Container (Default Always Shown First) -->
+            <div class="img-zoom-container" id="viewport" style="display: block;">
                 <div class="main-img-viewport">
                     <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}" alt="{{ product.title }}">
                     <div id="lens" class="img-zoom-lens"></div>
@@ -77,13 +104,12 @@
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
 
-            <!-- Video Viewport Container -->
-            <div id="videoViewport" class="product-video-container" style="display: {% if product.variants.all.0.video_url %}block{% else %}none{% endif %}; width: 100%;">
+            <!-- Video Viewport Container (Hidden by Default) -->
+            <div id="videoViewport" class="product-video-container" style="display: none; width: 100%;">
                 <video 
                     id="mainProductVideo"
                     src="{{ product.variants.all.0.video_url }}" 
                     controls 
-                    autoplay 
                     muted 
                     loop 
                     playsinline
@@ -97,7 +123,7 @@
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
                 {% for variant in product.variants.all %}
                     <img src="{{ variant.image_url }}" 
-                         class="thumb-img" 
+                         class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                          data-raw-url="{{ variant.image_url }}" 
                          data-video-url="{{ variant.video_url|default:'' }}"
                          data-code="{{ variant.variant_code }}" 
@@ -124,7 +150,14 @@
                         Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
                     </span>
                 </div><hr>
-                <a href="{{ product.variants.all.0.coupons.all.0.store_affiliate_url|default:'' }}" id="masterShopNowBtn" class="btn-main-shop-now">SHOP NOW</a>
+                
+                <a href="#" 
+                   id="masterShopNowBtn" 
+                   target="_blank" 
+                   rel="nofollow noopener"
+                   style="background: #ff9900; color: #000;">
+                    <span style="font-size:18px; font-weight:800; letter-spacing:1px; pointer-events:none;">SHOP NOW</span>
+                </a>
             </div>
             <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
@@ -211,54 +244,177 @@ function switchMedia(type) {
     if (type === 'image') {
         if(imgContainer) imgContainer.style.display = 'block';
         if(videoContainer) videoContainer.style.display = 'none';
-        if(mainVideo) mainVideo.pause();
-        if(imgBtn) { imgBtn.classList.add('btn-dark'); imgBtn.classList.remove('btn-outline-dark'); }
-        if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark'); }
+        if(mainVideo) mainVideo.pause(); // Video tab hatate hi video pause ho jayegi
+        if(imgBtn) { imgBtn.classList.add('btn-dark', 'active'); imgBtn.classList.remove('btn-outline-dark'); }
+        if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark', 'active'); }
     } else if (type === 'video') {
         if(imgContainer) imgContainer.style.display = 'none';
         if(videoContainer) videoContainer.style.display = 'block';
-        if(mainVideo) mainVideo.play();
-        if(videoBtn) { videoBtn.classList.add('btn-dark'); videoBtn.classList.remove('btn-outline-dark'); }
-        if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark'); }
+        if(mainVideo) mainVideo.play(); // Sirf tab click par video play hogi
+        if(videoBtn) { videoBtn.classList.add('btn-dark', 'active'); videoBtn.classList.remove('btn-outline-dark'); }
+        if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark', 'active'); }
     }
 }
 
-function syncVariant(element) {
-    const rawUrl = element.getAttribute('data-raw-url');
-    const videoUrl = element.getAttribute('data-video-url');
-    const variantCode = element.getAttribute('data-code');
-    
-    // Update Image with Cloudinary Prefix
-    const mainImg = document.getElementById('mainProductImg');
-    if (mainImg) {
-        mainImg.src = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
-    }
+// ================= MERGED PRODUCT & ZOOM SCRIPT =================
+function syncVariant(el) {
+    try {
+        const mainImg = document.getElementById('mainProductImg');
+        const mainVideo = document.getElementById('mainProductVideo');
+        const mediaTab = document.getElementById('mediaSwitcherTab');
+        const result = document.getElementById("zoomResult");
+        const dataScript = document.getElementById('nestedDealsData');
 
-    // Update Video & Media Switcher Tabs visibility based on variant
-    const mainVideo = document.getElementById('mainProductVideo');
-    const mediaTab = document.getElementById('mediaSwitcherTab');
-    
-    if (mainVideo) {
+        if (!dataScript) return;
+
+        const allData = JSON.parse(dataScript.textContent);
+        const code = el.getAttribute('data-code');
+        const deals = allData[code];
+
+        const rawUrl = el.getAttribute('data-raw-url');
+        const videoUrl = el.getAttribute('data-video-url');
+
+        // Update media sources
+        const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
+        if (mainImg) mainImg.src = imgUrl;
+
         if (videoUrl && videoUrl.trim() !== "") {
-            mainVideo.src = videoUrl;
+            if (mainVideo) mainVideo.src = videoUrl;
             if (mediaTab) mediaTab.style.display = 'flex';
-            switchMedia('video'); // Automatically show video if available for this variant
         } else {
-            mainVideo.src = "";
+            if (mainVideo) mainVideo.src = "";
             if (mediaTab) mediaTab.style.display = 'none';
-            switchMedia('image'); // Fallback to photo if no video exists
         }
+
+        // Always reset and show Image view first on variant hover/change
+        if (typeof switchMedia === 'function') {
+            switchMedia('image');
+        }
+        
+        if (result) result.style.display = 'none';
+
+        const codeDisplay = document.getElementById('displayVariantCode');
+        if (codeDisplay) codeDisplay.innerText = code;
+
+        const container = document.getElementById('storeDealsContainer');
+        const shopBtn = document.getElementById('masterShopNowBtn');
+
+        if (container && deals && deals.length > 0) {
+            container.innerHTML = deals.map(d =>
+                `<tr>
+                    <td>${d.store_name}</td>
+                    <td>${d.coupon_code}</td>
+                    <td><strong>${d.currency}${d.selling_price}</strong></td>
+                </tr>`
+            ).join('');
+
+            if (shopBtn) {
+                shopBtn.href = deals[0].url || "#";
+
+                let store = deals[0].store_name || "SHOP";
+                let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
+                const storeKey = cleanStore.toLowerCase().replace(/\s+/g, "").replace(/[-_.]/g, "");
+
+                shopBtn.innerHTML = `
+                    <span style="font-size:16px; font-weight:800; letter-spacing:1px; pointer-events:none;">SHOP NOW AT</span>
+                    <img src="/static/store_logo/${storeKey}.png" 
+                         onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
+                         style="height:22px; width:auto; max-width:80px; object-fit:contain; pointer-events:none;">
+                    <span id="fallbackStoreName" style="display:none; font-size:16px; font-weight:800; text-transform:uppercase; pointer-events:none;">${cleanStore}</span>
+                `;
+
+                switch (cleanStore.toLowerCase()) {
+                    case "amazon": shopBtn.style.background = "#FF9900"; shopBtn.style.color = "#000"; break;
+                    case "flipkart": shopBtn.style.background = "#2874F0"; shopBtn.style.color = "#fff"; break;
+                    case "myntra": shopBtn.style.background = "#ff3f6c"; shopBtn.style.color = "#fff"; break;
+                    case "ajio": shopBtn.style.background = "#000"; shopBtn.style.color = "#fff"; break;
+                    case "meesho": shopBtn.style.background = "#9C27B0"; shopBtn.style.color = "#fff"; break;
+                    case "nykaa": shopBtn.style.background = "#fc2779"; shopBtn.style.color = "#fff"; break;
+                    case "croma": shopBtn.style.background = "#00A651"; shopBtn.style.color = "#fff"; break;
+                    case "tatacliq": shopBtn.style.background = "#D61F2C"; shopBtn.style.color = "#fff"; break;
+                    case "reliancedigital": shopBtn.style.background = "#1565C0"; shopBtn.style.color = "#fff"; break;
+                    default: shopBtn.style.background = "#ff9900"; shopBtn.style.color = "#000";
+                }
+            }
+        }
+
+        document.querySelectorAll(".thumb-img").forEach(t => t.classList.remove("thumb-active"));
+        el.classList.add("thumb-active");
+
+        if (mainImg) {
+            mainImg.onload = function () {
+                if (window.innerWidth > 768 && typeof initZoom === "function") {
+                    initZoom("mainProductImg", "zoomResult");
+                }
+            };
+            if (mainImg.complete) {
+                if (window.innerWidth > 768 && typeof initZoom === "function") {
+                    initZoom("mainProductImg", "zoomResult");
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Sync Error:", err);
+    }
+}
+
+// Automatically sync the first variant when the page loads so the logo and table appear immediately
+document.addEventListener("DOMContentLoaded", function() {
+    const firstThumb = document.querySelector(".thumb-img");
+    if (firstThumb) {
+        syncVariant(firstThumb);
+    }
+});
+
+// ================= FOOLPROOF DIRECT ZOOM & MOVEMENT SCRIPT =================
+function initZoom(imgID, resultID) {
+    const img = document.getElementById(imgID);
+    const result = document.getElementById(resultID);
+    const viewport = img.parentElement;
+
+    if (!img || !result || !viewport) return;
+
+    const existingLens = viewport.querySelector(".img-zoom-lens");
+    if (existingLens) existingLens.remove();
+
+    let tempImg = new Image();
+    tempImg.src = img.src;
+
+    tempImg.onload = setup;
+    if (img.complete) setup();
+
+    function setup() {
+        result.style.backgroundImage = `url('${img.src}')`;
+        const zoomFactor = 2.5; 
+        result.style.backgroundSize = `${tempImg.width * zoomFactor}px ${tempImg.height * zoomFactor}px`;
     }
 
-    // Update Variant Code & Deals
-    const codeDisplay = document.getElementById('displayVariantCode');
-    if (codeDisplay) codeDisplay.innerText = variantCode;
-    
-    if (typeof updateDealsByVariant === 'function') {
-        updateDealsByVariant(variantCode);
-    }
+    viewport.onmouseenter = function() { result.style.display = "block"; };
+    viewport.onmouseleave = function() { result.style.display = "none"; };
+
+    viewport.onmousemove = function(e) {
+        const rect = img.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+
+        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+            result.style.display = "none";
+            return;
+        } else {
+            result.style.display = "block";
+        }
+
+        let xPercent = x / rect.width;
+        let yPercent = y / rect.height;
+
+        let bgWidth = parseInt(result.style.backgroundSize.split(' ')[0]) || (img.naturalWidth * 2.5);
+        let bgHeight = parseInt(result.style.backgroundSize.split(' ')[1]) || (img.naturalHeight * 2.5);
+
+        let bgX = xPercent * (bgWidth - result.offsetWidth);
+        let bgY = yPercent * (bgHeight - result.offsetHeight);
+
+        result.style.backgroundPosition = `-${bgX}px -${bgY}px`;
+    };
 }
 </script>
-
-<script src="{% static 'js/product.js' %}"></script>
 {% endblock %}
