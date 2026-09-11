@@ -2,6 +2,8 @@ import uuid
 import time
 import requests
 import json
+import random
+import string
 
 from django.db import models
 from django.conf import settings
@@ -344,8 +346,10 @@ class Product(models.Model):
     )
 
     slug = models.SlugField(
+        max_length=15,
         unique=True,
-        blank=True
+        blank=True,
+        help_text="Automatically generated short random code slug"
     )
 
     category = models.ForeignKey(
@@ -407,10 +411,11 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = (
-                f"{slugify(unidecode(self.title))[:80]}"
-                f"-{str(uuid.uuid4())[:6]}"
-            )
+            while True:
+                random_slug = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+                if not Product.objects.filter(slug=random_slug).exists():
+                    self.slug = random_slug
+                    break
 
         super().save(*args, **kwargs)
 
@@ -442,7 +447,7 @@ class Product(models.Model):
 
 
 # ==========================================
-# 6. PRODUCT VARIANT (VIDEO URL KE SAATH, VARIANT CODE EDITABLE)
+# 6. PRODUCT VARIANT
 # ==========================================
 
 class ProductVariant(models.Model):

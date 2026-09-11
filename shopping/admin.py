@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import Textarea
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 import nested_admin
@@ -23,12 +25,18 @@ from .models import (
 class StoreLogoUploadAdmin(admin.ModelAdmin):
     list_display = ("id", "logo_path")
 
+    def has_module_permission(self, request):
+        return False
+
 
 @admin.register(PinterestPost)
 class PinterestPostAdmin(admin.ModelAdmin):
     list_display = ("title", "is_published", "created_at")
     list_filter = ("is_published", "created_at")
     search_fields = ("title", "link")
+
+    def has_module_permission(self, request):
+        return False
 
 
 @admin.register(Category)
@@ -48,6 +56,7 @@ class ProductVariantInline(nested_admin.NestedStackedInline):
     inlines = [VariantStoreCouponInline]
     extra = 1
     classes = ("collapse",)
+    exclude = ("variant_code",)
 
 
 @admin.register(Product)
@@ -61,9 +70,14 @@ class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
     )
     list_filter = ("category", "currency")
     search_fields = ("title", "slug", "meta_keywords")
-    prepopulated_fields = {"slug": ("title",)}
+    # Slug ko exclude kar diya hai taaki form me na dikhe aur khud generate ho
+    exclude = ("slug",)
     inlines = [ProductVariantInline]
     actions = ["trigger_bing_submission"]
+
+    formfield_overrides = {
+        models.TextField: {"widget": Textarea(attrs={"rows": 3})},
+    }
 
     def variant_thumbnail(self, obj):
         """Display the image of the first product variant in the admin list."""
@@ -115,3 +129,6 @@ class HomePageSEOAdmin(admin.ModelAdmin):
 class StoreConfigurationAdmin(admin.ModelAdmin):
     list_display = ("store_name", "default_coupon_code", "is_active")
     list_filter = ("is_active",)
+
+    def has_module_permission(self, request):
+        return False
