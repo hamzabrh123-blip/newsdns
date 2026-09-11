@@ -77,7 +77,7 @@
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
                      class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                      data-raw-url="{{ variant.image_url }}" 
-                     data-video-url="{{ variant.video_url|default:'' }}"
+                     data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                      data-code="{{ variant.variant_code }}" 
                      onmouseover="syncVariant(this)"
                      alt="{{ product.title }}">
@@ -85,8 +85,8 @@
         </div>
         
         <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs -->
-            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; {% if not product.variants.all.0.video_url %}display: none !important;{% endif %}">
+            <!-- Media Toggle Switcher Tabs (Default Hidden via CSS !important) -->
+            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
                 <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
                 </button>
@@ -108,7 +108,7 @@
             <div id="videoViewport" class="product-video-container" style="display: none; width: 100%;">
                 <video 
                     id="mainProductVideo"
-                    src="{{ product.variants.all.0.video_url }}" 
+                    src="" 
                     controls 
                     loop 
                     playsinline
@@ -124,7 +124,7 @@
                     <img src="{{ variant.image_url }}" 
                          class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                          data-raw-url="{{ variant.image_url }}" 
-                         data-video-url="{{ variant.video_url|default:'' }}"
+                         data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                          data-code="{{ variant.variant_code }}" 
                          onmouseover="syncVariant(this)"
                          alt="{{ product.title }}">
@@ -243,13 +243,13 @@ function switchMedia(type) {
     if (type === 'image') {
         if(imgContainer) imgContainer.style.display = 'block';
         if(videoContainer) videoContainer.style.display = 'none';
-        if(mainVideo) mainVideo.pause(); // Video tab hatate hi video pause ho jayegi
+        if(mainVideo) { mainVideo.pause(); mainVideo.currentTime = 0; }
         if(imgBtn) { imgBtn.classList.add('btn-dark', 'active'); imgBtn.classList.remove('btn-outline-dark'); }
         if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark', 'active'); }
     } else if (type === 'video') {
         if(imgContainer) imgContainer.style.display = 'none';
         if(videoContainer) videoContainer.style.display = 'block';
-        if(mainVideo) mainVideo.play(); // Sirf tab click par video play hogi
+        if(mainVideo) mainVideo.play();
         if(videoBtn) { videoBtn.classList.add('btn-dark', 'active'); videoBtn.classList.remove('btn-outline-dark'); }
         if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark', 'active'); }
     }
@@ -273,19 +273,27 @@ function syncVariant(el) {
         const rawUrl = el.getAttribute('data-raw-url');
         const videoUrl = el.getAttribute('data-video-url');
 
-        // Update media sources
+        // Clean and strict check for video URL per variant
+        const hasValidVideo = videoUrl && 
+                              videoUrl.trim() !== "" && 
+                              videoUrl !== "None" && 
+                              videoUrl !== "null" && 
+                              videoUrl !== "NoneType";
+
+        // Update image source
         const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
         if (mainImg) mainImg.src = imgUrl;
 
-        if (videoUrl && videoUrl.trim() !== "") {
+        // Dynamically toggle media tab and video source per variant
+        if (hasValidVideo) {
             if (mainVideo) mainVideo.src = videoUrl;
-            if (mediaTab) mediaTab.style.display = 'flex';
+            if (mediaTab) mediaTab.style.setProperty('display', 'flex', 'important');
         } else {
-            if (mainVideo) mainVideo.src = "";
-            if (mediaTab) mediaTab.style.display = 'none';
+            if (mainVideo) { mainVideo.pause(); mainVideo.src = ""; }
+            if (mediaTab) mediaTab.style.setProperty('display', 'none', 'important');
         }
 
-        // Always reset and show Image view first on variant hover/change
+        // Always force reset to Image view when switching variants
         if (typeof switchMedia === 'function') {
             switchMedia('image');
         }
@@ -357,7 +365,7 @@ function syncVariant(el) {
     }
 }
 
-// Automatically sync the first variant when the page loads so the logo and table appear immediately
+// Automatically sync the first variant when the page loads
 document.addEventListener("DOMContentLoaded", function() {
     const firstThumb = document.querySelector(".thumb-img");
     if (firstThumb) {
