@@ -135,8 +135,8 @@
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ product.variants.all.0.coupons.first.selling_price|default:product.price_display }}</span>
-                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{{ product.currency }}{{ product.variants.all.0.coupons.first.mrp_price|default:product.mrp_price }}</span>
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ product.variants.all.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}</span>
+                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{{ product.currency }}{{ product.mrp_price|default:0 }}</span>
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
@@ -192,7 +192,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.price_display }} 
+                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.variants.all.0.coupons.first.selling_price|default:item.mrp_price|default:0 }} 
                         {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency }}{{ item.mrp_price }}</span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
@@ -221,7 +221,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
             {% for coupon in variant.coupons.all %}
                 { 
                     "store_name": "{{ coupon.store_name|escapejs }}", 
-                    "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}",
+                    "selling_price": "{{ coupon.selling_price|default:product.mrp_price|default:0|escapejs }}",
                     "mrp_price": "{{ coupon.mrp_price|default:product.mrp_price|escapejs }}", 
                     "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
                     "colour": "{{ coupon.colour|default:'-'|escapejs }}",

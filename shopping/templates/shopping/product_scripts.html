@@ -14,7 +14,7 @@
     "@type": "Offer",
     "url": "{{ request.build_absolute_uri }}",
     "priceCurrency": "{% if product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% else %}INR{% endif %}",
-    "price": "{{ product.price_display }}",
+    "price": "{{ product.variants.all.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}",
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "https://schema.org/InStock",
