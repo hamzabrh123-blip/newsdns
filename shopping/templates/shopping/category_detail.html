@@ -106,22 +106,22 @@
                         <div class="card shadow-sm product-card border-0 js-product-card"
                              data-currency="{{ product.currency|default:'₹' }}">
                             
-                            <!-- Safe JSON data mapping variant images and their corresponding prices -->
-                            <script type="application/json" class="js-variant-data">
-                            [
-                                {% for v in variants %}
-                                    {
-                                        "price": "{% with coupon=v.coupons.first %}{{ coupon.selling_price|default:product.price_display|default:0 }}{% endwith %}", 
-                                        "mrp": "{% with coupon=v.coupons.first %}{{ coupon.mrp_price|default:product.mrp_price|default:0 }}{% endwith %}"
-                                    }{% if not forloop.last %},{% endif %}
-                                {% empty %}
-                                    {
-                                        "price": "{{ product.price_display|default:0 }}", 
-                                        "mrp": "{{ product.mrp_price|default:0 }}"
-                                    }
-                                {% endfor %}
-                            ]
-                            </script>
+                           <!-- Safe JSON data mapping variant images and their corresponding prices -->
+<script type="application/json" class="js-variant-data">
+[
+    {% for v in variants %}
+        {
+            "price": "{% with coupon=v.coupons.first %}{{ coupon.selling_price|default:product.mrp_price|default:0 }}{% endwith %}", 
+            "mrp": "{{ product.mrp_price|default:0 }}"
+        }{% if not forloop.last %},{% endif %}
+    {% empty %}
+        {
+            "price": "{{ product.mrp_price|default:0 }}", 
+            "mrp": "{{ product.mrp_price|default:0 }}"
+        }
+    {% endfor %}
+]
+</script>
 
                             <div class="auto-slider-container">
                                 {% for variant in variants %}
