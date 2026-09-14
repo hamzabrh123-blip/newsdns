@@ -134,13 +134,14 @@
 
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
-            <div class="price-section">
-                <span class="price-tag">{{ product.currency }}{{ product.price_display }}</span>
-                {% if product.mrp_price %}<span class="mrp-text">{{ product.currency }}{{ product.mrp_price }}</span>{% endif %}
+            <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ product.variants.all.0.coupons.first.selling_price|default:product.price_display }}</span>
+                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{{ product.currency }}{{ product.variants.all.0.coupons.first.mrp_price|default:product.mrp_price }}</span>
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
-                    <thead><tr><th>Store</th><th>Highlights</th><th>Final Price</th></tr></thead>
+                    <!-- Final Price column removed from table header -->
+                    <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Coupon Code</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
 
@@ -193,7 +194,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
                     <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.price_display }} 
-                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888;"> MRP Price:<span style="font-size:10px;" class="mrp-text">{{ item.currency }}{{ item.mrp_price }}</span></span>{% endif %}
+                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency }}{{ item.mrp_price }}</span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
                 </div>
@@ -221,8 +222,10 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
             {% for coupon in variant.coupons.all %}
                 { 
                     "store_name": "{{ coupon.store_name|escapejs }}", 
-                    "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}", 
+                    "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}",
+                    "mrp_price": "{{ coupon.mrp_price|default:product.mrp_price|escapejs }}", 
                     "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
+                    "colour": "{{ variant.color_name|default:coupon.coupon_code|default:'-'|escapejs }}",
                     "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}",
                     "currency": "{{ product.currency|escapejs }}"
                 }{% if not forloop.last %},{% endif %}
@@ -273,18 +276,15 @@ function syncVariant(el) {
         const rawUrl = el.getAttribute('data-raw-url');
         const videoUrl = el.getAttribute('data-video-url');
 
-        // Clean and strict check for video URL per variant
         const hasValidVideo = videoUrl && 
-                              videoUrl.trim() !== "" && 
-                              videoUrl !== "None" && 
-                              videoUrl !== "null" && 
-                              videoUrl !== "NoneType";
+                             videoUrl.trim() !== "" && 
+                             videoUrl !== "None" && 
+                             videoUrl !== "null" && 
+                             videoUrl !== "NoneType";
 
-        // Update image source
         const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
         if (mainImg) mainImg.src = imgUrl;
 
-        // Dynamically toggle media tab and video source per variant
         if (hasValidVideo) {
             if (mainVideo) mainVideo.src = videoUrl;
             if (mediaTab) mediaTab.style.setProperty('display', 'flex', 'important');
@@ -293,7 +293,6 @@ function syncVariant(el) {
             if (mediaTab) mediaTab.style.setProperty('display', 'none', 'important');
         }
 
-        // Always force reset to Image view when switching variants
         if (typeof switchMedia === 'function') {
             switchMedia('image');
         }
@@ -305,15 +304,29 @@ function syncVariant(el) {
 
         const container = document.getElementById('storeDealsContainer');
         const shopBtn = document.getElementById('masterShopNowBtn');
+        const topSellingPrice = document.getElementById('displaySellingPrice');
+        const topMrpPrice = document.getElementById('displayMrpPrice');
 
         if (container && deals && deals.length > 0) {
+            // Corrected table row mapping: Size/Weight first, Colour/Coupon code second (Final price column omitted)
             container.innerHTML = deals.map(d =>
                 `<tr>
-                    <td>${d.store_name}</td>
-                    <td>${d.coupon_code}</td>
-                    <td><strong>${d.currency}${d.selling_price}</strong></td>
+                    <td><strong>${d.store_name}</strong></td>
+                    <td>${d.coupon_code || '-'}</td>
+                    <td>${d.colour || '-'}</td>
                 </tr>`
             ).join('');
+
+            // Live update top price (Selling price in bold red, MRP in strike-through)
+            if (topSellingPrice) topSellingPrice.innerText = deals[0].currency + deals[0].selling_price;
+            if (topMrpPrice) {
+                if (deals[0].mrp_price && deals[0].mrp_price !== "None" && deals[0].mrp_price !== "") {
+                    topMrpPrice.innerText = deals[0].currency + deals[0].mrp_price;
+                    topMrpPrice.style.display = 'inline';
+                } else {
+                    topMrpPrice.style.display = 'none';
+                }
+            }
 
             if (shopBtn) {
                 shopBtn.href = deals[0].url || "#";
@@ -365,7 +378,6 @@ function syncVariant(el) {
     }
 }
 
-// Automatically sync the first variant when the page loads
 document.addEventListener("DOMContentLoaded", function() {
     const firstThumb = document.querySelector(".thumb-img");
     if (firstThumb) {
@@ -373,7 +385,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ================= FOOLPROOF DIRECT ZOOM & MOVEMENT SCRIPT =================
 function initZoom(imgID, resultID) {
     const img = document.getElementById(imgID);
     const result = document.getElementById(resultID);
@@ -415,7 +426,7 @@ function initZoom(imgID, resultID) {
         let yPercent = y / rect.height;
 
         let bgWidth = parseInt(result.style.backgroundSize.split(' ')[0]) || (img.naturalWidth * 2.5);
-        let bgHeight = parseInt(result.style.backgroundSize.split(' ')[1]) || (img.naturalHeight * 2.5);
+        let bgHeight = parseInt(result.style.backgroundSize.split(' ')[1]) || (img.naturalWidth * 2.5);
 
         let bgX = xPercent * (bgWidth - result.offsetWidth);
         let bgY = yPercent * (bgHeight - result.offsetHeight);

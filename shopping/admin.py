@@ -49,6 +49,7 @@ class CategoryAdmin(ImportExportModelAdmin):
 class VariantStoreCouponInline(nested_admin.NestedTabularInline):
     model = VariantStoreCoupon
     extra = 1
+    fields = ("store_name", "selling_price", "mrp_price", "coupon_code", "colour")
 
 
 class ProductVariantInline(nested_admin.NestedStackedInline):
@@ -70,8 +71,21 @@ class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
     )
     list_filter = ("category", "currency")
     search_fields = ("title", "slug", "meta_keywords")
-    # Slug ko exclude kar diya hai taaki form me na dikhe aur khud generate ho
-    exclude = ("slug",)
+    
+    # Yahan mrp_price ko wapas allow kiya hai taaki main product par MRP daali ja sake
+    exclude = ("slug", "price_display")
+    fields = (
+        "title",
+        "category",
+        "mrp_price",
+        "currency",
+        "long_description",
+        "meta_description",
+        "meta_keywords",
+        "is_available",
+        "is_featured",
+    )
+    
     inlines = [ProductVariantInline]
     actions = ["trigger_bing_submission"]
 

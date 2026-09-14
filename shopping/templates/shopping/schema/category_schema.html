@@ -2,15 +2,9 @@
 {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-
   "name": "{{ category.name|escapejs }}",
-
   "description": "{{ category.meta_description|default:category.description|striptags|truncatechars:300|escapejs }}",
-
-  "keywords": "{{ category.meta_keywords|escapejs }}",
-
-  "url": "https://www.uttarworld.com{{request.path}}",
-
+  "url": "https://www.uttarworld.com{{ request.path }}",
   "mainEntity": {
     "@type": "ItemList",
     "itemListElement": [
@@ -19,10 +13,25 @@
         "@type": "ListItem",
         "position": {{ forloop.counter }},
         "item": {
-          "@type": "WebPage",
+          "@type": "Product",
           "name": "{{ product.title|escapejs }}",
           "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
-          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url|default:'/static/images/default.png' }}"
+          {% with first_variant=product.variants.first %}
+          {% if first_variant and first_variant.image_url %}
+          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}",
+          {% endif %}
+          {% with first_coupon=first_variant.coupons.first %}
+          {% if first_coupon and first_coupon.selling_price %}
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "{{ product.currency|default:'INR' }}",
+            "price": "{{ first_coupon.selling_price }}",
+            "availability": "https://schema.org/InStock",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+          }
+          {% endif %}
+          {% endwith %}
+          {% endwith %}
         }
       }{% if not forloop.last %},{% endif %}
       {% endfor %}

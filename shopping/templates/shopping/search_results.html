@@ -99,9 +99,8 @@
                     <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
                         <div class="card shadow-sm product-card border-0 js-product-card" 
                              data-currency="{{ product.currency|default:'₹' }}"
-                             data-mrp="{{ product.mrp_price|default:product.price_display|default:'0' }}" 
-                             data-selling="{{ first_variant.selling_price|default:product.price_display|default:'0' }}" 
-                             data-variants-prices="{% for v in variants %}{{ v.selling_price }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                             data-variants-prices="{% for v in variants %}{% for c in v.coupons.all %}{{ c.selling_price }}{% if not forloop.last or not forloop.parentloop.last %},{% endif %}{% endfor %}{% endfor %}"
+                             data-variants-mrp="{% for v in variants %}{% for c in v.coupons.all %}{{ c.mrp_price }}{% if not forloop.last or not forloop.parentloop.last %},{% endif %}{% endfor %}{% endfor %}">
                             
                             <!-- Image Slider -->
                             <div class="auto-slider-container">
@@ -142,41 +141,44 @@
         const productCards = document.querySelectorAll('.js-product-card');
         productCards.forEach(card => {
             const currency = card.getAttribute('data-currency') || '₹';
-            const mrp = parseFloat(card.getAttribute('data-mrp')) || 0;
-            const selling = parseFloat(card.getAttribute('data-selling')) || 0;
             const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
+            const variantsMrpStr = card.getAttribute('data-variants-mrp') || '';
+            
             const finalPriceEl = card.querySelector('.js-final-price');
             const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
             const mrpPriceEl = card.querySelector('.js-mrp-price');
             const discountBadgeEl = card.querySelector('.js-discount-badge');
 
-            let displayPrice = selling;
             if (finalPriceEl) {
                 if (variantsPricesStr) {
                     const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
                     if (prices.length > 0) {
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
-                        displayPrice = minPrice;
                         finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + ' - ' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
+                        
+                        // Handle MRP & Discount calculation based on minimum price coupon if available
+                        if (variantsMrpStr && mrpPriceEl && mrpWrapperEl) {
+                            const mrps = variantsMrpStr.split(',').map(m => parseFloat(m)).filter(m => !isNaN(m) && m > 0);
+                            if (mrps.length > 0) {
+                                const maxMrp = Math.max(...mrps); // Or take corresponding MRP
+                                if (maxMrp > minPrice) {
+                                    mrpPriceEl.innerText = currency + maxMrp.toFixed(0);
+                                    mrpWrapperEl.style.display = 'inline';
+                                    
+                                    const discountPercent = Math.round(((maxMrp - minPrice) / maxMrp) * 100);
+                                    if (discountPercent > 0 && discountBadgeEl) {
+                                        discountBadgeEl.innerText = discountPercent + '% off';
+                                        discountBadgeEl.style.display = 'inline-block';
+                                    }
+                                }
+                            }
+                        }
                     } else { 
-                        finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; 
+                        finalPriceEl.innerText = 'Check Price'; 
                     }
                 } else { 
-                    finalPriceEl.innerText = selling > 0 ? currency + selling.toFixed(0) : 'Check Price'; 
-                }
-            }
-
-            if (mrp > 0 && mrpPriceEl && mrpWrapperEl) {
-                mrpPriceEl.innerText = currency + mrp.toFixed(0);
-                mrpWrapperEl.style.display = 'inline';
-
-                if (mrp > displayPrice && displayPrice > 0) {
-                    const discountPercent = Math.round(((mrp - displayPrice) / mrp) * 100);
-                    if (discountPercent > 0 && discountBadgeEl) {
-                        discountBadgeEl.innerText = discountPercent + '% off';
-                        discountBadgeEl.style.display = 'inline-block';
-                    }
+                    finalPriceEl.innerText = 'Check Price'; 
                 }
             }
         });
