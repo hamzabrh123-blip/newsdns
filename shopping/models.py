@@ -365,12 +365,6 @@ class Product(models.Model):
         help_text="Default MRP for all variants if left blank in stores"
     )
 
-    price_display = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
-
     CURRENCY_CHOICES = [
         ("₹", "INR (₹)"),
         ("$", "USD ($)"),
@@ -532,13 +526,6 @@ class VariantStoreCoupon(models.Model):
         null=True
     )
 
-    mrp_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        blank=True,
-        null=True
-    )
-
     coupon_code = models.CharField(
         max_length=50,
         blank=True,
@@ -555,17 +542,15 @@ class VariantStoreCoupon(models.Model):
 
     @property
     def get_mrp(self):
-        """Returns coupon's own MRP if provided, otherwise falls back to Product's MRP."""
-        if self.mrp_price and self.mrp_price > 0:
-            return self.mrp_price
+        """Returns Product's main MRP automatically."""
         return self.variant.product.mrp_price
 
     @property
     def get_selling_price(self):
-        """Returns coupon's own selling price if provided, otherwise falls back to MRP."""
+        """Returns coupon's selling price if provided, otherwise falls back to Product's MRP."""
         if self.selling_price and self.selling_price > 0:
             return self.selling_price
-        return self.get_mrp
+        return self.variant.product.mrp_price
 
     def save(self, *args, **kwargs):
         if self.store_name and not self.coupon_code:
@@ -591,7 +576,6 @@ class VariantStoreCoupon(models.Model):
             f"{self.store_name} - "
             f"{self.coupon_code or 'N/A'}"
         )
-
 
 # ==========================================
 # 8. HOME SLIDER
