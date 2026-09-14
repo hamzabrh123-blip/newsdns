@@ -140,7 +140,6 @@
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
-                    <!-- Final Price column removed from table header -->
                     <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Coupon Code</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
@@ -225,7 +224,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                     "selling_price": "{{ coupon.selling_price|default:product.price_display|escapejs }}",
                     "mrp_price": "{{ coupon.mrp_price|default:product.mrp_price|escapejs }}", 
                     "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
-                    "colour": "{{ variant.color_name|default:coupon.coupon_code|default:'-'|escapejs }}",
+                    "colour": "{{ coupon.colour|default:'-'|escapejs }}",
                     "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}",
                     "currency": "{{ product.currency|escapejs }}"
                 }{% if not forloop.last %},{% endif %}
@@ -308,7 +307,6 @@ function syncVariant(el) {
         const topMrpPrice = document.getElementById('displayMrpPrice');
 
         if (container && deals && deals.length > 0) {
-            // Corrected table row mapping: Size/Weight first, Colour/Coupon code second (Final price column omitted)
             container.innerHTML = deals.map(d =>
                 `<tr>
                     <td><strong>${d.store_name}</strong></td>
@@ -317,7 +315,6 @@ function syncVariant(el) {
                 </tr>`
             ).join('');
 
-            // Live update top price (Selling price in bold red, MRP in strike-through)
             if (topSellingPrice) topSellingPrice.innerText = deals[0].currency + deals[0].selling_price;
             if (topMrpPrice) {
                 if (deals[0].mrp_price && deals[0].mrp_price !== "None" && deals[0].mrp_price !== "") {
