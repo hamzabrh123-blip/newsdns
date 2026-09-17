@@ -10,7 +10,7 @@
         height: 100%;
     }
     .product-card {
-        border-radius: 8px;
+        border-radius: 6px;
         overflow: hidden;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         background: #fff;
@@ -18,8 +18,8 @@
         border: 1px solid #f0f0f0;
     }
     .product-card-link:hover .product-card {
-        transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 .4rem .8rem rgba(0,0,0,.08) !important;
     }
     .mobile-product-title {
         font-size: 13px;
@@ -64,7 +64,7 @@
     .product-img-container {
         position: relative;
         width: 100%;
-        height: 360px;
+        height: 340px;
         background: #f8f9fa;
         overflow: hidden;
     }
@@ -84,9 +84,10 @@
     }
 </style>
 
-<div class="container py-3">
-    <div class="mb-3 mt-2">
-        <h1 class="fw-bold mb-2 text-dark fs-4">
+<!-- Container hata diya, ab poori screen par edge-to-edge chalega -->
+<div class="container-fluid px-1 px-md-2 py-2">
+    <div class="mb-2 px-1">
+        <h1 class="fw-bold mb-1 text-dark fs-5">
             {% if category.name %}{{ category.name }}
             {% elif category_title %}{{ category_title }}
             {% elif query %}{{ query }}
@@ -94,12 +95,12 @@
         </h1>
     </div>
 
-    <div class="row gx-3 gy-3">
+    <div class="row gx-1 gy-2">
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
-            <div class="col-6 col-md-4 col-lg-3">
+            <div class="col-6 col-md-4 col-lg-2">
                 <a href="{% if product.slug %}{% url 'product_detail' product.slug %}?v={{ variant.id }}{% else %}#{% endif %}" class="product-card-link">
-                    <div class="card shadow-sm product-card border-0">
+                    <div class="card shadow-none product-card border">
                         
                         <!-- Single Variant Image Container with Lazy Loading -->
                         <div class="product-img-container">
@@ -132,7 +133,7 @@
                                         <span class="price-tag">₹{{ product.mrp_price|default:"0" }}</span>
                                     {% endif %}
                                     
-                                    <!-- Discount Badge Check (Updated to support view's calculated_discount) -->
+                                    <!-- Discount Badge Check -->
                                     {% if item.calculated_discount %}
                                         <span class="discount-badge">{{ item.calculated_discount }}% off</span>
                                     {% elif variant.discount_percentage %}
