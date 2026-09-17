@@ -60,7 +60,7 @@
         padding: 1px 5px;
         border-radius: 4px;
     }
-    /* Clean single image container replacing the slider */
+    /* Clean single image container */
     .product-img-container {
         position: relative;
         width: 100%;
@@ -95,7 +95,6 @@
     </div>
 
     <div class="row gx-3 gy-3">
-        <!-- Yahan products list ab view se aane wali interleaved variant items hai -->
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
             <div class="col-6 col-md-4 col-lg-3">
@@ -132,6 +131,15 @@
                                     {% else %}
                                         <span class="price-tag">₹{{ product.mrp_price|default:"0" }}</span>
                                     {% endif %}
+                                    
+                                    <!-- Discount Badge Check (Updated to support view's calculated_discount) -->
+                                    {% if item.calculated_discount %}
+                                        <span class="discount-badge">{{ item.calculated_discount }}% off</span>
+                                    {% elif variant.discount_percentage %}
+                                        <span class="discount-badge">{{ variant.discount_percentage }}% off</span>
+                                    {% elif product.discount_percentage %}
+                                        <span class="discount-badge">{{ product.discount_percentage }}% off</span>
+                                    {% endif %}
                                 {% endwith %}
                             </div>
                         </div>
@@ -150,7 +158,6 @@
         <nav aria-label="Page navigation" class="my-4">
             <ul class="pagination justify-content-center">
                 
-                <!-- Previous Page Link -->
                 {% if products.has_previous %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ products.previous_page_number }}" aria-label="Previous">
@@ -163,7 +170,6 @@
                     </li>
                 {% endif %}
 
-                <!-- Numbered Page Links -->
                 {% for i in products.paginator.page_range %}
                     {% if products.number == i %}
                         <li class="page-item active" aria-current="page">
@@ -176,7 +182,6 @@
                     {% endif %}
                 {% endfor %}
 
-                <!-- Next Page Link -->
                 {% if products.has_next %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ products.next_page_number }}" aria-label="Next">

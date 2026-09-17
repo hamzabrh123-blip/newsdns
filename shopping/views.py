@@ -133,31 +133,40 @@ def category_detail(request, slug):
     # --- ROUND-ROBIN / INTERLEAVED VARIANT GRID LOGIC ---
     display_grid = []
     
-    # Sabhi products ke variants ko list mein convert karke store karenge
     product_variants_pairs = []
     for prod in products_list:
         variants = list(prod.variants.all())
         if variants:
             product_variants_pairs.append((prod, variants))
         else:
-            # Agar kisi product ka variant nahi hai, toh ek dummy/none variant daal do
             product_variants_pairs.append((prod, [None]))
 
-    # Round-robin mixing: Pehle sabhi ka 1st variant, phir 2nd, etc.
     max_variants = max([len(v) for p, v in product_variants_pairs], default=0)
     
     for i in range(max_variants):
         for prod, variants in product_variants_pairs:
             if i < len(variants):
+                variant = variants[i]
+                
+                # --- DISCOUNT PERCENTAGE CALCULATION ---
+                disc_pct = None
+                if variant:
+                    coupon = variant.coupons.first()
+                    selling_price = coupon.selling_price if (coupon and coupon.selling_price) else None
+                    mrp = prod.mrp_price
+                    
+                    if mrp and selling_price and mrp > selling_price:
+                        disc_pct = round(((mrp - selling_price) / mrp) * 100)
+
                 display_grid.append({
                     'product': prod,
-                    'variant': variants[i]
+                    'variant': variant,
+                    'calculated_discount': disc_pct  # Yeh direct template mein use hoga
                 })
 
-    # Pagination handle karne ke liye custom interleaved list par paginator chalega
     paginator = Paginator(
         display_grid,
-        100 # Ek page par kitne cards dikhane hain
+        100 
     )
 
     page_number = request.GET.get('page')
@@ -165,7 +174,7 @@ def category_detail(request, slug):
 
     context.update({
         'category': category,
-        'products': products_page,  # Yeh ab paginated interleaved items bhejega
+        'products': products_page,
     })
 
     return render(
