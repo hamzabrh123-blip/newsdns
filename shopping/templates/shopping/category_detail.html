@@ -10,7 +10,7 @@
         height: 100%;
     }
     .product-card {
-        border-radius: 6px;
+        border-radius: 4px;
         overflow: hidden;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         background: #fff;
@@ -64,7 +64,7 @@
     .product-img-container {
         position: relative;
         width: 100%;
-        height: 340px;
+        height: 380px;
         background: #f8f9fa;
         overflow: hidden;
     }
@@ -84,8 +84,8 @@
     }
 </style>
 
-<!-- Container hata diya, ab poori screen par edge-to-edge chalega -->
-<div class="container-fluid px-1 px-md-2 py-2">
+<!-- Container hata diya hai, bilkul edge-to-edge layout -->
+<div class="px-1 py-2">
     <div class="mb-2 px-1">
         <h1 class="fw-bold mb-1 text-dark fs-5">
             {% if category.name %}{{ category.name }}
@@ -95,10 +95,11 @@
         </h1>
     </div>
 
-    <div class="row gx-1 gy-2">
+    <!-- Mobile par col-12 (1 product per row), Tablet par col-md-6 (2), PC par col-lg-3 (4 columns) -->
+    <div class="row g-1">
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-12 col-md-6 col-lg-3">
                 <a href="{% if product.slug %}{% url 'product_detail' product.slug %}?v={{ variant.id }}{% else %}#{% endif %}" class="product-card-link">
                     <div class="card shadow-none product-card border">
                         
