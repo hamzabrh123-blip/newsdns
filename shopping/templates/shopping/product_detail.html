@@ -73,7 +73,7 @@
     <div class="row product-container">
         <!-- Desktop Thumbnails -->
         <div class="col-md-1 d-none d-md-block">
-            {% for variant in product.variants.all %}
+            {% for variant in variants %}
                 <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
                      class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                      data-raw-url="{{ variant.image_url }}" 
@@ -98,7 +98,7 @@
             <!-- Image Viewport Container (Default Always Shown First) -->
             <div class="img-zoom-container" id="viewport" style="display: block;">
                 <div class="main-img-viewport">
-                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}" alt="{{ product.title }}">
+                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variants.0.image_url }}" alt="{{ product.title }}">
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
                 <div id="zoomResult" class="img-zoom-result"></div>
@@ -120,8 +120,8 @@
 
             <!-- Mobile Thumbnails -->
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
-                {% for variant in product.variants.all %}
-                    <img src="{{ variant.image_url }}" 
+                {% for variant in variants %}
+                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
                          class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                          data-raw-url="{{ variant.image_url }}" 
                          data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
@@ -135,7 +135,7 @@
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ product.variants.all.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}</span>
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ variants.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}</span>
                 <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{{ product.currency }}{{ product.mrp_price|default:0 }}</span>
             </div>
             <div class="store-deal-card mt-3">
@@ -146,7 +146,7 @@
 
                 <div class="product-code-display text-center mt-3">
                     <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
-                        Product Code: <span id="displayVariantCode">{{ product.variants.all.0.variant_code }}</span>
+                        Product Code: <span id="displayVariantCode">{{ variants.0.variant_code }}</span>
                     </span>
                 </div><hr>
                 
@@ -216,7 +216,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 
 <script id="nestedDealsData" type="application/json">
 {
-    {% for variant in product.variants.all %}
+    {% for variant in variants %}
         "{{ variant.variant_code|escapejs }}": [
             {% for coupon in variant.coupons.all %}
                 { 

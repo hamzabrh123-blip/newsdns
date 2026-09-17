@@ -109,11 +109,10 @@ def shop_home(request):
 
 
 # ==========================================
-# CATEGORY DETAIL
+# CATEGORY DETAIL (Fixed Interleaved Variants & Paginator)
 # ==========================================
 
 def category_detail(request, slug):
-
     context = get_base_context()
 
     category = get_object_or_404(
@@ -121,32 +120,52 @@ def category_detail(request, slug):
         slug=slug
     )
 
+    # Products fetch karo aur variants ke sath coupons prefetch karo
     products_list = Product.objects.filter(
         category=category,
         is_available=True
     ).prefetch_related(
-        'variants'
+        'variants__coupons'
     ).order_by(
         '-id'
     )
 
+    # --- ROUND-ROBIN / INTERLEAVED VARIANT GRID LOGIC ---
+    display_grid = []
+    
+    # Sabhi products ke variants ko list mein convert karke store karenge
+    product_variants_pairs = []
+    for prod in products_list:
+        variants = list(prod.variants.all())
+        if variants:
+            product_variants_pairs.append((prod, variants))
+        else:
+            # Agar kisi product ka variant nahi hai, toh ek dummy/none variant daal do
+            product_variants_pairs.append((prod, [None]))
+
+    # Round-robin mixing: Pehle sabhi ka 1st variant, phir 2nd, etc.
+    max_variants = max([len(v) for p, v in product_variants_pairs], default=0)
+    
+    for i in range(max_variants):
+        for prod, variants in product_variants_pairs:
+            if i < len(variants):
+                display_grid.append({
+                    'product': prod,
+                    'variant': variants[i]
+                })
+
+    # Pagination handle karne ke liye custom interleaved list par paginator chalega
     paginator = Paginator(
-        products_list,
-        100
+        display_grid,
+        100 # Ek page par kitne cards dikhane hain
     )
 
     page_number = request.GET.get('page')
-
-    products = paginator.get_page(
-        page_number
-    )
+    products_page = paginator.get_page(page_number)
 
     context.update({
-
         'category': category,
-
-        'products': products,
-
+        'products': products_page,  # Yeh ab paginated interleaved items bhejega
     })
 
     return render(
@@ -154,23 +173,35 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
-
 # ==========================================
-# PRODUCT DETAIL
+# PRODUCT DETAIL (With Prioritized Selected Variant)
 # ==========================================
 
 def product_detail(request, slug):
-
     context = get_base_context()
 
     product = get_object_or_404(
         Product.objects.prefetch_related(
-            'variants'
+            'variants__coupons'
         ),
         slug=slug
     )
 
+    # Variants ki list bana lo taaki hum usko reorder kar sakein
+    variants = list(product.variants.all())
+
+    # Check karo ki category page se koi variant ID (?v=XYZ) aayi hai ya nahi
+    selected_variant_id = request.GET.get('v')
+
+    if variants and selected_variant_id:
+        matched_variant = next((v for v in variants if str(v.id) == str(selected_variant_id)), None)
+        if matched_variant:
+            # Uss specific variant ko list se nikal kar sabse aage (top par) daal do
+            variants.remove(matched_variant)
+            variants.insert(0, matched_variant)
+
     context['product'] = product
+    context['variants'] = variants  # Yeh ab ordered list jayegi template mein
 
     context['related_products'] = Product.objects.filter(
         category=product.category
@@ -183,7 +214,6 @@ def product_detail(request, slug):
         'shopping/product_detail.html',
         context
     )
-
 
 # ==========================================
 # LOAD MORE PRODUCTS
