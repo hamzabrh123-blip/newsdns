@@ -3,6 +3,19 @@
 {% block content %}
 
 <style>
+    /* Ye class parent container ki saari side limits ko tod kar screen ko edge-to-edge kar degi */
+    .full-bleed-wrapper {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        padding-left: 2px;
+        padding-right: 2px;
+        overflow-x: hidden;
+    }
+
     .product-card-link {
         text-decoration: none !important;
         color: inherit !important;
@@ -84,9 +97,9 @@
     }
 </style>
 
-<!-- Container hata diya hai, bilkul edge-to-edge layout -->
-<div class="px-1 py-2">
-    <div class="mb-2 px-1">
+<!-- Full bleed wrapper taaki side ke saare unwanted spaces khatam ho jayein -->
+<div class="full-bleed-wrapper py-2">
+    <div class="mb-2 px-2">
         <h1 class="fw-bold mb-1 text-dark fs-5">
             {% if category.name %}{{ category.name }}
             {% elif category_title %}{{ category_title }}
@@ -96,10 +109,10 @@
     </div>
 
     <!-- Mobile par col-12 (1 product per row), Tablet par col-md-6 (2), PC par col-lg-3 (4 columns) -->
-    <div class="row g-1">
+    <div class="row g-1 m-0">
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
-            <div class="col-12 col-md-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-3 px-1 mb-2">
                 <a href="{% if product.slug %}{% url 'product_detail' product.slug %}?v={{ variant.id }}{% else %}#{% endif %}" class="product-card-link">
                     <div class="card shadow-none product-card border">
                         
