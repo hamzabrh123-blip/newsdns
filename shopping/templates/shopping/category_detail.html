@@ -124,16 +124,20 @@
 </script>
 
                             <div class="auto-slider-container">
-                                {% for variant in variants %}
-                                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}"
-                                         class="product-auto-img {% if forloop.first %}active{% endif %}"
-                                         alt="{{ product.title }}">
-                                {% empty %}
-                                    <img src="https://via.placeholder.com/300x400?text=No+Image"
-                                         class="product-auto-img active"
-                                         alt="No Image">
-                                {% endfor %}
-                            </div>
+    {% for variant in variants %}
+        <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}"
+             class="product-auto-img {% if forloop.first %}active{% endif %}"
+             alt="{{ product.title }}"
+             loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+             decoding="async">
+    {% empty %}
+        <img src="https://via.placeholder.com/300x400?text=No+Image"
+             class="product-auto-img active"
+             alt="No Image"
+             loading="lazy"
+             decoding="async">
+    {% endfor %}
+</div>
 
                             <div class="card-body p-2">
                                 <h6 class="mobile-product-title">{{ product.title }}</h6>
