@@ -74,7 +74,7 @@
         <!-- Desktop Thumbnails -->
         <div class="col-md-1 d-none d-md-block">
             {% for variant in variants %}
-                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                <img src="{{ variant.image_url }}" 
                      class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                      data-raw-url="{{ variant.image_url }}" 
                      data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
@@ -98,7 +98,7 @@
             <!-- Image Viewport Container (Default Always Shown First) -->
             <div class="img-zoom-container" id="viewport" style="display: block;">
                 <div class="main-img-viewport">
-                    <img id="mainProductImg" src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variants.0.image_url }}" alt="{{ product.title }}">
+                    <img id="mainProductImg" src="{{ variants.0.image_url }}" alt="{{ product.title }}">
                     <div id="lens" class="img-zoom-lens"></div>
                 </div>
                 <div id="zoomResult" class="img-zoom-result"></div>
@@ -121,7 +121,7 @@
             <!-- Mobile Thumbnails -->
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
                 {% for variant in variants %}
-                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" 
+                    <img src="{{ variant.image_url }}" 
                          class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
                          data-raw-url="{{ variant.image_url }}" 
                          data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
@@ -189,7 +189,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
         {% for item in related_products %}
         <div class="col-md-3 col-6 mb-4">
             <div class="card h-100 border-0 shadow-sm">
-                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
+                <img src="{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
                     <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.variants.all.0.coupons.first.selling_price|default:item.mrp_price|default:0 }} 
@@ -281,8 +281,8 @@ function syncVariant(el) {
                              videoUrl !== "null" && 
                              videoUrl !== "NoneType";
 
-        const imgUrl = "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/" + rawUrl;
-        if (mainImg) mainImg.src = imgUrl;
+        // Direct image URL without Cloudinary
+        if (mainImg) mainImg.src = rawUrl;
 
         if (hasValidVideo) {
             if (mainVideo) mainVideo.src = videoUrl;

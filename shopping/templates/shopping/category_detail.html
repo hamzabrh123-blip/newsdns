@@ -116,23 +116,21 @@
                 <a href="{% if product.slug %}{% url 'product_detail' product.slug %}?v={{ variant.id }}{% else %}#{% endif %}" class="product-card-link">
                     <div class="card shadow-none product-card border">
                         
-                        <!-- Single Variant Image Container with Lazy Loading -->
-                        <div class="product-img-container">
-                            {% if variant.image_url %}
-                                <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}"
-                                     class="product-single-img"
-                                     alt="{{ product.title }}"
-                                     loading="lazy"
-                                     decoding="async">
-                            {% else %}
-                                <img src="https://via.placeholder.com/300x400?text=No+Image"
-                                     class="product-single-img"
-                                     alt="No Image"
-                                     loading="lazy"
-                                     decoding="async">
-                            {% endif %}
-                        </div>
-
+                       <div class="product-img-container">
+    {% if variant.image_url %}
+        <img src="{{ variant.image_url }}"
+             class="product-single-img"
+             alt="{{ product.title }}"
+             loading="lazy"
+             decoding="async">
+    {% else %}
+        <img src="https://via.placeholder.com/300x400?text=No+Image"
+             class="product-single-img"
+             alt="No Image"
+             loading="lazy"
+             decoding="async">
+    {% endif %}
+</div>
                         <div class="card-body p-2">
                             <h6 class="mobile-product-title">{{ product.title }}</h6>
                             
