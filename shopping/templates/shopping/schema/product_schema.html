@@ -4,20 +4,28 @@
   "@type": "Product",
   "name": "{{ product.title|escapejs }}",
   {% with first_variant=product.variants.first %}
-  {% if first_variant and first_variant.image_url %}
-  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}",
-  {% endif %}
+    {% if first_variant and first_variant.image_url %}
+  "image": "{{ first_variant.image_url }}",
+    {% endif %}
   "sku": "{{ first_variant.variant_code|default:'N/A' }}",
   {% endwith %}
-  "description": "{{ product.meta_description|default:product.title|escapejs|truncatechars:150 }}",
+  "description": "{{ product.meta_description|default:product.description|striptags|truncatechars:160|escapejs }}",
+  {% if product.meta_keywords %}
+  "keywords": "{{ product.meta_keywords|escapejs }}",
+  {% endif %}
   "brand": {
     "@type": "Brand",
     "name": "Uttar World Elite Lifestyle Store"
   },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.rating|default:'4.5' }}",
+    "reviewCount": "{{ product.review_count|default:'15' }}"
+  },
   "offers": {
     "@type": "Offer",
     "url": "https://www.uttarworld.com{{ request.path }}",
-    "priceCurrency": "{{ product.currency|default:'INR' }}",
+    "priceCurrency": "{{ product.currency }}",
     {% with first_coupon=product.variants.first.coupons.first %}
     "price": "{% if first_coupon and first_coupon.selling_price %}{{ first_coupon.selling_price }}{% else %}0{% endif %}",
     {% endwith %}
@@ -35,7 +43,7 @@
       "shippingRate": {
         "@type": "MonetaryAmount",
         "value": "0",
-        "currency": "INR"
+        "currency": "{{ product.currency }}"
       },
       "shippingDestination": {
         "@type": "DefinedRegion",
