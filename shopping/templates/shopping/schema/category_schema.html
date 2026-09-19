@@ -9,6 +9,9 @@
     "@type": "ItemList",
     "itemListElement": [
       {% for product in products|slice:":20" %}
+        {% with first_variant=product.variants.first %}
+          {% with first_coupon=first_variant.coupons.first %}
+            {% if product.title and first_coupon and first_coupon.selling_price %}
       {
         "@type": "ListItem",
         "position": {{ forloop.counter }},
@@ -16,28 +19,23 @@
           "@type": "Product",
           "name": "{{ product.title|escapejs }}",
           "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
-          {% with first_variant=product.variants.first %}
-            {% if first_variant %}
-              {% if first_variant.image_url %}
-              ,
-              "image": "{{ first_variant.image_url }}"
-              {% endif %}
-              {% with first_coupon=first_variant.coupons.first %}
-                {% if first_coupon and first_coupon.selling_price %}
-                ,
-                "offers": {
-                  "@type": "Offer",
-                  "priceCurrency": "{{ product.currency }}",
-                  "price": "{{ first_coupon.selling_price }}",
-                  "availability": "https://schema.org/InStock",
-                  "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
-                }
-                {% endif %}
-              {% endwith %}
-            {% endif %}
-          {% endwith %}
+          {% if first_variant.image_url %}
+          ,
+          "image": "{{ first_variant.image_url }}"
+          {% endif %}
+          ,
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "{{ product.currency }}",
+            "price": "{{ first_coupon.selling_price }}",
+            "availability": "https://schema.org/InStock",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+          }
         }
       }{% if not forloop.last %},{% endif %}
+            {% endif %}
+          {% endwith %}
+        {% endwith %}
       {% endfor %}
     ]
   }
