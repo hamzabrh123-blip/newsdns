@@ -4,6 +4,12 @@
   "@type": "CollectionPage",
   "name": "{{ category.name|escapejs }}",
   "description": "{{ category.meta_description|default:category.description|striptags|truncatechars:300|escapejs }}",
+  {% if category.image_url %}
+  "image": "{{ category.image_url }}",
+  {% endif %}
+  {% if category.keywords %}
+  "keywords": "{{ category.keywords|escapejs }}",
+  {% endif %}
   "url": "https://www.uttarworld.com{{ request.path }}",
   "mainEntity": {
     "@type": "ItemList",
