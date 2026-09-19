@@ -15,22 +15,26 @@
         "item": {
           "@type": "Product",
           "name": "{{ product.title|escapejs }}",
-          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
+          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
           {% with first_variant=product.variants.first %}
-          {% if first_variant and first_variant.image_url %}
-          "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ first_variant.image_url }}",
-          {% endif %}
-          {% with first_coupon=first_variant.coupons.first %}
-          {% if first_coupon and first_coupon.selling_price %}
-          "offers": {
-            "@type": "Offer",
-            "priceCurrency": "{{ product.currency|default:'INR' }}",
-            "price": "{{ first_coupon.selling_price }}",
-            "availability": "https://schema.org/InStock",
-            "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
-          }
-          {% endif %}
-          {% endwith %}
+            {% if first_variant %}
+              {% if first_variant.image_url %}
+              ,
+              "image": "{{ first_variant.image_url }}"
+              {% endif %}
+              {% with first_coupon=first_variant.coupons.first %}
+                {% if first_coupon and first_coupon.selling_price %}
+                ,
+                "offers": {
+                  "@type": "Offer",
+                  "priceCurrency": "{{ product.currency }}",
+                  "price": "{{ first_coupon.selling_price }}",
+                  "availability": "https://schema.org/InStock",
+                  "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+                }
+                {% endif %}
+              {% endwith %}
+            {% endif %}
           {% endwith %}
         }
       }{% if not forloop.last %},{% endif %}
