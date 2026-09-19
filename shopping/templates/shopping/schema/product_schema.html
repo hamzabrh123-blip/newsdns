@@ -9,7 +9,7 @@
     {% endif %}
   "sku": "{{ first_variant.variant_code|default:'N/A' }}",
   {% endwith %}
-  "description": "{{ product.meta_description|default:product.description|striptags|truncatechars:160|escapejs }}",
+  "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
   {% if product.meta_keywords %}
   "keywords": "{{ product.meta_keywords|escapejs }}",
   {% endif %}
