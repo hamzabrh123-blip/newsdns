@@ -166,12 +166,12 @@
                             <div class="price-section">
                                 {% with sp=item.selling_price|default:variant.selling_price|default:product.selling_price mrp=product.mrp_price %}
                                     {% if sp %}
-                                        <span class="price-tag">₹{{ sp }}</span>
+                                        <span class="price-tag">{{ product.currency }}{{ sp }}</span>
                                         {% if mrp and mrp > sp %}
-                                            <span class="old-price-num">₹{{ mrp }}</span>
+                                            <span class="old-price-num">{{ product.currency }}{{ mrp }}</span>
                                         {% endif %}
                                     {% else %}
-                                        <span class="price-tag">₹{{ mrp|default:"3999" }}</span>
+                                        <span class="price-tag">{{ product.currency }}{{ mrp|default:"3999" }}</span>
                                     {% endif %}
                                     
                                     {% if item.calculated_discount %}
