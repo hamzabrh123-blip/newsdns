@@ -148,11 +148,14 @@ def category_detail(request, slug):
             if i < len(variants):
                 variant = variants[i]
                 
-                # --- DISCOUNT PERCENTAGE CALCULATION ---
+                # --- PROPER PRICE & DISCOUNT PERCENTAGE CALCULATION ---
                 disc_pct = None
+                selling_price = None
+                mrp = prod.mrp_price
+                
                 if variant:
-                    selling_price = variant.selling_price if hasattr(variant, 'selling_price') else None
-                    mrp = prod.mrp_price
+                    # Pehle variant ka price dekho, agar nahi hai toh product ka default selling price uthao
+                    selling_price = variant.selling_price if (variant.selling_price and variant.selling_price > 0) else prod.selling_price
                     
                     if mrp and selling_price and mrp > selling_price:
                         disc_pct = round(((mrp - selling_price) / mrp) * 100)
@@ -160,7 +163,8 @@ def category_detail(request, slug):
                 display_grid.append({
                     'product': prod,
                     'variant': variant,
-                    'calculated_discount': disc_pct  # Yeh direct template mein use hoga
+                    'selling_price': selling_price,
+                    'calculated_discount': disc_pct  # Ab sabhi ke liye discount barabar calculate hoga
                 })
 
     paginator = Paginator(
@@ -181,7 +185,6 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
-
 # ==========================================
 # PRODUCT DETAIL (With Prioritized Selected Variant)
 # ==========================================

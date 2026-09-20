@@ -1,5 +1,8 @@
-<!-- Open Graph / Facebook Meta Tags -->
+{% comment %} product_meta.html {% endcomment %}
+
 <title>{{ product.title|truncatechars:60 }}</title>
+<link rel="canonical" href="https://uttarworld.com{{ request.path }}">
+
 <meta name="description" content="{{ product.meta_description|truncatechars:160 }}">
 
 <meta property="og:type" content="product">
@@ -10,7 +13,7 @@
 <meta property="og:image" content="{{ product.variants.first.image_url }}">
 {% endif %}
 
-<meta property="og:url" content="https://www.uttarworld.com{{ request.path }}">
+<meta property="og:url" content="https://uttarworld.com{{ request.path }}">
 
 <!-- Twitter Card Meta Tags -->
 <meta name="twitter:card" content="summary_large_image">

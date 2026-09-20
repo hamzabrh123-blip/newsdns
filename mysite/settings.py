@@ -14,18 +14,23 @@ DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-2026")
 
 ALLOWED_HOSTS = [
-    'uttarworld.com',          
-    'www.uttarworld.com',      
+    'uttarworld.com',         
+    'www.uttarworld.com', 
     '127.0.0.1',             
-    'localhost',
+    'localhost',     
 ]
-PREPEND_WWW = False  # Kyunki aap bina www ke site chalana chahte hain
-# 3. SSL & CSRF Settings
+
+PREPEND_WWW = False  # Bina www ke site chalane ke liye
+
+# 3. SSL & Strict Production HTTPS Settings
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 saal ke liye strict HTTPS lock
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://uttarworld.com',
@@ -96,7 +101,6 @@ DATABASES = {
 # 7. STATIC & MEDIA SETTINGS
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Agar mynews folder nahi hai toh sirf shopping/static rakhein
 STATICFILES_DIRS = [
     BASE_DIR / "shopping" / "static",
 ]

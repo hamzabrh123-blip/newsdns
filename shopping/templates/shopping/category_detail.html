@@ -3,7 +3,6 @@
 {% block content %}
 
 <style>
-    /* Ye class parent container ki saari side limits ko tod kar screen ko edge-to-edge kar degi */
     .full-bleed-wrapper {
         width: 100vw;
         position: relative;
@@ -73,42 +72,71 @@
         padding: 1px 5px;
         border-radius: 4px;
     }
-    /* Clean single image container */
     .product-img-container {
         position: relative;
         width: 100%;
-        height: 380px;
+        height: 280px;
         background: #f8f9fa;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     @media (min-width: 768px) {
         .product-img-container {
-            height: 380px;
+            height: 300px;
         }
     }
     .product-single-img {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
-        object-position: center 15%;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+    }
+    /* SEO Category Footer Section Styles */
+    .seo-footer-section {
+        margin-top: 40px;
+        padding: 20px 15px;
+        background: #fdfdfd;
+        border-top: 1px solid #eaeaea;
+        border-radius: 6px;
+    }
+    .category-banner-box {
+        width: 100%;
+        max-height: 350px;
+        background: #f8f9fa;
+        overflow: hidden;
+        border-radius: 6px;
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #eaeaea;
+    }
+    .category-banner-img {
+        max-width: 100%;
+        max-height: 350px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    .category-desc-box {
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
+        background: #fff;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #eaeaea;
+        margin-top: 15px;
     }
 </style>
 
-<!-- Full bleed wrapper taaki side ke saare unwanted spaces khatam ho jayein -->
 <div class="full-bleed-wrapper py-2">
-    <div class="mb-2 px-2">
-        <h1 class="fw-bold mb-1 text-dark fs-5">
-            {% if category.name %}{{ category.name }}
-            {% elif category_title %}{{ category_title }}
-            {% elif query %}{{ query }}
-            {% else %}Collection - Uttar World{% endif %}
-        </h1>
-    </div>
-
-    <!-- Mobile par col-12 (1 product per row), Tablet par col-md-6 (2), PC par col-lg-3 (4 columns) -->
+    
+    <!-- 1. PRODUCTS GRID SECTION (Pehle Aayega User Ke Liye) -->
     <div class="row g-1 m-0">
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
@@ -117,35 +145,35 @@
                     <div class="card shadow-none product-card border">
                         
                        <div class="product-img-container">
-    {% if variant.image_url %}
-        <img src="{{ variant.image_url }}"
-             class="product-single-img"
-             alt="{{ product.title }}"
-             loading="lazy"
-             decoding="async">
-    {% else %}
-        <img src="https://via.placeholder.com/300x400?text=No+Image"
-             class="product-single-img"
-             alt="No Image"
-             loading="lazy"
-             decoding="async">
-    {% endif %}
-</div>
+                            {% if variant.image_url %}
+                                <img src="{{ variant.image_url }}"
+                                     class="product-single-img"
+                                     alt="{{ product.title }}"
+                                     loading="lazy"
+                                     decoding="async">
+                            {% else %}
+                                <img src="https://via.placeholder.com/300x400?text=No+Image"
+                                     class="product-single-img"
+                                     alt="No Image"
+                                     loading="lazy"
+                                     decoding="async">
+                            {% endif %}
+                        </div>
+
                         <div class="card-body p-2">
                             <h6 class="mobile-product-title">{{ product.title }}</h6>
                             
                             <div class="price-section">
-                                {% with coupon=variant.coupons.first %}
-                                    {% if coupon and coupon.selling_price %}
-                                        <span class="price-tag">₹{{ coupon.selling_price }}</span>
-                                        {% if product.mrp_price and product.mrp_price > coupon.selling_price %}
-                                            <span class="old-price-num">₹{{ product.mrp_price }}</span>
+                                {% with sp=item.selling_price|default:variant.selling_price|default:product.selling_price mrp=product.mrp_price %}
+                                    {% if sp %}
+                                        <span class="price-tag">₹{{ sp }}</span>
+                                        {% if mrp and mrp > sp %}
+                                            <span class="old-price-num">₹{{ mrp }}</span>
                                         {% endif %}
                                     {% else %}
-                                        <span class="price-tag">₹{{ product.mrp_price|default:"0" }}</span>
+                                        <span class="price-tag">₹{{ mrp|default:"3999" }}</span>
                                     {% endif %}
                                     
-                                    <!-- Discount Badge Check -->
                                     {% if item.calculated_discount %}
                                         <span class="discount-badge">{{ item.calculated_discount }}% off</span>
                                     {% elif variant.discount_percentage %}
@@ -155,8 +183,8 @@
                                     {% endif %}
                                 {% endwith %}
                             </div>
-                        </div>
 
+                        </div>
                     </div>
                 </a>
             </div>
@@ -166,11 +194,10 @@
     {% endfor %}
     </div>
 
-<!-- PAGER / PAGINATION SECTION -->
+    <!-- 2. PAGER SECTION -->
     {% if products.has_other_pages %}
         <nav aria-label="Page navigation" class="my-4">
             <ul class="pagination justify-content-center">
-                
                 {% if products.has_previous %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ products.previous_page_number }}" aria-label="Previous">
@@ -206,10 +233,43 @@
                         <span class="page-link">Next &raquo;</span>
                     </li>
                 {% endif %}
-
             </ul>
         </nav>
     {% endif %}
+
+    <!-- 3. SEO FOOTER SECTION (Category Title, Description & Image - Google ke liye sabse neeche) -->
+    <div class="seo-footer-section px-3">
+        <h1 class="fw-bold mb-2 text-dark fs-4">
+            {% if category.name %}{{ category.name }}
+            {% elif category_title %}{{ category_title }}
+            {% elif query %}{{ query }}
+            {% else %}Collection - Uttar World{% endif %}
+        </h1>
+
+        {% if category.description %}
+            <div class="category-desc-box shadow-sm">
+                {{ category.description|safe }}
+            </div>
+        {% endif %}
+
+        {% if category.image_url %}
+            <div class="category-banner-box shadow-sm">
+                <img src="{{ category.image_url }}" class="category-banner-img" alt="{{ category.name }}">
+            </div>
+        {% elif category.image and category.image.name %}
+            <div class="category-banner-box shadow-sm">
+                <img src="{{ category.image.url }}" class="category-banner-img" alt="{{ category.name }}">
+            </div>
+        {% elif category.banner and category.banner.name %}
+            <div class="category-banner-box shadow-sm">
+                <img src="{{ category.banner.url }}" class="category-banner-img" alt="{{ category.name }}">
+            </div>
+        {% elif category.thumbnail and category.thumbnail.name %}
+            <div class="category-banner-box shadow-sm">
+                <img src="{{ category.thumbnail.url }}" class="category-banner-img" alt="{{ category.name }}">
+            </div>
+        {% endif %}
+    </div>
 
 </div>
 

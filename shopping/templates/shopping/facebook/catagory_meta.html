@@ -1,28 +1,32 @@
 {% comment %} catagory_meta.html {% endcomment %}
 
-{# 1. Page Title (Directly from Admin Meta Title, fallback to category name) #}
+{# 1. Page Title #}
 <title>{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}</title>
 
-{# 2. SEO Description & Keywords #}
+{# 2. Canonical Tag (Google Indexing ke liye sabse zaroori) #}
+<link rel="canonical" href="https://uttarworld.com{{ request.path }}">
+
+{# 3. SEO Description & Keywords #}
 <meta name="description" content="{{ category.meta_description }}">
 <meta name="keywords" content="{{ category.meta_keywords }}">
 
-{# 3. Open Graph Tags (Facebook/WhatsApp) #}
+{# 4. Open Graph Tags (Facebook/WhatsApp) #}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}" />
 <meta property="og:description" content="{{ category.meta_description }}" />
-<meta property="og:url" content="https://uttarworld.com{{ request.path }}">
+<meta property="og:url" content="https://uttarworld.com{{ request.path }}" />
+<meta property="og:site_name" content="Uttar World">
 
-{# 4. Image Logic #}
+{# 5. Image Logic (Dono jagah bina www ka secure link) #}
 {% if category.image_url %}
     <meta property="og:image" content="{{ category.image_url }}" />
 {% else %}
-    <meta property="og:image" content="https://www.uttarworld.com/static/images/logo.png" />
+    <meta property="og:image" content="https://uttarworld.com/static/images/logo.png" />
 {% endif %}
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 
-{# 5. Twitter Card #}
+{# 6. Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %}">
 <meta name="twitter:description" content="{{ category.meta_description }}">
