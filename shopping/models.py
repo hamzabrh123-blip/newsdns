@@ -20,147 +20,46 @@ from .utils import process_and_upload_to_imgbb, ping_google_indexing
 # ==========================================
 
 def ping_bing_indexing(url):
-    """
-    Submit a single URL to Bing Webmaster Tools.
-    """
     api_key = getattr(settings, "BING_API_KEY", "")
-
     if not api_key:
-        print("BING_API_KEY is missing.")
         return False
-
-    endpoint = (
-        f"https://bing.com/webmaster/api.svc/"
-        f"json/SubmitUrlbatch?apikey={api_key}"
-    )
-
-    headers = {
-        "Content-Type": "application/json; charset=utf-8"
-    }
-
-    payload = {
-        "siteUrl": "https://uttarworld.com",
-        "urlList": [url]
-    }
-
+    endpoint = f"https://bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey={api_key}"
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+    payload = {"siteUrl": "https://uttarworld.com", "urlList": [url]}
     try:
-        response = requests.post(
-            endpoint,
-            data=json.dumps(payload),
-            headers=headers,
-            timeout=10
-        )
-
-        if response.status_code == 200:
-            print(f"Bing URL submitted: {url}")
-            return True
-
-        print(
-            f"Bing Indexing Failed: "
-            f"{response.status_code} - {response.text}"
-        )
-        return False
-
-    except Exception as e:
-        print(f"Bing Indexing Error: {e}")
+        response = requests.post(endpoint, data=json.dumps(payload), headers=headers, timeout=10)
+        return response.status_code == 200
+    except Exception:
         return False
 
 
 def ping_bing_indexing_batch(urls):
-    """
-    Submit multiple URLs to Bing Webmaster Tools.
-    URLs are automatically divided into batches of 500.
-    """
     api_key = getattr(settings, "BING_API_KEY", "")
-
     if not api_key:
-        print("BING_API_KEY is missing.")
         return False
-
-    endpoint = (
-        f"https://bing.com/webmaster/api.svc/"
-        f"json/SubmitUrlbatch?apikey={api_key}"
-    )
-
-    headers = {
-        "Content-Type": "application/json; charset=utf-8"
-    }
-
-    urls = list(
-        dict.fromkeys(
-            url for url in urls
-            if url
-        )
-    )
-
+    endpoint = f"https://bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey={api_key}"
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+    urls = list(dict.fromkeys(url for url in urls if url))
     if not urls:
-        print("No URLs available for Bing submission.")
         return False
-
     batch_size = 500
     total_urls = len(urls)
     submitted_urls = 0
-
     for start in range(0, total_urls, batch_size):
         batch = urls[start:start + batch_size]
-
-        payload = {
-            "siteUrl": "https://uttarworld.com",
-            "urlList": batch
-        }
-
+        payload = {"siteUrl": "https://uttarworld.com", "urlList": batch}
         try:
-            response = requests.post(
-                endpoint,
-                data=json.dumps(payload),
-                headers=headers,
-                timeout=30
-            )
-
+            response = requests.post(endpoint, data=json.dumps(payload), headers=headers, timeout=30)
             if response.status_code == 200:
                 submitted_urls += len(batch)
-                print(
-                    f"Bing batch submitted successfully: "
-                    f"{len(batch)} URLs"
-                )
-            else:
-                print(
-                    f"Bing batch failed: "
-                    f"{response.status_code} - {response.text}"
-                )
-
-        except Exception as e:
-            print(
-                f"Bing batch error: {e}"
-            )
-
-    print(
-        f"Bing submission completed: "
-        f"{submitted_urls}/{total_urls} URLs submitted."
-    )
-
+        except Exception:
+            pass
     return submitted_urls == total_urls
 
 
 def submit_all_products_to_bing():
-    """
-    Submit all currently available Product URLs to Bing.
-    """
-    products = Product.objects.filter(
-        is_available=True
-    ).exclude(
-        slug__isnull=True
-    ).exclude(
-        slug=""
-    ).only(
-        "slug"
-    )
-
-    urls = [
-        f"https://uttarworld.com/shopping/product/{product.slug}/"
-        for product in products
-    ]
-
+    products = Product.objects.filter(is_available=True).exclude(slug__isnull=True).exclude(slug="").only("slug")
+    urls = [f"https://uttarworld.com/shopping/product/{product.slug}/" for product in products]
     return ping_bing_indexing_batch(urls)
 
 
@@ -169,12 +68,7 @@ def submit_all_products_to_bing():
 # ==========================================
 
 class StoreLogoUpload(models.Model):
-
-    logo_path = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True
-    )
+    logo_path = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"Logo {self.id}"
@@ -185,121 +79,60 @@ class StoreLogoUpload(models.Model):
 # ==========================================
 
 class PinterestPost(models.Model):
-
-    title = models.CharField(
-        max_length=255
-    )
-
-    image_url = models.URLField(
-        max_length=500
-    )
-
-    link = models.URLField(
-        max_length=500
-    )
-
-    is_published = models.BooleanField(
-        default=False
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
+    title = models.CharField(max_length=255)
+    image_url = models.URLField(max_length=500)
+    link = models.URLField(max_length=500)
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
 
 # ==========================================
-# 3. CATEGORY
+# 3. CATEGORY (Ab yahan bhi Google & Bing Indexing Add Kar Di Hai)
 # ==========================================
 
 class Category(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, blank=True)
+    meta_title = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to="categories/", null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+    description = RichTextUploadingField(blank=True, null=True)
+    meta_keywords = models.TextField(blank=True, null=True)
+    meta_description = models.TextField(blank=True, null=True)
 
-    name = models.CharField(
-        max_length=100
-    )
-
-    slug = models.SlugField(
-        unique=True,
-        blank=True
-    )
-
-    meta_title = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Custom SEO title for Google & Bing ranking"
-    )
-
-    image = models.ImageField(
-        upload_to="categories/",
-        null=True,
-        blank=True
-    )
-
-    image_url = models.URLField(
-        max_length=500,
-        blank=True,
-        null=True
-    )
-
-    description = RichTextUploadingField(
-        blank=True,
-        null=True
-    )
-
-    meta_keywords = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    meta_description = models.TextField(
-        blank=True,
-        null=True
-    )
+    def get_absolute_url(self):
+        return f"/shopping/category/{self.slug}/"  # Apne URL structure ke hisaab se ise check kar lena
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(
-                unidecode(self.name)
-            )
-
-        image_url_val = (
-            str(self.image_url)
-            if self.image_url
-            else ""
-        )
-
-        is_new_image = bool(
-            self.image
-            and not image_url_val
-        )
-
+            self.slug = slugify(unidecode(self.name))
+        
+        image_url_val = str(self.image_url) if self.image_url else ""
+        is_new_image = bool(self.image and not image_url_val)
+        
         super().save(*args, **kwargs)
-
+        
         if is_new_image:
             self.handle_upload()
 
+        # Category save hone par ab Google aur Bing dono ko ping jayega
+        target_url = f"https://uttarworld.com{self.get_absolute_url()}"
+        try:
+            ping_google_indexing(target_url)
+            ping_bing_indexing(target_url)
+        except Exception:
+            pass
+
     def handle_upload(self):
         try:
-            new_url = process_and_upload_to_imgbb(
-                self,
-                is_shop=True
-            )
-
+            new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
-                Category.objects.filter(
-                    pk=self.pk
-                ).update(
-                    image_url=new_url,
-                    image=None
-                )
-
-        except Exception as e:
-            print(
-                f"Category Upload Error: {e}"
-            )
+                Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
+        except Exception:
+            pass
 
     def __str__(self):
         return self.name
@@ -310,28 +143,15 @@ class Category(models.Model):
 # ==========================================
 
 class ProductManager(models.Manager):
-
-    def search_and_filter(
-        self,
-        query=None,
-        max_price=None
-    ):
-        queryset = self.get_queryset().filter(
-            is_available=True
-        )
-
+    def search_and_filter(self, query=None, max_price=None):
+        queryset = self.get_queryset().filter(is_available=True)
         if query:
-            queryset = queryset.filter(
-                title__icontains=query
-            )
-
+            queryset = queryset.filter(title__icontains=query)
         if max_price and str(max_price).isdigit():
             queryset = queryset.filter(
-                variants__coupons__selling_price__lte=int(
-                    max_price
-                )
+                models.Q(selling_price__lte=int(max_price)) | 
+                models.Q(mrp_price__lte=int(max_price))
             )
-
         return queryset.distinct()
 
 
@@ -340,66 +160,32 @@ class ProductManager(models.Manager):
 # ==========================================
 
 class Product(models.Model):
-
-    title = models.CharField(
-        max_length=255
-    )
-
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        blank=True,
-        help_text="Automatically generated short random code slug"
-    )
-
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        related_name="products"
-    )
-
-    mrp_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0.00,
-        help_text="Default MRP for all variants if left blank in stores"
-    )
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=50, unique=True, blank=True, help_text="Automatically generated short random code slug")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+    
+    store_name = models.CharField(max_length=100, blank=True, null=True, help_text="Store name (e.g., Amazon, Meesho)")
+    
+    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Default MRP")
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Default Selling Price for all variants")
+    
+    default_color = models.CharField(max_length=50, blank=True, null=True, help_text="Default Color if same for all")
+    default_size = models.CharField(max_length=50, blank=True, null=True, help_text="Default Size / Variant Code if same for all")
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Common showcase video URL for this product")
 
     CURRENCY_CHOICES = [
         ("₹", "INR (₹)"),
         ("$", "USD ($)"),
         ("€", "EUR (€)")
     ]
-
-    currency = models.CharField(
-        max_length=5,
-        choices=CURRENCY_CHOICES,
-        default="₹"
-    )
+    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default="₹")
 
     long_description = RichTextUploadingField()
-
-    meta_description = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    meta_keywords = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    is_available = models.BooleanField(
-        default=True
-    )
-
-    is_featured = models.BooleanField(
-        default=False
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
+    meta_description = models.TextField(blank=True, null=True)
+    meta_keywords = models.TextField(blank=True, null=True)
+    is_available = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     objects = ProductManager()
 
@@ -416,28 +202,12 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
-        target_url = (
-            f"https://uttarworld.com"
-            f"{self.get_absolute_url()}"
-        )
-
+        target_url = f"https://uttarworld.com{self.get_absolute_url()}"
         try:
-            ping_google_indexing(
-                target_url
-            )
-        except Exception as e:
-            print(
-                f"Google Indexing Error: {e}"
-            )
-
-        try:
-            ping_bing_indexing(
-                target_url
-            )
-        except Exception as e:
-            print(
-                f"Bing Indexing Error: {e}"
-            )
+            ping_google_indexing(target_url)
+            ping_bing_indexing(target_url)
+        except Exception:
+            pass
 
     def __str__(self):
         return self.title
@@ -448,247 +218,91 @@ class Product(models.Model):
 # ==========================================
 
 class ProductVariant(models.Model):
-
-    product = models.ForeignKey(
-        Product,
-        related_name="variants",
-        on_delete=models.CASCADE
-    )
-
-    image_url = models.URLField(
-        max_length=500,
-        blank=True,
-        null=True
-    )
-
-    video_url = models.URLField(
-        max_length=500,
-        blank=True,
-        null=True,
-        help_text="Variant-specific showcase video URL"
-    )
-
-    earn_karo_url = models.URLField(
-        max_length=700
-    )
-
-    variant_code = models.CharField(
-        max_length=20,
-        blank=True,
-        unique=True,
-        help_text="Leave blank to auto-generate, or type your own code"
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.variant_code:
-            prefix = "".join(
-                [
-                    word[0]
-                    for word in self.product.title.split()[:2]
-                ]
-            ).upper()
-
-            self.variant_code = (
-                f"{prefix}-{str(uuid.uuid4())[:4].upper()}"
-            )
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return (
-            f"{self.product.title} - "
-            f"{self.variant_code}"
-        )
-
-
-# ==========================================
-# 7. VARIANT STORE COUPON
-# ==========================================
-
-class VariantStoreCoupon(models.Model):
-
-    variant = models.ForeignKey(
-        ProductVariant,
-        on_delete=models.CASCADE,
-        related_name="coupons"
-    )
-
-    store_name = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
-
-    selling_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        blank=True,
-        null=True
-    )
-
-    coupon_code = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Size or Weight details"
-    )
-
-    colour = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Colour or specific coupon code"
-    )
+    product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
+    
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct product image URL from Amazon/Meesho")
+    earn_karo_url = models.URLField(max_length=700, help_text="Affiliate link for this specific variant")
+    
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Leave blank to use Product Selling Price")
+    variant_code = models.CharField(max_length=50, blank=True, null=True, help_text="Leave blank to use Product Default Size")
+    colour = models.CharField(max_length=50, blank=True, null=True, help_text="Leave blank to use Product Default Color")
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Leave blank to use Product Video URL")
 
     @property
-    def get_mrp(self):
-        """Returns Product's main MRP automatically."""
-        return self.variant.product.mrp_price
+    def get_store_name(self):
+        return self.product.store_name
 
     @property
     def get_selling_price(self):
-        """Returns coupon's selling price if provided, otherwise falls back to Product's MRP."""
         if self.selling_price and self.selling_price > 0:
             return self.selling_price
-        return self.variant.product.mrp_price
+        if self.product.selling_price and self.product.selling_price > 0:
+            return self.product.selling_price
+        return self.product.mrp_price
+
+    @property
+    def get_color(self):
+        return self.colour if self.colour else self.product.default_color
+
+    @property
+    def get_variant_code(self):
+        return self.variant_code if self.variant_code else self.product.default_size
+
+    @property
+    def get_video_url(self):
+        return self.video_url if self.video_url else self.product.video_url
 
     def save(self, *args, **kwargs):
-        if self.store_name and not self.coupon_code:
-            try:
-                from .models import StoreConfiguration
-
-                config = StoreConfiguration.objects.filter(
-                    store_name__iexact=self.store_name
-                ).first()
-
-                if config:
-                    self.coupon_code = (
-                        config.default_coupon_code
-                    )
-
-            except Exception:
-                pass
-
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return (
-            f"{self.store_name} - "
-            f"{self.coupon_code or 'N/A'}"
-        )
+        return f"{self.product.title} - {self.get_variant_code or 'Standard'}"
+
 
 # ==========================================
-# 8. HOME SLIDER
+# 7. HOME SLIDER
 # ==========================================
 
 class HomeSlider(models.Model):
-
-    title = models.CharField(
-        max_length=200,
-        blank=True
-    )
-
-    image = models.ImageField(
-        upload_to="sliders/",
-        null=True,
-        blank=True
-    )
-
-    image_url = models.URLField(
-        max_length=500,
-        blank=True,
-        null=True
-    )
-
-    link = models.URLField(
-        max_length=500,
-        blank=True
-    )
-
-    is_active = models.BooleanField(
-        default=True
-    )
+    title = models.CharField(max_length=200, blank=True)
+    image = models.ImageField(upload_to="sliders/", null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+    link = models.URLField(max_length=500, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        image_url_val = (
-            str(self.image_url)
-            if self.image_url
-            else ""
-        )
-
-        is_new_file = bool(
-            self.image
-            and not image_url_val
-        )
-
+        image_url_val = str(self.image_url) if self.image_url else ""
+        is_new_file = bool(self.image and not image_url_val)
         super().save(*args, **kwargs)
-
         if is_new_file:
             self.handle_upload()
 
     def handle_upload(self):
         try:
-            new_url = process_and_upload_to_imgbb(
-                self,
-                is_shop=True
-            )
-
+            new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
-                HomeSlider.objects.filter(
-                    pk=self.pk
-                ).update(
-                    image_url=new_url,
-                    image=None
-                )
-
-        except Exception as e:
-            print(
-                f"Slider Upload Error: {e}"
-            )
+                HomeSlider.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
+        except Exception:
+            pass
 
     def __str__(self):
-        return (
-            self.title
-            if self.title
-            else f"Slider {self.id}"
-        )
+        return self.title if self.title else f"Slider {self.id}"
 
 
 # ==========================================
-# 9. DROPDOWN MENU
+# 8. DROPDOWN MENU
 # ==========================================
 
 class DropdownMenu(models.Model):
-
-    menu_name = models.CharField(
-        max_length=100,
-        unique=True
-    )
-
-    slug = models.SlugField(
-        unique=True,
-        blank=True
-    )
-
-    categories = models.ManyToManyField(
-        Category,
-        related_name="dropdown_menus"
-    )
-
-    is_active = models.BooleanField(
-        default=True
-    )
-
-    order = models.IntegerField(
-        default=0
-    )
+    menu_name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
+    categories = models.ManyToManyField(Category, related_name="dropdown_menus")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(
-                unidecode(self.menu_name)
-            )
-
+            self.slug = slugify(unidecode(self.menu_name))
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -696,101 +310,46 @@ class DropdownMenu(models.Model):
 
 
 # ==========================================
-# 10. HOME SECTION
+# 9. HOME SECTION
 # ==========================================
 
 class HomeSection(models.Model):
-
-    image = models.ImageField(
-        upload_to="home_sections/",
-        null=True,
-        blank=True
-    )
-
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        related_name="home_sections",
-        null=True,
-        blank=True
-    )
-
-    order = models.PositiveIntegerField(
-        default=0
-    )
-
-    is_active = models.BooleanField(
-        default=True
-    )
+    image = models.ImageField(upload_to="home_sections/", null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="home_sections", null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["order"]
 
     def __str__(self):
-        if self.category:
-            return self.category.name
-
-        return "Home Section"
+        return self.category.name if self.category else "Home Section"
 
 
 # ==========================================
-# 11. HOMEPAGE SEO
+# 10. HOMEPAGE SEO
 # ==========================================
 
 class HomePageSEO(models.Model):
-
-    title = models.CharField(
-        max_length=255
-    )
-
-    meta_description = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    meta_keywords = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    seo_content = RichTextUploadingField(
-        blank=True,
-        null=True
-    )
-
-    og_image = models.ImageField(
-        upload_to="seo/",
-        blank=True,
-        null=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
+    title = models.CharField(max_length=255)
+    meta_description = models.TextField(blank=True, null=True)
+    meta_keywords = models.TextField(blank=True, null=True)
+    seo_content = RichTextUploadingField(blank=True, null=True)
+    og_image = models.ImageField(upload_to="seo/", blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return "Homepage SEO"
 
 
 # ==========================================
-# 12. STORE CONFIGURATION
+# 11. STORE CONFIGURATION
 # ==========================================
 
 class StoreConfiguration(models.Model):
-
-    store_name = models.CharField(
-        max_length=100,
-        unique=True
-    )
-
-    default_coupon_code = models.CharField(
-        max_length=50,
-        blank=True
-    )
-
-    is_active = models.BooleanField(
-        default=True
-    )
+    store_name = models.CharField(max_length=100, unique=True)
+    default_coupon_code = models.CharField(max_length=50, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.store_name

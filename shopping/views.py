@@ -70,7 +70,7 @@ def shop_home(request):
     sliders = HomeSlider.objects.filter(is_active=True).order_by('?')
 
     # HOME SECTION IMAGE
-    home_sections = HomeSection.objects.filter( is_active=True).select_related(    'category' ).order_by(  'order')
+    home_sections = HomeSection.objects.filter( is_active=True).select_related(   'category' ).order_by(  'order')
 
     # MIX PRODUCTS
     products_list = Product.objects.filter( is_available=True).prefetch_related('variants' ).defer( 'long_description').order_by('-created_at')
@@ -120,12 +120,12 @@ def category_detail(request, slug):
         slug=slug
     )
 
-    # Products fetch karo aur variants ke sath coupons prefetch karo
+    # Products fetch karo aur variants prefetch karo
     products_list = Product.objects.filter(
         category=category,
         is_available=True
     ).prefetch_related(
-        'variants__coupons'
+        'variants'
     ).order_by(
         '-id'
     )
@@ -151,8 +151,7 @@ def category_detail(request, slug):
                 # --- DISCOUNT PERCENTAGE CALCULATION ---
                 disc_pct = None
                 if variant:
-                    coupon = variant.coupons.first()
-                    selling_price = coupon.selling_price if (coupon and coupon.selling_price) else None
+                    selling_price = variant.selling_price if hasattr(variant, 'selling_price') else None
                     mrp = prod.mrp_price
                     
                     if mrp and selling_price and mrp > selling_price:
@@ -182,6 +181,7 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
+
 # ==========================================
 # PRODUCT DETAIL (With Prioritized Selected Variant)
 # ==========================================
@@ -191,7 +191,7 @@ def product_detail(request, slug):
 
     product = get_object_or_404(
         Product.objects.prefetch_related(
-            'variants__coupons'
+            'variants'
         ),
         slug=slug
     )
@@ -304,7 +304,7 @@ def product_search(request):
     products = Product.objects.filter(
         is_available=True
     ).prefetch_related(
-        'variants__coupons'
+        'variants'
     )
 
     # ==========================================
@@ -325,11 +325,11 @@ def product_search(request):
             ) |
 
             Q(
-                variants__coupons__store_name__icontains=query
+                variants__store_name__icontains=query
             ) |
 
             Q(
-                variants__coupons__store_name__iregex=
+                variants__store_name__iregex=
                 rf'^{search_query}(\.com)?$'
             )
 
@@ -348,7 +348,7 @@ def product_search(request):
 
         products = products.filter(
 
-            variants__coupons__store_name__iregex=
+            variants__store_name__iregex=
             rf'^{store}(\.com)?$'
 
         )
@@ -366,7 +366,7 @@ def product_search(request):
         # ==========================================
 
         exact_products = products.filter(
-            variants__coupons__selling_price=
+            variants__selling_price=
             target_price
         ).distinct()
 
@@ -386,13 +386,13 @@ def product_search(request):
 
             lower_price = products.filter(
 
-                variants__coupons__selling_price__lt=
+                variants__selling_price__lt=
                 target_price
 
             ).aggregate(
 
                 max_price=Max(
-                    'variants__coupons__selling_price'
+                    'variants__selling_price'
                 )
 
             )['max_price']
@@ -403,13 +403,13 @@ def product_search(request):
 
             higher_price = products.filter(
 
-                variants__coupons__selling_price__gt=
+                variants__selling_price__gt=
                 target_price
 
             ).aggregate(
 
                 min_price=Min(
-                    'variants__coupons__selling_price'
+                    'variants__selling_price'
                 )
 
             )['min_price']
@@ -423,7 +423,7 @@ def product_search(request):
             if lower_price:
 
                 q_objects |= Q(
-                    variants__coupons__selling_price=
+                    variants__selling_price=
                     lower_price
                 )
 
@@ -434,7 +434,7 @@ def product_search(request):
             if higher_price:
 
                 q_objects |= Q(
-                    variants__coupons__selling_price=
+                    variants__selling_price=
                     higher_price
                 )
 

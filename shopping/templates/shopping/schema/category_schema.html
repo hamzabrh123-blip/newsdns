@@ -16,8 +16,7 @@
     "itemListElement": [
       {% for product in products|slice:":20" %}
         {% with first_variant=product.variants.first %}
-          {% with first_coupon=first_variant.coupons.first %}
-            {% if product.title and first_coupon and first_coupon.selling_price %}
+          {% if product.title and first_variant %}
       {
         "@type": "ListItem",
         "position": {{ forloop.counter }},
@@ -32,15 +31,14 @@
           ,
           "offers": {
             "@type": "Offer",
-            "priceCurrency": "{{ product.currency }}",
-            "price": "{{ first_coupon.selling_price }}",
+            "priceCurrency": "{{ product.currency|default:'INR' }}",
+            "price": "{% if first_variant.coupons.first.selling_price %}{{ first_variant.coupons.first.selling_price }}{% else %}{{ first_variant.price|default:'0.00' }}{% endif %}",
             "availability": "https://schema.org/InStock",
-            "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'product_detail' product.slug %}"
           }
         }
       }{% if not forloop.last %},{% endif %}
-            {% endif %}
-          {% endwith %}
+          {% endif %}
         {% endwith %}
       {% endfor %}
     ]

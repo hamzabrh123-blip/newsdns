@@ -85,7 +85,7 @@
         </div>
         
         <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs (Default Hidden via CSS !important) -->
+            <!-- Media Toggle Switcher Tabs -->
             <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
                 <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
@@ -95,7 +95,7 @@
                 </button>
             </div>
 
-            <!-- Image Viewport Container (Default Always Shown First) -->
+            <!-- Image Viewport Container -->
             <div class="img-zoom-container" id="viewport" style="display: block;">
                 <div class="main-img-viewport">
                     <img id="mainProductImg" src="{{ variants.0.image_url }}" alt="{{ product.title }}">
@@ -104,7 +104,7 @@
                 <div id="zoomResult" class="img-zoom-result"></div>
             </div>
 
-            <!-- Video Viewport Container (Hidden by Default) -->
+            <!-- Video Viewport Container -->
             <div id="videoViewport" class="product-video-container" style="display: none; width: 100%;">
                 <video 
                     id="mainProductVideo"
@@ -135,12 +135,12 @@
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ variants.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}</span>
-                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{{ product.currency }}{{ product.mrp_price|default:0 }}</span>
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ variants.0.selling_price|default:product.mrp_price|default:0 }}</span>
+                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{% if product.mrp_price %}{{ product.currency }}{{ product.mrp_price }}{% endif %}</span>
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
-                    <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Coupon Code</th></tr></thead>
+                    <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Code</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
 
@@ -192,7 +192,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
                 <img src="{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
                 <div class="card-body">
                     <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.variants.all.0.coupons.first.selling_price|default:item.mrp_price|default:0 }} 
+                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }} 
                         {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency }}{{ item.mrp_price }}</span>{% endif %}
                     </p>
                     <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
@@ -217,19 +217,16 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in variants %}
-        "{{ variant.variant_code|escapejs }}": [
-            {% for coupon in variant.coupons.all %}
-                { 
-                    "store_name": "{{ coupon.store_name|escapejs }}", 
-                    "selling_price": "{{ coupon.selling_price|default:product.mrp_price|default:0|escapejs }}",
-                    "mrp_price": "{{ coupon.mrp_price|default:product.mrp_price|escapejs }}", 
-                    "coupon_code": "{{ coupon.coupon_code|default:'-'|escapejs }}", 
-                    "colour": "{{ coupon.colour|default:'-'|escapejs }}",
-                    "url": "{{ coupon.store_affiliate_url|default:variant.earn_karo_url|escapejs }}",
-                    "currency": "{{ product.currency|escapejs }}"
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ]{% if not forloop.last %},{% endif %}
+        "{{ variant.variant_code|escapejs }}": {
+            "store_name": "{{ variant.store_name|default:''|escapejs }}",
+            "selling_price": "{{ variant.selling_price|default:product.mrp_price|default:0|escapejs }}",
+            "mrp_price": "{{ product.mrp_price|default:''|escapejs }}",
+            "coupon_code": "{{ variant.coupon_code|default:'-'|escapejs }}",
+            "colour": "{{ variant.colour|default:'-'|escapejs }}",
+            "size": "{{ variant.size|default:'-'|escapejs }}",
+            "url": "{{ variant.earn_karo_url|default:''|escapejs }}",
+            "currency": "{{ product.currency|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
     {% endfor %}
 }
 </script>
@@ -270,7 +267,7 @@ function syncVariant(el) {
 
         const allData = JSON.parse(dataScript.textContent);
         const code = el.getAttribute('data-code');
-        const deals = allData[code];
+        const variantData = allData[code];
 
         const rawUrl = el.getAttribute('data-raw-url');
         const videoUrl = el.getAttribute('data-video-url');
@@ -281,7 +278,6 @@ function syncVariant(el) {
                              videoUrl !== "null" && 
                              videoUrl !== "NoneType";
 
-        // Direct image URL without Cloudinary
         if (mainImg) mainImg.src = rawUrl;
 
         if (hasValidVideo) {
@@ -306,19 +302,19 @@ function syncVariant(el) {
         const topSellingPrice = document.getElementById('displaySellingPrice');
         const topMrpPrice = document.getElementById('displayMrpPrice');
 
-        if (container && deals && deals.length > 0) {
-            container.innerHTML = deals.map(d =>
-                `<tr>
-                    <td><strong>${d.store_name}</strong></td>
-                    <td>${d.coupon_code || '-'}</td>
-                    <td>${d.colour || '-'}</td>
-                </tr>`
-            ).join('');
+        if (container && variantData) {
+            container.innerHTML = `
+                <tr>
+                    <td><strong>${variantData.store_name || '-'}</strong></td>
+                    <td>${variantData.size || '-'}</td>
+                    <td>${variantData.colour || '-'} / ${variantData.coupon_code || '-'}</td>
+                </tr>
+            `;
 
-            if (topSellingPrice) topSellingPrice.innerText = deals[0].currency + deals[0].selling_price;
+            if (topSellingPrice) topSellingPrice.innerText = variantData.currency + variantData.selling_price;
             if (topMrpPrice) {
-                if (deals[0].mrp_price && deals[0].mrp_price !== "None" && deals[0].mrp_price !== "") {
-                    topMrpPrice.innerText = deals[0].currency + deals[0].mrp_price;
+                if (variantData.mrp_price && variantData.mrp_price !== "None" && variantData.mrp_price !== "") {
+                    topMrpPrice.innerText = variantData.currency + variantData.mrp_price;
                     topMrpPrice.style.display = 'inline';
                 } else {
                     topMrpPrice.style.display = 'none';
@@ -326,9 +322,9 @@ function syncVariant(el) {
             }
 
             if (shopBtn) {
-                shopBtn.href = deals[0].url || "#";
+                shopBtn.href = variantData.url || "#";
 
-                let store = deals[0].store_name || "SHOP";
+                let store = variantData.store_name || "SHOP";
                 let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
                 const storeKey = cleanStore.toLowerCase().replace(/\s+/g, "").replace(/[-_.]/g, "");
 

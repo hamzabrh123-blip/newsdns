@@ -3,7 +3,6 @@ from django.db import models
 from django.forms import Textarea
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
-import nested_admin
 
 from .models import (
     StoreLogoUpload,
@@ -11,7 +10,6 @@ from .models import (
     Category,
     Product,
     ProductVariant,
-    VariantStoreCoupon,
     HomeSlider,
     DropdownMenu,
     HomeSection,
@@ -46,38 +44,50 @@ class CategoryAdmin(ImportExportModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-class VariantStoreCouponInline(nested_admin.NestedTabularInline):
-    model = VariantStoreCoupon
-    extra = 1
-    fields = ("store_name", "selling_price", "coupon_code", "colour")
-
-
-class ProductVariantInline(nested_admin.NestedStackedInline):
+class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
-    inlines = [VariantStoreCouponInline]
     extra = 1
-    classes = ("collapse",)
-    exclude = ("variant_code",)
+    fields = ("variant_image_preview", "image_url", "earn_karo_url", "selling_price", "variant_code", "colour", "video_url")
+    readonly_fields = ("variant_image_preview",)
+
+    def variant_image_preview(self, obj):
+        if obj and obj.image_url:
+            return format_html(
+                '<img src="{}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;" />',
+                obj.image_url
+            )
+        return "No Image"
+
+    variant_image_preview.short_description = "Preview"
 
 
 @admin.register(Product)
-class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
+class ProductAdmin(ImportExportModelAdmin):
     list_display = (
         "title",
-        "mrp_price",
+        "display_store_name",
+        "display_selling_price",
         "category",
         "variant_thumbnail",
         "created_at",
     )
-    list_filter = ("category", "currency")
-    search_fields = ("title", "slug", "meta_keywords")
+    list_filter = ("category", "store_name", "currency")
+    search_fields = ("title", "slug", "meta_keywords", "store_name")
     
     exclude = ("slug",)
+    readonly_fields = ("product_image_preview",)
+    
     fields = (
         "title",
         "category",
+        "store_name",
         "mrp_price",
+        "selling_price",
+        "default_color",
+        "default_size",
+        "video_url",
         "currency",
+        "product_image_preview",
         "long_description",
         "meta_description",
         "meta_keywords",
@@ -92,6 +102,22 @@ class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
 
+    # Yahan humne Media class add kar di hai taaki custom CSS load ho jaye
+    class Media:
+        css = {
+            "all": ("admin/css/custom_admin.css",)
+        }
+
+    def display_store_name(self, obj):
+        return obj.store_name if obj.store_name else "-"
+    display_store_name.short_description = "Store Name"
+
+    def display_selling_price(self, obj):
+        if obj.selling_price and obj.selling_price > 0:
+            return f"{obj.currency} {obj.selling_price}"
+        return f"{obj.currency} {obj.mrp_price} (MRP)"
+    display_selling_price.short_description = "Selling Price"
+
     def variant_thumbnail(self, obj):
         """Display the image of the first product variant in the admin list."""
         first_variant = obj.variants.first()
@@ -104,13 +130,26 @@ class ProductAdmin(nested_admin.NestedModelAdmin, ImportExportModelAdmin):
 
     variant_thumbnail.short_description = "Variant Image"
 
-    @admin.action(description="Submit selected/all available products to Bing")
+    def product_image_preview(self, obj):
+        """Display a preview of the product image when editing an existing product."""
+        if obj and obj.pk:
+            first_variant = obj.variants.first()
+            if first_variant and first_variant.image_url:
+                return format_html(
+                    '<img src="{}" style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 6px;" />',
+                    first_variant.image_url
+                )
+        return "Save product once or add variant image to preview here."
+
+    product_image_preview.short_description = "Product Main Image Preview"
+
+    @admin.action(description="Submit selected/all available products to search engines")
     def trigger_bing_submission(self, request, queryset):
         success = submit_all_products_to_bing()
         if success:
-            self.message_user(request, "Successfully submitted products to Bing!")
+            self.message_user(request, "Successfully submitted products to search engines!")
         else:
-            self.message_user(request, "Bing submission completed with some errors. Check logs.", level="WARNING")
+            self.message_user(request, "Submission completed with some errors. Check logs.", level="WARNING")
 
 
 @admin.register(HomeSlider)

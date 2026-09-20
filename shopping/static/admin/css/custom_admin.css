@@ -1,25 +1,76 @@
-/* admin.css में इसे जोड़ें */
-.tabular .field-selling_price input, 
-.tabular .field-coupon_code input,
-.tabular .field-store_name input,
-.tabular .field-earn_karo_url input {
-    width: 120px !important; 
+/* ==========================================
+   UTTAR WORLD - STRICT NO-SCROLL ADMIN CSS
+   ========================================== */
+
+/* Body aur content area par horizontal scroll ko sakhti se rokna */
+body, html, #container, #content {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
 }
-/* Arrow बटन और Collapse आइकॉन को छिपाने के लिए */
-.nested-tabular .grp-collapse .grp-collapse-handler,
-.nested-tabular .collapse .collapse-handler,
-.nested-tabular .grp-closed .grp-collapse-handler,
-.nested-tabular .grp-open .grp-collapse-handler {
+
+/* Inline table container ko screen ke andar rakhna */
+.inline-group, .tabular.inline-related {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important; /* Agar zaroorat pade toh table ke andar hi scroll ho, poore page par nahi */
+    box-sizing: border-box !important;
+}
+
+/* Table ki width ko fix karna */
+.tabular.inline-related table {
+    width: 100% !important;
+    table-layout: fixed !important; /* Fields ko table ke andar fit hone par majboor karega */
+}
+
+/* Table cells ki padding kam karna */
+.tabular.inline-related td, 
+.tabular.inline-related th {
+    padding: 4px 2px !important;
+    word-break: break-word !important;
+}
+
+/* Sabhi input fields ko table cell ke andar fit karna */
+.tabular input[type="text"],
+.tabular input[type="url"],
+.tabular input[type="number"],
+.tabular select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 12px !important;
+    padding: 4px !important;
+}
+
+/* Preview column chhota rakhna */
+.tabular .field-variant_image_preview {
+    width: 50px !important;
+}
+
+/* Arrow aur collapse handlers ko hatana */
+.nested-tabular .grp-collapse-handler,
+.nested-tabular .collapse-handler,
+.variantstorecoupon-inline .collapse-handler {
     display: none !important;
 }
 
-/* अगर बॉर्डर या एक्स्ट्रा पैडिंग आ रही है उसे ठीक करने के लिए */
 .nested-tabular .grp-collapse {
     border: none !important;
     padding: 0 !important;
+    background: transparent !important;
 }
 
-/* कूपन वाले इनलाइन के लिए */
-.variantstorecoupon-inline .collapse-handler {
-    display: none !important;
+/* ==========================================
+   LONG DESCRIPTION (CKEDITOR) COMPACT FIX
+   ========================================== */
+
+/* CKEditor ke poore box ki height aur width fix karna */
+.field-long_description .cke_chrome {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 4px !important;
+}
+
+/* Editor ke likhne wale area (contents) ki height kam karke chhota karna */
+.field-long_description .cke_contents {
+    height: 140px !important; /* Isse box chhota ho jayega, jyada lamba nahi dikhega */
 }
