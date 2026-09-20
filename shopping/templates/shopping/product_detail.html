@@ -213,19 +213,18 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
         </div>
     </div>
 </div>
-
 <script id="nestedDealsData" type="application/json">
 {
     {% for variant in variants %}
         "{{ variant.variant_code|escapejs }}": {
-            "store_name": "{{ variant.store_name|default:''|escapejs }}",
-            "selling_price": "{{ variant.selling_price|default:product.mrp_price|default:0|escapejs }}",
+            "store_name": "{{ variant.store_name|default:product.store_name|default:''|escapejs }}",
+            "selling_price": "{{ variant.selling_price|default:product.selling_price|default:product.mrp_price|default:0|escapejs }}",
             "mrp_price": "{{ product.mrp_price|default:''|escapejs }}",
             "coupon_code": "{{ variant.coupon_code|default:'-'|escapejs }}",
-            "colour": "{{ variant.colour|default:'-'|escapejs }}",
-            "size": "{{ variant.size|default:'-'|escapejs }}",
+            "colour": "{{ variant.colour|default:product.default_color|default:'Standard'|escapejs }}",
+            "size": "{{ variant.size|default:product.default_size|default:'Free Size'|escapejs }}",
             "url": "{{ variant.earn_karo_url|default:''|escapejs }}",
-            "currency": "{{ product.currency|escapejs }}"
+            "currency": "{{ product.currency|default:'₹'|escapejs }}"
         }{% if not forloop.last %},{% endif %}
     {% endfor %}
 }
