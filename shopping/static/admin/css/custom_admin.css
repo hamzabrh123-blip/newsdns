@@ -1,81 +1,64 @@
 /* ==========================================
-   ULTIMATE ADMIN TABLE FIX (STANDARD + GRAPPELLI)
+   CLEAN & WIDE PRODUCT VARIANT TABLE CSS
    ========================================== */
+   /* Product variant row ke andar jo bold text/link aa raha hai, usko hatane ke liye */
+.tabular.inline-related td.original {
+    display: none !important;
+}
 
-/* Saare inline tables aur groups ke liye horizontal scroll aur overflow hatana */
+/* Table container se overflow aur scrollbar ka chakkar hatane ke liye */
 .tabular.inline-related,
 .group.tabular.inline-related,
 .grp-tabular {
     width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: visible !important;
 }
 
-/* Table layout ko strict karna taaki bahar na bhage */
 .tabular.inline-related table,
-.group.tabular.inline-related table,
 .grp-tabular table {
     width: 100% !important;
     table-layout: auto !important;
-    display: table !important;
 }
 
-/* Table cells aur headings ki padding aur spacing */
-.tabular.inline-related th,
-.tabular.inline-related td,
-.group.tabular.inline-related th,
-.group.tabular.inline-related td,
-.grp-tabular th,
-.grp-tabular td {
-    padding: 6px 4px !important;
-    word-break: break-word !important;
-    white-space: normal !important;
-    font-size: 11px !important;
-    vertical-align: middle !important;
-    position: static !important;
+/* Image URL field ko bada aur khula rakhne ke liye */
+.tabular.inline-related td.field-image_url {
+    min-width: 310px !important;
 }
 
-/* Text jo input ke upar chad raha hai, usko block banana */
-.tabular.inline-related td p,
-.tabular.inline-related td span,
-.group.tabular.inline-related td p,
-.group.tabular.inline-related td span {
-    position: static !important;
-    display: inline-block !important;
-    max-width: 100% !important;
-}
-
-/* Inputs, selects aur textareas ko cell ke andar fit rakhna */
-.tabular.inline-related input,
-.tabular.inline-related select,
-.tabular.inline-related textarea,
-.group.tabular.inline-related input,
-.group.tabular.inline-related select,
-.group.tabular.inline-related textarea,
-.grp-tabular input,
-.grp-tabular select,
-.grp-tabular textarea {
-    width: 100% !important;
+.tabular.inline-related td.field-image_url input {
+    width: 300px !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    font-size: 11px !important;
-    padding: 4px !important;
-    position: relative !important;
-    z-index: 2 !important;
-    background: #fff !important;
 }
 
-/* Image preview column ki fix width */
-.field-image_url,
+/* Earn Karo URL field */
+.tabular.inline-related td.field-earn_karo_url {
+    min-width: 210px !important;
+}
+
+.tabular.inline-related td.field-earn_karo_url input {
+    width: 200px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Baaki fields (Selling Price, Colour, Video URL) ke liye normal padding */
+.tabular.inline-related th,
+.tabular.inline-related td {
+    padding: 6px 5px !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
+/* Preview Image alignment */
 .field-variant_image_preview {
-    width: 45px !important;
+    width: 50px !important;
     text-align: center !important;
 }
 
-.tabular.inline-related img,
-.group.tabular.inline-related img,
-.grp-tabular img {
-    max-width: 40px !important;
-    height: auto !important;
-    border-radius: 3px;
+.field-variant_image_preview img {
+    width: 42px !important;
+    height: 42px !important;
+    object-fit: cover !important;
+    border-radius: 4px !important;
 }

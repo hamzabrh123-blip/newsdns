@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from django.forms import Textarea
+from django.forms import Textarea, TextInput
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
@@ -47,8 +47,23 @@ class CategoryAdmin(ImportExportModelAdmin):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ("variant_image_preview", "image_url", "earn_karo_url", "selling_price", "variant_code", "colour", "video_url")
+    fields = ("variant_image_preview", "image_url", "earn_karo_url", "selling_price", "colour", "video_url")
     readonly_fields = ("variant_image_preview",)
+
+    # Widget ko explicitly TextInput se replace kiya hai taaki 'फिलहाल' hamesha ke liye gayab ho jaye
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        field = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name == 'image_url':
+            field.widget = TextInput(attrs={'style': 'width: 310px;' 'display: inline-block;'})
+        elif db_field.name == 'earn_karo_url':
+            field.widget = TextInput(attrs={'style': 'width: 210px;'})
+        elif db_field.name == 'selling_price':
+            field.widget.attrs['style'] = 'width: 90px;'
+        elif db_field.name == 'colour':
+            field.widget.attrs['style'] = 'width: 100px;'
+        elif db_field.name == 'video_url':
+            field.widget.attrs['style'] = 'width: 110px;'
+        return field
 
     def variant_image_preview(self, obj):
         if obj and obj.image_url:
@@ -102,7 +117,6 @@ class ProductAdmin(ImportExportModelAdmin):
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
 
-    # Yahan humne Media class add kar di hai taaki custom CSS load ho jaye
     class Media:
         css = {
             "all": ("admin/css/custom_admin.css",)
@@ -119,7 +133,6 @@ class ProductAdmin(ImportExportModelAdmin):
     display_selling_price.short_description = "Selling Price"
 
     def variant_thumbnail(self, obj):
-        """Display the image of the first product variant in the admin list."""
         first_variant = obj.variants.first()
         if first_variant and first_variant.image_url:
             return format_html(
@@ -131,7 +144,6 @@ class ProductAdmin(ImportExportModelAdmin):
     variant_thumbnail.short_description = "Variant Image"
 
     def product_image_preview(self, obj):
-        """Display a preview of the product image when editing an existing product."""
         if obj and obj.pk:
             first_variant = obj.variants.first()
             if first_variant and first_variant.image_url:
