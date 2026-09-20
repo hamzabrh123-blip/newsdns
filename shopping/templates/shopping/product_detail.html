@@ -140,7 +140,7 @@
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
-                    <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Code</th></tr></thead>
+                    <thead><tr><th>Store</th><th>Size / Weight</th><th>Colour / Coupon Code</th></tr></thead>
                     <tbody id="storeDealsContainer"></tbody>
                 </table>
 
@@ -220,7 +220,6 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
             "store_name": "{{ variant.store_name|default:product.store_name|default:''|escapejs }}",
             "selling_price": "{{ variant.selling_price|default:product.selling_price|default:product.mrp_price|default:0|escapejs }}",
             "mrp_price": "{{ product.mrp_price|default:''|escapejs }}",
-            "coupon_code": "{{ variant.coupon_code|escapejs }}",
             "colour": "{{ variant.colour|default:product.default_color|default:'Standard'|escapejs }}",
             "size": "{{ variant.size|default:product.default_size|default:'Free Size'|escapejs }}",
             "url": "{{ variant.earn_karo_url|default:''|escapejs }}",
@@ -306,7 +305,7 @@ function syncVariant(el) {
                 <tr>
                     <td><strong>${variantData.store_name || '-'}</strong></td>
                     <td>${variantData.size || '-'}</td>
-                    <td>${variantData.colour || '-'} / ${variantData.coupon_code || '-'}</td>
+                    <td>${variantData.colour || '-'}</td>
                 </tr>
             `;
 
