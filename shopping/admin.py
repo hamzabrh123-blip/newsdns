@@ -47,23 +47,34 @@ class CategoryAdmin(ImportExportModelAdmin):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ("variant_image_preview", "image_url", "earn_karo_url", "selling_price", "colour", "video_url")
+    fields = (
+        "variant_image_preview", 
+        "image_url", 
+        "video_url", 
+        "earn_karo_url", 
+        "selling_price", 
+        "size", 
+        "colour", 
+        "mrp_price"
+    )
     readonly_fields = ("variant_image_preview",)
 
-    # Widget ko explicitly TextInput se replace kiya hai taaki 'फिलहाल' hamesha ke liye gayab ho jaye
-    def formfield_for_dbfield(self, db_field, request, **kwargs):
-        field = super().formfield_for_dbfield(db_field, request, **kwargs)
-        if db_field.name == 'image_url':
-            field.widget = TextInput(attrs={'style': 'width: 310px;' 'display: inline-block;'})
-        elif db_field.name == 'earn_karo_url':
-            field.widget = TextInput(attrs={'style': 'width: 210px;'})
-        elif db_field.name == 'selling_price':
-            field.widget.attrs['style'] = 'width: 90px;'
-        elif db_field.name == 'colour':
-            field.widget.attrs['style'] = 'width: 100px;'
-        elif db_field.name == 'video_url':
-            field.widget.attrs['style'] = 'width: 110px;'
-        return field
+    # Fields ko chhota aur compact karne ke liye overrides
+    formfield_overrides = {
+        models.URLField: {"widget": TextInput(attrs={"size": 15, "style": "width: 120px;"})},
+        models.CharField: {"widget": TextInput(attrs={"size": 10, "style": "width: 85px;"})},
+        models.DecimalField: {"widget": TextInput(attrs={"size": 8, "style": "width: 75px;"})},
+    }
+
+    # Horizontal scrollbar hatane ke liye CSS media
+    class Media:
+        css = {
+            'all': (
+                'data:text/css;charset=utf-8,'
+                '.inline-group .tabular td { padding: 6px 3px !important; } '
+                '.inline-group .tabular input { max-width: 130px !important; box-sizing: border-box; }'
+            ),
+        }
 
     def variant_image_preview(self, obj):
         if obj and obj.image_url:
@@ -72,7 +83,6 @@ class ProductVariantInline(admin.TabularInline):
                 obj.image_url
             )
         return "No Image"
-
     variant_image_preview.short_description = "Preview"
 
 
@@ -100,7 +110,6 @@ class ProductAdmin(ImportExportModelAdmin):
         "selling_price",
         "default_color",
         "default_size",
-        "video_url",
         "currency",
         "product_image_preview",
         "long_description",
@@ -117,11 +126,6 @@ class ProductAdmin(ImportExportModelAdmin):
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
 
-    class Media:
-        css = {
-            "all": ("admin/css/custom_admin.css",)
-        }
-
     def display_store_name(self, obj):
         return obj.store_name if obj.store_name else "-"
     display_store_name.short_description = "Store Name"
@@ -129,7 +133,9 @@ class ProductAdmin(ImportExportModelAdmin):
     def display_selling_price(self, obj):
         if obj.selling_price and obj.selling_price > 0:
             return f"{obj.currency} {obj.selling_price}"
-        return f"{obj.currency} {obj.mrp_price} (MRP)"
+        if obj.mrp_price and obj.mrp_price > 0:
+            return f"{obj.currency} {obj.mrp_price} (MRP)"
+        return f"{obj.currency} - "
     display_selling_price.short_description = "Selling Price"
 
     def variant_thumbnail(self, obj):
@@ -140,7 +146,6 @@ class ProductAdmin(ImportExportModelAdmin):
                 first_variant.image_url
             )
         return "No Image"
-
     variant_thumbnail.short_description = "Variant Image"
 
     def product_image_preview(self, obj):
@@ -152,7 +157,6 @@ class ProductAdmin(ImportExportModelAdmin):
                     first_variant.image_url
                 )
         return "Save product once or add variant image to preview here."
-
     product_image_preview.short_description = "Product Main Image Preview"
 
     @admin.action(description="Submit selected/all available products to search engines")

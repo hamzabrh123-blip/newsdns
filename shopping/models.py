@@ -90,7 +90,7 @@ class PinterestPost(models.Model):
 
 
 # ==========================================
-# 3. CATEGORY (Ab yahan bhi Google & Bing Indexing Add Kar Di Hai)
+# 3. CATEGORY
 # ==========================================
 
 class Category(models.Model):
@@ -104,7 +104,7 @@ class Category(models.Model):
     meta_description = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        return f"/shopping/category/{self.slug}/"  # Apne URL structure ke hisaab se ise check kar lena
+        return f"/shopping/category/{self.slug}/"
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -118,7 +118,6 @@ class Category(models.Model):
         if is_new_image:
             self.handle_upload()
 
-        # Category save hone par ab Google aur Bing dono ko ping jayega
         target_url = f"https://uttarworld.com{self.get_absolute_url()}"
         try:
             ping_google_indexing(target_url)
@@ -166,12 +165,11 @@ class Product(models.Model):
     
     store_name = models.CharField(max_length=100, blank=True, null=True, help_text="Store name (e.g., Amazon, Meesho)")
     
-    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Default MRP")
-    selling_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Default Selling Price for all variants")
+    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Default MRP (Optional)")
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Default Selling Price")
     
-    default_color = models.CharField(max_length=50, blank=True, null=True, help_text="Default Color if same for all")
-    default_size = models.CharField(max_length=50, blank=True, null=True, help_text="Default Size / Variant Code if same for all")
-    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Common showcase video URL for this product")
+    default_color = models.CharField(max_length=50, blank=True, null=True, help_text="Default Color")
+    default_size = models.CharField(max_length=50, blank=True, null=True, help_text="Default Size / Weight")
 
     CURRENCY_CHOICES = [
         ("₹", "INR (₹)"),
@@ -214,49 +212,22 @@ class Product(models.Model):
 
 
 # ==========================================
-# 6. PRODUCT VARIANT
+# 6. PRODUCT VARIANT (Wapas image_url ke sath)
 # ==========================================
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
     
-    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct product image URL from Amazon/Meesho")
-    earn_karo_url = models.URLField(max_length=700, help_text="Affiliate link for this specific variant")
-    
-    selling_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Leave blank to use Product Selling Price")
-    variant_code = models.CharField(max_length=50, blank=True, null=True, help_text="Leave blank to use Product Default Size")
-    colour = models.CharField(max_length=50, blank=True, null=True, help_text="Leave blank to use Product Default Color")
-    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Leave blank to use Product Video URL")
-
-    @property
-    def get_store_name(self):
-        return self.product.store_name
-
-    @property
-    def get_selling_price(self):
-        if self.selling_price and self.selling_price > 0:
-            return self.selling_price
-        if self.product.selling_price and self.product.selling_price > 0:
-            return self.product.selling_price
-        return self.product.mrp_price
-
-    @property
-    def get_color(self):
-        return self.colour if self.colour else self.product.default_color
-
-    @property
-    def get_variant_code(self):
-        return self.variant_code if self.variant_code else self.product.default_size
-
-    @property
-    def get_video_url(self):
-        return self.video_url if self.video_url else self.product.video_url
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Image URL")
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Video URL")
+    earn_karo_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Affiliate / EarnKaro Link")
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Variant Selling Price")
+    size = models.CharField(max_length=50, blank=True, null=True, help_text="Size / Weight")
+    colour = models.CharField(max_length=50, blank=True, null=True, help_text="Colour")
+    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="MRP Price")
 
     def __str__(self):
-        return f"{self.product.title} - {self.get_variant_code or 'Standard'}"
+        return f"{self.product.title} - {self.size or self.colour or 'Variant'}"
 
 
 # ==========================================
