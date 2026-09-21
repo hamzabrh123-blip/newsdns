@@ -79,8 +79,8 @@
                      data-raw-url="{{ variant.image_url }}" 
                      data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                      data-code="{{ variant.variant_code }}" 
-                     data-selling-price="{{ variant.selling_price|default:0 }}"
-                     data-mrp-price="{{ variant.mrp_price|default:product.mrp_price|default:'' }}"
+                     data-selling-price="{{ variant.selling_price|default:'' }}"
+                     data-mrp-price="{{ variant.mrp_price|default:'' }}"
                      data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                      data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                      data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
@@ -133,8 +133,8 @@
                          data-raw-url="{{ variant.image_url }}" 
                          data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                          data-code="{{ variant.variant_code }}" 
-                         data-selling-price="{{ variant.selling_price|default:0 }}"
-                         data-mrp-price="{{ variant.mrp_price|default:product.mrp_price|default:'' }}"
+                         data-selling-price="{{ variant.selling_price|default:'' }}"
+                         data-mrp-price="{{ variant.mrp_price|default:'' }}"
                          data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                          data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                          data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
@@ -149,8 +149,12 @@
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
             <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">{{ product.currency }}{{ variants.0.selling_price|default:product.mrp_price|default:0 }}</span>
-                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">{% if variants.0.mrp_price %}{{ product.currency }}{{ variants.0.mrp_price }}{% elif product.mrp_price %}{{ product.currency }}{{ product.mrp_price }}{% endif %}</span>
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">
+                    {{ product.currency }}{% if variants.0.selling_price %}{{ variants.0.selling_price }}{% elif variants.0.mrp_price %}{{ variants.0.mrp_price }}{% elif product.selling_price %}{{ product.selling_price }}{% else %}{{ product.mrp_price|default:'' }}{% endif %}
+                </span>
+                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">
+                    {% if variants.0.mrp_price and variants.0.mrp_price != variants.0.selling_price %}{{ product.currency }}{{ variants.0.mrp_price }}{% elif not variants.0.mrp_price and product.mrp_price and product.mrp_price != product.selling_price %}{{ product.currency }}{{ product.mrp_price }}{% endif %}
+                </span>
             </div>
             <div class="store-deal-card mt-3">
                 <table class="table">
@@ -201,26 +205,8 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
     </ul>
 </div>
 <hr>
+{% include 'shopping/includes/related_products.html' %}
 
-<div class="container mt-5">
-    <h4 class="mb-4">Related Products</h4>
-    <div class="row">
-        {% for item in related_products %}
-        <div class="col-md-3 col-6 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <img src="{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}">
-                <div class="card-body">
-                    <h6 style="font-size:14px;" class="card-title text-truncate">{{ item.title }}</h6>
-                    <p style="font-size:12px;" class="card-text text-danger font-weight-bold">{{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }} 
-                        {% if item.mrp_price %}<br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency }}{{ item.mrp_price }}</span>{% endif %}
-                    </p>
-                    <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm btn-outline-warning w-100">View Deal</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 
 <div class="container-fluid my-5">
     <div class="row">
@@ -235,6 +221,8 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 
 <script>
 const currencySymbol = "{{ product.currency|default:'₹' }}";
+const fallbackSellingPrice = "{{ product.selling_price|default:product.mrp_price|default:'0' }}";
+const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
 
 function switchMedia(type) {
     const imgContainer = document.getElementById('viewport');
@@ -316,13 +304,29 @@ function syncVariant(el) {
             `;
         }
 
+        // Foolproof Price Logic - No More Zero
+        let activePrice = fallbackSellingPrice;
+        if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0") {
+            activePrice = sellingPrice;
+        } else if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0") {
+            activePrice = mrpPrice;
+        }
+
         if (topSellingPrice) {
-            topSellingPrice.innerText = currencySymbol + sellingPrice;
+            topSellingPrice.innerText = currencySymbol + activePrice;
         }
         
+        // MRP Price Logic
+        let activeMrp = "";
+        if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0" && mrpPrice !== activePrice) {
+            activeMrp = mrpPrice;
+        } else if (fallbackMrpPrice && fallbackMrpPrice !== activePrice) {
+            activeMrp = fallbackMrpPrice;
+        }
+
         if (topMrpPrice) {
-            if (mrpPrice && mrpPrice !== "None" && mrpPrice !== "") {
-                topMrpPrice.innerText = currencySymbol + mrpPrice;
+            if (activeMrp && activeMrp !== activePrice) {
+                topMrpPrice.innerText = currencySymbol + activeMrp;
                 topMrpPrice.style.display = 'inline';
             } else {
                 topMrpPrice.style.display = 'none';
