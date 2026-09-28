@@ -84,7 +84,7 @@
                      data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                      data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                      data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
-                     data-url="{{ variant.earn_karo_url|default:'' }}"
+                     data-url="{% if variant.earn_karo_url and variant.earn_karo_url != 'None' %}{{ variant.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}"
                      onmouseover="syncVariant(this)"
                      onclick="syncVariant(this)"
                      alt="{{ product.title }}">
@@ -138,7 +138,7 @@
                          data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                          data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                          data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
-                         data-url="{{ variant.earn_karo_url|default:'' }}"
+                         data-url="{% if variant.earn_karo_url and variant.earn_karo_url != 'None' %}{{ variant.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}"
                          onmouseover="syncVariant(this)"
                          onclick="syncVariant(this)"
                          alt="{{ product.title }}">
@@ -173,7 +173,7 @@
                     </span>
                 </div><hr>
                 
-                <a href="{{ variants.0.earn_karo_url|default:'#' }}" 
+                <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{{ variants.0.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}" 
                    id="masterShopNowBtn" 
                    target="_blank" 
                    rel="nofollow noopener"
@@ -223,6 +223,7 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 const currencySymbol = "{{ product.currency|default:'₹' }}";
 const fallbackSellingPrice = "{{ product.selling_price|default:product.mrp_price|default:'0' }}";
 const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
+const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
 function switchMedia(type) {
     const imgContainer = document.getElementById('viewport');
@@ -334,7 +335,12 @@ function syncVariant(el) {
         }
 
         if (shopBtn) {
-            shopBtn.href = variantUrl || "#";
+            // Ultimate Link Safeguard
+            let finalLink = variantUrl;
+            if (!finalLink || finalLink.trim() === "" || finalLink === "None" || finalLink === "null") {
+                finalLink = productFallbackUrl;
+            }
+            shopBtn.href = finalLink;
 
             let store = storeName || "SHOP";
             let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
