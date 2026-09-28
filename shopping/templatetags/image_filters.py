@@ -1,4 +1,7 @@
+from django import template
 from urllib.parse import urlparse, urlunparse
+
+register = template.Library()
 
 @register.filter(name='clean_image_url')
 def clean_image_url(raw_url):
