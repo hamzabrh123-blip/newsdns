@@ -226,22 +226,15 @@ const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
 // ================= AFFILIATE LINK PARAMETER LOCKER =================
-// Ye function ensure karega ki link me sirf authorized parameters hi rahein
-// aur bahar se koi extra/malicious parameter inject na ho paye.
 function sanitizeAffiliateUrl(rawUrl) {
     if (!rawUrl || rawUrl.trim() === "" || rawUrl === "None" || rawUrl === "null") {
         return "#";
     }
     try {
-        // Agar URL relative hai ya valid nahi hai to fallback return karo
         let parsedUrl = new URL(rawUrl, window.location.origin);
         if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-            return rawUrl; // agar special scheme ho to raw chhod do
+            return rawUrl;
         }
-
-        // Yahan hum ensure kar sakte hain ki koi unwanted tracking params strip ho jayein agar zarurat ho,
-        // ya fir existing original URL ko cleanly pass karein bina kisi browser modification ke.
-        // Ye trailing spaces aur accidental fragment/hashes (#) ko clean karta hai.
         return parsedUrl.toString();
     } catch (e) {
         return rawUrl;
@@ -328,10 +321,12 @@ function syncVariant(el) {
             `;
         }
 
-        // Foolproof Price Logic - Handles Ranges (e.g. 201 ~ 212)
+        // Foolproof Price Logic - Handles Zero, None, Blank values by falling back smoothly
         let activePrice = fallbackSellingPrice;
-        if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0") {
+        if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0" && sellingPrice !== "0.00" && sellingPrice !== "0.0") {
             activePrice = sellingPrice;
+        } else if (!activePrice || activePrice === "0" || activePrice === "0.00" || activePrice === "0.0") {
+            activePrice = fallbackMrpPrice || "0";
         }
 
         if (topSellingPrice) {
@@ -340,7 +335,7 @@ function syncVariant(el) {
         
         // MRP Price Logic
         let activeMrp = "";
-        if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0" && mrpPrice !== activePrice) {
+        if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0" && mrpPrice !== "0.00" && mrpPrice !== "0.0" && mrpPrice !== activePrice) {
             activeMrp = mrpPrice;
         } else if (fallbackMrpPrice && fallbackMrpPrice !== activePrice) {
             activeMrp = fallbackMrpPrice;
@@ -356,13 +351,11 @@ function syncVariant(el) {
         }
 
         if (shopBtn) {
-            // Ultimate Link Safeguard with Sanitizer Guard
             let finalLink = variantUrl;
             if (!finalLink || finalLink.trim() === "" || finalLink === "None" || finalLink === "null") {
                 finalLink = productFallbackUrl;
             }
             
-            // Lock parameters and sanitize URL before assigning to anchor href
             shopBtn.href = sanitizeAffiliateUrl(finalLink);
 
             let store = storeName || "SHOP";

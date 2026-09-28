@@ -153,12 +153,33 @@ def category_detail(request, slug):
                 selling_price = None
                 mrp = prod.mrp_price
                 
+                # Safe conversion for variant selling price
+                try:
+                    v_selling = float(variant.selling_price) if variant and variant.selling_price not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    v_selling = 0.0
+
+                # Pehle variant ka price dekho, agar nahi hai toh product ka default selling price uthao
                 if variant:
-                    # Pehle variant ka price dekho, agar nahi hai toh product ka default selling price uthao
-                    selling_price = variant.selling_price if (variant.selling_price and variant.selling_price > 0) else prod.selling_price
-                    
-                    if mrp and selling_price and mrp > selling_price:
-                        disc_pct = round(((mrp - selling_price) / mrp) * 100)
+                    selling_price = variant.selling_price if (v_selling > 0) else prod.selling_price
+                else:
+                    selling_price = prod.selling_price
+                
+                # Safe conversions for discount calculation
+                try:
+                    mrp_val = float(mrp) if mrp not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    mrp_val = 0.0
+
+                try:
+                    selling_val = float(selling_price) if selling_price not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    selling_val = 0.0
+
+                if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
+                    disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
+                else:
+                    disc_pct = None
 
                 display_grid.append({
                     'product': prod,
