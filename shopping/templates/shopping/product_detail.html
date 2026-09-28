@@ -1,6 +1,7 @@
 {% extends "shopping/shop_base.html" %}
 {% load static %}
 {% load seo_filters %}
+{% load amazon_filters %}
 
 {% block content %}
 <style>
@@ -173,7 +174,7 @@
                     </span>
                 </div><hr>
                 
-                <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{{ variants.0.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}" 
+                <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
                    id="masterShopNowBtn" 
                    target="_blank" 
                    rel="nofollow noopener"
@@ -207,7 +208,6 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 <hr>
 {% include 'shopping/includes/related_products.html' %}
 
-
 <div class="container-fluid my-5">
     <div class="row">
         <div class="col-12 text-center py-5" style="background: #ffffff; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
@@ -224,6 +224,29 @@ const currencySymbol = "{{ product.currency|default:'₹' }}";
 const fallbackSellingPrice = "{{ product.selling_price|default:product.mrp_price|default:'0' }}";
 const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
+
+// ================= AFFILIATE LINK PARAMETER LOCKER =================
+// Ye function ensure karega ki link me sirf authorized parameters hi rahein
+// aur bahar se koi extra/malicious parameter inject na ho paye.
+function sanitizeAffiliateUrl(rawUrl) {
+    if (!rawUrl || rawUrl.trim() === "" || rawUrl === "None" || rawUrl === "null") {
+        return "#";
+    }
+    try {
+        // Agar URL relative hai ya valid nahi hai to fallback return karo
+        let parsedUrl = new URL(rawUrl, window.location.origin);
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+            return rawUrl; // agar special scheme ho to raw chhod do
+        }
+
+        // Yahan hum ensure kar sakte hain ki koi unwanted tracking params strip ho jayein agar zarurat ho,
+        // ya fir existing original URL ko cleanly pass karein bina kisi browser modification ke.
+        // Ye trailing spaces aur accidental fragment/hashes (#) ko clean karta hai.
+        return parsedUrl.toString();
+    } catch (e) {
+        return rawUrl;
+    }
+}
 
 function switchMedia(type) {
     const imgContainer = document.getElementById('viewport');
@@ -305,12 +328,10 @@ function syncVariant(el) {
             `;
         }
 
-        // Foolproof Price Logic - No More Zero
+        // Foolproof Price Logic - Handles Ranges (e.g. 201 ~ 212)
         let activePrice = fallbackSellingPrice;
         if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0") {
             activePrice = sellingPrice;
-        } else if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0") {
-            activePrice = mrpPrice;
         }
 
         if (topSellingPrice) {
@@ -335,12 +356,14 @@ function syncVariant(el) {
         }
 
         if (shopBtn) {
-            // Ultimate Link Safeguard
+            // Ultimate Link Safeguard with Sanitizer Guard
             let finalLink = variantUrl;
             if (!finalLink || finalLink.trim() === "" || finalLink === "None" || finalLink === "null") {
                 finalLink = productFallbackUrl;
             }
-            shopBtn.href = finalLink;
+            
+            // Lock parameters and sanitize URL before assigning to anchor href
+            shopBtn.href = sanitizeAffiliateUrl(finalLink);
 
             let store = storeName || "SHOP";
             let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();

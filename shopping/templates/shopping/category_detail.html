@@ -163,27 +163,26 @@
                         <div class="card-body p-2">
                             <h6 class="mobile-product-title">{{ product.title }}</h6>
                             
-                            <div class="price-section">
-                                {% with sp=item.selling_price|default:variant.selling_price|default:product.selling_price mrp=product.mrp_price %}
-                                    {% if sp %}
-                                        <span class="price-tag">{{ product.currency }}{{ sp }}</span>
-                                        {% if mrp and mrp > sp %}
-                                            <span class="old-price-num">{{ product.currency }}{{ mrp }}</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="price-tag">{{ product.currency }}{{ mrp|default:"3999" }}</span>
-                                    {% endif %}
-                                    
-                                    {% if item.calculated_discount %}
-                                        <span class="discount-badge">{{ item.calculated_discount }}% off</span>
-                                    {% elif variant.discount_percentage %}
-                                        <span class="discount-badge">{{ variant.discount_percentage }}% off</span>
-                                    {% elif product.discount_percentage %}
-                                        <span class="discount-badge">{{ product.discount_percentage }}% off</span>
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-
+                           <div class="price-section">
+    {% with sp=item.selling_price|default:variant.selling_price|default:product.selling_price mrp=variant.mrp_price|default:product.mrp_price %}
+        {% if sp %}
+            <span class="price-tag">{{ product.currency }}{{ sp }}</span>
+            {% if mrp and mrp != sp %}
+                <span class="old-price-num">{{ product.currency }}{{ mrp }}</span>
+            {% endif %}
+        {% else %}
+            <span class="price-tag">{{ product.currency }}{{ mrp|default:"3999" }}</span>
+        {% endif %}
+        
+        {% if item.calculated_discount %}
+            <span class="discount-badge">{{ item.calculated_discount }}% off</span>
+        {% elif variant.discount_percentage %}
+            <span class="discount-badge">{{ variant.discount_percentage }}% off</span>
+        {% elif product.discount_percentage %}
+            <span class="discount-badge">{{ product.discount_percentage }}% off</span>
+        {% endif %}
+    {% endwith %}
+</div>
                         </div>
                     </div>
                 </a>

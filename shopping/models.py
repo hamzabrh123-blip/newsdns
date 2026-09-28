@@ -11,8 +11,44 @@ from django.utils.text import slugify
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
+from urllib.parse import urlparse, urlunparse
 
 from .utils import process_and_upload_to_imgbb, ping_google_indexing
+
+
+# ==========================================
+# HELPER FUNCTIONS (URL & IMAGE CLEANING)
+# ==========================================
+
+def clean_image_url(url):
+    """Image URL se ? aur uske baad ka saara kachra hata deta hai"""
+    if not url:
+        return url
+    base_url = url.split('?')[0]
+    parsed = urlparse(base_url)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+
+
+def clean_amazon_link(url, tracking_id="uttarworld202-21"):
+    """Amazon ke link ko clean karke sirf standard ASIN aur official tag rakhta hai"""
+    if not url or "amazon" not in url:
+        return url
+    parsed = urlparse(url)
+    path_parts = parsed.path.split('/')
+    asin = None
+    for i, part in enumerate(path_parts):
+        if part == 'dp' and i + 1 < len(path_parts):
+            asin = path_parts[i+1]
+            break
+        elif part == 'gp' and i + 2 < len(path_parts) and path_parts[i+1] == 'product':
+            asin = path_parts[i+2]
+            break
+    clean_path = f"/dp/{asin}" if asin else parsed.path
+    return urlunparse((
+        parsed.scheme or 'https',
+        parsed.netloc or 'www.amazon.in',
+        clean_path, '', f'tag={tracking_id}', ''
+    ))
 
 
 # ==========================================
@@ -85,6 +121,11 @@ class PinterestPost(models.Model):
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.image_url:
+            self.image_url = clean_image_url(self.image_url)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -110,6 +151,10 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(unidecode(self.name))
         
+        # Clean image URL if provided
+        if self.image_url:
+            self.image_url = clean_image_url(self.image_url)
+            
         image_url_val = str(self.image_url) if self.image_url else ""
         is_new_image = bool(self.image and not image_url_val)
         
@@ -129,7 +174,7 @@ class Category(models.Model):
         try:
             new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
-                Category.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
+                Category.objects.filter(pk=self.pk).update(image_url=clean_image_url(new_url), image=None)
         except Exception:
             pass
 
@@ -212,7 +257,7 @@ class Product(models.Model):
 
 
 # ==========================================
-# 6. PRODUCT VARIANT (Wapas image_url ke sath)
+# 6. PRODUCT VARIANT (Flexible Selling Price)
 # ==========================================
 
 class ProductVariant(models.Model):
@@ -220,15 +265,27 @@ class ProductVariant(models.Model):
     
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Image URL")
     video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Video URL")
-    earn_karo_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Affiliate / EarnKaro Link")
-    selling_price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Variant Selling Price")
+    earn_karo_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Affiliate / EarnKaro / Amazon Link")
+    
+    # Selling price ab CharField hai, ab yahan range ya single price kuch bhi daal sakta hai
+    selling_price = models.CharField(max_length=100, help_text="Variant Selling Price (e.g., 355 or 355 ~ 390)")
     size = models.CharField(max_length=50, blank=True, null=True, help_text="Size / Weight")
     colour = models.CharField(max_length=50, blank=True, null=True, help_text="Colour")
-    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="MRP Price")
+    mrp_price = models.CharField(max_length=100, blank=True, null=True, help_text="MRP Price")
+
+    def save(self, *args, **kwargs):
+        # 1. Image URL clean karo (? ke baad ka kachra gayab)
+        if self.image_url:
+            self.image_url = clean_image_url(self.image_url)
+            
+        # 2. Agar link Amazon ka hai toh automatically clean karke tag laga do
+        if self.earn_karo_url and "amazon" in self.earn_karo_url.lower():
+            self.earn_karo_url = clean_amazon_link(self.earn_karo_url, tracking_id="uttarworld202-21")
+            
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product.title} - {self.size or self.colour or 'Variant'}"
-
+        return f"{self.product.title} - {self.size or self.colour or 'Variant'} ({self.selling_price})"
 
 # ==========================================
 # 7. HOME SLIDER
@@ -242,6 +299,9 @@ class HomeSlider(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
+        if self.image_url:
+            self.image_url = clean_image_url(self.image_url)
+            
         image_url_val = str(self.image_url) if self.image_url else ""
         is_new_file = bool(self.image and not image_url_val)
         super().save(*args, **kwargs)
@@ -252,7 +312,7 @@ class HomeSlider(models.Model):
         try:
             new_url = process_and_upload_to_imgbb(self, is_shop=True)
             if new_url:
-                HomeSlider.objects.filter(pk=self.pk).update(image_url=new_url, image=None)
+                HomeSlider.objects.filter(pk=self.pk).update(image_url=clean_image_url(new_url), image=None)
         except Exception:
             pass
 

@@ -3,9 +3,9 @@
   "@context": "https://schema.org/",
   "@type": "Product",
   "name": "{{ product.title|escapejs }}",
-  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ product.variants.all.0.image_url }}",
+  "image": "https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variants.0.image_url|default:product.variants.all.0.image_url }}",
   "description": "{{ product.title|escapejs|truncatechars:150 }}",
-  "sku": "{{ product.variants.all.0.variant_code|default:'N/A' }}",
+  "sku": "{{ variants.0.variant_code|default:product.variants.all.0.variant_code|default:'N/A' }}",
   "brand": {
     "@type": "Brand",
     "name": "Uttar World Elite Lifestyle Store"
@@ -14,7 +14,7 @@
     "@type": "Offer",
     "url": "{{ request.build_absolute_uri }}",
     "priceCurrency": "{% if product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% else %}INR{% endif %}",
-    "price": "{{ product.variants.all.0.coupons.first.selling_price|default:product.mrp_price|default:0 }}",
+    "price": "{% if variants.0.selling_price %}{{ variants.0.selling_price }}{% elif variants.0.mrp_price %}{{ variants.0.mrp_price }}{% elif product.selling_price %}{{ product.selling_price }}{% else %}{{ product.mrp_price|default:'0' }}{% endif %}",
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "https://schema.org/InStock",
