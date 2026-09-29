@@ -4,7 +4,7 @@ from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 register = template.Library()
 
 @register.filter(name='clean_amazon')
-def clean_amazon_affiliate_link(raw_url, tracking_id="uttarworld202-21"):
+def clean_amazon_affiliate_link(raw_url, tracking_id="uttarworld-21"):
     if not raw_url or "amazon" not in raw_url:
         return raw_url
         
