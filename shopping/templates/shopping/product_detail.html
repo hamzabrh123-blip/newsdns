@@ -93,8 +93,8 @@
         </div>
         
         <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs -->
-            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
+            <!-- Media Toggle Switcher Tabs (Auto-enabled when video exists) -->
+            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none;">
                 <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
                 </button>
@@ -225,6 +225,8 @@ const fallbackSellingPrice = "{{ product.selling_price|default:product.mrp_price
 const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
+let dashPlayer = null; // Global Dash player instance
+
 // ================= AFFILIATE LINK PARAMETER LOCKER =================
 function sanitizeAffiliateUrl(rawUrl) {
     if (!rawUrl || rawUrl.trim() === "" || rawUrl === "None" || rawUrl === "null") {
@@ -251,15 +253,38 @@ function switchMedia(type) {
     if (type === 'image') {
         if(imgContainer) imgContainer.style.display = 'block';
         if(videoContainer) videoContainer.style.display = 'none';
-        if(mainVideo) { mainVideo.pause(); mainVideo.currentTime = 0; }
+        if(mainVideo) { mainVideo.pause(); }
         if(imgBtn) { imgBtn.classList.add('btn-dark', 'active'); imgBtn.classList.remove('btn-outline-dark'); }
         if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark', 'active'); }
     } else if (type === 'video') {
         if(imgContainer) imgContainer.style.display = 'none';
         if(videoContainer) videoContainer.style.display = 'block';
-        if(mainVideo) mainVideo.play();
+        if(mainVideo) { mainVideo.play().catch(e => console.log("Auto-play prevented:", e)); }
         if(videoBtn) { videoBtn.classList.add('btn-dark', 'active'); videoBtn.classList.remove('btn-outline-dark'); }
         if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark', 'active'); }
+    }
+}
+
+// Play Video (Handles both standard MP4 and .mpd DASH streams via Dash.js)
+function loadAndPlayVideo(videoUrl) {
+    const mainVideo = document.getElementById('mainProductVideo');
+    if (!mainVideo) return;
+
+    if (dashPlayer) {
+        dashPlayer.reset();
+        dashPlayer = null;
+    }
+
+    if (videoUrl.includes('.mpd')) {
+        if (typeof dashjs !== 'undefined') {
+            dashPlayer = dashjs.MediaPlayer().create();
+            dashPlayer.initialize(mainVideo, videoUrl, false);
+        } else {
+            console.error("Dash.js library not loaded in header!");
+            mainVideo.src = videoUrl;
+        }
+    } else {
+        mainVideo.src = videoUrl;
     }
 }
 
@@ -267,7 +292,6 @@ function switchMedia(type) {
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
-        const mainVideo = document.getElementById('mainProductVideo');
         const mediaTab = document.getElementById('mediaSwitcherTab');
         const result = document.getElementById("zoomResult");
 
@@ -290,11 +314,13 @@ function syncVariant(el) {
         if (mainImg) mainImg.src = rawUrl;
 
         if (hasValidVideo) {
-            if (mainVideo) mainVideo.src = videoUrl;
-            if (mediaTab) mediaTab.style.setProperty('display', 'flex', 'important');
+            loadAndPlayVideo(videoUrl);
+            if (mediaTab) mediaTab.style.display = 'flex';
         } else {
+            const mainVideo = document.getElementById('mainProductVideo');
             if (mainVideo) { mainVideo.pause(); mainVideo.src = ""; }
-            if (mediaTab) mediaTab.style.setProperty('display', 'none', 'important');
+            if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
+            if (mediaTab) mediaTab.style.display = 'none';
         }
 
         if (typeof switchMedia === 'function') {
@@ -321,7 +347,7 @@ function syncVariant(el) {
             `;
         }
 
-        // Foolproof Price Logic - Handles Zero, None, Blank values by falling back smoothly
+        // Price Logic
         let activePrice = fallbackSellingPrice;
         if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0" && sellingPrice !== "0.00" && sellingPrice !== "0.0") {
             activePrice = sellingPrice;
@@ -333,7 +359,6 @@ function syncVariant(el) {
             topSellingPrice.innerText = currencySymbol + activePrice;
         }
         
-        // MRP Price Logic
         let activeMrp = "";
         if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0" && mrpPrice !== "0.00" && mrpPrice !== "0.0" && mrpPrice !== activePrice) {
             activeMrp = mrpPrice;
