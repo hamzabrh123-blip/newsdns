@@ -17,6 +17,17 @@
     "@type": "Brand",
     "name": "Uttar World Elite Lifestyle Store"
   },
+  {% if product.video_url %}
+  "subjectOf": {
+    "@type": "VideoObject",
+    "name": "{{ product.title|escapejs }} - Product Video",
+    "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
+    "thumbnailUrl": "{% with first_variant=product.variants.first %}{{ first_variant.image_url }}{% endwith %}",
+    "uploadDate": "2026-01-01T08:00:00+05:30",
+    "contentUrl": "{{ product.video_url }}",
+    "embedUrl": "{{ product.video_url }}"
+  },
+  {% endif %}
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "{{ product.rating|default:'4.5' }}",
