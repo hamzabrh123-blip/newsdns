@@ -6,8 +6,10 @@
   {% with first_variant=product.variants.first %}
     {% if first_variant and first_variant.image_url %}
   "image": "{{ first_variant.image_url }}",
+    {% elif product.image_url %}
+  "image": "{{ product.image_url }}",
     {% endif %}
-  "sku": "{{ first_variant.variant_code|default:'N/A' }}",
+  "sku": "{{ first_variant.variant_code|default:product.id }}",
   {% endwith %}
   "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
   {% if product.meta_keywords %}
@@ -22,7 +24,7 @@
     "@type": "VideoObject",
     "name": "{{ product.title|escapejs }} - Product Video",
     "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
-    "thumbnailUrl": "{% with first_variant=product.variants.first %}{{ first_variant.image_url }}{% endwith %}",
+    "thumbnailUrl": "{% with first_variant=product.variants.first %}{{ first_variant.image_url|default:product.image_url }}{% endwith %}",
     "uploadDate": "2026-01-01T08:00:00+05:30",
     "contentUrl": "{{ product.video_url }}",
     "embedUrl": "{{ product.video_url }}"
@@ -36,41 +38,51 @@
   "offers": {
     "@type": "Offer",
     "url": "https://www.uttarworld.com{{ request.path }}",
-    "priceCurrency": "{{ product.currency }}",
-    {% with first_coupon=product.variants.first.coupons.first %}
-    "price": "{% if first_coupon and first_coupon.selling_price %}{{ first_coupon.selling_price }}{% else %}0{% endif %}",
+    "priceCurrency": "INR",
+    {% with first_variant=product.variants.first %}
+    "price": "{% if first_variant and first_variant.selling_price %}{{ first_variant.selling_price }}{% else %}{{ product.selling_price|default:product.mrp_price|default:'499' }}{% endif %}",
     {% endwith %}
     "priceValidUntil": "2026-12-31",
     "itemCondition": "https://schema.org/NewCondition",
     "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
     "hasMerchantReturnPolicy": {
       "@type": "MerchantReturnPolicy",
-      "applicableCountry": "IN",
+      "applicableCountry": {
+        "@type": "Country",
+        "name": "IN"
+      },
       "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": 10
+      "merchantReturnDays": 10,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
     },
     "shippingDetails": {
       "@type": "OfferShippingDetails",
       "shippingRate": {
         "@type": "MonetaryAmount",
         "value": "0",
-        "currency": "{{ product.currency }}"
+        "currency": "INR"
       },
       "shippingDestination": {
         "@type": "DefinedRegion",
-        "addressCountry": "IN"
+        "addressCountry": {
+          "@type": "Country",
+          "name": "IN"
+        }
       },
       "deliveryTime": {
         "@type": "ShippingDeliveryTime",
         "handlingTime": {
           "@type": "QuantitativeValue",
           "minValue": 1,
-          "maxValue": 2
+          "maxValue": 2,
+          "unitCode": "DAY"
         },
         "transitTime": {
           "@type": "QuantitativeValue",
           "minValue": 3,
-          "maxValue": 7
+          "maxValue": 7,
+          "unitCode": "DAY"
         }
       }
     }

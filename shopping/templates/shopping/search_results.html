@@ -1,26 +1,50 @@
 {% extends "shopping/shop_base.html" %}
 
 {% block content %}
+
 <style>
-    /* Modern Product Card Styling (Matched with Category Page) */
-    .product-card-link { text-decoration: none !important; color: inherit !important; display: block; height: 100%; }
-    .product-card { border-radius: 8px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; background: #fff; height: 100%; border: 1px solid #f0f0f0; }
-    .product-card-link:hover .product-card { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; }
-    
-    .mobile-product-title { 
-        font-size: 13px; 
-        height: 36px; 
-        overflow: hidden; 
-        color: #333; 
-        font-weight: 500; 
-        margin-bottom: 6px; 
+    .full-bleed-wrapper {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        padding-left: 2px;
+        padding-right: 2px;
+        overflow-x: hidden;
+    }
+
+    .product-card-link {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+        height: 100%;
+    }
+    .product-card {
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #fff;
+        height: 100%;
+        border: 1px solid #f0f0f0;
+    }
+    .product-card-link:hover .product-card {
+        transform: translateY(-2px);
+        box-shadow: 0 .4rem .8rem rgba(0,0,0,.08) !important;
+    }
+    .mobile-product-title {
+        font-size: 13px;
+        height: 36px;
+        overflow: hidden;
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 6px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         text-overflow: ellipsis;
     }
-
-    /* Attractive Price Design with Red Highlight */
     .price-section {
         display: flex;
         align-items: baseline;
@@ -28,10 +52,10 @@
         gap: 6px;
         margin-top: 4px;
     }
-    .price-tag { 
-        color: #d32f2f; /* Eye-catching Red Color */
-        font-weight: 800; 
-        font-size: 17px; 
+    .price-tag {
+        color: #d32f2f;
+        font-weight: 800;
+        font-size: 17px;
         letter-spacing: -0.3px;
     }
     .old-price-num {
@@ -48,154 +72,183 @@
         padding: 1px 5px;
         border-radius: 4px;
     }
-
-    /* Taller, Cleaner Image Slider */
-    .auto-slider-container { 
-        position: relative; 
-        width: 100%; 
-        height: 260px; 
-        background: #f8f9fa; 
-        overflow: hidden; 
+    .product-img-container {
+        position: relative;
+        width: 100%;
+        height: 280px;
+        background: #f8f9fa;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     @media (min-width: 768px) {
-        .auto-slider-container {
-            height: 320px;
+        .product-img-container {
+            height: 300px;
         }
     }
-    .product-auto-img { 
-        position: absolute; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        object-fit: cover; 
-        opacity: 0; 
-        transition: opacity 0.5s ease-in-out; 
+    .product-single-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
     }
-    .product-auto-img.active { opacity: 1; }
-
-    @media (min-width: 992px) { .col-lg-2-custom { flex: 0 0 16.666667%; max-width: 16.666667%; } }
 </style>
 
-<div class="container-fluid px-3">
-    <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+<div class="full-bleed-wrapper py-2">
+
+    <!-- SEARCH HEADER -->
+    <div class="px-3 my-3">
         <h5 class="fw-bold mb-0 text-dark">
-        {% if query and max_price %}
-            Results for "{{ query }}" under ₹{{ max_price }}
-        {% elif query %}
-            Search Results for "{{ query }}"
-        {% elif max_price %}
-            Products under ₹{{ max_price }}
-        {% else %}
-            All Products
-        {% endif %}
-    </h5>
+            {% if query and max_price %}
+                Results for "{{ query }}" under ₹{{ max_price }}
+            {% elif query %}
+                Search Results for "{{ query }}"
+            {% elif max_price %}
+                Products under ₹{{ max_price }}
+            {% else %}
+                Search Results
+            {% endif %}
+        </h5>
     </div>
 
-    <div class="row gx-2 gy-3">
-        {% for product in products %}
-            <div class="col-6 col-md-3 col-lg-2-custom">
-                {% with variants=product.variants.all first_variant=product.variants.first %}
-                    <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
-                        <div class="card shadow-sm product-card border-0 js-product-card" 
-                             data-currency="{{ product.currency|default:'₹' }}"
-                             data-variants-prices="{% for v in variants %}{% for c in v.coupons.all %}{{ c.selling_price }}{% if not forloop.last or not forloop.parentloop.last %},{% endif %}{% endfor %}{% endfor %}"
-                             data-variants-mrp="{% for v in variants %}{% for c in v.coupons.all %}{{ c.mrp_price }}{% if not forloop.last or not forloop.parentloop.last %},{% endif %}{% endfor %}{% endfor %}">
+    <!-- 1. PRODUCTS GRID SECTION (Matched with Category Page) -->
+    <div class="row g-1 m-0">
+        {% for item in products %}
+            {% if item.product %}
+                {% with product=item.product variant=item.variant %}
+                <div class="col-12 col-md-6 col-lg-3 px-1 mb-2">
+                    <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% if variant %}?v={{ variant.id }}{% endif %}{% else %}#{% endif %}" class="product-card-link">
+                        <div class="card shadow-none product-card border">
                             
-                            <!-- Image Slider -->
-                            <div class="auto-slider-container">
-                                {% for variant in variants %}
-                                    <img src="https://res.cloudinary.com/dvoqsrkkq/image/fetch/f_auto,q_auto/{{ variant.image_url }}" class="product-auto-img {% if forloop.first %}active{% endif %}" alt="{{ product.title }}">
-                                {% empty %}
-                                    <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-auto-img active" alt="No Image">
-                                {% endfor %}
+                            <!-- Single Image Container -->
+                            <div class="product-img-container">
+                                {% if variant and variant.image_url %}
+                                    <img src="{{ variant.image_url }}"
+                                         class="product-single-img"
+                                         alt="{{ product.title }}"
+                                         loading="lazy"
+                                         decoding="async">
+                                {% elif product.image_url %}
+                                    <img src="{{ product.image_url }}"
+                                         class="product-single-img"
+                                         alt="{{ product.title }}"
+                                         loading="lazy"
+                                         decoding="async">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/300x400?text=No+Image"
+                                         class="product-single-img"
+                                         alt="No Image"
+                                         loading="lazy"
+                                         decoding="async">
+                                {% endif %}
                             </div>
-                            
+
                             <!-- Product Info -->
                             <div class="card-body p-2">
                                 <h6 class="mobile-product-title">{{ product.title }}</h6>
-        
-                                <!-- Attractive Price & Discount Row -->
+                                
                                 <div class="price-section">
-                                    <span class="price-tag js-final-price"></span>
-                                    <span class="mrp-label js-mrp-wrapper" style="display: none;">
-                                        <span class="old-price-num js-mrp-price"></span>
-                                    </span>
-                                    <span class="discount-badge js-discount-badge" style="display: none;"></span>
+                                    {% with sp=item.selling_price|default:product.selling_price mrp=product.mrp_price %}
+                                        {% if sp %}
+                                            <span class="price-tag">{{ product.currency }}{{ sp }}</span>
+                                            {% if mrp and mrp != sp %}
+                                                <span class="old-price-num">{{ product.currency }}{{ mrp }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="price-tag">{{ product.currency }}{{ mrp|default:"3999" }}</span>
+                                        {% endif %}
+                                        
+                                        {% if item.calculated_discount %}
+                                            <span class="discount-badge">{{ item.calculated_discount }}% off</span>
+                                        {% elif variant and variant.discount_percentage %}
+                                            <span class="discount-badge">{{ variant.discount_percentage }}% off</span>
+                                        {% elif product.discount_percentage %}
+                                            <span class="discount-badge">{{ product.discount_percentage }}% off</span>
+                                        {% endif %}
+                                    {% endwith %}
                                 </div>
                             </div>
                         </div>
                     </a>
+                </div>
                 {% endwith %}
-            </div>
+            {% else %}
+                <!-- Fallback if backend supplies product object directly -->
+                {% with product=item %}
+                <div class="col-12 col-md-6 col-lg-3 px-1 mb-2">
+                    <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% else %}#{% endif %}" class="product-card-link">
+                        <div class="card shadow-none product-card border">
+                            <div class="product-img-container">
+                                {% if product.variants.first and product.variants.first.image_url %}
+                                    <img src="{{ product.variants.first.image_url }}" class="product-single-img" alt="{{ product.title }}" loading="lazy">
+                                {% elif product.image_url %}
+                                    <img src="{{ product.image_url }}" class="product-single-img" alt="{{ product.title }}" loading="lazy">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/300x400?text=No+Image" class="product-single-img" alt="No Image" loading="lazy">
+                                {% endif %}
+                            </div>
+                            <div class="card-body p-2">
+                                <h6 class="mobile-product-title">{{ product.title }}</h6>
+                                <div class="price-section">
+                                    <span class="price-tag">{{ product.currency }}{{ product.selling_price|default:product.mrp_price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endwith %}
+            {% endif %}
         {% empty %}
             <div class="col-12 text-center py-5">
-                <h5>No products found.</h5>
+                <h5>No products found matching your search.</h5>
             </div>
         {% endfor %}
     </div>
+
+    <!-- 2. PAGINATION SECTION (Retains search queries) -->
+    {% if products.has_other_pages %}
+        <nav aria-label="Page navigation" class="my-4">
+            <ul class="pagination justify-content-center">
+                {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}page={{ products.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Prev</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo; Prev</span>
+                    </li>
+                {% endif %}
+
+                {% for i in products.paginator.page_range %}
+                    {% if products.number == i %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}page={{ products.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">Next &raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next &raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const productCards = document.querySelectorAll('.js-product-card');
-        productCards.forEach(card => {
-            const currency = card.getAttribute('data-currency') || '₹';
-            const variantsPricesStr = card.getAttribute('data-variants-prices') || '';
-            const variantsMrpStr = card.getAttribute('data-variants-mrp') || '';
-            
-            const finalPriceEl = card.querySelector('.js-final-price');
-            const mrpWrapperEl = card.querySelector('.js-mrp-wrapper');
-            const mrpPriceEl = card.querySelector('.js-mrp-price');
-            const discountBadgeEl = card.querySelector('.js-discount-badge');
-
-            if (finalPriceEl) {
-                if (variantsPricesStr) {
-                    const prices = variantsPricesStr.split(',').map(p => parseFloat(p)).filter(p => !isNaN(p) && p > 0);
-                    if (prices.length > 0) {
-                        const minPrice = Math.min(...prices);
-                        const maxPrice = Math.max(...prices);
-                        finalPriceEl.innerText = (minPrice !== maxPrice) ? currency + minPrice.toFixed(0) + ' - ' + currency + maxPrice.toFixed(0) : currency + minPrice.toFixed(0);
-                        
-                        // Handle MRP & Discount calculation based on minimum price coupon if available
-                        if (variantsMrpStr && mrpPriceEl && mrpWrapperEl) {
-                            const mrps = variantsMrpStr.split(',').map(m => parseFloat(m)).filter(m => !isNaN(m) && m > 0);
-                            if (mrps.length > 0) {
-                                const maxMrp = Math.max(...mrps); // Or take corresponding MRP
-                                if (maxMrp > minPrice) {
-                                    mrpPriceEl.innerText = currency + maxMrp.toFixed(0);
-                                    mrpWrapperEl.style.display = 'inline';
-                                    
-                                    const discountPercent = Math.round(((maxMrp - minPrice) / maxMrp) * 100);
-                                    if (discountPercent > 0 && discountBadgeEl) {
-                                        discountBadgeEl.innerText = discountPercent + '% off';
-                                        discountBadgeEl.style.display = 'inline-block';
-                                    }
-                                }
-                            }
-                        }
-                    } else { 
-                        finalPriceEl.innerText = 'Check Price'; 
-                    }
-                } else { 
-                    finalPriceEl.innerText = 'Check Price'; 
-                }
-            }
-        });
-
-        // Image Auto Slider
-        const containers = document.querySelectorAll('.auto-slider-container');
-        containers.forEach(container => {
-            const images = container.querySelectorAll('.product-auto-img');
-            if (images.length > 1) {
-                let currentIndex = 0;
-                setInterval(() => {
-                    images[currentIndex].classList.remove('active');
-                    currentIndex = (currentIndex + 1) % images.length;
-                    images[currentIndex].classList.add('active');
-                }, 3000);
-            }
-        });
-    });
-</script>
 {% endblock %}

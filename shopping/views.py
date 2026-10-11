@@ -206,6 +206,7 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
+
 # ==========================================
 # PRODUCT DETAIL (With Prioritized Selected Variant)
 # ==========================================
@@ -247,6 +248,7 @@ def product_detail(request, slug):
         'shopping/product_detail.html',
         context
     )
+
 
 # ==========================================
 # LOAD MORE PRODUCTS
@@ -295,9 +297,8 @@ def load_more_products(request):
 
     })
 
-
 # ==========================================
-# PRODUCT SEARCH
+# PRODUCT SEARCH (Exact Match & Single Nearest Fallback Price)
 # ==========================================
 
 def product_search(request):
@@ -378,101 +379,134 @@ def product_search(request):
         )
 
     # ==========================================
-    # PRICE FILTER
+    # PRICE FILTER (Exact Matching & Safe Nearest Single Lower Price)
     # ==========================================
+
+    filter_price = None
 
     if max_price and max_price.isdigit():
 
         target_price = int(max_price)
 
-        # ==========================================
-        # EXACT PRICE PRODUCTS
-        # ==========================================
+        # 1. Check for Exact Price Match
+        exact_exists = products.filter(variants__selling_price=target_price).exists()
 
-        exact_products = products.filter(
-            variants__selling_price=
-            target_price
-        ).distinct()
-
-        # ==========================================
-        # EXACT MATCH FOUND
-        # ==========================================
-
-        if exact_products.exists():
-
-            products = exact_products
-
+        if exact_exists:
+            filter_price = float(target_price)
+            products = products.filter(variants__selling_price=target_price).distinct()
         else:
+            # 2. Get Nearest Single Lower Price with Safe Type Conversion
+            lower_prices = products.filter(
+                variants__selling_price__lt=target_price
+            ).values_list('variants__selling_price', flat=True).distinct()
 
-            # ==========================================
-            # LOWER PRICE
-            # ==========================================
+            valid_lower_prices = []
+            for p in lower_prices:
+                try:
+                    if p is not None:
+                        p_str = str(p).split('~')[0].strip()
+                        val = float(p_str)
+                        if val > 0 and val < target_price:
+                            valid_lower_prices.append(val)
+                except (ValueError, TypeError):
+                    continue
 
-            lower_price = products.filter(
-
-                variants__selling_price__lt=
-                target_price
-
-            ).aggregate(
-
-                max_price=Max(
-                    'variants__selling_price'
-                )
-
-            )['max_price']
-
-            # ==========================================
-            # HIGHER PRICE
-            # ==========================================
-
-            higher_price = products.filter(
-
-                variants__selling_price__gt=
-                target_price
-
-            ).aggregate(
-
-                min_price=Min(
-                    'variants__selling_price'
-                )
-
-            )['min_price']
-
-            q_objects = Q()
-
-            # ==========================================
-            # LOWER PRODUCTS
-            # ==========================================
-
-            if lower_price:
-
-                q_objects |= Q(
-                    variants__selling_price=
-                    lower_price
-                )
-
-            # ==========================================
-            # HIGHER PRODUCTS
-            # ==========================================
-
-            if higher_price:
-
-                q_objects |= Q(
-                    variants__selling_price=
-                    higher_price
-                )
-
-            products = products.filter(
-                q_objects
-            ).distinct()
+            if valid_lower_prices:
+                valid_lower_prices.sort(reverse=True)
+                filter_price = valid_lower_prices[0]
+                products = products.filter(variants__selling_price=filter_price).distinct()
+            else:
+                products = products.none()
 
     # ==========================================
-    # FINAL PRODUCTS
+    # FINAL PRODUCTS SORTING
     # ==========================================
 
-    products = products.distinct().order_by(
+    products_list = products.distinct().order_by(
         '-id'
     )
+
+    # ==========================================
+    # ROUND-ROBIN / INTERLEAVED VARIANT GRID LOGIC
+    # ==========================================
+    display_grid = []
+    
+    product_variants_pairs = []
+    for prod in products_list:
+        variants = list(prod.variants.all())
+        filtered_variants = []
+        
+        for v in variants:
+            try:
+                v_sp = float(str(v.selling_price).split('~')[0].strip()) if v.selling_price not in [None, '', 'None', 'null'] else float(str(prod.selling_price).split('~')[0].strip() if prod.selling_price else 0)
+            except (ValueError, TypeError):
+                v_sp = float(str(prod.selling_price).split('~')[0].strip() if prod.selling_price else 0)
+            
+            # Filter strictly by the calculated price (exact or single nearest lower)
+            if filter_price is not None:
+                if v_sp == filter_price:
+                    filtered_variants.append(v)
+            else:
+                filtered_variants.append(v)
+                
+        if max_price and max_price.isdigit() and not filtered_variants:
+            continue
+
+        if filtered_variants:
+            product_variants_pairs.append((prod, filtered_variants))
+        elif not max_price:
+            product_variants_pairs.append((prod, [None]))
+
+    max_variants = max([len(v) for p, v in product_variants_pairs], default=0)
+    
+    for i in range(max_variants):
+        for prod, variants in product_variants_pairs:
+            if i < len(variants):
+                variant = variants[i]
+                
+                # --- PROPER PRICE & DISCOUNT PERCENTAGE CALCULATION ---
+                disc_pct = None
+                selling_price = None
+                mrp = prod.mrp_price
+                
+                try:
+                    v_selling = float(str(variant.selling_price).split('~')[0].strip()) if variant and variant.selling_price not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    v_selling = 0.0
+
+                if variant:
+                    selling_price = variant.selling_price if (v_selling > 0) else prod.selling_price
+                else:
+                    selling_price = prod.selling_price
+                
+                try:
+                    mrp_val = float(str(mrp).split('~')[0].strip()) if mrp not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    mrp_val = 0.0
+
+                try:
+                    selling_val = float(str(selling_price).split('~')[0].strip()) if selling_price not in [None, '', 'None', 'null'] else 0.0
+                except (ValueError, TypeError):
+                    selling_val = 0.0
+
+                if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
+                    disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
+                else:
+                    disc_pct = None
+
+                display_grid.append({
+                    'product': prod,
+                    'variant': variant,
+                    'selling_price': selling_price,
+                    'calculated_discount': disc_pct
+                })
+
+    # ==========================================
+    # PAGINATION FOR SEARCH RESULTS
+    # ==========================================
+    paginator = Paginator(display_grid, 40)
+    page_number = request.GET.get('page')
+    products_page = paginator.get_page(page_number)
 
     # ==========================================
     # GLOBAL DATA
@@ -492,7 +526,7 @@ def product_search(request):
         request,
         'shopping/search_results.html',
         {
-            'products': products,
+            'products': products_page,
             'query': query,
             'max_price': max_price,
             'store': store,
@@ -501,8 +535,6 @@ def product_search(request):
             'sliders': sliders,
         }
     )
-
-
 # ==========================================
 # STATIC PAGES
 # ==========================================
