@@ -175,10 +175,10 @@
                 </div><hr>
                 
                 <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
-                   id="masterShopNowBtn" 
-                   target="_blank" 
-                   rel="nofollow noopener"
-                   style="background: #ff9900; color: #000;">
+                    id="masterShopNowBtn" 
+                    target="_blank" 
+                    rel="nofollow noopener"
+                    style="background: #ff9900; color: #000;">
                     <span style="font-size:18px; font-weight:800; letter-spacing:1px; pointer-events:none;">SHOP NOW</span>
                 </a>
             </div>
@@ -226,6 +226,7 @@ const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
 let dashPlayer = null; // Global Dash player instance
+let hlsPlayer = null;  // Global HLS player instance for Myntra .m3u8
 
 // ================= AFFILIATE LINK PARAMETER LOCKER =================
 function sanitizeAffiliateUrl(rawUrl) {
@@ -265,14 +266,19 @@ function switchMedia(type) {
     }
 }
 
-// Play Video (Handles both standard MP4 and .mpd DASH streams via Dash.js)
+// Play Video (Handles MP4, .mpd DASH, and Myntra .m3u8 HLS streams)
 function loadAndPlayVideo(videoUrl) {
     const mainVideo = document.getElementById('mainProductVideo');
     if (!mainVideo) return;
 
+    // Reset previous players
     if (dashPlayer) {
         dashPlayer.reset();
         dashPlayer = null;
+    }
+    if (hlsPlayer) {
+        hlsPlayer.destroy();
+        hlsPlayer = null;
     }
 
     if (videoUrl.includes('.mpd')) {
@@ -281,6 +287,17 @@ function loadAndPlayVideo(videoUrl) {
             dashPlayer.initialize(mainVideo, videoUrl, false);
         } else {
             console.error("Dash.js library not loaded in header!");
+            mainVideo.src = videoUrl;
+        }
+    } else if (videoUrl.includes('.m3u8')) {
+        // Myntra / Brightcove HLS Engine Support
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+            hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
+            hlsPlayer.loadSource(videoUrl);
+            hlsPlayer.attachMedia(mainVideo);
+        } else if (mainVideo.canPlayType('application/vnd.apple.mpegurl')) {
+            mainVideo.src = videoUrl; // Native Safari support
+        } else {
             mainVideo.src = videoUrl;
         }
     } else {
@@ -292,6 +309,7 @@ function loadAndPlayVideo(videoUrl) {
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
+        const mainVideo = document.getElementById('mainProductVideo');
         const mediaTab = document.getElementById('mediaSwitcherTab');
         const result = document.getElementById("zoomResult");
 
@@ -317,9 +335,9 @@ function syncVariant(el) {
             loadAndPlayVideo(videoUrl);
             if (mediaTab) mediaTab.style.display = 'flex';
         } else {
-            const mainVideo = document.getElementById('mainProductVideo');
             if (mainVideo) { mainVideo.pause(); mainVideo.src = ""; }
             if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
+            if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
             if (mediaTab) mediaTab.style.display = 'none';
         }
 

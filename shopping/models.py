@@ -11,8 +11,7 @@ from django.utils.text import slugify
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
-from urllib.parse import urlparse, urlunparse
-
+from urllib.parse import urlparse, urlunparse, parse_qs
 from .utils import process_and_upload_to_imgbb, ping_google_indexing
 
 
@@ -21,6 +20,7 @@ from .utils import process_and_upload_to_imgbb, ping_google_indexing
 # ==========================================
 
 def clean_image_url(url):
+    
     """Image URL se ? aur uske baad ka saara kachra hata deta hai"""
     if not url:
         return url
@@ -28,6 +28,39 @@ def clean_image_url(url):
     parsed = urlparse(base_url)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
 
+
+def extract_myntra_video_url(url):
+    """Brightcove tracking URL se token samet actual video URL nikalo."""
+    if not url:
+        return url
+
+    url = url.strip()
+
+    try:
+        parsed = urlparse(url)
+
+        if "metrics.brightcove.com" in parsed.netloc.lower():
+            media_urls = parse_qs(
+                parsed.query,
+                keep_blank_values=True
+            ).get("media_url", [])
+
+            if media_urls:
+                video_url = media_urls[0].strip()
+                video_parsed = urlparse(video_url)
+
+                if (
+                    video_parsed.scheme in ("http", "https")
+                    and video_parsed.path.lower().endswith(
+                        (".m3u8", ".mpd", ".mp4")
+                    )
+                ):
+                    return video_url
+
+    except (ValueError, TypeError):
+        pass
+
+    return url
 
 def clean_amazon_link(url, tracking_id="uttarworld202-21"):
     """Amazon ke link ko clean karke sirf standard ASIN aur official tag rakhta hai"""
@@ -264,7 +297,10 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
     
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Image URL")
-    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Video URL")
+
+    video_url = models.URLField(max_length=3000, blank=True, null=True, 
+                                help_text="Myntra ki poori Brightcove link paste karo; video URL automatic niklega.")
+    
     earn_karo_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Affiliate / EarnKaro / Amazon Link")
     
     # Selling price ab CharField hai, ab yahan range ya single price kuch bhi daal sakta hai
@@ -281,6 +317,9 @@ class ProductVariant(models.Model):
         # 2. Agar link Amazon ka hai toh automatically clean karke tag laga do
         if self.earn_karo_url and "amazon" in self.earn_karo_url.lower():
             self.earn_karo_url = clean_amazon_link(self.earn_karo_url, tracking_id="uttarworld202-21")
+
+        if self.video_url:
+            self.video_url = extract_myntra_video_url(self.video_url)
             
         super().save(*args, **kwargs)
 
