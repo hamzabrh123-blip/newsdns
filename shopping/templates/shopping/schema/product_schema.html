@@ -86,3 +86,25 @@
 }
 </script>
 {% endwith %}
+
+
+{% if product.video_url %}
+{% with first_variant=product.variants.first %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "{{ product.title|escapejs }} - Product Video",
+  "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
+  "thumbnailUrl": [
+    "{% if first_variant and first_variant.image_url %}{{ first_variant.image_url|escapejs }}{% elif product.image_url %}{{ product.image_url|escapejs }}{% endif %}"
+  ],
+  "contentUrl": "{{ product.video_url|escapejs }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://uttarworld.com{{ request.path }}"
+  }
+}
+</script>
+{% endwith %}
+{% endif %}

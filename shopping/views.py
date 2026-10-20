@@ -3,6 +3,9 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
+from urllib.parse import urlparse, parse_qs, urlsplit
+from xml.sax.saxutils import escape
+
 
 from django.db.models import (
     Q,
@@ -606,4 +609,69 @@ def sitemap_shop_xml(request):
     return HttpResponse(
         xml,
         content_type="application/xml"
+    )
+
+from urllib.parse import urlsplit
+from xml.sax.saxutils import escape
+
+from django.http import HttpResponse
+from .models import Product
+
+
+def video_sitemap_xml(request):
+    site_url = "https://uttarworld.com"
+
+    products = (
+        Product.objects.filter(
+            is_available=True,
+            variants__video_url__isnull=False,
+        )
+        .exclude(variants__video_url="")
+        .distinct()
+        .order_by("-created_at")
+    )
+
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+"""
+
+    for product in products:
+        product_url = f"{site_url}/shopping/product/{product.slug}/"
+
+        for variant in product.variants.all():
+            video_url = (variant.video_url or "").strip()
+            thumbnail = (variant.image_url or "").strip()
+
+            if not video_url or not thumbnail:
+                continue
+
+            parsed = urlsplit(video_url)
+
+            if parsed.scheme not in ("http", "https") or not parsed.netloc:
+                continue
+
+            title = escape(f"{product.title} - Product Video")
+            description = escape(
+                (product.meta_description or product.title or "Product video").strip()
+            )
+
+            xml += f"""
+  <url>
+    <loc>{escape(product_url)}</loc>
+    <video:video>
+      <video:thumbnail_loc>{escape(thumbnail)}</video:thumbnail_loc>
+      <video:title>{title}</video:title>
+      <video:description>{description}</video:description>
+      <video:content_loc>{escape(video_url)}</video:content_loc>
+    </video:video>
+  </url>
+"""
+
+    xml += "\n</urlset>"
+
+    return HttpResponse(
+        xml,
+        content_type="application/xml; charset=utf-8"
     )

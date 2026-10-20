@@ -27,6 +27,9 @@ def robots_txt(request):
         "Disallow: /checkout/\n\n"
 
         "Sitemap: https://uttarworld.com/sitemap.xml"
+
+        "Sitemap: https://uttarworld.com/video-sitemap.xml\n"
+
     )
 
     return HttpResponse(
@@ -161,6 +164,12 @@ urlpatterns = [
         'sitemap.xml',
         views.sitemap_shop_xml,
         name='sitemap_shop_xml'
+    ),
+
+    path(
+        "video-sitemap.xml",
+        views.video_sitemap_xml,
+        name="video_sitemap",
     ),
 
     path(
