@@ -26,7 +26,7 @@ def robots_txt(request):
         "Disallow: /cart/\n"
         "Disallow: /checkout/\n\n"
 
-        "Sitemap: https://uttarworld.com/sitemap.xml"
+        "Sitemap: https://uttarworld.com/sitemap.xml\n"
 
         "Sitemap: https://uttarworld.com/video-sitemap.xml\n"
 
