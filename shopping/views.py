@@ -340,29 +340,13 @@ def product_search(request):
     # ==========================================
 
     if query:
-
-        search_query = query.lower().replace(
-            '.com',
-            ''
-        ).strip()
+        search_query = query.lower().replace('.com', '').strip()
 
         products = products.filter(
-
-            Q(
-                title__icontains=query
-            ) |
-
-            Q(
-                variants__store_name__icontains=query
-            ) |
-
-            Q(
-                variants__store_name__iregex=
-                rf'^{search_query}(\.com)?$'
+            Q(title__icontains=query) |
+            Q(store_name__icontains=query) |
+             Q(store_name__iregex=rf'^{search_query}(\.com)?$')
             )
-
-        )
-
     # ==========================================
     # STORE FILTER
     # ==========================================
@@ -374,12 +358,7 @@ def product_search(request):
             ''
         ).strip()
 
-        products = products.filter(
-
-            variants__store_name__iregex=
-            rf'^{store}(\.com)?$'
-
-        )
+        products = products.filter(store_name__iregex=rf'^{store}(\.com)?$')
 
     # ==========================================
     # PRICE FILTER (Exact Matching & Safe Nearest Single Lower Price)
