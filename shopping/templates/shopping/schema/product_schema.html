@@ -1,91 +1,88 @@
+
+{% with main_url="https://uttarworld.com"|add:request.path %}
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": "{{ product.title|escapejs }}",
-  {% with first_variant=product.variants.first %}
-    {% if first_variant and first_variant.image_url %}
-  "image": "{{ first_variant.image_url }}",
-    {% elif product.image_url %}
-  "image": "{{ product.image_url }}",
-    {% endif %}
-  "sku": "{{ first_variant.variant_code|default:product.id }}",
-  {% endwith %}
-  "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
-  {% if product.meta_keywords %}
-  "keywords": "{{ product.meta_keywords|escapejs }}",
-  {% endif %}
-  "brand": {
-    "@type": "Brand",
-    "name": "Uttar World Elite Lifestyle Store"
-  },
-  {% if product.video_url %}
-  "subjectOf": {
-    "@type": "VideoObject",
-    "name": "{{ product.title|escapejs }} - Product Video",
-    "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:160|escapejs }}",
-    "thumbnailUrl": "{% with first_variant=product.variants.first %}{{ first_variant.image_url|default:product.image_url }}{% endwith %}",
-    "uploadDate": "2026-01-01T08:00:00+05:30",
-    "contentUrl": "{{ product.video_url }}",
-    "embedUrl": "{{ product.video_url }}"
-  },
-  {% endif %}
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "{{ product.rating|default:'4.5' }}",
-    "reviewCount": "{{ product.review_count|default:'15' }}"
-  },
-  "offers": {
-    "@type": "Offer",
-    "url": "https://www.uttarworld.com{{ request.path }}",
-    "priceCurrency": "INR",
-    {% with first_variant=product.variants.first %}
-    "price": "{% if first_variant and first_variant.selling_price %}{{ first_variant.selling_price }}{% else %}{{ product.selling_price|default:product.mrp_price|default:'499' }}{% endif %}",
-    {% endwith %}
-    "priceValidUntil": "2026-12-31",
-    "itemCondition": "https://schema.org/NewCondition",
-    "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
-    "hasMerchantReturnPolicy": {
-      "@type": "MerchantReturnPolicy",
-      "applicableCountry": {
-        "@type": "Country",
-        "name": "IN"
-      },
-      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": 10,
-      "returnMethod": "https://schema.org/ReturnByMail",
-      "returnFees": "https://schema.org/FreeReturn"
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://uttarworld.com/#organization",
+      "name": "Uttar World Elite Lifestyle Store",
+      "url": "https://uttarworld.com/"
     },
-    "shippingDetails": {
-      "@type": "OfferShippingDetails",
-      "shippingRate": {
-        "@type": "MonetaryAmount",
-        "value": "0",
-        "currency": "INR"
-      },
-      "shippingDestination": {
-        "@type": "DefinedRegion",
-        "addressCountry": {
-          "@type": "Country",
-          "name": "IN"
-        }
-      },
-      "deliveryTime": {
-        "@type": "ShippingDeliveryTime",
-        "handlingTime": {
-          "@type": "QuantitativeValue",
-          "minValue": 1,
-          "maxValue": 2,
-          "unitCode": "DAY"
-        },
-        "transitTime": {
-          "@type": "QuantitativeValue",
-          "minValue": 3,
-          "maxValue": 7,
-          "unitCode": "DAY"
-        }
+    {
+      "@type": "WebSite",
+      "@id": "https://uttarworld.com/#website",
+      "url": "https://uttarworld.com/",
+      "name": "Uttar World Elite Lifestyle Store",
+      "publisher": {
+        "@id": "https://uttarworld.com/#organization"
       }
+    },
+    {
+      "@type": "ProductGroup",
+      "@id": "{{ main_url }}#product-group",
+      "name": "{{ product.title|escapejs }}",
+      "url": "{{ main_url }}",
+      "productGroupID": "{{ product.id }}",
+      "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
+      "brand": {
+        "@type": "Brand",
+        "name": "Uttar World"
+      },
+      "hasVariant": [
+        {% for variant in product.variants.all %}
+        {
+          "@type": "Product",
+          "@id": "{{ main_url }}?v={{ variant.id }}#product",
+          "name": "{{ product.title|escapejs }}{% if variant.variant_code %} - {{ variant.variant_code|escapejs }}{% else %} - Variant {{ variant.id }}{% endif %}",
+          "sku": "{{ variant.variant_code|default:variant.id|escapejs }}",
+          "url": "{{ main_url }}?v={{ variant.id }}",
+          {% if variant.image_url %}
+          "image": "{{ variant.image_url|escapejs }}",
+          {% elif product.image_url %}
+          "image": "{{ product.image_url|escapejs }}",
+          {% endif %}
+          {% if variant.selling_price or product.selling_price or product.mrp_price %}
+          "offers": {
+            "@type": "Offer",
+            "url": "{{ main_url }}?v={{ variant.id }}",
+            "price": "{% if variant.selling_price %}{{ variant.selling_price }}{% elif product.selling_price %}{{ product.selling_price }}{% else %}{{ product.mrp_price }}{% endif %}",
+            "priceCurrency": "{% if product.currency == '₹' %}INR{% elif product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% elif product.currency == 'INR' %}INR{% elif product.currency == 'USD' %}USD{% elif product.currency == 'EUR' %}EUR{% endif %}",
+            "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "itemCondition": "https://schema.org/NewCondition"
+          }
+          {% endif %}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
     }
-  }
+    {% if product.video_url and product.video_upload_date %}
+    ,
+    {
+      "@type": "VideoObject",
+      "@id": "{{ main_url }}#product-video",
+      "name": "{{ product.title|escapejs }} - Product Video",
+      "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
+      "about": {
+        "@id": "{{ main_url }}#product-group"
+      },
+      {% with first_variant=product.variants.first %}
+      "thumbnailUrl": "{% if product.video_thumbnail_url %}{{ product.video_thumbnail_url|escapejs }}{% elif first_variant.image_url %}{{ first_variant.image_url|escapejs }}{% else %}{{ product.image_url|escapejs }}{% endif %}",
+      {% endwith %}
+      "uploadDate": "{{ product.video_upload_date|date:'c' }}",
+      "publisher": {
+        "@id": "https://uttarworld.com/#organization"
+      }
+      {% if product.video_content_url %},
+      "contentUrl": "{{ product.video_content_url|escapejs }}"
+      {% endif %}
+      {% if product.video_embed_url %},
+      "embedUrl": "{{ product.video_embed_url|escapejs }}"
+      {% endif %}
+    }
+    {% endif %}
+  ]
 }
 </script>
+{% endwith %}
