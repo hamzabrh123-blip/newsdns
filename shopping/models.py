@@ -214,7 +214,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-
 # ==========================================
 # 4. PRODUCT MANAGER
 # ==========================================
@@ -384,16 +383,26 @@ class DropdownMenu(models.Model):
 # ==========================================
 
 class HomeSection(models.Model):
+    # Yeh raha wo type karne wala box jisme tu badi heading daalega (jaise: Womens Fashion)
+    heading_name = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True, 
+        help_text="Yahan Badi Heading type karein (jaise: Womens Fashion, Mens Fashion)"
+    )
+    
     image = models.ImageField(upload_to="home_sections/", null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="home_sections", null=True, blank=True)
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0, help_text="Numbering: 1, 2, 3... taaki heading upar-neeche set ho sake")
     is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["order"]
 
     def __str__(self):
-        return self.category.name if self.category else "Home Section"
+        heading = self.heading_name if self.heading_name else "No Heading"
+        cat_name = self.category.name if self.category else "No Category"
+        return f"[{heading}] ---> {cat_name} (Order: {self.order})"
 
 
 # ==========================================

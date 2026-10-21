@@ -64,44 +64,44 @@ def get_base_context():
 # ==========================================
 # 1. HOME PAGE
 # ==========================================
+# ==========================================
+# 1. HOME PAGE
+# ==========================================
 def shop_home(request):
-
     context = get_base_context()
 
-    categories = Category.objects.filter( products__is_available=True ).distinct().order_by('name')
-    
     sliders = HomeSlider.objects.filter(is_active=True).order_by('?')
+    
+    # Active sections fetch karo order ke mutabiq
+    home_sections = HomeSection.objects.filter(is_active=True).select_related('category').order_by('order')
 
-    # HOME SECTION IMAGE
-    home_sections = HomeSection.objects.filter( is_active=True).select_related(   'category' ).order_by(  'order')
+    # Same heading wale sections ko ek jagah group karne ka logic
+    grouped_sections = []
+    seen_headings = []
 
-    # MIX PRODUCTS
-    products_list = Product.objects.filter( is_available=True).prefetch_related('variants' ).defer( 'long_description').order_by('-created_at')
+    for section in home_sections:
+        h_name = section.heading_name.strip() if section.heading_name else "Featured Collection"
+        
+        if h_name not in seen_headings:
+            seen_headings.append(h_name)
+            # Is heading ke jitne bhi active sections hain unhe ek sath list me dalo
+            items = [s for s in home_sections if (s.heading_name.strip() if s.heading_name else "Featured Collection") == h_name]
+            grouped_sections.append({
+                'heading_name': h_name,
+                'items': items
+            })
 
-    # PAGINATION
-    paginator = Paginator(
-        products_list,
-        24
-    )
+    products_list = Product.objects.filter(is_available=True).prefetch_related('variants').defer('long_description').order_by('-created_at')
 
+    paginator = Paginator(products_list, 24)
     page_number = request.GET.get('page')
-
-    products = paginator.get_page(
-        page_number
-    )
+    products = paginator.get_page(page_number)
 
     context.update({
-
-        'categories': categories,
-
         'sliders': sliders,
-
-        'home_sections': home_sections,
-
+        'grouped_sections': grouped_sections,  # 👈 Ab grouped_sections bhej rahe hain
         'products': products,
-
         'is_homepage': True,
-
     })
 
     return render(
@@ -109,8 +109,6 @@ def shop_home(request):
         'shopping/shop_home.html',
         context
     )
-
-
 # ==========================================
 # CATEGORY DETAIL (Fixed Interleaved Variants & Paginator)
 # ==========================================
@@ -209,7 +207,6 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
-
 # ==========================================
 # PRODUCT DETAIL (With Prioritized Selected Variant)
 # ==========================================
