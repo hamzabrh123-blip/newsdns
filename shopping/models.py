@@ -111,7 +111,7 @@ def ping_bing_indexing_batch(urls):
     urls = list(dict.fromkeys(url for url in urls if url))
     if not urls:
         return False
-    batch_size = 500
+    batch_size = 1000
     total_urls = len(urls)
     submitted_urls = 0
     for start in range(0, total_urls, batch_size):

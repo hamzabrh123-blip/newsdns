@@ -3,6 +3,9 @@ from django.db import models
 from django.forms import Textarea, TextInput
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
+from .indexing_utils import notify_google_indexing
+from .models import ping_bing_indexing_batch
+
 
 from .models import (
     StoreLogoUpload,
@@ -120,8 +123,7 @@ class ProductAdmin(ImportExportModelAdmin):
     )
     
     inlines = [ProductVariantInline]
-    actions = ["trigger_bing_submission"]
-
+    actions = [ "trigger_google_submission", "trigger_bing_submission",] 
     formfield_overrides = {
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
@@ -159,13 +161,74 @@ class ProductAdmin(ImportExportModelAdmin):
         return "Save product once or add variant image to preview here."
     product_image_preview.short_description = "Product Main Image Preview"
 
-    @admin.action(description="Submit selected/all available products to search engines")
+    
+
+    @admin.action(description="Submit selected products to Google")
+    def trigger_google_submission(self, request, queryset):
+        urls = [
+            f"https://uttarworld.com/shopping/product/{p.slug}/"
+            for p in queryset.filter(is_available=True)
+            .exclude(slug__isnull=True)
+            .exclude(slug="")
+        ]
+
+        success = 0
+        failed = 0
+        errors = []
+
+        for url in urls:
+            try:
+                result = notify_google_indexing(url)
+
+                if isinstance(result, dict) and result.get("status") == "success":
+                    success += 1
+                else:
+                    failed += 1
+                    if len(errors) < 3:
+                        errors.append(
+                            f"{url}: {result!r}"
+                        )
+            except Exception as e:
+                failed += 1
+                if len(errors) < 3:
+                    errors.append(
+                        f"{url}: {type(e).__name__}: {e}"
+                    )
+
+        self.message_user(
+            request,
+            f"Google submission: {success} successful, {failed} failed."
+        )
+
+        for error in errors:
+            self.message_user(
+                request,
+                error[:1000],
+                level="WARNING"
+            )
+
+    @admin.action(description="Submit selected products to Bing")
     def trigger_bing_submission(self, request, queryset):
-        success = submit_all_products_to_bing()
+        urls = [
+            f"https://uttarworld.com/shopping/product/{p.slug}/"
+            for p in queryset.filter(is_available=True)
+            .exclude(slug__isnull=True)
+            .exclude(slug="")
+        ]
+
+        success = ping_bing_indexing_batch(urls)
+
         if success:
-            self.message_user(request, "Successfully submitted products to search engines!")
+            self.message_user(
+                request,
+                f"Bing submission successful for {len(urls)} URLs."
+            )
         else:
-            self.message_user(request, "Submission completed with some errors. Check logs.", level="WARNING")
+            self.message_user(
+                request,
+                "Bing submission failed or was incomplete. Check logs.",
+                level="WARNING",
+            )
 
 
 @admin.register(HomeSlider)

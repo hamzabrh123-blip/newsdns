@@ -112,34 +112,62 @@ def detect_store_and_logo(title, url):
 # --- 3. GOOGLE INDEXING API (Fixed) ---
 def ping_google_indexing(url):
     try:
-        json_file_path = os.path.join(settings.BASE_DIR, 'credentials.json')
-        with open(json_file_path, 'r') as f:
-            creds_data = json.load(f)
-
+        from dotenv import load_dotenv
         from google.oauth2 import service_account
         from google.auth.transport.requests import Request
-        
+
+        load_dotenv()
+
+        # Pehle .env se credentials read karo
+        creds_json = os.environ.get("GOOGLE_JSON_CONTENT")
+
+        if creds_json:
+            creds_data = json.loads(creds_json)
+        else:
+            # Fallback: project root mein credentials.json
+            json_file_path = os.path.join(
+                settings.BASE_DIR, "credentials.json"
+            )
+            with open(json_file_path, "r", encoding="utf-8") as f:
+                creds_data = json.load(f)
+
         creds = service_account.Credentials.from_service_account_info(
             creds_data,
-            scopes=['https://www.googleapis.com/auth/indexing']
+            scopes=["https://www.googleapis.com/auth/indexing"],
         )
-        
-        auth_req = Request()
-        creds.refresh(auth_req)
-        
-        payload = {'url': url, 'type': 'URL_UPDATED'}
-        headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {creds.token}'}
-        
+
+        creds.refresh(Request())
+
         response = requests.post(
-            'https://indexing.googleapis.com/v3/urlNotifications:publish', 
-            json=payload, 
-            headers=headers,
-            timeout=20
+            "https://indexing.googleapis.com/v3/urlNotifications:publish",
+            json={"url": url, "type": "URL_UPDATED"},
+            headers={
+                "Authorization": f"Bearer {creds.token}",
+                "Content-Type": "application/json",
+            },
+            timeout=20,
         )
-        return f"✅ Indexing Success: {response.status_code}"
-            
+
+        if response.status_code == 200:
+            return {
+                "status": "success",
+                "message": response.text,
+            }
+
+        return {
+            "status": "error",
+            "message": (
+                f"Google API HTTP {response.status_code}: "
+                f"{response.text[:800]}"
+            ),
+        }
+
     except Exception as e:
-        return f"❌ Indexing Error: {str(e)}"
+        return {
+            "status": "error",
+            "message": f"{type(e).__name__}: {e}",
+        }
+
     
 # --- 4. PINTEREST PUBLISHING ENGINE ---
 def publish_to_pinterest(title, description, image_url, destination_link, access_token):
