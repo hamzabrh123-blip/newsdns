@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
 from .redirects import seo_urlpatterns
-
+from .shop_now_tracking import track_shop_now_click
 
 # =========================================================
 # SEO & UTILITY FUNCTIONS
@@ -191,6 +191,12 @@ urlpatterns = [
     ),
 
 
+
+    path(
+        "track-shop-now/",
+        track_shop_now_click,
+        name="track_shop_now_click",
+    ),
     # =====================================================
     # 6. OLD URL REDIRECTS + 410
     #

@@ -1,5 +1,5 @@
 {% extends "shopping/shop_base.html" %}
-
+{% load feedback_tags %}
 {% block content %}
 
 <style>
@@ -235,6 +235,9 @@
             </ul>
         </nav>
     {% endif %}
+
+<!-- Category Feedback Section -->
+{% feedback_section category %}
 
     <!-- 3. SEO FOOTER SECTION (Category Title, Description & Image - Google ke liye sabse neeche) -->
     <div class="seo-footer-section px-3">

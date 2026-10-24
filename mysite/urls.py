@@ -29,9 +29,10 @@ urlpatterns = [
     # 3. Admin & Editor
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
-    
+    path('feedback/', include('feedback.urls')),
     # 4. SHOPPING (ROOT par)
     path('', include('shopping.urls')), 
+
 ]
 
 # PC par testing ke liye (Sahi tarika)

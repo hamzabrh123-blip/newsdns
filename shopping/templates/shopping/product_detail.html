@@ -1,4 +1,5 @@
 {% extends "shopping/shop_base.html" %}
+{% load feedback_tags %}
 {% load static %}
 {% load seo_filters %}
 {% load amazon_filters %}
@@ -80,6 +81,7 @@
                      data-raw-url="{{ variant.image_url }}" 
                      data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                      data-code="{{ variant.variant_code }}" 
+                     data-variant-id="{{ variant.id }}"
                      data-selling-price="{{ variant.selling_price|default:'' }}"
                      data-mrp-price="{{ variant.mrp_price|default:'' }}"
                      data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
@@ -134,6 +136,7 @@
                          data-raw-url="{{ variant.image_url }}" 
                          data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
                          data-code="{{ variant.variant_code }}" 
+                         data-variant-id="{{ variant.id }}"
                          data-selling-price="{{ variant.selling_price|default:'' }}"
                          data-mrp-price="{{ variant.mrp_price|default:'' }}"
                          data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
@@ -176,6 +179,9 @@
                 
                 <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
                     id="masterShopNowBtn" 
+                    data-product-id="{{ product.id }}"
+                    data-variant-id="{{ variants.0.id|default:'' }}"
+                    data-store-name="{{ variants.0.store_name|default:product.store_name|default:'' }}"
                     target="_blank" 
                     rel="nofollow noopener"
                     style="background: #ff9900; color: #000;">
@@ -207,6 +213,8 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 </div>
 <hr>
 {% include 'shopping/includes/related_products.html' %}
+
+{% feedback_section product %}
 
 <div class="container-fluid my-5">
     <div class="row">
@@ -314,6 +322,7 @@ function syncVariant(el) {
         const result = document.getElementById("zoomResult");
 
         const code = el.getAttribute('data-code');
+        const variantId = el.getAttribute('data-variant-id');
         const rawUrl = el.getAttribute('data-raw-url');
         const videoUrl = el.getAttribute('data-video-url');
         const sellingPrice = el.getAttribute('data-selling-price');
@@ -400,6 +409,8 @@ function syncVariant(el) {
             }
             
             shopBtn.href = sanitizeAffiliateUrl(finalLink);
+            shopBtn.dataset.variantId = variantId || "";
+            shopBtn.dataset.storeName = storeName || "";
 
             let store = storeName || "SHOP";
             let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
@@ -503,5 +514,24 @@ function initZoom(imgID, resultID) {
         result.style.backgroundPosition = `-${bgX}px -${bgY}px`;
     };
 }
+
+document.getElementById("masterShopNowBtn")?.addEventListener("click", function () {
+    const btn = this;
+    const formData = new FormData();
+
+    formData.append("product_id", btn.dataset.productId || "");
+    formData.append("variant_id", btn.dataset.variantId || "");
+
+    const csrfToken =
+        document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+
+    fetch("{% url 'track_shop_now_click' %}", {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+        keepalive: true,
+        headers: csrfToken ? { "X-CSRFToken": csrfToken } : {}
+    }).catch(() => {});
+});
 </script>
 {% endblock %}

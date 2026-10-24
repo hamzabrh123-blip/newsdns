@@ -294,6 +294,7 @@ class Product(models.Model):
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
+    variant_code = models.CharField( max_length=30, blank=True, default="",  db_index=True,  help_text="Unique product variant code" )
     
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Image URL")
 
@@ -432,3 +433,28 @@ class StoreConfiguration(models.Model):
 
     def __str__(self):
         return self.store_name
+
+# ==========================================
+# SHOP NOW CLICK TRACKING
+# ==========================================
+class ShopNowClick(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="shop_now_clicks"
+    )
+    variant = models.ForeignKey(
+        ProductVariant, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="shop_now_clicks"
+    )
+    store_name = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-clicked_at"]
+        verbose_name = "SHOP NOW Click"
+        verbose_name_plural = "SHOP NOW Clicks"
+
+    def __str__(self):
+        return f"{self.store_name or 'Unknown Store'} - {self.city or 'Unknown City'} - {self.clicked_at}"

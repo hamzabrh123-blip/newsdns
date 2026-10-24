@@ -1,0 +1,93 @@
+
+<section class="feedback-section" style="max-width:900px;margin:35px auto;padding:20px;border:1px solid #e5e7eb;border-radius:12px;">
+    <h2 style="font-size:24px;font-weight:700;margin-bottom:8px;">
+        Comments & Reviews
+    </h2>
+    <p style="color:#666;margin-bottom:20px;">
+        Apna experience share karein. Aapka feedback approval ke baad yahan dikhega.
+    </p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p role="status" style="padding:10px;border-radius:6px;background:#f3f4f6;margin-bottom:10px;">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post"
+          action="{% url 'feedback:submit_feedback' target_type=target_type slug=target_slug %}"
+          style="display:grid;gap:12px;margin-bottom:30px;">
+        {% csrf_token %}
+
+        <label for="feedback-author"><strong>Your name</strong></label>
+        <input id="feedback-author"
+               type="text"
+               name="author_name"
+               maxlength="100"
+               required
+               autocomplete="name"
+               style="width:100%;padding:12px;border:1px solid #ccc;border-radius:6px;">
+
+        <label for="feedback-rating"><strong>Star rating (optional)</strong></label>
+        <select id="feedback-rating"
+                name="rating"
+                style="width:100%;padding:12px;border:1px solid #ccc;border-radius:6px;">
+            <option value="">No rating</option>
+            <option value="5">★★★★★ — Excellent</option>
+            <option value="4">★★★★ — Very good</option>
+            <option value="3">★★★ — Good</option>
+            <option value="2">★★ — Fair</option>
+            <option value="1">★ — Poor</option>
+        </select>
+
+        <label for="feedback-comment"><strong>Your comment or review</strong></label>
+        <textarea id="feedback-comment"
+                  name="comment"
+                  rows="4"
+                  maxlength="5000"
+                  required
+                  style="width:100%;padding:12px;border:1px solid #ccc;border-radius:6px;"
+                  placeholder="Write your feedback here..."></textarea>
+
+        <button type="submit"
+                style="background:#ff9900;color:#111;border:0;border-radius:7px;padding:12px 20px;font-weight:700;cursor:pointer;">
+            Submit Feedback
+        </button>
+    </form>
+
+    <h3 style="font-size:19px;font-weight:700;margin-bottom:15px;">
+        Visitor Feedback
+    </h3>
+
+    {% for item in feedback_list %}
+        <article style="padding:15px 0;border-top:1px solid #e5e7eb;">
+            <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;">
+                <strong>{{ item.author_name }}</strong>
+                <time datetime="{{ item.created_at|date:'c' }}" style="font-size:13px;color:#777;">
+                    {{ item.created_at|date:"d M Y" }}
+                </time>
+            </div>
+
+            {% if item.rating %}
+                <p aria-label="{{ item.rating }} out of 5 stars"
+                   style="color:#b77900;margin:6px 0;">
+                    {% for star in "12345" %}
+                        {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+
+            <p style="white-space:pre-wrap;margin-top:8px;">{{ item.comment }}</p>
+
+            {% if item.admin_reply %}
+                <div style="margin-top:12px;padding:12px;background:#f9fafb;border-left:3px solid #ff9900;">
+                    <strong>Uttar World reply</strong>
+                    <p style="white-space:pre-wrap;margin-top:6px;">{{ item.admin_reply }}</p>
+                </div>
+            {% endif %}
+        </article>
+    {% empty %}
+        <p style="color:#777;">Abhi koi approved feedback nahi hai. Aap pehle feedback dene wale ban sakte hain.</p>
+    {% endfor %}
+</section>

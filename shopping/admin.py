@@ -5,6 +5,7 @@ from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 from .indexing_utils import notify_google_indexing
 from .models import ping_bing_indexing_batch
+from .models import ShopNowClick
 
 
 from .models import (
@@ -263,3 +264,27 @@ class StoreConfigurationAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
+
+
+
+
+@admin.register(ShopNowClick)
+class ShopNowClickAdmin(admin.ModelAdmin):
+    list_display = (
+        "clicked_at",
+        "product",
+        "variant",
+        "store_name",
+        "city",
+        "country",
+    )
+    list_filter = ("store_name", "country", "clicked_at")
+    search_fields = (
+        "product__title",
+        "store_name",
+        "city",
+        "country",
+        "variant__variant_code",
+    )
+    ordering = ("-clicked_at",)
+    readonly_fields = ("clicked_at",)
