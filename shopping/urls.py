@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
+from .fsj_api import fsj_live_rates
 from .redirects import seo_urlpatterns
 from .shop_now_tracking import track_shop_now_click
 
@@ -196,6 +197,16 @@ urlpatterns = [
         "track-shop-now/",
         track_shop_now_click,
         name="track_shop_now_click",
+    ),
+
+    # =====================================================
+    # FS JEWELLERS METAL RATES API
+    # =====================================================
+
+    path(
+        'api/fsjewellers/rates/',
+        fsj_live_rates,
+        name='fsj_live_rates'
     ),
     # =====================================================
     # 6. OLD URL REDIRECTS + 410
