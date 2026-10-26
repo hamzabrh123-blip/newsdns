@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)
 
-TROY_OUNCE_GRAMS = Decimal("31.1034768")
+IBJA_API_URL = "https://api.metals.dev/v1/metal/authority"
 
 
 def _number(value):
@@ -39,75 +39,23 @@ def _get_json(url):
 
     with urlopen(request, timeout=15) as response:
         if response.status != 200:
-            raise RuntimeError("Provider returned an unsuccessful response.")
+            raise RuntimeError(
+                "Metals.Dev returned an unsuccessful response."
+            )
         payload = json.loads(response.read().decode("utf-8"))
 
     if not isinstance(payload, dict):
-        raise RuntimeError("Provider returned an unexpected JSON format.")
-
-    return payload
-
-
-def _gold_api_rates(currency):
-    base_url = os.environ.get(
-        "GOLD_API_BASE_URL",
-        "https://api.gold-api.com/price",
-    ).strip().rstrip("/")
-
-    if not base_url.startswith("https://"):
-        raise RuntimeError("Gold-API URL must use HTTPS.")
-
-    def fetch(symbol):
-        return _get_json(
-            f"{base_url}/{symbol}/{currency}"
+        raise RuntimeError(
+            "Metals.Dev returned an unexpected JSON format."
         )
 
-    gold = fetch("XAU")
-    logger.info("Gold-API raw gold response: %s", gold)
-    
-    silver = fetch("XAG")
-    logger.info("Gold-API raw silver response: %s", silver)
-
-    if not gold.get("price") or not silver.get("price"):
-        raise RuntimeError("Gold-API gold or silver price is missing.")
-
-    # Gold-API quotes precious metals per troy ounce.
-    gold_ounce = _number(gold.get("price"))
-    silver_ounce = _number(silver.get("price"))
-
-    if gold_ounce is None or silver_ounce is None:
-        raise RuntimeError("Gold-API returned an invalid price.")
-
-    try:
-        platinum_data = fetch("XPT")
-        platinum_ounce = _number(platinum_data.get("price"))
-    except Exception:
-        logger.warning("Gold-API platinum rate unavailable.")
-        platinum_ounce = None
-
-    return {
-        "yellowGold24K": float(gold_ounce / TROY_OUNCE_GRAMS),
-        "yellowGold18K": float(
-            gold_ounce / TROY_OUNCE_GRAMS * Decimal("0.75")
-        ),
-        "silver999": float(silver_ounce / TROY_OUNCE_GRAMS),
-        "platinum999": (
-            float(platinum_ounce / TROY_OUNCE_GRAMS)
-            if platinum_ounce is not None else None
-        ),
-        "copperPerKg": None,
-        "timestamp": (
-            gold.get("updatedAt")
-            or silver.get("updatedAt")
-            or ""
-        ),
-    }
+    return payload
 
 
 def _metals_dev_rates(currency):
     api_url = os.environ.get(
         "METALS_DEV_API_URL",
-        "https://api.metals.dev/v1/latest",
+        IBJA_API_URL,
     ).strip()
 
     api_key = (
@@ -120,11 +68,12 @@ def _metals_dev_rates(currency):
 
     if not api_key:
         raise RuntimeError(
-            "METALS_DEV_API_KEY is missing in Render Environment."
+            "Metals.Dev API key is missing in Render Environment."
         )
 
     params = urlencode({
         "api_key": api_key,
+        "authority": "ibja",
         "currency": currency,
         "unit": "g",
     })
@@ -133,38 +82,44 @@ def _metals_dev_rates(currency):
     payload = _get_json(f"{api_url}{separator}{params}")
 
     if payload.get("status") != "success":
-        raise RuntimeError("Metals.Dev did not return success.")
+        raise RuntimeError(
+            "Metals.Dev IBJA request did not return success."
+        )
 
-    metals = payload.get("metals") or {}
+    if payload.get("authority", "").lower() != "ibja":
+        raise RuntimeError(
+            "Metals.Dev did not confirm IBJA as the authority."
+        )
 
-    gold = _number(metals.get("gold"))
-    silver = _number(metals.get("silver"))
-    platinum = _number(metals.get("platinum"))
+    rates = payload.get("rates") or {}
+
+    gold = _number(rates.get("ibja_gold"))
+    silver = _number(rates.get("ibja_silver"))
 
     if gold is None or silver is None:
-        raise RuntimeError("Metals.Dev gold or silver rate is missing.")
+        raise RuntimeError(
+            "IBJA gold or silver rate is missing or invalid."
+        )
 
     return {
         "yellowGold24K": float(gold),
-        "yellowGold18K": float(gold * Decimal("0.75")),
+        "yellowGold18K": float(
+            gold * Decimal("0.75")
+        ),
         "silver999": float(silver),
-        "platinum999": float(platinum) if platinum else None,
+        "platinum999": None,
         "copperPerKg": None,
         "timestamp": payload.get("timestamp", ""),
     }
 
 
 def _make_response(provider, currency):
-    if provider == "gold-api":
-        rates = _gold_api_rates(currency)
-    elif provider == "metals-dev":
-        rates = _metals_dev_rates(currency)
-    else:
+    if provider != "metals-dev":
         raise ValueError(
-            "Unsupported provider. Configure gold-api or metals-dev, "
-            "or add an adapter for the selected provider."
+            "Unsupported provider. Set METALS_API_PROVIDER=metals-dev."
         )
 
+    rates = _metals_dev_rates(currency)
     timestamp = rates.pop("timestamp", "")
 
     return {
@@ -177,7 +132,8 @@ def _make_response(provider, currency):
             for key, value in rates.items()
         },
         "timestamp": timestamp,
-        "source": provider,
+        "source": "metals-dev-ibja",
+        "authority": "ibja",
         "isLive": True,
     }
 
@@ -185,7 +141,7 @@ def _make_response(provider, currency):
 @require_GET
 def fsj_live_rates(request):
     provider = os.environ.get(
-        "METALS_API_PROVIDER", "gold-api"
+        "METALS_API_PROVIDER", "metals-dev"
     ).strip().lower()
 
     currency = os.environ.get(
@@ -194,39 +150,65 @@ def fsj_live_rates(request):
 
     try:
         cache_seconds = int(
-            os.environ.get("METALS_CACHE_SECONDS", "30")
+            os.environ.get("METALS_CACHE_SECONDS", "90")
         )
         cache_seconds = max(0, min(cache_seconds, 3600))
     except ValueError:
-        cache_seconds = 30
+        cache_seconds = 90
 
     if len(currency) != 3 or not currency.isalpha():
         return JsonResponse(
-            {"status": "error", "message": "Invalid currency configuration."},
+            {
+                "status": "error",
+                "message": "Invalid currency configuration.",
+            },
             status=503,
         )
 
-    cache_key = f"fsj_rates_v3_{provider}_{currency}"
-    cached = cache.get(cache_key)
+    if provider != "metals-dev":
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": (
+                    "Configure METALS_API_PROVIDER=metals-dev "
+                    "to use IBJA rates."
+                ),
+            },
+            status=503,
+        )
 
+    cache_key = f"fsj_rates_ibja_v1_{currency}"
+
+    cached = cache.get(cache_key)
     if cached is not None:
         return JsonResponse(cached)
 
     try:
         result = _make_response(provider, currency)
 
-        if cache_seconds:
+        if cache_seconds > 0:
             cache.set(cache_key, result, cache_seconds)
 
         return JsonResponse(result)
 
-    except (HTTPError, URLError, TimeoutError, OSError,
-            ValueError, RuntimeError):
-        logger.exception("FS Jewellers rates provider request failed.")
+    except (
+        HTTPError,
+        URLError,
+        TimeoutError,
+        OSError,
+        ValueError,
+        RuntimeError,
+        json.JSONDecodeError,
+    ):
+        logger.exception(
+            "FS Jewellers IBJA rates request failed."
+        )
         return JsonResponse(
             {
                 "status": "error",
-                "message": "Live metal rates are temporarily unavailable.",
+                "message": (
+                    "IBJA live metal rates are temporarily unavailable."
+                ),
             },
             status=502,
         )
