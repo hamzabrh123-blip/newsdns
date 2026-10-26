@@ -63,7 +63,10 @@ def _gold_api_rates(currency):
         )
 
     gold = fetch("XAU")
+    logger.info("Gold-API raw gold response: %s", gold)
+    
     silver = fetch("XAG")
+    logger.info("Gold-API raw silver response: %s", silver)
 
     if not gold.get("price") or not silver.get("price"):
         raise RuntimeError("Gold-API gold or silver price is missing.")
