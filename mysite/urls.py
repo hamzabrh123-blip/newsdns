@@ -30,6 +30,9 @@ urlpatterns = [
     path('control-panel/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('feedback/', include('feedback.urls')),
+
+    path("api/fsj/", include("fsj_jewellery.urls")),
+    
     # 4. SHOPPING (ROOT par)
     path('', include('shopping.urls')), 
 
