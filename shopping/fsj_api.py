@@ -1,4 +1,3 @@
-
 import json
 import logging
 import os
@@ -10,7 +9,6 @@ from urllib.request import Request, urlopen
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-
 
 logger = logging.getLogger(__name__)
 
@@ -69,20 +67,29 @@ def _nebula_rates():
     gold24 = prices.get("gold24k") or {}
     gold22 = prices.get("gold22k") or {}
     gold18 = prices.get("gold18k") or {}
+    silver_data = prices.get("silver") or {}
 
     rate24 = _number(gold24.get("pricePerGram"))
     rate22 = _number(gold22.get("pricePerGram"))
     rate18 = _number(gold18.get("pricePerGram"))
+    rate_silver = _number(silver_data.get("pricePerGram"))
 
-    if rate24 is None or rate22 is None or rate18 is None:
-        raise RuntimeError("NebulaAPI gold rates are missing or invalid.")
+    if rate24 is None:
+        raise RuntimeError("NebulaAPI 24K gold rate is missing.")
+
+    # Agar 22K ya 18K Nebula se na mile toh 24K se derive kar lo
+    if rate22 is None:
+        rate22 = round(rate24 * Decimal("0.916"), 2)
+
+    if rate18 is None:
+        rate18 = round(rate24 * Decimal("0.75"), 2)
 
     return {
         "city": payload.get("city") or city,
         "yellowGold24K": rate24,
         "yellowGold22K": rate22,
         "yellowGold18K": rate18,
-        "silver999": None,
+        "silver999": rate_silver,
         "platinum999": None,
         "copperPerKg": None,
         "timestamp": payload.get("timestamp") or payload.get("date") or "",
@@ -118,10 +125,10 @@ def fsj_live_rates(request):
             "currency": "INR",
             "unit": "per gram",
             "rates": {
-                "yellowGold24K": round(float(rates["yellowGold24K"]), 2),
-                "yellowGold22K": round(float(rates["yellowGold22K"]), 2),
-                "yellowGold18K": round(float(rates["yellowGold18K"]), 2),
-                "silver999": None,
+                "yellowGold24K": float(rates["yellowGold24K"]),
+                "yellowGold22K": float(rates["yellowGold22K"]),
+                "yellowGold18K": float(rates["yellowGold18K"]),
+                "silver999": float(rates["silver999"]) if rates["silver999"] else None,
                 "platinum999": None,
                 "copperPerKg": None,
             },
