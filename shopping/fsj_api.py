@@ -49,7 +49,7 @@ def _get_json(url, api_key):
 
 def _nebula_rates():
     api_key = os.environ.get("NEBULA_API_KEY", "").strip()
-    city = os.environ.get("NEBULA_API_CITY", "Lucknow").strip()
+    city = os.environ.get("NEBULA_API_CITY", "Bahraich").strip()
 
     if not api_key:
         raise RuntimeError("NEBULA_API_KEY is missing in Render Environment.")
@@ -77,7 +77,6 @@ def _nebula_rates():
     if rate24 is None:
         raise RuntimeError("NebulaAPI 24K gold rate is missing.")
 
-    # Agar 22K ya 18K Nebula se na mile toh 24K se derive kar lo
     if rate22 is None:
         rate22 = round(rate24 * Decimal("0.916"), 2)
 
@@ -93,9 +92,7 @@ def _nebula_rates():
         "platinum999": None,
         "copperPerKg": None,
         "timestamp": payload.get("timestamp") or payload.get("date") or "",
-        "gstIncluded": (payload.get("metadata") or {}).get(
-            "gst_included", True
-        ),
+        "gstIncluded": (payload.get("metadata") or {}).get("gst_included", True),
         "source": "nebulaapi-indian-market",
         "authority": payload.get("market", "Indian Market"),
     }
@@ -103,18 +100,9 @@ def _nebula_rates():
 
 @require_GET
 def fsj_live_rates(request):
-    try:
-        cache_seconds = int(os.environ.get("METALS_CACHE_SECONDS", "600"))
-        cache_seconds = max(0, min(cache_seconds, 3600))
-    except ValueError:
-        cache_seconds = 600
-
-    city_setting = os.environ.get("NEBULA_API_CITY", "Lucknow").strip()
+    city_setting = os.environ.get("NEBULA_API_CITY", "Bahraich").strip()
     cache_key = f"fsj_rates_nebula_v1_{city_setting.lower()}"
-
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return JsonResponse(cached)
+    fallback_cache_key = f"fsj_rates_permanent_fallback_{city_setting.lower()}"
 
     try:
         rates = _nebula_rates()
@@ -128,7 +116,7 @@ def fsj_live_rates(request):
                 "yellowGold24K": float(rates["yellowGold24K"]),
                 "yellowGold22K": float(rates["yellowGold22K"]),
                 "yellowGold18K": float(rates["yellowGold18K"]),
-                "silver999": float(rates["silver999"]) if rates["silver999"] else None,
+                "silver999": float(rates["silver999"]) if rates["silver999"] else 0.0,
                 "platinum999": None,
                 "copperPerKg": None,
             },
@@ -139,25 +127,28 @@ def fsj_live_rates(request):
             "isLive": True,
         }
 
-        if cache_seconds > 0:
-            cache.set(cache_key, result, cache_seconds)
+        # 1. Normal cache (10 mins)
+        cache.set(cache_key, result, 600)
+        
+        # 2. Permanent Fallback Cache (Yeh expire nahi hoga jab tak server restart ya clear na ho)
+        cache.set(fallback_cache_key, result, None)
 
         return JsonResponse(result)
 
-    except (
-        HTTPError,
-        URLError,
-        TimeoutError,
-        OSError,
-        ValueError,
-        RuntimeError,
-        json.JSONDecodeError,
-    ):
-        logger.exception("FS Jewellers NebulaAPI rates request failed.")
+    except Exception as e:
+        logger.exception("FS Jewellers NebulaAPI request failed. Checking cache fallback.")
+        
+        # 🛡️ FALLBACK: Agar API fail ho jaye, toh cache se aakhri successful data utha lo!
+        last_known = cache.get(fallback_cache_key)
+        if last_known:
+            last_known["isLive"] = False  # App ko pata chal jayega ki live API down hai
+            last_known["source"] = "fallback-cache"
+            return JsonResponse(last_known)
+
         return JsonResponse(
             {
                 "status": "error",
-                "message": "NebulaAPI gold rates are temporarily unavailable.",
+                "message": "NebulaAPI rates unavailable and no cache found.",
             },
             status=502,
         )
