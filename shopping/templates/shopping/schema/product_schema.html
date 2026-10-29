@@ -1,4 +1,3 @@
-
 {% with main_url="https://uttarworld.com"|add:request.path %}
 <script type="application/ld+json">
 {
@@ -30,6 +29,13 @@
         "@type": "Brand",
         "name": "Uttar World"
       },
+      {% if product.average_rating and product.review_count %}
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ product.average_rating }}",
+        "reviewCount": "{{ product.review_count }}"
+      },
+      {% endif %}
       "hasVariant": [
         {% for variant in product.variants.all %}
         {
@@ -47,8 +53,7 @@
           "offers": {
             "@type": "Offer",
             "url": "{{ main_url }}?v={{ variant.id }}",
-            "price": "{% if variant.selling_price %}{{ variant.selling_price }}{% elif product.selling_price %}{{ product.selling_price }}{% else %}{{ product.mrp_price }}{% endif %}",
-            "priceCurrency": "{% if product.currency == '₹' %}INR{% elif product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% elif product.currency == 'INR' %}INR{% elif product.currency == 'USD' %}USD{% elif product.currency == 'EUR' %}EUR{% endif %}",
+            "price": "{% if variant.selling_price %}{{ variant.selling_price|floatformat:2 }}{% elif product.selling_price %}{{ product.selling_price|floatformat:2 }}{% else %}{{ product.mrp_price|floatformat:2 }}{% endif %}",            "priceCurrency": "{% if product.currency == '₹' %}INR{% elif product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% elif product.currency == 'INR' %}INR{% elif product.currency == 'USD' %}USD{% elif product.currency == 'EUR' %}EUR{% endif %}",
             "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
             "itemCondition": "https://schema.org/NewCondition"
           }
