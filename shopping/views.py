@@ -151,32 +151,48 @@ def category_detail(request, slug):
                 
                 # --- PROPER PRICE & DISCOUNT PERCENTAGE CALCULATION ---
                 disc_pct = None
-                selling_price = None
-                mrp = prod.mrp_price
                 
-                # Safe conversion for variant selling price
-                try:
-                    v_selling = float(variant.selling_price) if variant and variant.selling_price not in [None, '', 'None', 'null'] else 0.0
-                except (ValueError, TypeError):
-                    v_selling = 0.0
-
-                # Pehle variant ka price dekho, agar nahi hai toh product ka default selling price uthao
+                # 1. Variant ka Selling Price ya Product ka default Selling Price
+                v_selling = None
                 if variant:
-                    selling_price = variant.selling_price if (v_selling > 0) else prod.selling_price
+                    try:
+                        if variant.selling_price not in [None, '', 'None', 'null']:
+                            v_selling = float(variant.selling_price)
+                    except (ValueError, TypeError):
+                        v_selling = None
+
+                if v_selling is not None and v_selling > 0:
+                    final_selling = v_selling
                 else:
-                    selling_price = prod.selling_price
-                
-                # Safe conversions for discount calculation
-                try:
-                    mrp_val = float(mrp) if mrp not in [None, '', 'None', 'null'] else 0.0
-                except (ValueError, TypeError):
-                    mrp_val = 0.0
+                    try:
+                        final_selling = float(prod.selling_price) if prod.selling_price not in [None, '', 'None', 'null'] else 0.0
+                    except (ValueError, TypeError):
+                        final_selling = 0.0
 
-                try:
-                    selling_val = float(selling_price) if selling_price not in [None, '', 'None', 'null'] else 0.0
-                except (ValueError, TypeError):
-                    selling_val = 0.0
+                # 2. Variant ka MRP ya Product ka default MRP (Agar variant me MRP diya hai toh variant se, nahi toh product se)
+                v_mrp = None
+                if variant:
+                    try:
+                        raw_vmrp = getattr(variant, 'mrp', None) or getattr(variant, 'mrp_price', None)
+                        if raw_vmrp not in [None, '', 'None', 'null']:
+                            v_mrp = float(raw_vmrp)
+                    except (ValueError, TypeError):
+                        v_mrp = None
 
+                if v_mrp is not None and v_mrp > 0:
+                    final_mrp = v_mrp
+                else:
+                    try:
+                        raw_pmrp = getattr(prod, 'mrp', None) or getattr(prod, 'mrp_price', None)
+                        final_mrp = float(raw_pmrp) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
+                    except (ValueError, TypeError):
+                        final_mrp = 0.0
+
+                # --- REMOVE .00 DECIMAL MESS (Convert to Clean Integers) ---
+                selling_val = int(round(final_selling)) if final_selling > 0 else 0
+                mrp_val = int(round(final_mrp)) if final_mrp > 0 else 0
+
+                # Discount Percentage Calculation
                 if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
                     disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
                 else:
@@ -184,9 +200,10 @@ def category_detail(request, slug):
 
                 display_grid.append({
                     'product': prod,
-                    'variant': variant,
-                    'selling_price': selling_price,
-                    'calculated_discount': disc_pct  # Ab sabhi ke liye discount barabar calculate hoga
+                    'variant': variant if variant else None,
+                    'selling_price': selling_val if selling_val > 0 else None,
+                    'mrp_price': mrp_val if (mrp_val > selling_val) else None,
+                    'calculated_discount': disc_pct  # Sabhi variants ke liye independently calculate hoga
                 })
 
     paginator = Paginator(
@@ -208,7 +225,7 @@ def category_detail(request, slug):
         context
     )
 # ==========================================
-# PRODUCT DETAIL (With Prioritized Selected Variant)
+# PRODUCT DETAIL (With Prioritized Selected Variant & Clean Pricing)
 # ==========================================
 
 def product_detail(request, slug):
@@ -226,6 +243,7 @@ def product_detail(request, slug):
 
     # Check karo ki category page se koi variant ID (?v=XYZ) aayi hai ya nahi
     selected_variant_id = request.GET.get('v')
+    selected_variant = None
 
     if variants and selected_variant_id:
         matched_variant = next((v for v in variants if str(v.id) == str(selected_variant_id)), None)
@@ -233,9 +251,66 @@ def product_detail(request, slug):
             # Uss specific variant ko list se nikal kar sabse aage (top par) daal do
             variants.remove(matched_variant)
             variants.insert(0, matched_variant)
+            selected_variant = matched_variant
+
+    # Agar koi specific variant select nahi hua par variants available hain, toh pehla wala default maan lo
+    if not selected_variant and variants:
+        selected_variant = variants[0]
+
+    # --- PRICE & DISCOUNT LOGIC (Jaisa Category Page par kiya tha) ---
+    v_selling = None
+    v_mrp = None
+
+    if selected_variant:
+        try:
+            if selected_variant.selling_price not in [None, '', 'None', 'null']:
+                v_selling = float(selected_variant.selling_price)
+        except (ValueError, TypeError):
+            v_selling = None
+
+        try:
+            raw_vmrp = getattr(selected_variant, 'mrp', None) or getattr(selected_variant, 'mrp_price', None)
+            if raw_vmrp not in [None, '', 'None', 'null']:
+                v_mrp = float(raw_vmrp)
+        except (ValueError, TypeError):
+            v_mrp = None
+
+    # Selling Price Fallback (Variant -> Product)
+    if v_selling is not None and v_selling > 0:
+        final_selling = v_selling
+    else:
+        try:
+            final_selling = float(product.selling_price) if product.selling_price not in [None, '', 'None', 'null'] else 0.0
+        except (ValueError, TypeError):
+            final_selling = 0.0
+
+    # MRP Fallback (Variant MRP -> Product MRP)
+    if v_mrp is not None and v_mrp > 0:
+        final_mrp = v_mrp
+    else:
+        try:
+            raw_pmrp = getattr(product, 'mrp', None) or getattr(product, 'mrp_price', None)
+            final_mrp = float(raw_pmrp) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
+        except (ValueError, TypeError):
+            final_mrp = 0.0
+
+    # Remove .00 Decimal Mess (Convert to Clean Integers)
+    selling_val = int(round(final_selling)) if final_selling > 0 else 0
+    mrp_val = int(round(final_mrp)) if final_mrp > 0 else 0
+
+    # Discount Percentage Calculation
+    disc_pct = None
+    if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
+        disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
 
     context['product'] = product
-    context['variants'] = variants  # Yeh ab ordered list jayegi template mein
+    context['variants'] = variants  # Ordered list template ke liye
+    context['selected_variant'] = selected_variant
+    
+    # Clean pricing variables template ke liye
+    context['display_selling_price'] = selling_val if selling_val > 0 else None
+    context['display_mrp_price'] = mrp_val if (mrp_val > selling_val) else None
+    context['calculated_discount'] = disc_pct
 
     context['related_products'] = Product.objects.filter(
         category=product.category
@@ -248,7 +323,6 @@ def product_detail(request, slug):
         'shopping/product_detail.html',
         context
     )
-
 
 # ==========================================
 # LOAD MORE PRODUCTS

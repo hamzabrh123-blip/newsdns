@@ -136,17 +136,23 @@
 
 <div class="full-bleed-wrapper py-2">
     
-    <!-- 1. PRODUCTS GRID SECTION (Pehle Aayega User Ke Liye) -->
+    <!-- 1. PRODUCTS GRID SECTION -->
     <div class="row g-1 m-0">
         {% for item in products %}
             {% with product=item.product variant=item.variant %}
             <div class="col-12 col-md-6 col-lg-3 px-1 mb-2">
-                <a href="{% if product.slug %}{% url 'product_detail' product.slug %}?v={{ variant.id }}{% else %}#{% endif %}" class="product-card-link">
+                <a href="{% if product.slug %}{% url 'product_detail' product.slug %}{% if variant %}?v={{ variant.id }}{% endif %}{% else %}#{% endif %}" class="product-card-link">
                     <div class="card shadow-none product-card border">
                         
                        <div class="product-img-container">
-                            {% if variant.image_url %}
+                            {% if variant and variant.image_url %}
                                 <img src="{{ variant.image_url }}"
+                                     class="product-single-img"
+                                     alt="{{ product.title }}"
+                                     loading="lazy"
+                                     decoding="async">
+                            {% elif product.image_url %}
+                                <img src="{{ product.image_url }}"
                                      class="product-single-img"
                                      alt="{{ product.title }}"
                                      loading="lazy"
@@ -163,26 +169,21 @@
                         <div class="card-body p-2">
                             <h6 class="mobile-product-title">{{ product.title }}</h6>
                             
-                           <div class="price-section">
-    {% with sp=item.selling_price|default:variant.selling_price|default:product.selling_price mrp=variant.mrp_price|default:product.mrp_price %}
-        {% if sp %}
-            <span class="price-tag">{{ product.currency }}{{ sp }}</span>
-            {% if mrp and mrp != sp %}
-                <span class="old-price-num">{{ product.currency }}{{ mrp }}</span>
-            {% endif %}
-        {% else %}
-            <span class="price-tag">{{ product.currency }}{{ mrp|default:"3999" }}</span>
-        {% endif %}
-        
-        {% if item.calculated_discount %}
-            <span class="discount-badge">{{ item.calculated_discount }}% off</span>
-        {% elif variant.discount_percentage %}
-            <span class="discount-badge">{{ variant.discount_percentage }}% off</span>
-        {% elif product.discount_percentage %}
-            <span class="discount-badge">{{ product.discount_percentage }}% off</span>
-        {% endif %}
-    {% endwith %}
-</div>
+                            <!-- Clean Price Section (Values coming directly from view logic) -->
+                            <div class="price-section">
+                                {% if item.selling_price %}
+                                    <span class="price-tag">{{ product.currency }}{{ item.selling_price }}</span>
+                                    {% if item.mrp_price %}
+                                        <span class="old-price-num">{{ product.currency }}{{ item.mrp_price }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="price-tag">{{ product.currency }}{{ item.mrp_price|default:"3999" }}</span>
+                                {% endif %}
+                                
+                                {% if item.calculated_discount %}
+                                    <span class="discount-badge">{{ item.calculated_discount }}% off</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -190,7 +191,7 @@
             {% endwith %}
         {% empty %}
         <div class="col-12 text-center py-5"><h5>No products found.</h5></div>
-    {% endfor %}
+        {% endfor %}
     </div>
 
     <!-- 2. PAGER SECTION -->
@@ -239,7 +240,7 @@
 <!-- Category Feedback Section -->
 {% feedback_section category %}
 
-    <!-- 3. SEO FOOTER SECTION (Category Title, Description & Image - Google ke liye sabse neeche) -->
+    <!-- 3. SEO FOOTER SECTION -->
     <div class="seo-footer-section px-3">
         <h1 class="fw-bold mb-2 text-dark fs-4">
             {% if category.name %}{{ category.name }}

@@ -73,7 +73,7 @@
 
 <div class="container mt-4">
     <div class="row product-container">
-        <!-- Desktop Thumbnails -->
+        <!-- 1. Desktop Thumbnails -->
         <div class="col-md-1 d-none d-md-block">
             {% for variant in variants %}
                 <img src="{{ variant.image_url }}" 
@@ -83,7 +83,7 @@
                      data-code="{{ variant.variant_code }}" 
                      data-variant-id="{{ variant.id }}"
                      data-selling-price="{{ variant.selling_price|default:'' }}"
-                     data-mrp-price="{{ variant.mrp_price|default:'' }}"
+                     data-mrp-price="{{ variant.mrp|default:variant.mrp_price|default:'' }}"
                      data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                      data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                      data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
@@ -95,7 +95,7 @@
         </div>
         
         <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs (Auto-enabled when video exists) -->
+            <!-- Media Toggle Switcher Tabs -->
             <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none;">
                 <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
@@ -128,7 +128,7 @@
                 </video>
             </div>
 
-            <!-- Mobile Thumbnails -->
+            <!-- 2. Mobile Thumbnails -->
             <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
                 {% for variant in variants %}
                     <img src="{{ variant.image_url }}" 
@@ -138,7 +138,7 @@
                          data-code="{{ variant.variant_code }}" 
                          data-variant-id="{{ variant.id }}"
                          data-selling-price="{{ variant.selling_price|default:'' }}"
-                         data-mrp-price="{{ variant.mrp_price|default:'' }}"
+                         data-mrp-price="{{ variant.mrp|default:variant.mrp_price|default:'' }}"
                          data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
                          data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
                          data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
@@ -152,14 +152,22 @@
 
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
-            <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px;">
+            
+            <!-- Clean Price Section -->
+            <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
                 <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">
-                    {{ product.currency }}{% if variants.0.selling_price %}{{ variants.0.selling_price }}{% elif variants.0.mrp_price %}{{ variants.0.mrp_price }}{% elif product.selling_price %}{{ product.selling_price }}{% else %}{{ product.mrp_price|default:'' }}{% endif %}
+                    {{ product.currency }}{{ display_selling_price|default:product.selling_price|default:product.mrp_price|default:"" }}
                 </span>
-                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through;">
-                    {% if variants.0.mrp_price and variants.0.mrp_price != variants.0.selling_price %}{{ product.currency }}{{ variants.0.mrp_price }}{% elif not variants.0.mrp_price and product.mrp_price and product.mrp_price != product.selling_price %}{{ product.currency }}{{ product.mrp_price }}{% endif %}
+                
+                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through; {% if not display_mrp_price %}display: none;{% endif %}">
+                    {{ product.currency }}{{ display_mrp_price|default:"" }}
+                </span>
+
+                <span id="displayDiscountBadge" class="discount-badge" style="font-size: 14px; font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 6px; border-radius: 4px; {% if not calculated_discount %}display: none;{% endif %}">
+                    {{ calculated_discount|default:"" }}% off
                 </span>
             </div>
+
             <div class="store-deal-card mt-3">
                 <table class="table">
                     <tbody id="storeDealsContainer">
@@ -229,14 +237,13 @@ For the most accurate and up-to-date information, click the yellow colour <b sty
 
 <script>
 const currencySymbol = "{{ product.currency|default:'₹' }}";
-const fallbackSellingPrice = "{{ product.selling_price|default:product.mrp_price|default:'0' }}";
-const fallbackMrpPrice = "{{ product.mrp_price|default:'' }}";
+const fallbackSellingPrice = parseFloat("{{ display_selling_price|default:product.selling_price|default:product.mrp_price|default:'0' }}");
+const fallbackMrpPrice = parseFloat("{{ display_mrp_price|default:product.mrp_price|default:'0' }}");
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
-let dashPlayer = null; // Global Dash player instance
-let hlsPlayer = null;  // Global HLS player instance for Myntra .m3u8
+let dashPlayer = null; 
+let hlsPlayer = null;  
 
-// ================= AFFILIATE LINK PARAMETER LOCKER =================
 function sanitizeAffiliateUrl(rawUrl) {
     if (!rawUrl || rawUrl.trim() === "" || rawUrl === "None" || rawUrl === "null") {
         return "#";
@@ -274,12 +281,10 @@ function switchMedia(type) {
     }
 }
 
-// Play Video (Handles MP4, .mpd DASH, and Myntra .m3u8 HLS streams)
 function loadAndPlayVideo(videoUrl) {
     const mainVideo = document.getElementById('mainProductVideo');
     if (!mainVideo) return;
 
-    // Reset previous players
     if (dashPlayer) {
         dashPlayer.reset();
         dashPlayer = null;
@@ -294,17 +299,15 @@ function loadAndPlayVideo(videoUrl) {
             dashPlayer = dashjs.MediaPlayer().create();
             dashPlayer.initialize(mainVideo, videoUrl, false);
         } else {
-            console.error("Dash.js library not loaded in header!");
             mainVideo.src = videoUrl;
         }
     } else if (videoUrl.includes('.m3u8')) {
-        // Myntra / Brightcove HLS Engine Support
         if (typeof Hls !== 'undefined' && Hls.isSupported()) {
             hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
             hlsPlayer.loadSource(videoUrl);
             hlsPlayer.attachMedia(mainVideo);
         } else if (mainVideo.canPlayType('application/vnd.apple.mpegurl')) {
-            mainVideo.src = videoUrl; // Native Safari support
+            mainVideo.src = videoUrl; 
         } else {
             mainVideo.src = videoUrl;
         }
@@ -313,7 +316,7 @@ function loadAndPlayVideo(videoUrl) {
     }
 }
 
-// ================= DIRECT ATTRIBUTE VARIANT SYNC =================
+// ================= SYNC VARIANT WITH DYNAMIC MRP & CUT-OFF =================
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
@@ -363,6 +366,7 @@ function syncVariant(el) {
         const shopBtn = document.getElementById('masterShopNowBtn');
         const topSellingPrice = document.getElementById('displaySellingPrice');
         const topMrpPrice = document.getElementById('displayMrpPrice');
+        const discountBadge = document.getElementById('displayDiscountBadge');
 
         if (container) {
             container.innerHTML = `
@@ -374,32 +378,51 @@ function syncVariant(el) {
             `;
         }
 
-        // Price Logic
-        let activePrice = fallbackSellingPrice;
-        if (sellingPrice && sellingPrice !== "None" && sellingPrice.trim() !== "" && sellingPrice !== "0" && sellingPrice !== "0.00" && sellingPrice !== "0.0") {
-            activePrice = sellingPrice;
-        } else if (!activePrice || activePrice === "0" || activePrice === "0.00" || activePrice === "0.0") {
-            activePrice = fallbackMrpPrice || "0";
-        }
+        // --- DYNAMIC PRICE & CUT-OFF LOGIC ---
+        let rawSelling = parseFloat(sellingPrice);
+        let rawMrp = parseFloat(mrpPrice);
 
-        if (topSellingPrice) {
-            topSellingPrice.innerText = currencySymbol + activePrice;
-        }
+        let activeSelling = (isNaN(rawSelling) || rawSelling <= 0) ? fallbackSellingPrice : rawSelling;
         
-        let activeMrp = "";
-        if (mrpPrice && mrpPrice !== "None" && mrpPrice.trim() !== "" && mrpPrice !== "0" && mrpPrice !== "0.00" && mrpPrice !== "0.0" && mrpPrice !== activePrice) {
-            activeMrp = mrpPrice;
-        } else if (fallbackMrpPrice && fallbackMrpPrice !== activePrice) {
+        // Variant MRP priority, fallback to product MRP
+        let activeMrp = 0;
+        if (!isNaN(rawMrp) && rawMrp > 0) {
+            activeMrp = rawMrp;
+        } else if (fallbackMrpPrice > 0) {
             activeMrp = fallbackMrpPrice;
         }
 
+        let finalSpInt = Math.round(activeSelling);
+        let finalMrpInt = Math.round(activeMrp);
+
+        // 1. Update Selling Price
+        if (topSellingPrice) {
+            topSellingPrice.innerText = currencySymbol + finalSpInt;
+        }
+        
+        // 2. Update Cut-off / MRP Price
         if (topMrpPrice) {
-            if (activeMrp && activeMrp !== activePrice) {
-                topMrpPrice.innerText = currencySymbol + activeMrp;
+            if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
+                topMrpPrice.innerText = currencySymbol + finalMrpInt;
                 topMrpPrice.style.display = 'inline';
             } else {
                 topMrpPrice.style.display = 'none';
             }
+        }
+
+        // 3. Update Discount Percentage Badge
+        if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
+            let discPct = Math.round(((finalMrpInt - finalSpInt) / finalMrpInt) * 100);
+            if (discPct > 0) {
+                if (discountBadge) {
+                    discountBadge.innerText = discPct + "% off";
+                    discountBadge.style.display = 'inline-block';
+                }
+            } else {
+                if (discountBadge) discountBadge.style.display = 'none';
+            }
+        } else {
+            if (discountBadge) discountBadge.style.display = 'none';
         }
 
         if (shopBtn) {
