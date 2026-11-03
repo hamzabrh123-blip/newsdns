@@ -23,13 +23,13 @@
             <a href="{% url 'category_detail' section.category.slug %}" class="text-decoration-none">
             {% endif %}
 
-            <div class="position-relative overflow-hidden rounded-4 shadow-sm" style="height:220px;">
-                {% if section.image %}
-                <img src="{{ section.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{% if section.category %}{{ section.category.name }}{% else %}Home Section{% endif %}">
+            <div class="position-relative overflow-hidden rounded-4 shadow-sm" style="height:220px; background: #f3f4f6;">
+                {% if section.image and section.image.url %}
+                <img src="{{ section.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{% if section.category %}{{ section.category.name }}{% else %}Home Section{% endif %}" {% if forloop.parentloop.first and forloop.counter <= 2 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
                 {% elif section.category.image_url %}
-                <img src="{{ section.category.image_url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}">
-                {% elif section.category.image %}
-                <img src="{{ section.category.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}">
+                <img src="{{ section.category.image_url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}" loading="lazy">
+                {% elif section.category.image and section.category.image.url %}
+                <img src="{{ section.category.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}" loading="lazy">
                 {% endif %}
 
                 <!-- CATEGORY NAME -->
