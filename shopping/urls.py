@@ -14,10 +14,30 @@ def robots_txt(request):
     content = (
         "User-agent: Googlebot\n"
         "Allow: /\n\n"
+        "Allow: /shopping/\n"
         "Allow: /shopping/category/\n\n"  # Shopping category allow rahegi
+
+
+        # 2. DISALLOW UNWANTED OLD PATHS & CITIES TO STOP CRAWLING
         "Disallow: /category/\n"           # Purani root /category/ block ho jayegi
         "Disallow: /sports/\n"             # Sports wale saare URLs block
-        "Disallow: /news/\n"               # News wale saare URLs block\n\n"
+        "Disallow: /news/\n"
+        "Disallow: /international/\n"
+        "Disallow: /national/\n"
+        "Disallow: /market-news/\n"
+        "Disallow: /technology/\n"
+        "Disallow: /bollywood/\n"
+        "Disallow: /hollywood/\n"
+        "Disallow: /bahraich/\n"
+        "Disallow: /lucknow/\n"
+        "Disallow: /kanpur/\n"
+        "Disallow: /gorakhpur/\n"
+        "Disallow: /varanasi/\n"
+        "Disallow: /delhi/\n"
+        "Disallow: /agra/\n"
+        "Disallow: /meerut/\n"
+        "Disallow: /prayagraj/\n"
+        "Disallow: /search/\n"
 
         "User-agent: Pinterestbot\n"
         "Allow: /\n\n"
