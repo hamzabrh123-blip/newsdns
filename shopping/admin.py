@@ -2,12 +2,13 @@ from django.contrib import admin
 from django.db import models
 from django.forms import Textarea, TextInput
 from django.utils.html import format_html
+from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
+import requests
+import time
+
 from .indexing_utils import notify_google_indexing
-from .models import ping_bing_indexing_batch
-from .models import ShopNowClick
-
-
+from .models import ping_bing_indexing_batch, ShopNowClick
 from .models import (
     StoreLogoUpload,
     PinterestPost,
@@ -19,7 +20,6 @@ from .models import (
     HomeSection,
     HomePageSEO,
     StoreConfiguration,
-    submit_all_products_to_bing,
 )
 
 
@@ -37,15 +37,37 @@ class PinterestPostAdmin(admin.ModelAdmin):
     list_filter = ("is_published", "created_at")
     search_fields = ("title", "link")
 
-    def has_module_permission(self, request):
-        return False
-
 
 @admin.register(Category)
 class CategoryAdmin(ImportExportModelAdmin):
     list_display = ("name", "slug", "meta_title")
     search_fields = ("name", "meta_title")
     prepopulated_fields = {"slug": ("name",)}
+    actions = ["trigger_google_category_submission", "trigger_bing_category_submission"]
+
+    @admin.action(description="Submit selected categories to Google")
+    def trigger_google_category_submission(self, request, queryset):
+        urls = [f"https://uttarworld.com{cat.get_absolute_url()}" for cat in queryset if cat.slug]
+        success, failed = 0, 0
+        for url in urls:
+            try:
+                result = notify_google_indexing(url)
+                if isinstance(result, dict) and result.get("status") == "success":
+                    success += 1
+                else:
+                    failed += 1
+            except Exception:
+                failed += 1
+        self.message_user(request, f"Google category submission: {success} successful, {failed} failed.")
+
+    @admin.action(description="Submit selected categories to Bing")
+    def trigger_bing_category_submission(self, request, queryset):
+        urls = [f"https://uttarworld.com{cat.get_absolute_url()}" for cat in queryset if cat.slug]
+        success = ping_bing_indexing_batch(urls)
+        if success:
+            self.message_user(request, f"Bing submission successful for {len(urls)} categories.")
+        else:
+            self.message_user(request, "Bing submission failed or was incomplete.", level="WARNING")
 
 
 class ProductVariantInline(admin.TabularInline):
@@ -63,14 +85,12 @@ class ProductVariantInline(admin.TabularInline):
     )
     readonly_fields = ("variant_image_preview",)
 
-    # Fields ko chhota aur compact karne ke liye overrides
     formfield_overrides = {
         models.URLField: {"widget": TextInput(attrs={"size": 15, "style": "width: 120px;"})},
         models.CharField: {"widget": TextInput(attrs={"size": 10, "style": "width: 85px;"})},
         models.DecimalField: {"widget": TextInput(attrs={"size": 8, "style": "width: 75px;"})},
     }
 
-    # Horizontal scrollbar hatane ke liye CSS media
     class Media:
         css = {
             'all': (
@@ -124,7 +144,7 @@ class ProductAdmin(ImportExportModelAdmin):
     )
     
     inlines = [ProductVariantInline]
-    actions = [ "trigger_google_submission", "trigger_bing_submission",] 
+    actions = ["trigger_google_submission", "trigger_bing_submission", "trigger_pinterest_submission"] 
     formfield_overrides = {
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
@@ -162,8 +182,6 @@ class ProductAdmin(ImportExportModelAdmin):
         return "Save product once or add variant image to preview here."
     product_image_preview.short_description = "Product Main Image Preview"
 
-    
-
     @admin.action(description="Submit selected products to Google")
     def trigger_google_submission(self, request, queryset):
         urls = [
@@ -180,33 +198,20 @@ class ProductAdmin(ImportExportModelAdmin):
         for url in urls:
             try:
                 result = notify_google_indexing(url)
-
                 if isinstance(result, dict) and result.get("status") == "success":
                     success += 1
                 else:
                     failed += 1
                     if len(errors) < 3:
-                        errors.append(
-                            f"{url}: {result!r}"
-                        )
+                        errors.append(f"{url}: {result!r}")
             except Exception as e:
                 failed += 1
                 if len(errors) < 3:
-                    errors.append(
-                        f"{url}: {type(e).__name__}: {e}"
-                    )
+                    errors.append(f"{url}: {type(e).__name__}: {e}")
 
-        self.message_user(
-            request,
-            f"Google submission: {success} successful, {failed} failed."
-        )
-
+        self.message_user(request, f"Google submission: {success} successful, {failed} failed.")
         for error in errors:
-            self.message_user(
-                request,
-                error[:1000],
-                level="WARNING"
-            )
+            self.message_user(request, error[:1000], level="WARNING")
 
     @admin.action(description="Submit selected products to Bing")
     def trigger_bing_submission(self, request, queryset):
@@ -220,16 +225,62 @@ class ProductAdmin(ImportExportModelAdmin):
         success = ping_bing_indexing_batch(urls)
 
         if success:
-            self.message_user(
-                request,
-                f"Bing submission successful for {len(urls)} URLs."
-            )
+            self.message_user(request, f"Bing submission successful for {len(urls)} URLs.")
         else:
-            self.message_user(
-                request,
-                "Bing submission failed or was incomplete. Check logs.",
-                level="WARNING",
-            )
+            self.message_user(request, "Bing submission failed or was incomplete. Check logs.", level="WARNING")
+
+    @admin.action(description="Submit selected products to Pinterest (Bulk Up to 100)")
+    def trigger_pinterest_submission(self, request, queryset):
+        access_token = getattr(settings, "PINTEREST_ACCESS_TOKEN", "")
+        board_id = getattr(settings, "PINTEREST_BOARD_ID", "")
+
+        if not access_token or not board_id:
+            self.message_user(request, "Pinterest Access Token or Board ID not configured in settings.", level="ERROR")
+            return
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        products_to_pin = queryset.filter(is_available=True).exclude(slug__isnull=True).exclude(slug="")[:100]
+        
+        success_count = 0
+        fail_count = 0
+
+        for product in products_to_pin:
+            first_variant = product.variants.first()
+            image_url = first_variant.image_url if first_variant and first_variant.image_url else ""
+            
+            if not image_url:
+                fail_count += 1
+                continue
+
+            payload = {
+                "board_id": board_id,
+                "title": product.title[:100],
+                "description": (product.long_description or product.meta_description or product.title)[:500],
+                "link": f"https://uttarworld.com/shopping/product/{product.slug}/",
+                "media_source": {
+                    "source_type": "image_url",
+                    "url": image_url
+                }
+            }
+
+            try:
+                response = requests.post("https://api.pinterest.com/v5/pins", json=payload, headers=headers, timeout=10)
+                if response.status_code == 201:
+                    success_count += 1
+                else:
+                    fail_count += 1
+                time.sleep(1)
+            except Exception:
+                fail_count += 1
+
+        self.message_user(
+            request,
+            f"Pinterest bulk push finished: {success_count} pins created successfully, {fail_count} failed/skipped."
+        )
 
 
 @admin.register(HomeSlider)
@@ -264,8 +315,6 @@ class StoreConfigurationAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
-
-
 
 
 @admin.register(ShopNowClick)
