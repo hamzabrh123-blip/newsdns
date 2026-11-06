@@ -14,6 +14,10 @@ def robots_txt(request):
     content = (
         "User-agent: Googlebot\n"
         "Allow: /\n\n"
+        "Allow: /shopping/category/\n\n"  # Shopping category allow rahegi
+        "Disallow: /category/\n"           # Purani root /category/ block ho jayegi
+        "Disallow: /sports/\n"             # Sports wale saare URLs block
+        "Disallow: /news/\n"               # News wale saare URLs block\n\n"
 
         "User-agent: Pinterestbot\n"
         "Allow: /\n\n"
