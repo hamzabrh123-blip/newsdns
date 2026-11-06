@@ -7,13 +7,20 @@ from django.views.static import serve
 import os
 
 # Shopping views se sitemap aur google_verify
-from shopping.views import sitemap_shop_xml, google_verify
+from shopping.views import sitemap_shop_xml
 
 
 # --- BRANDING ---
 admin.site.site_header = "Uttar World Management Portal"
 admin.site.site_title = "Admin Control Center"
 admin.site.index_title = "Store Management Dashboard"
+
+
+def google_verify(request):
+    return HttpResponse(
+        "google-site-verification: google21a82f00fad0f9b3.html",
+        content_type="text/html"
+    )
 
 
 urlpatterns = [
