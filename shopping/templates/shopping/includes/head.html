@@ -20,7 +20,8 @@
         <link rel="next" href="https://uttarworld.com{{ request.path }}?page={{ products.next_page_number }}">
     {% endif %}
 {% elif product %}
-    <link rel="canonical" href="https://uttarworld.com{{ request.path }}">
+    {# View se pass kiya gaya clean canonical url use hoga taaki ?v= parameter hide ho jaye #}
+    <link rel="canonical" href="{{ canonical_url|default:request.path }}">
 {% else %}
     <link rel="canonical" href="https://uttarworld.com/">
 {% endif %}

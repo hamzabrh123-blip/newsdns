@@ -229,7 +229,9 @@ def category_detail(request, slug):
 # ==========================================
 
 def product_detail(request, slug):
+    
     context = get_base_context()
+
 
     product = get_object_or_404(
         Product.objects.prefetch_related(
@@ -303,9 +305,13 @@ def product_detail(request, slug):
     if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
         disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
 
+    # --- SEO CANONICAL FIX (Hamesha clean URL point karega bina ?v= ke) ---
+    canonical_url = request.build_absolute_uri(request.path)
+
     context['product'] = product
     context['variants'] = variants  # Ordered list template ke liye
     context['selected_variant'] = selected_variant
+    context['canonical_url'] = canonical_url  # Template ke <head> ke liye
     
     # Clean pricing variables template ke liye
     context['display_selling_price'] = selling_val if selling_val > 0 else None
