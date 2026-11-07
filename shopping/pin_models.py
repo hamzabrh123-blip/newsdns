@@ -1,5 +1,5 @@
+import uuid
 from django.db import models
-from .utils import process_and_upload_to_imgbb  # agar needed ho
 
 def clean_image_url(url):
     if not url:
@@ -13,8 +13,20 @@ def clean_image_url(url):
 
 class PinterestBoard(models.Model):
     name = models.CharField(max_length=255, verbose_name="Board Name")
-    board_id = models.CharField(max_length=255, unique=True, verbose_name="Pinterest Board ID")
+    board_id = models.CharField(
+        max_length=255, 
+        unique=True, 
+        blank=True, 
+        verbose_name="Pinterest Board ID",
+        help_text="Khali chhodoge toh automatic auto_board_ ID ban jayegi, baad me API fetch se real ID replace ho jayegi."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # 📌 Agar board_id nahi dali hai toh automatic unique temporary ID set kar do
+        if not self.board_id:
+            self.board_id = f"auto_board_{uuid.uuid4().hex[:10]}"
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Pinterest Board"

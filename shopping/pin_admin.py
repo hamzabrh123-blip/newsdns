@@ -9,6 +9,40 @@ from .pin_models import PinterestBoard, PinterestPost
 class PinterestBoardAdmin(admin.ModelAdmin):
     list_display = ("name", "board_id", "created_at")
     search_fields = ("name", "board_id")
+    actions = ["fetch_pinterest_boards_from_api"]
+
+    @admin.action(description="Pinterest Account se Boards Automatically Fetch Karein")
+    def fetch_pinterest_boards_from_api(self, request, queryset):
+        token = getattr(settings, "PINTEREST_ACCESS_TOKEN", "")
+        if not token:
+            self.message_user(request, "PINTEREST_ACCESS_TOKEN settings ya environment variables me missing hai!", level="ERROR")
+            return
+
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        try:
+            response = requests.get("https://api.pinterest.com/v5/boards", headers=headers, timeout=15)
+            if response.status_code == 200:
+                data = response.json()
+                boards = data.get("items", [])
+                created_count = 0
+                
+                for b in boards:
+                    board_id = b.get("id")
+                    board_name = b.get("name", "Unnamed Board")
+                    
+                    _, created = PinterestBoard.objects.get_or_create(
+                        board_id=board_id,
+                        defaults={"name": board_name}
+                    )
+                    if created:
+                        created_count += 1
+                        
+                self.message_user(request, f"Success! {created_count} naye boards automatically fetch ho gaye hain.")
+            else:
+                self.message_user(request, f"Pinterest API Error: {response.text}", level="ERROR")
+        except Exception as e:
+            self.message_user(request, f"Connection Failed: {e}", level="ERROR")
 
 
 @admin.register(PinterestPost)
@@ -22,7 +56,7 @@ class PinterestPostAdmin(admin.ModelAdmin):
 def bulk_push_to_pinterest(modeladmin, request, queryset):
     token = getattr(settings, "PINTEREST_ACCESS_TOKEN", "")
     if not token:
-        messages.error(request, "PINTEREST_ACCESS_TOKEN Render environment variables me missing hai!")
+        messages.error(request, "PINTEREST_ACCESS_TOKEN environment variables me missing hai!")
         return
 
     headers = {
@@ -39,7 +73,7 @@ def bulk_push_to_pinterest(modeladmin, request, queryset):
             failed_count += 1
             continue
             
-        product_url = f"https://uttarworld.com/product/{product.slug}/"
+        product_url = f"https://uttarworld.com/shopping/product/{product.slug}/"
         
         image_url = ""
         if hasattr(product, 'image') and product.image:
