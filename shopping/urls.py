@@ -40,8 +40,6 @@ def robots_txt(request):
         "Disallow: /search/\n"
 
         "Disallow: /static/store_logo/\n\n"
-        "Disallow: /static/js/\n"
-        "Disallow: /static/css/\n"
 
         "User-agent: Pinterestbot\n"
         "Allow: /\n\n"
