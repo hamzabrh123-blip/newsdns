@@ -8,6 +8,7 @@ import string
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
+from .pin_models import PinterestBoard  # Pinterest Board import from pin_models
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
@@ -20,7 +21,6 @@ from .utils import process_and_upload_to_imgbb, ping_google_indexing
 # ==========================================
 
 def clean_image_url(url):
-    
     """Image URL se ? aur uske baad ka saara kachra hata deta hai"""
     if not url:
         return url
@@ -144,27 +144,7 @@ class StoreLogoUpload(models.Model):
 
 
 # ==========================================
-# 2. PINTEREST POST
-# ==========================================
-
-class PinterestPost(models.Model):
-    title = models.CharField(max_length=255)
-    image_url = models.URLField(max_length=500)
-    link = models.URLField(max_length=500)
-    is_published = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        if self.image_url:
-            self.image_url = clean_image_url(self.image_url)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-# ==========================================
-# 3. CATEGORY
+# 2. CATEGORY
 # ==========================================
 
 class Category(models.Model):
@@ -184,7 +164,6 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(unidecode(self.name))
         
-        # Clean image URL if provided
         if self.image_url:
             self.image_url = clean_image_url(self.image_url)
             
@@ -214,8 +193,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 # ==========================================
-# 4. PRODUCT MANAGER
+# 3. PRODUCT MANAGER
 # ==========================================
 
 class ProductManager(models.Manager):
@@ -232,13 +212,23 @@ class ProductManager(models.Manager):
 
 
 # ==========================================
-# 5. PRODUCT
+# 4. PRODUCT
 # ==========================================
 
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=50, unique=True, blank=True, help_text="Automatically generated short random code slug")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+
+    # 📌 Pinterest Board Mapping Field
+    pinterest_board = models.ForeignKey(
+        PinterestBoard, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="products",
+        help_text="Is product ko kis Pinterest Board me push karna hai"
+    )
     
     store_name = models.CharField(max_length=100, blank=True, null=True, help_text="Store name (e.g., Amazon, Meesho)")
     
@@ -289,12 +279,12 @@ class Product(models.Model):
 
 
 # ==========================================
-# 6. PRODUCT VARIANT (Flexible Selling Price)
+# 5. PRODUCT VARIANT (Flexible Selling Price)
 # ==========================================
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
-    variant_code = models.CharField( max_length=30, blank=True, default="",  db_index=True,  help_text="Unique product variant code" )
+    variant_code = models.CharField(max_length=30, blank=True, default="", db_index=True, help_text="Unique product variant code")
     
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Variant Image URL")
 
@@ -303,18 +293,15 @@ class ProductVariant(models.Model):
     
     earn_karo_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Affiliate / EarnKaro / Amazon Link")
     
-    # Selling price ab CharField hai, ab yahan range ya single price kuch bhi daal sakta hai
     selling_price = models.CharField(max_length=100, help_text="Variant Selling Price (e.g., 355 or 355 ~ 390)")
     size = models.CharField(max_length=50, blank=True, null=True, help_text="Size / Weight")
     colour = models.CharField(max_length=50, blank=True, null=True, help_text="Colour")
     mrp_price = models.CharField(max_length=100, blank=True, null=True, help_text="MRP Price")
 
     def save(self, *args, **kwargs):
-        # 1. Image URL clean karo (? ke baad ka kachra gayab)
         if self.image_url:
             self.image_url = clean_image_url(self.image_url)
             
-        # 2. Agar link Amazon ka hai toh automatically clean karke tag laga do
         if self.earn_karo_url and "amazon" in self.earn_karo_url.lower():
             self.earn_karo_url = clean_amazon_link(self.earn_karo_url, tracking_id="uttarworld202-21")
 
@@ -326,8 +313,9 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.title} - {self.size or self.colour or 'Variant'} ({self.selling_price})"
 
+
 # ==========================================
-# 7. HOME SLIDER
+# 6. HOME SLIDER
 # ==========================================
 
 class HomeSlider(models.Model):
@@ -360,7 +348,7 @@ class HomeSlider(models.Model):
 
 
 # ==========================================
-# 8. DROPDOWN MENU
+# 7. DROPDOWN MENU
 # ==========================================
 
 class DropdownMenu(models.Model):
@@ -380,11 +368,10 @@ class DropdownMenu(models.Model):
 
 
 # ==========================================
-# 9. HOME SECTION
+# 8. HOME SECTION
 # ==========================================
 
 class HomeSection(models.Model):
-    # Yeh raha wo type karne wala box jisme tu badi heading daalega (jaise: Womens Fashion)
     heading_name = models.CharField(
         max_length=150, 
         blank=True, 
@@ -407,7 +394,7 @@ class HomeSection(models.Model):
 
 
 # ==========================================
-# 10. HOMEPAGE SEO
+# 9. HOMEPAGE SEO
 # ==========================================
 
 class HomePageSEO(models.Model):
@@ -423,7 +410,7 @@ class HomePageSEO(models.Model):
 
 
 # ==========================================
-# 11. STORE CONFIGURATION
+# 10. STORE CONFIGURATION
 # ==========================================
 
 class StoreConfiguration(models.Model):
@@ -433,6 +420,7 @@ class StoreConfiguration(models.Model):
 
     def __str__(self):
         return self.store_name
+
 
 # ==========================================
 # SHOP NOW CLICK TRACKING

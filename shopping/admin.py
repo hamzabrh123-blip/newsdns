@@ -2,16 +2,12 @@ from django.contrib import admin
 from django.db import models
 from django.forms import Textarea, TextInput
 from django.utils.html import format_html
-from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
-import requests
-import time
 
 from .indexing_utils import notify_google_indexing
 from .models import ping_bing_indexing_batch, ShopNowClick
 from .models import (
     StoreLogoUpload,
-    PinterestPost,
     Category,
     Product,
     ProductVariant,
@@ -21,6 +17,7 @@ from .models import (
     HomePageSEO,
     StoreConfiguration,
 )
+from .pin_admin import bulk_push_to_pinterest  # Naya modular Pinterest action import kiya hai
 
 
 @admin.register(StoreLogoUpload)
@@ -29,13 +26,6 @@ class StoreLogoUploadAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
-
-
-@admin.register(PinterestPost)
-class PinterestPostAdmin(admin.ModelAdmin):
-    list_display = ("title", "is_published", "created_at")
-    list_filter = ("is_published", "created_at")
-    search_fields = ("title", "link")
 
 
 @admin.register(Category)
@@ -117,10 +107,11 @@ class ProductAdmin(ImportExportModelAdmin):
         "display_store_name",
         "display_selling_price",
         "category",
+        "pinterest_board",  # Board column display
         "variant_thumbnail",
         "created_at",
     )
-    list_filter = ("category", "store_name", "currency")
+    list_filter = ("category", "store_name", "currency", "pinterest_board")
     search_fields = ("title", "slug", "meta_keywords", "store_name")
     
     exclude = ("slug",)
@@ -129,6 +120,7 @@ class ProductAdmin(ImportExportModelAdmin):
     fields = (
         "title",
         "category",
+        "pinterest_board",  # Board assignment field in form
         "store_name",
         "mrp_price",
         "selling_price",
@@ -144,7 +136,7 @@ class ProductAdmin(ImportExportModelAdmin):
     )
     
     inlines = [ProductVariantInline]
-    actions = ["trigger_google_submission", "trigger_bing_submission", "trigger_pinterest_submission"] 
+    actions = ["trigger_google_submission", "trigger_bing_submission", bulk_push_to_pinterest] 
     formfield_overrides = {
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }
@@ -211,7 +203,7 @@ class ProductAdmin(ImportExportModelAdmin):
 
         self.message_user(request, f"Google submission: {success} successful, {failed} failed.")
         for error in errors:
-            self.message_user(request, error[:1000], level="WARNING")
+            self.message_user(error[:1000], level="WARNING")
 
     @admin.action(description="Submit selected products to Bing")
     def trigger_bing_submission(self, request, queryset):
@@ -228,59 +220,6 @@ class ProductAdmin(ImportExportModelAdmin):
             self.message_user(request, f"Bing submission successful for {len(urls)} URLs.")
         else:
             self.message_user(request, "Bing submission failed or was incomplete. Check logs.", level="WARNING")
-
-    @admin.action(description="Submit selected products to Pinterest (Bulk Up to 100)")
-    def trigger_pinterest_submission(self, request, queryset):
-        access_token = getattr(settings, "PINTEREST_ACCESS_TOKEN", "")
-        board_id = getattr(settings, "PINTEREST_BOARD_ID", "")
-
-        if not access_token or not board_id:
-            self.message_user(request, "Pinterest Access Token or Board ID not configured in settings.", level="ERROR")
-            return
-
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
-        }
-
-        products_to_pin = queryset.filter(is_available=True).exclude(slug__isnull=True).exclude(slug="")[:100]
-        
-        success_count = 0
-        fail_count = 0
-
-        for product in products_to_pin:
-            first_variant = product.variants.first()
-            image_url = first_variant.image_url if first_variant and first_variant.image_url else ""
-            
-            if not image_url:
-                fail_count += 1
-                continue
-
-            payload = {
-                "board_id": board_id,
-                "title": product.title[:100],
-                "description": (product.long_description or product.meta_description or product.title)[:500],
-                "link": f"https://uttarworld.com/shopping/product/{product.slug}/",
-                "media_source": {
-                    "source_type": "image_url",
-                    "url": image_url
-                }
-            }
-
-            try:
-                response = requests.post("https://api.pinterest.com/v5/pins", json=payload, headers=headers, timeout=10)
-                if response.status_code == 201:
-                    success_count += 1
-                else:
-                    fail_count += 1
-                time.sleep(1)
-            except Exception:
-                fail_count += 1
-
-        self.message_user(
-            request,
-            f"Pinterest bulk push finished: {success_count} pins created successfully, {fail_count} failed/skipped."
-        )
 
 
 @admin.register(HomeSlider)

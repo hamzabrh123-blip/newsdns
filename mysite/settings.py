@@ -167,3 +167,7 @@ except json.JSONDecodeError:
     print("WARNING: GOOGLE_JSON_CONTENT is not a valid JSON!")
 
 BING_API_KEY = os.environ.get("BING_API_KEY", "")
+
+# 12. Pinterest API Configuration
+PINTEREST_ACCESS_TOKEN = os.environ.get("PINTEREST_ACCESS_TOKEN", "")
+PINTEREST_APP_SECRET = os.environ.get("PINTEREST_APP_SECRET", "")
