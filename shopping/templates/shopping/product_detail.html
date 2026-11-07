@@ -43,31 +43,94 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-/* Clean Master Shop Now Button - No Menu Overlap */
+/* ========================================================
+   DYNAMIC MOVING SUN-RAY FOCUS MASTER SHOP NOW BUTTON
+======================================================== */
 #masterShopNowBtn {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
+    gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 48px !important;
-    padding: 10px 16px !important;
+    min-height: 58px !important;
+    padding: 12px 20px !important;
     text-decoration: none !important;
-    border-radius: 8px !important;
-    font-weight: 800 !important;
+    border-radius: 12px !important;
+    font-weight: 900 !important;
     box-sizing: border-box !important;
     cursor: pointer !important;
     position: relative !important;
+    overflow: hidden !important;
     z-index: 5 !important;
+    border: none !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Moving Sun-Ray Focus Beam Effect */
+#masterShopNowBtn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -80%;
+    width: 60%;
+    height: 200%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.6), 
+        transparent
+    );
+    transform: rotate(25deg);
+    pointer-events: none;
+    animation: sunRayFocusMove 3s infinite linear;
+}
+
+@keyframes sunRayFocusMove {
+    0% { left: -80%; }
+    100% { left: 140%; }
+}
+
+/* Hover par focus beam ruk jayegi */
+#masterShopNowBtn:hover::after {
+    animation-play-state: paused !important;
+}
+
+#masterShopNowBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22), inset 0 2px 6px rgba(255, 255, 255, 0.8) !important;
+}
+
+#masterShopNowBtn:active {
+    transform: translateY(1px);
 }
 
 #masterShopNowBtn img {
-    height: 22px !important;
+    height: 28px !important;
     width: auto !important;
-    max-width: 80px !important;
+    max-width: 100px !important;
     object-fit: contain !important;
     pointer-events: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Stable Share Button */
+#shareButton {
+    border: none !important;
+    color: #333 !important;
+    background: #fff !important;
+    border-radius: 30px !important;
+    font-weight: 700 !important;
+    padding: 10px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: background 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+#shareButton:hover {
+    background: #f8f9fa !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    color: #111 !important;
 }
 </style>
 
@@ -151,11 +214,11 @@
         </div>
 
         <div class="col-md-6">
-            <h1 class="product-title" style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ product.title }}</h1>
+            <h1 class="product-title" style="font-size: 20px; font-weight: 800; color: #111; line-height: 1.4;">{{ product.title }}</h1>
             
             <!-- Clean Price Section -->
-            <div class="price-section my-2" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 24px; font-weight: 800; color: #d9534f;">
+            <div class="price-section my-3" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+                <span id="displaySellingPrice" class="price-tag" style="font-size: 28px; font-weight: 900; color: #b12704;">
                     {{ product.currency }}{{ display_selling_price|default:product.selling_price|default:product.mrp_price|default:"" }}
                 </span>
                 
@@ -163,13 +226,13 @@
                     {{ product.currency }}{{ display_mrp_price|default:"" }}
                 </span>
 
-                <span id="displayDiscountBadge" class="discount-badge" style="font-size: 14px; font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 6px; border-radius: 4px; {% if not calculated_discount %}display: none;{% endif %}">
+                <span id="displayDiscountBadge" class="discount-badge" style="font-size: 14px; font-weight: 800; color: #007600; background: #e7f4e8; padding: 3px 8px; border-radius: 4px; {% if not calculated_discount %}display: none;{% endif %}">
                     {{ calculated_discount|default:"" }}% off
                 </span>
             </div>
 
-            <div class="store-deal-card mt-3">
-                <table class="table">
+            <div class="store-deal-card mt-3" style="background: #fafafa; padding: 15px; border-radius: 12px; border: 1px solid #eaeaea; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <table class="table mb-2">
                     <tbody id="storeDealsContainer">
                         <tr>
                             <td><strong>{{ variants.0.store_name|default:product.store_name|default:'-' }}</strong></td>
@@ -179,56 +242,114 @@
                     </tbody>
                 </table>
 
-                <div class="product-code-display text-center mt-3">
-                    <span style="background: #f8f8f8; padding: 5px 15px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 14px; color: #333;">
+                <div class="product-code-display text-center mb-3">
+                    <span style="background: #fff; padding: 4px 14px; border-radius: 20px; font-weight: 600; border: 1px solid #ddd; font-size: 13px; color: #555;">
                         Product Code: <span id="displayVariantCode">{{ variants.0.variant_code }}</span>
                     </span>
-                </div><hr>
+                </div>
                 
+                <!-- MOVING SUN-RAY FOCUS SHOP NOW BUTTON -->
                 <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
                     id="masterShopNowBtn" 
                     data-product-id="{{ product.id }}"
                     data-variant-id="{{ variants.0.id|default:'' }}"
                     data-store-name="{{ variants.0.store_name|default:product.store_name|default:'' }}"
                     target="_blank" 
-                    rel="nofollow noopener"
-                    style="background: #ff9900; color: #000;">
-                    <span style="font-size:18px; font-weight:800; letter-spacing:1px; pointer-events:none;">SHOP NOW</span>
+                    rel="nofollow noopener">
+                    <span id="btnTextLabel" style="font-size: 19px; font-weight: 900; letter-spacing: 0.5px; pointer-events: none;">SHOP NOW AT</span>
+                    <img id="btnStoreLogo" src="/static/store_logo/{{ variants.0.store_name|default:product.store_name|default:'amazon'|lower|slugify }}.png" 
+                         onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
+                         alt="Store Logo">
+                    <span id="fallbackStoreName" style="display:none; font-size: 19px; font-weight: 900; text-transform: uppercase; pointer-events: none;">{{ variants.0.store_name|default:product.store_name|default:'STORE' }}</span>
                 </a>
             </div>
-            <button id="shareButton" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 30px; font-weight: 600;">
+
+            <button id="shareButton" class="btn w-100 mt-3">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
             </button>
              
-            <div class="mt-4 product-description-box">{{ product.long_description|replace_h1_with_h3|safe }}</div>
+            <div class="mt-4 product-description-box" style="font-size: 14px; color: #333; line-height: 1.6;">{{ product.long_description|replace_h1_with_h3|safe }}</div>
         </div>
     </div>
 </div>
 
-<div style="background:#fff8e1;border-left:5px solid #ff9800;padding:15px;margin:20px 0;border-radius:6px;font-size:14px;line-height:1.8;">
-    <h2><strong>⚠️ Price & Availability Notice</strong></h2>
-    <ul style="margin:8px 0 0 18px;padding:0;">
-        <li>Product prices, offers and discounts may change at any time without prior notice.</li>
-        <li>The final price, availability and offers will be displayed on the seller's website before purchase.</li>
-        <li>Some products may become unavailable or out of stock without prior notice.</li>
-        <li>Uttar World Elite Lifestyle Store is an affiliate platform and does not sell, stock or ship products directly.</li>
-        <li>All purchases, payments, deliveries, returns, refunds, warranties and product availability are handled solely by the respective seller.</li>
-        <li>Uttar World Elite Lifestyle Store is not responsible for any price changes, product availability, order cancellations, delivery issues or seller policies.</li>
-        <li>
-For the most accurate and up-to-date information, click the yellow colour <b style="color:red;">SHOP NOW</b> button below. On the seller's website, you can view the latest price, coupon codes, discounts, bank offers, EMI options, exchange offers, delivery details, return policy, warranty, product availability, and all other relevant information before making your purchase.
-        </li>
-    </ul>
+<hr class="my-4">
+
+<!-- FIRST RELATED PRODUCTS SECTION -->
+<div class="container-fluid px-2 my-4">
+    <div class="d-flex justify-content-between align-items-center px-2 mb-2">
+        <h5 class="m-0" style="font-size: 16px; font-weight: 800; color: #111; text-transform: uppercase;">🔥 Related Options / Similar Styles</h5>
+        <span style="font-size: 12px; color: #666; font-weight: 600;">Swipe ➔</span>
+    </div>
+
+    <div class="related-mobile-slider" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 8px 12px 8px; scrollbar-width: none;">
+        {% for item in related_products %}
+        <div class="related-card-item" style="flex: 0 0 160px; scroll-snap-align: start; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="width: 100%; height: 180px; background: #f8f8f8; overflow: hidden; position: relative;">
+                <img src="{{ item.variants.all.0.image_url }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+            </div>
+            <div style="padding: 8px; display: flex; flex-direction: column; gap: 4px;">
+                <h6 style="font-size: 12px; font-weight: 600; color: #333; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.title }}">{{ item.title }}</h6>
+                <p style="font-size: 13px; font-weight: 700; color: #b12704; margin: 0;">
+                    {{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }}
+                </p>
+                <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #111; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 6px 0; margin-top: 4px; border-radius: 6px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">Shop Now</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-<hr>
-{% include 'shopping/includes/related_products.html' %}
+
+<style>
+.related-mobile-slider::-webkit-scrollbar { display: none; }
+@media (min-width: 768px) {
+    .related-mobile-slider {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        overflow-x: visible;
+    }
+    .related-card-item { flex: none !important; width: 100% !important; }
+}
+</style>
 
 {% feedback_section product %}
+
+<!-- SECOND RELATED PRODUCTS SECTION -->
+<div class="container-fluid px-2 my-5" style="background: #fafafa; padding: 20px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+    <div class="container">
+        <h4 class="mb-4" style="font-weight: 800; text-transform: uppercase; font-size: 18px; color: #111;">✨ Complete Your Look & More Alternatives</h4>
+        <div class="row">
+            {% for item in related_products %}
+            <div class="col-md-3 col-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                    <div style="width: 100%; height: 200px; background: #f8f8f8; overflow: hidden; position: relative;">
+                        <img src="{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between p-3">
+                        <div>
+                            <h6 style="font-size: 13px; font-weight: 700; color: #333;" class="card-title text-truncate">{{ item.title }}</h6>
+                            <p style="font-size: 14px; font-weight: 800; color: #b12704;" class="card-text mb-2">
+                                {{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }} 
+                                {% if item.mrp_price and item.mrp_price != item.variants.all.0.selling_price %}
+                                    <span style="font-size: 11px; color: #888; text-decoration: line-through; margin-left: 6px;">{{ item.currency }}{{ item.mrp_price }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #111; font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 8px 0; border-radius: 6px; border: none; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">View Deal</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
 <div class="container-fluid my-5">
     <div class="row">
         <div class="col-12 text-center py-5" style="background: #ffffff; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-            <h4 class="mb-3" style="font-weight: 700;">Discover the Best Deals on {{ product.category.name }}!</h4>
-            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" style="background: #ff9900; color: #000; border-radius: 50px; font-size: 18px; font-weight: 800; text-transform: uppercase;">
+            <h4 class="mb-3" style="font-weight: 800; font-size: 22px;">Discover the Best Deals on {{ product.category.name }}!</h4>
+            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #000; border-radius: 50px; font-size: 18px; font-weight: 900; text-transform: uppercase; border: none; box-shadow: 0 8px 25px rgba(255,153,0,0.25);">
                 Explore All {{ product.category.name|upper }} <i class="bi bi-chevron-right"></i>
             </a>
         </div>
@@ -285,38 +406,23 @@ function loadAndPlayVideo(videoUrl) {
     const mainVideo = document.getElementById('mainProductVideo');
     if (!mainVideo) return;
 
-    if (dashPlayer) {
-        dashPlayer.reset();
-        dashPlayer = null;
-    }
-    if (hlsPlayer) {
-        hlsPlayer.destroy();
-        hlsPlayer = null;
-    }
+    if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
+    if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
 
     if (videoUrl.includes('.mpd')) {
         if (typeof dashjs !== 'undefined') {
             dashPlayer = dashjs.MediaPlayer().create();
             dashPlayer.initialize(mainVideo, videoUrl, false);
-        } else {
-            mainVideo.src = videoUrl;
-        }
+        } else { mainVideo.src = videoUrl; }
     } else if (videoUrl.includes('.m3u8')) {
         if (typeof Hls !== 'undefined' && Hls.isSupported()) {
             hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
             hlsPlayer.loadSource(videoUrl);
             hlsPlayer.attachMedia(mainVideo);
-        } else if (mainVideo.canPlayType('application/vnd.apple.mpegurl')) {
-            mainVideo.src = videoUrl; 
-        } else {
-            mainVideo.src = videoUrl;
-        }
-    } else {
-        mainVideo.src = videoUrl;
-    }
+        } else { mainVideo.src = videoUrl; }
+    } else { mainVideo.src = videoUrl; }
 }
 
-// ================= SYNC VARIANT WITH DYNAMIC MRP & CUT-OFF =================
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
@@ -335,11 +441,7 @@ function syncVariant(el) {
         const colour = el.getAttribute('data-colour');
         const variantUrl = el.getAttribute('data-url');
 
-        const hasValidVideo = videoUrl && 
-                             videoUrl.trim() !== "" && 
-                             videoUrl !== "None" && 
-                             videoUrl !== "null" && 
-                             videoUrl !== "NoneType";
+        const hasValidVideo = videoUrl && videoUrl.trim() !== "" && videoUrl !== "None" && videoUrl !== "null" && videoUrl !== "NoneType";
 
         if (mainImg) mainImg.src = rawUrl;
 
@@ -353,10 +455,7 @@ function syncVariant(el) {
             if (mediaTab) mediaTab.style.display = 'none';
         }
 
-        if (typeof switchMedia === 'function') {
-            switchMedia('image');
-        }
-        
+        if (typeof switchMedia === 'function') { switchMedia('image'); }
         if (result) result.style.display = 'none';
 
         const codeDisplay = document.getElementById('displayVariantCode');
@@ -378,13 +477,10 @@ function syncVariant(el) {
             `;
         }
 
-        // --- DYNAMIC PRICE & CUT-OFF LOGIC ---
         let rawSelling = parseFloat(sellingPrice);
         let rawMrp = parseFloat(mrpPrice);
-
         let activeSelling = (isNaN(rawSelling) || rawSelling <= 0) ? fallbackSellingPrice : rawSelling;
         
-        // Variant MRP priority, fallback to product MRP
         let activeMrp = 0;
         if (!isNaN(rawMrp) && rawMrp > 0) {
             activeMrp = rawMrp;
@@ -395,35 +491,22 @@ function syncVariant(el) {
         let finalSpInt = Math.round(activeSelling);
         let finalMrpInt = Math.round(activeMrp);
 
-        // 1. Update Selling Price
-        if (topSellingPrice) {
-            topSellingPrice.innerText = currencySymbol + finalSpInt;
-        }
+        if (topSellingPrice) { topSellingPrice.innerText = currencySymbol + finalSpInt; }
         
-        // 2. Update Cut-off / MRP Price
         if (topMrpPrice) {
             if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
                 topMrpPrice.innerText = currencySymbol + finalMrpInt;
                 topMrpPrice.style.display = 'inline';
-            } else {
-                topMrpPrice.style.display = 'none';
-            }
+            } else { topMrpPrice.style.display = 'none'; }
         }
 
-        // 3. Update Discount Percentage Badge
         if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
             let discPct = Math.round(((finalMrpInt - finalSpInt) / finalMrpInt) * 100);
-            if (discPct > 0) {
-                if (discountBadge) {
-                    discountBadge.innerText = discPct + "% off";
-                    discountBadge.style.display = 'inline-block';
-                }
-            } else {
-                if (discountBadge) discountBadge.style.display = 'none';
-            }
-        } else {
-            if (discountBadge) discountBadge.style.display = 'none';
-        }
+            if (discPct > 0 && discountBadge) {
+                discountBadge.innerText = discPct + "% off";
+                discountBadge.style.display = 'inline-block';
+            } else if (discountBadge) { discountBadge.style.display = 'none'; }
+        } else if (discountBadge) { discountBadge.style.display = 'none'; }
 
         if (shopBtn) {
             let finalLink = variantUrl;
@@ -437,116 +520,68 @@ function syncVariant(el) {
 
             let store = storeName || "SHOP";
             let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
-            const storeKey = cleanStore.toLowerCase().replace(/\s+/g, "").replace(/[-_.]/g, "");
+            let storeKey = cleanStore.toLowerCase().replace(/\s+/g, "").replace(/[-_.]/g, "");
 
             shopBtn.innerHTML = `
-                <span style="font-size:16px; font-weight:800; letter-spacing:1px; pointer-events:none;">SHOP NOW AT</span>
-                <img src="/static/store_logo/${storeKey}.png" 
+                <span id="btnTextLabel" style="font-size:19px; font-weight:900; letter-spacing:0.5px; pointer-events:none;">SHOP NOW AT</span>
+                <img id="btnStoreLogo" src="/static/store_logo/${storeKey}.png" 
                      onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
-                     style="height:22px; width:auto; max-width:80px; object-fit:contain; pointer-events:none;">
-                <span id="fallbackStoreName" style="display:none; font-size:16px; font-weight:800; text-transform:uppercase; pointer-events:none;">${cleanStore}</span>
+                     style="height:28px; width:auto; max-width:100px; object-fit:contain; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                <span id="fallbackStoreName" style="display:none; font-size:19px; font-weight:900; text-transform:uppercase; pointer-events:none;">${cleanStore}</span>
             `;
 
+            // DYNAMIC BRAND COLORS WITH MOVING SUN-RAY LIGHT FOCUS
+            const btnTextLabel = document.getElementById('btnTextLabel');
             switch (cleanStore.toLowerCase()) {
-                case "amazon": shopBtn.style.background = "#FF9900"; shopBtn.style.color = "#000"; break;
-                case "flipkart": shopBtn.style.background = "#2874F0"; shopBtn.style.color = "#fff"; break;
-                case "myntra": shopBtn.style.background = "#ff3f6c"; shopBtn.style.color = "#fff"; break;
-                case "ajio": shopBtn.style.background = "#000"; shopBtn.style.color = "#fff"; break;
-                case "meesho": shopBtn.style.background = "#9C27B0"; shopBtn.style.color = "#fff"; break;
-                case "nykaa": shopBtn.style.background = "#fc2779"; shopBtn.style.color = "#fff"; break;
-                case "croma": shopBtn.style.background = "#00A651"; shopBtn.style.color = "#fff"; break;
-                case "tatacliq": shopBtn.style.background = "#D61F2C"; shopBtn.style.color = "#fff"; break;
-                case "reliancedigital": shopBtn.style.background = "#1565C0"; shopBtn.style.color = "#fff"; break;
-                default: shopBtn.style.background = "#ff9900"; shopBtn.style.color = "#000";
+                case "amazon":
+                    shopBtn.style.background = "linear-gradient(135deg, #ffd814 0%, #ff9900 100%)";
+                    shopBtn.style.color = "#111";
+                    if(btnTextLabel) btnTextLabel.style.color = "#111";
+                    break;
+                case "flipkart":
+                    shopBtn.style.background = "linear-gradient(135deg, #4285f4 0%, #1565c0 100%)";
+                    shopBtn.style.color = "#fff";
+                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
+                    break;
+                case "myntra":
+                    shopBtn.style.background = "linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)";
+                    shopBtn.style.color = "#fff";
+                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
+                    break;
+                case "ajio":
+                    shopBtn.style.background = "linear-gradient(135deg, #333333 0%, #000000 100%)";
+                    shopBtn.style.color = "#fff";
+                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
+                    break;
+                case "meesho":
+                    shopBtn.style.background = "linear-gradient(135deg, #ba68c8 0%, #7b1fa2 100%)";
+                    shopBtn.style.color = "#fff";
+                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
+                    break;
+                default:
+                    shopBtn.style.background = "linear-gradient(135deg, #ffd814 0%, #ff9900 100%)";
+                    shopBtn.style.color = "#111";
+                    if(btnTextLabel) btnTextLabel.style.color = "#111";
             }
         }
 
         document.querySelectorAll(".thumb-img").forEach(t => t.classList.remove("thumb-active"));
         el.classList.add("thumb-active");
-
-        if (mainImg) {
-            mainImg.onload = function () {
-                if (window.innerWidth > 768 && typeof initZoom === "function") {
-                    initZoom("mainProductImg", "zoomResult");
-                }
-            };
-            if (mainImg.complete) {
-                if (window.innerWidth > 768 && typeof initZoom === "function") {
-                    initZoom("mainProductImg", "zoomResult");
-                }
-            }
-        }
-    } catch (err) {
-        console.error("Sync Error:", err);
-    }
+    } catch (err) { console.error("Sync Error:", err); }
 }
 
 document.addEventListener("DOMContentLoaded", function() {
     const firstThumb = document.querySelector(".thumb-img");
-    if (firstThumb) {
-        syncVariant(firstThumb);
-    }
+    if (firstThumb) { syncVariant(firstThumb); }
 });
-
-function initZoom(imgID, resultID) {
-    const img = document.getElementById(imgID);
-    const result = document.getElementById(resultID);
-    const viewport = img.parentElement;
-
-    if (!img || !result || !viewport) return;
-
-    const existingLens = viewport.querySelector(".img-zoom-lens");
-    if (existingLens) existingLens.remove();
-
-    let tempImg = new Image();
-    tempImg.src = img.src;
-
-    tempImg.onload = setup;
-    if (img.complete) setup();
-
-    function setup() {
-        result.style.backgroundImage = `url('${img.src}')`;
-        const zoomFactor = 2.5; 
-        result.style.backgroundSize = `${tempImg.width * zoomFactor}px ${tempImg.height * zoomFactor}px`;
-    }
-
-    viewport.onmouseenter = function() { result.style.display = "block"; };
-    viewport.onmouseleave = function() { result.style.display = "none"; };
-
-    viewport.onmousemove = function(e) {
-        const rect = img.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        let y = e.clientY - rect.top;
-
-        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-            result.style.display = "none";
-            return;
-        } else {
-            result.style.display = "block";
-        }
-
-        let xPercent = x / rect.width;
-        let yPercent = y / rect.height;
-
-        let bgWidth = parseInt(result.style.backgroundSize.split(' ')[0]) || (img.naturalWidth * 2.5);
-        let bgHeight = parseInt(result.style.backgroundSize.split(' ')[1]) || (img.naturalWidth * 2.5);
-
-        let bgX = xPercent * (bgWidth - result.offsetWidth);
-        let bgY = yPercent * (bgHeight - result.offsetHeight);
-
-        result.style.backgroundPosition = `-${bgX}px -${bgY}px`;
-    };
-}
 
 document.getElementById("masterShopNowBtn")?.addEventListener("click", function () {
     const btn = this;
     const formData = new FormData();
-
     formData.append("product_id", btn.dataset.productId || "");
     formData.append("variant_id", btn.dataset.variantId || "");
 
-    const csrfToken =
-        document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
 
     fetch("{% url 'track_shop_now_click' %}", {
         method: "POST",
