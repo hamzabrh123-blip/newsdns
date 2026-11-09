@@ -64,9 +64,6 @@ def get_base_context():
 # ==========================================
 # 1. HOME PAGE
 # ==========================================
-# ==========================================
-# 1. HOME PAGE
-# ==========================================
 def shop_home(request):
     context = get_base_context()
 
@@ -91,7 +88,7 @@ def shop_home(request):
                 'items': items
             })
 
-    products_list = Product.objects.filter(is_available=True).prefetch_related('variants').defer('long_description').order_by('-created_at')
+    products_list = Product.objects.filter(is_available=True).prefetch_related('variants').order_by('-created_at')
 
     paginator = Paginator(products_list, 24)
     page_number = request.GET.get('page')

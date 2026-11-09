@@ -92,7 +92,6 @@
     100% { left: 140%; }
 }
 
-/* Hover par focus beam ruk jayegi */
 #masterShopNowBtn:hover::after {
     animation-play-state: paused !important;
 }
@@ -134,7 +133,7 @@
 }
 </style>
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
     <div class="row product-container">
         <!-- 1. Desktop Thumbnails -->
         <div class="col-md-1 d-none d-md-block">
@@ -267,91 +266,6 @@
             <button id="shareButton" class="btn w-100 mt-3">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
             </button>
-             
-            <div class="mt-4 product-description-box" style="font-size: 14px; color: #333; line-height: 1.6;">{{ product.long_description|replace_h1_with_h3|safe }}</div>
-        </div>
-    </div>
-</div>
-
-<hr class="my-4">
-
-<!-- FIRST RELATED PRODUCTS SECTION -->
-<div class="container-fluid px-2 my-4">
-    <div class="d-flex justify-content-between align-items-center px-2 mb-2">
-        <h5 class="m-0" style="font-size: 16px; font-weight: 800; color: #111; text-transform: uppercase;">🔥 Related Options / Similar Styles</h5>
-        <span style="font-size: 12px; color: #666; font-weight: 600;">Swipe ➔</span>
-    </div>
-
-    <div class="related-mobile-slider" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 8px 12px 8px; scrollbar-width: none;">
-        {% for item in related_products %}
-        <div class="related-card-item" style="flex: 0 0 160px; scroll-snap-align: start; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <div style="width: 100%; height: 180px; background: #f8f8f8; overflow: hidden; position: relative;">
-                <img src="{{ item.variants.all.0.image_url }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
-            </div>
-            <div style="padding: 8px; display: flex; flex-direction: column; gap: 4px;">
-                <h6 style="font-size: 12px; font-weight: 600; color: #333; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.title }}">{{ item.title }}</h6>
-                <p style="font-size: 13px; font-weight: 700; color: #b12704; margin: 0;">
-                    {{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }}
-                </p>
-                <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #111; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 6px 0; margin-top: 4px; border-radius: 6px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">Shop Now</a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<style>
-.related-mobile-slider::-webkit-scrollbar { display: none; }
-@media (min-width: 768px) {
-    .related-mobile-slider {
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
-        overflow-x: visible;
-    }
-    .related-card-item { flex: none !important; width: 100% !important; }
-}
-</style>
-
-{% feedback_section product %}
-
-<!-- SECOND RELATED PRODUCTS SECTION -->
-<div class="container-fluid px-2 my-5" style="background: #fafafa; padding: 20px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-    <div class="container">
-        <h4 class="mb-4" style="font-weight: 800; text-transform: uppercase; font-size: 18px; color: #111;">✨ Complete Your Look & More Alternatives</h4>
-        <div class="row">
-            {% for item in related_products %}
-            <div class="col-md-3 col-6 mb-4">
-                <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
-                    <div style="width: 100%; height: 200px; background: #f8f8f8; overflow: hidden; position: relative;">
-                        <img src="{{ item.variants.all.0.image_url }}" class="card-img-top" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
-                    </div>
-                    <div class="card-body d-flex flex-column justify-content-between p-3">
-                        <div>
-                            <h6 style="font-size: 13px; font-weight: 700; color: #333;" class="card-title text-truncate">{{ item.title }}</h6>
-                            <p style="font-size: 14px; font-weight: 800; color: #b12704;" class="card-text mb-2">
-                                {{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }} 
-                                {% if item.mrp_price and item.mrp_price != item.variants.all.0.selling_price %}
-                                    <span style="font-size: 11px; color: #888; text-decoration: line-through; margin-left: 6px;">{{ item.currency }}{{ item.mrp_price }}</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #111; font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 8px 0; border-radius: 6px; border: none; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">View Deal</a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-<div class="container-fluid my-5">
-    <div class="row">
-        <div class="col-12 text-center py-5" style="background: #ffffff; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-            <h4 class="mb-3" style="font-weight: 800; font-size: 22px;">Discover the Best Deals on {{ product.category.name }}!</h4>
-            <a href="{% url 'category_detail' product.category.slug %}" class="btn btn-lg px-5 py-3 shadow-sm" style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #000; border-radius: 50px; font-size: 18px; font-weight: 900; text-transform: uppercase; border: none; box-shadow: 0 8px 25px rgba(255,153,0,0.25);">
-                Explore All {{ product.category.name|upper }} <i class="bi bi-chevron-right"></i>
-            </a>
         </div>
     </div>
 </div>
@@ -530,7 +444,6 @@ function syncVariant(el) {
                 <span id="fallbackStoreName" style="display:none; font-size:19px; font-weight:900; text-transform:uppercase; pointer-events:none;">${cleanStore}</span>
             `;
 
-            // DYNAMIC BRAND COLORS WITH MOVING SUN-RAY LIGHT FOCUS
             const btnTextLabel = document.getElementById('btnTextLabel');
             switch (cleanStore.toLowerCase()) {
                 case "amazon":

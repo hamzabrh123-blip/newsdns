@@ -8,7 +8,6 @@ import string
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
-from .pin_models import PinterestBoard  # Pinterest Board import from pin_models
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from unidecode import unidecode
@@ -219,16 +218,6 @@ class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=50, unique=True, blank=True, help_text="Automatically generated short random code slug")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
-
-    # 📌 Pinterest Board Mapping Field
-    pinterest_board = models.ForeignKey(
-        PinterestBoard, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name="products",
-        help_text="Is product ko kis Pinterest Board me push karna hai"
-    )
     
     store_name = models.CharField(max_length=100, blank=True, null=True, help_text="Store name (e.g., Amazon, Meesho)")
     
@@ -245,9 +234,7 @@ class Product(models.Model):
     ]
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default="₹")
 
-    long_description = RichTextUploadingField()
     meta_description = models.TextField(blank=True, null=True)
-    meta_keywords = models.TextField(blank=True, null=True)
     is_available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -379,7 +366,9 @@ class HomeSection(models.Model):
         help_text="Yahan Badi Heading type karein (jaise: Womens Fashion, Mens Fashion)"
     )
     
-    image = models.ImageField(upload_to="home_sections/", null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary ya Image ka direct URL paste karein")
+    link = models.URLField(max_length=500, blank=True, null=True, help_text="Card ya banner par click karne par kahan jayega uska link")
+    
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="home_sections", null=True, blank=True)
     order = models.PositiveIntegerField(default=0, help_text="Numbering: 1, 2, 3... taaki heading upar-neeche set ho sake")
     is_active = models.BooleanField(default=True)

@@ -4,32 +4,48 @@
         <span style="font-size: 11px; color: #666;">Swipe ➔</span>
     </div>
 
-    <!-- Full-Width Mobile Horizontal Finger Slider Container (Up to 24 Products) -->
+    <!-- Full-Width Mobile Horizontal Finger Slider Container -->
     <div class="related-mobile-slider" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; padding: 4px 8px 12px 8px; scrollbar-width: none;">
         
         {% for item in related_products %}
-        <div class="related-card-item" style="flex: 0 0 150px; scroll-snap-align: start; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <!-- Poora Card Hi Clickable Link Bana Diya Gaya Hai -->
+        <a href="{% url 'product_detail' item.slug %}" class="related-card-item" style="flex: 0 0 150px; scroll-snap-align: start; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-decoration: none;">
             
             <!-- Fixed Aspect Ratio Image Box -->
             <div style="width: 100%; height: 180px; background: #f8f8f8; overflow: hidden; position: relative;">
-                <img src="{{ item.variants.all.0.image_url }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                {% with first_variant=item.variants.first %}
+                    <img src="{% if first_variant and first_variant.image_url %}{{ first_variant.image_url }}{% else %}{{ item.image_url }}{% endif %}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                {% endwith %}
             </div>
 
             <!-- Product Details -->
             <div style="padding: 8px; display: flex; flex-direction: column; gap: 4px;">
                 <h6 style="font-size: 12px; font-weight: 600; color: #333; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.title }}">{{ item.title }}</h6>
                 
+                <!-- Bulletproof Price & MRP Hierarchy (Skips 0.00 variant prices) -->
                 <p style="font-size: 13px; font-weight: 700; color: #b12704; margin: 0;">
-                    {{ item.currency }}{{ item.variants.all.0.selling_price|default:item.mrp_price|default:0 }}
-                    {% if item.mrp_price and item.mrp_price != item.variants.all.0.selling_price %}
-                        <br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency }}{{ item.mrp_price }}</span>
-                    {% endif %}
-                </p>
+                    {% with first_variant=item.variants.first %}
+                        {% with v_price=first_variant.selling_price %}
+                            {{ item.currency|default:"₹" }}
+                            {% if v_price and v_price != 0 and v_price != "0.00" and v_price != "0" %}
+                                {{ v_price }}
+                            {% elif item.selling_price and item.selling_price != 0 and item.selling_price != "0.00" and item.selling_price != "0" %}
+                                {{ item.selling_price }}
+                            {% else %}
+                                {{ item.mrp_price|default:"0" }}
+                            {% endif %}
 
-                <!-- High-Tension Action Button -->
-                <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm w-100" style="background: linear-gradient(to bottom, #f7dfa5, #f0c14b); border: 1px solid #a88734; color: #111; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 5px 0; margin-top: 4px;">Shop Now</a>
+                            <!-- MRP Line-Through Display -->
+                            {% if first_variant and first_variant.mrp_price and first_variant.mrp_price != 0 and first_variant.mrp_price != "0.00" and first_variant.mrp_price != v_price %}
+                                <br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency|default:"₹" }}{{ first_variant.mrp_price }}</span>
+                            {% elif item.mrp_price and item.mrp_price != 0 and item.mrp_price != "0.00" %}
+                                <br><span style="font-size: 10px; color: #888; text-decoration: line-through;">MRP: {{ item.currency|default:"₹" }}{{ item.mrp_price }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                </p>
             </div>
-        </div>
+        </a>
         {% endfor %}
         
     </div>

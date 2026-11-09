@@ -17,7 +17,6 @@ from .models import (
     HomePageSEO,
     StoreConfiguration,
 )
-from .pin_admin import bulk_push_to_pinterest  # Naya modular Pinterest action import kiya hai
 
 
 @admin.register(StoreLogoUpload)
@@ -107,12 +106,11 @@ class ProductAdmin(ImportExportModelAdmin):
         "display_store_name",
         "display_selling_price",
         "category",
-        "pinterest_board",  # Board column display
         "variant_thumbnail",
         "created_at",
     )
-    list_filter = ("category", "store_name", "currency", "pinterest_board")
-    search_fields = ("title", "slug", "meta_keywords", "store_name")
+    list_filter = ("category", "store_name", "currency")
+    search_fields = ("title", "slug", "store_name")
     
     exclude = ("slug",)
     readonly_fields = ("product_image_preview",)
@@ -120,7 +118,6 @@ class ProductAdmin(ImportExportModelAdmin):
     fields = (
         "title",
         "category",
-        "pinterest_board",  # Board assignment field in form
         "store_name",
         "mrp_price",
         "selling_price",
@@ -128,15 +125,13 @@ class ProductAdmin(ImportExportModelAdmin):
         "default_size",
         "currency",
         "product_image_preview",
-        "long_description",
         "meta_description",
-        "meta_keywords",
         "is_available",
         "is_featured",
     )
     
     inlines = [ProductVariantInline]
-    actions = ["trigger_google_submission", "trigger_bing_submission", bulk_push_to_pinterest] 
+    actions = ["trigger_google_submission", "trigger_bing_submission"] 
     formfield_overrides = {
         models.TextField: {"widget": Textarea(attrs={"rows": 3})},
     }

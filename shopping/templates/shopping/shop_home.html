@@ -15,34 +15,42 @@
         </h2>
     </div>
 
-    <!-- US HEADING KE SAARE CATEGORY CARDS (Line me dikhenge) -->
+<!-- US HEADING KE SAARE CATEGORY CARDS (Mobile par 1, bade screen par multiple) -->
     <div class="row g-3 mb-4">
         {% for section in group.items %}
-        <div class="col-6 col-md-4 col-lg-3">
-            {% if section.category.slug %}
+        <div class="col-12 col-md-4 col-lg-3">
+            
+            <!-- Agar section.link diya hai toh wo khulega, nahi toh category ka slug -->
+            {% if section.link %}
+            <a href="{{ section.link }}" class="text-decoration-none">
+            {% elif section.category.slug %}
             <a href="{% url 'category_detail' section.category.slug %}" class="text-decoration-none">
             {% endif %}
 
             <div class="position-relative overflow-hidden rounded-4 shadow-sm" style="height:220px; background: #f3f4f6;">
-                {% if section.image and section.image.url %}
-                <img src="{{ section.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{% if section.category %}{{ section.category.name }}{% else %}Home Section{% endif %}" {% if forloop.parentloop.first and forloop.counter <= 2 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+                
+                <!-- Cloudinary image_url ka use -->
+                {% if section.image_url %}
+                <img src="{{ section.image_url }}" class="w-100 h-100" style="object-fit:cover;" alt="{% if section.heading_name %}{{ section.heading_name }}{% else %}Home Section{% endif %}" loading="lazy">
                 {% elif section.category.image_url %}
                 <img src="{{ section.category.image_url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}" loading="lazy">
-                {% elif section.category.image and section.category.image.url %}
-                <img src="{{ section.category.image.url }}" class="w-100 h-100" style="object-fit:cover;" alt="{{ section.category.name }}" loading="lazy">
                 {% endif %}
 
-                <!-- CATEGORY NAME -->
-                {% if section.category %}
+                <!-- HEADING OR CATEGORY NAME OVERLAY -->
                 <div class="position-absolute bottom-0 start-0 w-100" style="background:linear-gradient(to top,rgba(0,0,0,.7),transparent); padding:30px 15px 12px;">
                     <h3 style="color:#fff; font-size:18px; font-weight:700; margin:0;">
-                        {{ section.category.name }}
+                        {% if section.heading_name and section.category %}
+                            {{ section.heading_name }} - {{ section.category.name }}
+                        {% elif section.heading_name %}
+                            {{ section.heading_name }}
+                        {% elif section.category %}
+                            {{ section.category.name }}
+                        {% endif %}
                     </h3>   
                 </div>
-                {% endif %}
             </div>
 
-            {% if section.category.slug %}
+            {% if section.link or section.category.slug %}
             </a>
             {% endif %}
         </div>
