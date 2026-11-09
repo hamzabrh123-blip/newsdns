@@ -157,8 +157,8 @@
         </div>
         
         <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs -->
-            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none;">
+            <!-- Media Toggle Switcher Tabs (Default Hidden via !important) -->
+            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
                 <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
                     <i class="bi bi-image"></i> Photo
                 </button>
@@ -361,12 +361,12 @@ function syncVariant(el) {
 
         if (hasValidVideo) {
             loadAndPlayVideo(videoUrl);
-            if (mediaTab) mediaTab.style.display = 'flex';
+            if (mediaTab) mediaTab.style.setProperty('display', 'flex', 'important');
         } else {
             if (mainVideo) { mainVideo.pause(); mainVideo.src = ""; }
             if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
             if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-            if (mediaTab) mediaTab.style.display = 'none';
+            if (mediaTab) mediaTab.style.setProperty('display', 'none', 'important');
         }
 
         if (typeof switchMedia === 'function') { switchMedia('image'); }
