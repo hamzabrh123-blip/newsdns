@@ -3,9 +3,9 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse, parse_qs, urlsplit
 from xml.sax.saxutils import escape
-
 
 from django.db.models import (
     Q,
@@ -22,15 +22,20 @@ from django.db.models.functions import (
 
 import re
 import random
+import json
+import urllib.request
 
 from .models import (
     Product,
+    ProductVariant,
     Category,
     HomeSlider,
     DropdownMenu,
     HomeSection,
-    HomePageSEO
+    HomePageSEO,
+    VisitorClickLog
 )
+
 
 def gone_view(request, *args, **kwargs):
     return HttpResponse("Page Gone", status=410)
@@ -81,7 +86,6 @@ def shop_home(request):
         
         if h_name not in seen_headings:
             seen_headings.append(h_name)
-            # Is heading ke jitne bhi active sections hain unhe ek sath list me dalo
             items = [s for s in home_sections if (s.heading_name.strip() if s.heading_name else "Featured Collection") == h_name]
             grouped_sections.append({
                 'heading_name': h_name,
@@ -96,7 +100,7 @@ def shop_home(request):
 
     context.update({
         'sliders': sliders,
-        'grouped_sections': grouped_sections,  # 👈 Ab grouped_sections bhej rahe hain
+        'grouped_sections': grouped_sections,
         'products': products,
         'is_homepage': True,
     })
@@ -106,6 +110,8 @@ def shop_home(request):
         'shopping/shop_home.html',
         context
     )
+
+
 # ==========================================
 # CATEGORY DETAIL (Fixed Interleaved Variants & Paginator)
 # ==========================================
@@ -118,7 +124,6 @@ def category_detail(request, slug):
         slug=slug
     )
 
-    # Products fetch karo aur variants prefetch karo
     products_list = Product.objects.filter(
         category=category,
         is_available=True
@@ -128,7 +133,6 @@ def category_detail(request, slug):
         '-id'
     )
 
-    # --- ROUND-ROBIN / INTERLEAVED VARIANT GRID LOGIC ---
     display_grid = []
     
     product_variants_pairs = []
@@ -146,10 +150,8 @@ def category_detail(request, slug):
             if i < len(variants):
                 variant = variants[i]
                 
-                # --- PROPER PRICE & DISCOUNT PERCENTAGE CALCULATION ---
                 disc_pct = None
                 
-                # 1. Variant ka Selling Price ya Product ka default Selling Price
                 v_selling = None
                 if variant:
                     try:
@@ -166,7 +168,6 @@ def category_detail(request, slug):
                     except (ValueError, TypeError):
                         final_selling = 0.0
 
-                # 2. Variant ka MRP ya Product ka default MRP (Agar variant me MRP diya hai toh variant se, nahi toh product se)
                 v_mrp = None
                 if variant:
                     try:
@@ -185,11 +186,9 @@ def category_detail(request, slug):
                     except (ValueError, TypeError):
                         final_mrp = 0.0
 
-                # --- REMOVE .00 DECIMAL MESS (Convert to Clean Integers) ---
                 selling_val = int(round(final_selling)) if final_selling > 0 else 0
                 mrp_val = int(round(final_mrp)) if final_mrp > 0 else 0
 
-                # Discount Percentage Calculation
                 if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
                     disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
                 else:
@@ -200,7 +199,7 @@ def category_detail(request, slug):
                     'variant': variant if variant else None,
                     'selling_price': selling_val if selling_val > 0 else None,
                     'mrp_price': mrp_val if (mrp_val > selling_val) else None,
-                    'calculated_discount': disc_pct  # Sabhi variants ke liye independently calculate hoga
+                    'calculated_discount': disc_pct
                 })
 
     paginator = Paginator(
@@ -221,6 +220,8 @@ def category_detail(request, slug):
         'shopping/category_detail.html',
         context
     )
+
+
 # ==========================================
 # PRODUCT DETAIL (With Prioritized Selected Variant & Clean Pricing)
 # ==========================================
@@ -229,7 +230,6 @@ def product_detail(request, slug):
     
     context = get_base_context()
 
-
     product = get_object_or_404(
         Product.objects.prefetch_related(
             'variants'
@@ -237,26 +237,21 @@ def product_detail(request, slug):
         slug=slug
     )
 
-    # Variants ki list bana lo taaki hum usko reorder kar sakein
     variants = list(product.variants.all())
 
-    # Check karo ki category page se koi variant ID (?v=XYZ) aayi hai ya nahi
     selected_variant_id = request.GET.get('v')
     selected_variant = None
 
     if variants and selected_variant_id:
         matched_variant = next((v for v in variants if str(v.id) == str(selected_variant_id)), None)
         if matched_variant:
-            # Uss specific variant ko list se nikal kar sabse aage (top par) daal do
             variants.remove(matched_variant)
             variants.insert(0, matched_variant)
             selected_variant = matched_variant
 
-    # Agar koi specific variant select nahi hua par variants available hain, toh pehla wala default maan lo
     if not selected_variant and variants:
         selected_variant = variants[0]
 
-    # --- PRICE & DISCOUNT LOGIC (Jaisa Category Page par kiya tha) ---
     v_selling = None
     v_mrp = None
 
@@ -274,7 +269,6 @@ def product_detail(request, slug):
         except (ValueError, TypeError):
             v_mrp = None
 
-    # Selling Price Fallback (Variant -> Product)
     if v_selling is not None and v_selling > 0:
         final_selling = v_selling
     else:
@@ -283,7 +277,6 @@ def product_detail(request, slug):
         except (ValueError, TypeError):
             final_selling = 0.0
 
-    # MRP Fallback (Variant MRP -> Product MRP)
     if v_mrp is not None and v_mrp > 0:
         final_mrp = v_mrp
     else:
@@ -293,24 +286,20 @@ def product_detail(request, slug):
         except (ValueError, TypeError):
             final_mrp = 0.0
 
-    # Remove .00 Decimal Mess (Convert to Clean Integers)
     selling_val = int(round(final_selling)) if final_selling > 0 else 0
     mrp_val = int(round(final_mrp)) if final_mrp > 0 else 0
 
-    # Discount Percentage Calculation
     disc_pct = None
     if mrp_val > 0 and selling_val > 0 and mrp_val > selling_val:
         disc_pct = round(((mrp_val - selling_val) / mrp_val) * 100)
 
-    # --- SEO CANONICAL FIX (Hamesha clean URL point karega bina ?v= ke) ---
     canonical_url = request.build_absolute_uri(request.path)
 
     context['product'] = product
-    context['variants'] = variants  # Ordered list template ke liye
+    context['variants'] = variants
     context['selected_variant'] = selected_variant
-    context['canonical_url'] = canonical_url  # Template ke <head> ke liye
+    context['canonical_url'] = canonical_url
     
-    # Clean pricing variables template ke liye
     context['display_selling_price'] = selling_val if selling_val > 0 else None
     context['display_mrp_price'] = mrp_val if (mrp_val > selling_val) else None
     context['calculated_discount'] = disc_pct
@@ -326,6 +315,7 @@ def product_detail(request, slug):
         'shopping/product_detail.html',
         context
     )
+
 
 # ==========================================
 # LOAD MORE PRODUCTS
@@ -374,15 +364,12 @@ def load_more_products(request):
 
     })
 
+
 # ==========================================
 # PRODUCT SEARCH (Exact Match & Single Nearest Fallback Price)
 # ==========================================
 
 def product_search(request):
-
-    # ==========================================
-    # INPUTS
-    # ==========================================
 
     query = request.GET.get(
         'q',
@@ -399,19 +386,11 @@ def product_search(request):
         ''
     ).strip()
 
-    # ==========================================
-    # BASE QUERY
-    # ==========================================
-
     products = Product.objects.filter(
         is_available=True
     ).prefetch_related(
         'variants'
     )
-
-    # ==========================================
-    # SEARCH FILTER
-    # ==========================================
 
     if query:
         search_query = query.lower().replace('.com', '').strip()
@@ -419,11 +398,8 @@ def product_search(request):
         products = products.filter(
             Q(title__icontains=query) |
             Q(store_name__icontains=query) |
-             Q(store_name__iregex=rf'^{search_query}(\.com)?$')
-            )
-    # ==========================================
-    # STORE FILTER
-    # ==========================================
+            Q(store_name__iregex=rf'^{search_query}(\.com)?$')
+        )
 
     if store:
 
@@ -434,24 +410,18 @@ def product_search(request):
 
         products = products.filter(store_name__iregex=rf'^{store}(\.com)?$')
 
-    # ==========================================
-    # PRICE FILTER (Exact Matching & Safe Nearest Single Lower Price)
-    # ==========================================
-
     filter_price = None
 
     if max_price and max_price.isdigit():
 
         target_price = int(max_price)
 
-        # 1. Check for Exact Price Match
         exact_exists = products.filter(variants__selling_price=target_price).exists()
 
         if exact_exists:
             filter_price = float(target_price)
             products = products.filter(variants__selling_price=target_price).distinct()
         else:
-            # 2. Get Nearest Single Lower Price with Safe Type Conversion
             lower_prices = products.filter(
                 variants__selling_price__lt=target_price
             ).values_list('variants__selling_price', flat=True).distinct()
@@ -474,17 +444,10 @@ def product_search(request):
             else:
                 products = products.none()
 
-    # ==========================================
-    # FINAL PRODUCTS SORTING
-    # ==========================================
-
     products_list = products.distinct().order_by(
         '-id'
     )
 
-    # ==========================================
-    # ROUND-ROBIN / INTERLEAVED VARIANT GRID LOGIC
-    # ==========================================
     display_grid = []
     
     product_variants_pairs = []
@@ -498,7 +461,6 @@ def product_search(request):
             except (ValueError, TypeError):
                 v_sp = float(str(prod.selling_price).split('~')[0].strip() if prod.selling_price else 0)
             
-            # Filter strictly by the calculated price (exact or single nearest lower)
             if filter_price is not None:
                 if v_sp == filter_price:
                     filtered_variants.append(v)
@@ -520,7 +482,6 @@ def product_search(request):
             if i < len(variants):
                 variant = variants[i]
                 
-                # --- PROPER PRICE & DISCOUNT PERCENTAGE CALCULATION ---
                 disc_pct = None
                 selling_price = None
                 mrp = prod.mrp_price
@@ -557,26 +518,15 @@ def product_search(request):
                     'calculated_discount': disc_pct
                 })
 
-    # ==========================================
-    # PAGINATION FOR SEARCH RESULTS
-    # ==========================================
     paginator = Paginator(display_grid, 40)
     page_number = request.GET.get('page')
     products_page = paginator.get_page(page_number)
-
-    # ==========================================
-    # GLOBAL DATA
-    # ==========================================
 
     nav_menus = DropdownMenu.objects.prefetch_related(
         'categories'
     ).all()
 
     sliders = HomeSlider.objects.all()
-
-    # ==========================================
-    # RENDER
-    # ==========================================
 
     return render(
         request,
@@ -591,23 +541,24 @@ def product_search(request):
             'sliders': sliders,
         }
     )
+
+
 # ==========================================
 # STATIC PAGES
 # ==========================================
 
-def about_us(request): return render(  request,  'shopping/about_us.html',  get_base_context() )
+def about_us(request): return render(request, 'shopping/about_us.html', get_base_context())
 
+def privacy_policy(request): return render(request, 'shopping/privacy_policy.html', get_base_context())
 
-def privacy_policy(request): return render(  request, 'shopping/privacy_policy.html', get_base_context() )
+def refund_policy(request): return render(request, 'shopping/refund_policy.html', get_base_context())
 
+def shipping_policy(request): return render(request, 'shopping/shipping_policy.html', get_base_context())
 
-def refund_policy(request): return render( request, 'shopping/refund_policy.html', get_base_context() )
+def terms_of_service(request): return render(request, 'shopping/terms.html', get_base_context())
 
-def shipping_policy(request): return render(request, 'shopping/shipping_policy.html', get_base_context() )
+def contact_us(request): return render(request, 'shopping/contact.html', get_base_context())
 
-def terms_of_service(request): return render( request, 'shopping/terms.html',get_base_context())
-
-def contact_us(request): return render( request, 'shopping/contact.html', get_base_context())
 
 # ==========================================
 # SITEMAP
@@ -627,7 +578,6 @@ def sitemap_shop_xml(request):
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
 
-    # Home
     xml += f"""
     <url>
         <loc>{site_url}/</loc>
@@ -636,7 +586,6 @@ def sitemap_shop_xml(request):
     </url>
     """
 
-    # Categories
     for c in categories:
         xml += f"""
         <url>
@@ -646,7 +595,6 @@ def sitemap_shop_xml(request):
         </url>
         """
 
-    # Products
     for p in products:
         xml += f"""
         <url>
@@ -663,12 +611,6 @@ def sitemap_shop_xml(request):
         xml,
         content_type="application/xml"
     )
-
-from urllib.parse import urlsplit
-from xml.sax.saxutils import escape
-
-from django.http import HttpResponse
-from .models import Product
 
 
 def video_sitemap_xml(request):
@@ -728,3 +670,88 @@ def video_sitemap_xml(request):
         xml,
         content_type="application/xml; charset=utf-8"
     )
+
+
+# ==========================================
+# VISITOR & OUTBOUND CLICK TRACKING API (INDIA ONLY)
+# ==========================================
+
+def _get_client_ip(request):
+    cf_ip = request.META.get("HTTP_CF_CONNECTING_IP")
+    if cf_ip:
+        return cf_ip.strip()
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "").strip()
+
+
+def _lookup_geo_ip(ip_address):
+    if not ip_address or ip_address in ("127.0.0.1", "::1", "localhost"):
+        return "IN", "Unknown", "Unknown"
+    try:
+        req = urllib.request.Request(
+            f"https://ipwho.is/{ip_address}",
+            headers={"User-Agent": "UttarworldTracker/1.0"}
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+            if payload.get("success"):
+                country_code = (payload.get("country_code") or "").upper()
+                city = payload.get("city") or "Unknown"
+                state = payload.get("region") or "Unknown"
+                return country_code, city, state
+    except Exception:
+        pass
+    return "", "Unknown", "Unknown"
+
+
+@csrf_exempt
+def track_visitor_or_shop_event(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "invalid method"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8") or "{}")
+    except Exception:
+        data = {}
+
+    event_type = data.get("event_type", "HOME_VISIT")
+    product_id = data.get("product_id")
+    variant_id = data.get("variant_id")
+    traffic_source = data.get("traffic_source", "Direct Visit / Browser")
+    device_type = data.get("device_type", "Desktop")
+
+    ip_address = _get_client_ip(request)
+    cf_country = (request.META.get("HTTP_CF_IPCOUNTRY") or "").upper()
+
+    country_code, city, state = _lookup_geo_ip(ip_address)
+    effective_country = cf_country or country_code
+
+    # Sirf Indian traffic ko hi log karein (foreign bots ignore)
+    if effective_country and effective_country != "IN":
+        return JsonResponse({"status": "ignored", "reason": "non-india"})
+
+    product_name = "Homepage / Site"
+    if product_id:
+        prod = Product.objects.filter(id=product_id).first()
+        if prod:
+            product_name = prod.title
+            if variant_id:
+                var = ProductVariant.objects.filter(id=variant_id).first()
+                if var and var.variant_code:
+                    product_name = f"{prod.title} ({var.variant_code})"
+
+    try:
+        VisitorClickLog.objects.create(
+            event_type=event_type,
+            traffic_source=traffic_source,
+            city=city,
+            state=state,
+            device_type=device_type,
+            product_name=product_name,
+            ip_address=ip_address,
+        )
+        return JsonResponse({"status": "success"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)

@@ -3,8 +3,6 @@ from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
 from .redirects import seo_urlpatterns
-from .shop_now_tracking import track_visitor_or_shop_event
-
 # =========================================================
 # SEO & UTILITY FUNCTIONS
 # =========================================================
@@ -222,11 +220,9 @@ urlpatterns = [
     # =====================================================
     path(
         "api/log-event/",
-        track_visitor_or_shop_event,
+        views.track_visitor_or_shop_event,  
         name="log_visitor_event",
     ),
-
-
     # =====================================================
     # 7. OLD URL REDIRECTS + 410
     #
