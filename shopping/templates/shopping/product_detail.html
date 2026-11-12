@@ -1,236 +1,24 @@
 {% extends "shopping/shop_base.html" %}
-{% load feedback_tags %}
 {% load static %}
-{% load seo_filters %}
 {% load amazon_filters %}
 
 {% block content %}
-<style>
-/* Image Zoom Container */
-.img-zoom-container {
-    position: relative;
-    width: 100%;
-    display: block;
-    margin: 0;
-    padding: 0;
-}
-
-/* Zoom Lens */
-.img-zoom-lens {
-    position: absolute;
-    border: 1px solid #d4d4d4;
-    width: 80px;
-    height: 80px;
-    background-color: rgba(255, 255, 255, 0.4);
-    display: none;
-    z-index: 10;
-    cursor: crosshair;
-    pointer-events: none;
-}
-
-/* Zoom Result Box */
-.img-zoom-result {
-    border: 1px solid #d4d4d4;
-    width: 500px;
-    height: 500px;
-    position: absolute;
-    top: 0;
-    left: 102%;
-    z-index: 100;
-    background-repeat: no-repeat;
-    display: none;
-    background-color: #fff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-
-/* ========================================================
-   DYNAMIC MOVING SUN-RAY FOCUS MASTER SHOP NOW BUTTON
-======================================================== */
-#masterShopNowBtn {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 12px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 58px !important;
-    padding: 12px 20px !important;
-    text-decoration: none !important;
-    border-radius: 12px !important;
-    font-weight: 900 !important;
-    box-sizing: border-box !important;
-    cursor: pointer !important;
-    position: relative !important;
-    overflow: hidden !important;
-    z-index: 5 !important;
-    border: none !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-/* Moving Sun-Ray Focus Beam Effect */
-#masterShopNowBtn::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -80%;
-    width: 60%;
-    height: 200%;
-    background: linear-gradient(
-        90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.6), 
-        transparent
-    );
-    transform: rotate(25deg);
-    pointer-events: none;
-    animation: sunRayFocusMove 3s infinite linear;
-}
-
-@keyframes sunRayFocusMove {
-    0% { left: -80%; }
-    100% { left: 140%; }
-}
-
-#masterShopNowBtn:hover::after {
-    animation-play-state: paused !important;
-}
-
-#masterShopNowBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22), inset 0 2px 6px rgba(255, 255, 255, 0.8) !important;
-}
-
-#masterShopNowBtn:active {
-    transform: translateY(1px);
-}
-
-#masterShopNowBtn img {
-    height: 28px !important;
-    width: auto !important;
-    max-width: 100px !important;
-    object-fit: contain !important;
-    pointer-events: none !important;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-/* Stable Share Button */
-#shareButton {
-    border: none !important;
-    color: #333 !important;
-    background: #fff !important;
-    border-radius: 30px !important;
-    font-weight: 700 !important;
-    padding: 10px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: background 0.15s ease, box-shadow 0.15s ease !important;
-}
-
-#shareButton:hover {
-    background: #f8f9fa !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-    color: #111 !important;
-}
-</style>
-
 <div class="container mt-4 mb-5">
     <div class="row product-container">
-        <!-- 1. Desktop Thumbnails -->
-        <div class="col-md-1 d-none d-md-block">
-            {% for variant in variants %}
-                <img src="{{ variant.image_url }}" 
-                     class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
-                     data-raw-url="{{ variant.image_url }}" 
-                     data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
-                     data-code="{{ variant.variant_code }}" 
-                     data-variant-id="{{ variant.id }}"
-                     data-selling-price="{{ variant.selling_price|default:'' }}"
-                     data-mrp-price="{{ variant.mrp|default:variant.mrp_price|default:'' }}"
-                     data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
-                     data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
-                     data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
-                     data-url="{% if variant.earn_karo_url and variant.earn_karo_url != 'None' %}{{ variant.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}"
-                     onmouseover="syncVariant(this)"
-                     onclick="syncVariant(this)"
-                     alt="{{ product.title }}">
-            {% endfor %}
-        </div>
         
-        <div class="col-md-5">
-            <!-- Media Toggle Switcher Tabs (Default Hidden via !important) -->
-            <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
-                <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
-                    <i class="bi bi-image"></i> Photo
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-dark" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
-                    <i class="bi bi-play-btn"></i> Video
-                </button>
-            </div>
-
-            <!-- Image Viewport Container -->
-            <div class="img-zoom-container" id="viewport" style="display: block;">
-                <div class="main-img-viewport">
-                    <img id="mainProductImg" src="{{ variants.0.image_url }}" alt="{{ product.title }}">
-                    <div id="lens" class="img-zoom-lens"></div>
-                </div>
-                <div id="zoomResult" class="img-zoom-result"></div>
-            </div>
-
-            <!-- Video Viewport Container -->
-            <div id="videoViewport" class="product-video-container" style="display: none; width: 100%;">
-                <video 
-                    id="mainProductVideo"
-                    src="" 
-                    controls 
-                    loop 
-                    playsinline
-                    style="width: 100%; max-height: 480px; border-radius: 8px; object-fit: cover;"
-                >
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-
-            <!-- 2. Mobile Thumbnails -->
-            <div class="d-flex d-md-none mt-3" style="overflow-x: auto; gap: 10px; padding-bottom: 10px;">
-                {% for variant in variants %}
-                    <img src="{{ variant.image_url }}" 
-                         class="thumb-img {% if forloop.first %}thumb-active{% endif %}" 
-                         data-raw-url="{{ variant.image_url }}" 
-                         data-video-url="{% if variant.video_url and variant.video_url != 'None' and variant.video_url != 'null' and variant.video_url != 'NoneType' %}{{ variant.video_url }}{% endif %}"
-                         data-code="{{ variant.variant_code }}" 
-                         data-variant-id="{{ variant.id }}"
-                         data-selling-price="{{ variant.selling_price|default:'' }}"
-                         data-mrp-price="{{ variant.mrp|default:variant.mrp_price|default:'' }}"
-                         data-store-name="{{ variant.store_name|default:product.store_name|default:'' }}"
-                         data-size="{{ variant.size|default:product.default_size|default:'Free Size' }}"
-                         data-colour="{{ variant.colour|default:product.default_color|default:'Standard' }}"
-                         data-url="{% if variant.earn_karo_url and variant.earn_karo_url != 'None' %}{{ variant.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}"
-                         onmouseover="syncVariant(this)"
-                         onclick="syncVariant(this)"
-                         alt="{{ product.title }}">
-                {% endfor %}
-            </div>
+        <!-- Left Side: Media & Thumbnails Partials -->
+        <div class="col-md-6">
+            {% include "shopping/partials/product_media.html" %}
         </div>
 
+        <!-- Right Side: Details, Price & Shop Button Partials -->
         <div class="col-md-6">
             <h1 class="product-title" style="font-size: 20px; font-weight: 800; color: #111; line-height: 1.4;">{{ product.title }}</h1>
             
-            <!-- Clean Price Section -->
-            <div class="price-section my-3" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
-                <span id="displaySellingPrice" class="price-tag" style="font-size: 28px; font-weight: 900; color: #b12704;">
-                    {{ product.currency }}{{ display_selling_price|default:product.selling_price|default:product.mrp_price|default:"" }}
-                </span>
-                
-                <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through; {% if not display_mrp_price %}display: none;{% endif %}">
-                    {{ product.currency }}{{ display_mrp_price|default:"" }}
-                </span>
+            <!-- Price Section Partial Included -->
+            {% include "shopping/partials/product_price.html" %}
 
-                <span id="displayDiscountBadge" class="discount-badge" style="font-size: 14px; font-weight: 800; color: #007600; background: #e7f4e8; padding: 3px 8px; border-radius: 4px; {% if not calculated_discount %}display: none;{% endif %}">
-                    {{ calculated_discount|default:"" }}% off
-                </span>
-            </div>
-
-            <div class="store-deal-card mt-3" style="background: #fafafa; padding: 15px; border-radius: 12px; border: 1px solid #eaeaea; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+            <div class="store-deal-card mt-3" style="background: #fafafa; padding: 15px; border-radius: 12px; border: 1px solid #eaeaea;">
                 <table class="table mb-2">
                     <tbody id="storeDealsContainer">
                         <tr>
@@ -247,23 +35,11 @@
                     </span>
                 </div>
                 
-                <!-- MOVING SUN-RAY FOCUS SHOP NOW BUTTON -->
-                <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
-                    id="masterShopNowBtn" 
-                    data-product-id="{{ product.id }}"
-                    data-variant-id="{{ variants.0.id|default:'' }}"
-                    data-store-name="{{ variants.0.store_name|default:product.store_name|default:'' }}"
-                    target="_blank" 
-                    rel="nofollow noopener">
-                    <span id="btnTextLabel" style="font-size: 19px; font-weight: 900; letter-spacing: 0.5px; pointer-events: none;">SHOP NOW AT</span>
-                    <img id="btnStoreLogo" src="/static/store_logo/{{ variants.0.store_name|default:product.store_name|default:'amazon'|lower|slugify }}.png" 
-                         onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
-                         alt="Store Logo">
-                    <span id="fallbackStoreName" style="display:none; font-size: 19px; font-weight: 900; text-transform: uppercase; pointer-events: none;">{{ variants.0.store_name|default:product.store_name|default:'STORE' }}</span>
-                </a>
+                <!-- Shop Now Button & Tracker Partial Included -->
+                {% include "shopping/partials/shopnow_button.html" %}
             </div>
 
-            <button id="shareButton" class="btn w-100 mt-3">
+            <button id="shareButton" class="btn w-100 mt-3" style="border-radius: 30px; font-weight: 700; background: #fff; border: 1px solid #ddd;">
                 <i class="bi bi-share"></i> SHARE THIS DEAL
             </button>
         </div>
@@ -276,233 +52,78 @@ const fallbackSellingPrice = parseFloat("{{ display_selling_price|default:produc
 const fallbackMrpPrice = parseFloat("{{ display_mrp_price|default:product.mrp_price|default:'0' }}");
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
-let dashPlayer = null; 
-let hlsPlayer = null;  
-
-function sanitizeAffiliateUrl(rawUrl) {
-    if (!rawUrl || rawUrl.trim() === "" || rawUrl === "None" || rawUrl === "null") {
-        return "#";
-    }
-    try {
-        let parsedUrl = new URL(rawUrl, window.location.origin);
-        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-            return rawUrl;
-        }
-        return parsedUrl.toString();
-    } catch (e) {
-        return rawUrl;
-    }
-}
-
-function switchMedia(type) {
-    const imgContainer = document.getElementById('viewport');
-    const videoContainer = document.getElementById('videoViewport');
-    const imgBtn = document.getElementById('showImgBtn');
-    const videoBtn = document.getElementById('showVideoBtn');
-    const mainVideo = document.getElementById('mainProductVideo');
-
-    if (type === 'image') {
-        if(imgContainer) imgContainer.style.display = 'block';
-        if(videoContainer) videoContainer.style.display = 'none';
-        if(mainVideo) { mainVideo.pause(); }
-        if(imgBtn) { imgBtn.classList.add('btn-dark', 'active'); imgBtn.classList.remove('btn-outline-dark'); }
-        if(videoBtn) { videoBtn.classList.add('btn-outline-dark'); videoBtn.classList.remove('btn-dark', 'active'); }
-    } else if (type === 'video') {
-        if(imgContainer) imgContainer.style.display = 'none';
-        if(videoContainer) videoContainer.style.display = 'block';
-        if(mainVideo) { mainVideo.play().catch(e => console.log("Auto-play prevented:", e)); }
-        if(videoBtn) { videoBtn.classList.add('btn-dark', 'active'); videoBtn.classList.remove('btn-outline-dark'); }
-        if(imgBtn) { imgBtn.classList.add('btn-outline-dark'); imgBtn.classList.remove('btn-dark', 'active'); }
-    }
-}
-
-function loadAndPlayVideo(videoUrl) {
-    const mainVideo = document.getElementById('mainProductVideo');
-    if (!mainVideo) return;
-
-    if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
-    if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-
-    if (videoUrl.includes('.mpd')) {
-        if (typeof dashjs !== 'undefined') {
-            dashPlayer = dashjs.MediaPlayer().create();
-            dashPlayer.initialize(mainVideo, videoUrl, false);
-        } else { mainVideo.src = videoUrl; }
-    } else if (videoUrl.includes('.m3u8')) {
-        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-            hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
-            hlsPlayer.loadSource(videoUrl);
-            hlsPlayer.attachMedia(mainVideo);
-        } else { mainVideo.src = videoUrl; }
-    } else { mainVideo.src = videoUrl; }
-}
-
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
-        const mainVideo = document.getElementById('mainProductVideo');
-        const mediaTab = document.getElementById('mediaSwitcherTab');
-        const result = document.getElementById("zoomResult");
-
         const code = el.getAttribute('data-code');
-        const variantId = el.getAttribute('data-variant-id');
         const rawUrl = el.getAttribute('data-raw-url');
-        const videoUrl = el.getAttribute('data-video-url');
-        const sellingPrice = el.getAttribute('data-selling-price');
-        const mrpPrice = el.getAttribute('data-mrp-price');
         const storeName = el.getAttribute('data-store-name');
         const size = el.getAttribute('data-size');
         const colour = el.getAttribute('data-colour');
         const variantUrl = el.getAttribute('data-url');
-
-        const hasValidVideo = videoUrl && videoUrl.trim() !== "" && videoUrl !== "None" && videoUrl !== "null" && videoUrl !== "NoneType";
+        const variantId = el.getAttribute('data-variant-id');
+        const sellingPrice = el.getAttribute('data-selling-price');
+        const mrpPrice = el.getAttribute('data-mrp-price');
 
         if (mainImg) mainImg.src = rawUrl;
+        document.getElementById('displayVariantCode').innerText = code;
+        
+        document.getElementById('storeDealsContainer').innerHTML = `
+            <tr>
+                <td><strong>${storeName || '-'}</strong></td>
+                <td>${size || '-'}</td>
+                <td>${colour || '-'}</td>
+            </tr>
+        `;
 
-        if (hasValidVideo) {
-            loadAndPlayVideo(videoUrl);
-            if (mediaTab) mediaTab.style.setProperty('display', 'flex', 'important');
-        } else {
-            if (mainVideo) { mainVideo.pause(); mainVideo.src = ""; }
-            if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
-            if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-            if (mediaTab) mediaTab.style.setProperty('display', 'none', 'important');
-        }
-
-        if (typeof switchMedia === 'function') { switchMedia('image'); }
-        if (result) result.style.display = 'none';
-
-        const codeDisplay = document.getElementById('displayVariantCode');
-        if (codeDisplay) codeDisplay.innerText = code;
-
-        const container = document.getElementById('storeDealsContainer');
-        const shopBtn = document.getElementById('masterShopNowBtn');
-        const topSellingPrice = document.getElementById('displaySellingPrice');
-        const topMrpPrice = document.getElementById('displayMrpPrice');
-        const discountBadge = document.getElementById('displayDiscountBadge');
-
-        if (container) {
-            container.innerHTML = `
-                <tr>
-                    <td><strong>${storeName || '-'}</strong></td>
-                    <td>${size || '-'}</td>
-                    <td>${colour || '-'}</td>
-                </tr>
-            `;
-        }
-
+        // Dynamic Price & Discount Update Logic
         let rawSelling = parseFloat(sellingPrice);
         let rawMrp = parseFloat(mrpPrice);
         let activeSelling = (isNaN(rawSelling) || rawSelling <= 0) ? fallbackSellingPrice : rawSelling;
-        
-        let activeMrp = 0;
-        if (!isNaN(rawMrp) && rawMrp > 0) {
-            activeMrp = rawMrp;
-        } else if (fallbackMrpPrice > 0) {
-            activeMrp = fallbackMrpPrice;
-        }
+        let activeMrp = (!isNaN(rawMrp) && rawMrp > 0) ? rawMrp : fallbackMrpPrice;
 
         let finalSpInt = Math.round(activeSelling);
         let finalMrpInt = Math.round(activeMrp);
 
-        if (topSellingPrice) { topSellingPrice.innerText = currencySymbol + finalSpInt; }
-        
+        const topSellingPrice = document.getElementById('displaySellingPrice');
+        const topMrpPrice = document.getElementById('displayMrpPrice');
+        const discountBadge = document.getElementById('displayDiscountBadge');
+
+        if (topSellingPrice) { 
+            topSellingPrice.innerText = currencySymbol + finalSpInt; 
+        }
+
         if (topMrpPrice) {
             if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
                 topMrpPrice.innerText = currencySymbol + finalMrpInt;
                 topMrpPrice.style.display = 'inline';
-            } else { topMrpPrice.style.display = 'none'; }
+            } else { 
+                topMrpPrice.style.display = 'none'; 
+            }
         }
 
-        if (finalMrpInt > finalSpInt && finalMrpInt > 0) {
+        if (finalMrpInt > finalSpInt && finalMrpInt > 0 && discountBadge) {
             let discPct = Math.round(((finalMrpInt - finalSpInt) / finalMrpInt) * 100);
-            if (discPct > 0 && discountBadge) {
+            if (discPct > 0) {
                 discountBadge.innerText = discPct + "% off";
                 discountBadge.style.display = 'inline-block';
-            } else if (discountBadge) { discountBadge.style.display = 'none'; }
-        } else if (discountBadge) { discountBadge.style.display = 'none'; }
-
-        if (shopBtn) {
-            let finalLink = variantUrl;
-            if (!finalLink || finalLink.trim() === "" || finalLink === "None" || finalLink === "null") {
-                finalLink = productFallbackUrl;
+            } else { 
+                discountBadge.style.display = 'none'; 
             }
-            
-            shopBtn.href = sanitizeAffiliateUrl(finalLink);
+        } else if (discountBadge) { 
+            discountBadge.style.display = 'none'; 
+        }
+
+        const shopBtn = document.getElementById('masterShopNowBtn');
+        if (shopBtn) {
+            shopBtn.href = variantUrl && variantUrl !== "None" ? variantUrl : productFallbackUrl;
             shopBtn.dataset.variantId = variantId || "";
             shopBtn.dataset.storeName = storeName || "";
-
-            let store = storeName || "SHOP";
-            let cleanStore = store.replace(/\.co\.in$/i, "").replace(/\.com$/i, "").replace(/\.in$/i, "").trim();
-            let storeKey = cleanStore.toLowerCase().replace(/\s+/g, "").replace(/[-_.]/g, "");
-
-            shopBtn.innerHTML = `
-                <span id="btnTextLabel" style="font-size:19px; font-weight:900; letter-spacing:0.5px; pointer-events:none;">SHOP NOW AT</span>
-                <img id="btnStoreLogo" src="/static/store_logo/${storeKey}.png" 
-                     onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
-                     style="height:28px; width:auto; max-width:100px; object-fit:contain; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-                <span id="fallbackStoreName" style="display:none; font-size:19px; font-weight:900; text-transform:uppercase; pointer-events:none;">${cleanStore}</span>
-            `;
-
-            const btnTextLabel = document.getElementById('btnTextLabel');
-            switch (cleanStore.toLowerCase()) {
-                case "amazon":
-                    shopBtn.style.background = "linear-gradient(135deg, #ffd814 0%, #ff9900 100%)";
-                    shopBtn.style.color = "#111";
-                    if(btnTextLabel) btnTextLabel.style.color = "#111";
-                    break;
-                case "flipkart":
-                    shopBtn.style.background = "linear-gradient(135deg, #4285f4 0%, #1565c0 100%)";
-                    shopBtn.style.color = "#fff";
-                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
-                    break;
-                case "myntra":
-                    shopBtn.style.background = "linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)";
-                    shopBtn.style.color = "#fff";
-                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
-                    break;
-                case "ajio":
-                    shopBtn.style.background = "linear-gradient(135deg, #333333 0%, #000000 100%)";
-                    shopBtn.style.color = "#fff";
-                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
-                    break;
-                case "meesho":
-                    shopBtn.style.background = "linear-gradient(135deg, #ba68c8 0%, #7b1fa2 100%)";
-                    shopBtn.style.color = "#fff";
-                    if(btnTextLabel) btnTextLabel.style.color = "#fff";
-                    break;
-                default:
-                    shopBtn.style.background = "linear-gradient(135deg, #ffd814 0%, #ff9900 100%)";
-                    shopBtn.style.color = "#111";
-                    if(btnTextLabel) btnTextLabel.style.color = "#111";
-            }
         }
 
         document.querySelectorAll(".thumb-img").forEach(t => t.classList.remove("thumb-active"));
         el.classList.add("thumb-active");
     } catch (err) { console.error("Sync Error:", err); }
 }
-
-document.addEventListener("DOMContentLoaded", function() {
-    const firstThumb = document.querySelector(".thumb-img");
-    if (firstThumb) { syncVariant(firstThumb); }
-});
-
-document.getElementById("masterShopNowBtn")?.addEventListener("click", function () {
-    const btn = this;
-    const formData = new FormData();
-    formData.append("product_id", btn.dataset.productId || "");
-    formData.append("variant_id", btn.dataset.variantId || "");
-
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
-
-    fetch("{% url 'track_shop_now_click' %}", {
-        method: "POST",
-        body: formData,
-        credentials: "same-origin",
-        keepalive: true,
-        headers: csrfToken ? { "X-CSRFToken": csrfToken } : {}
-    }).catch(() => {});
-});
 </script>
 {% endblock %}

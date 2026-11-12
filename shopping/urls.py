@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
 from .redirects import seo_urlpatterns
-from .shop_now_tracking import track_shop_now_click
+from .shop_now_tracking import track_visitor_or_shop_event
 
 # =========================================================
 # SEO & UTILITY FUNCTIONS
@@ -217,15 +217,18 @@ urlpatterns = [
     ),
 
 
-
+    # =====================================================
+    # 6. VISITOR & SHOP CLICK TRACKING ENDPOINT
+    # =====================================================
     path(
-        "track-shop-now/",
-        track_shop_now_click,
-        name="track_shop_now_click",
+        "api/log-event/",
+        track_visitor_or_shop_event,
+        name="log_visitor_event",
     ),
 
+
     # =====================================================
-    # 6. OLD URL REDIRECTS + 410
+    # 7. OLD URL REDIRECTS + 410
     #
     # IMPORTANT:
     # Ye SABSE LAST mein hona chahiye.

@@ -1,0 +1,13 @@
+<div class="price-section my-3" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+    <span id="displaySellingPrice" class="price-tag" style="font-size: 28px; font-weight: 900; color: #b12704;">
+        {{ product.currency }}{{ display_selling_price|default:product.selling_price|default:product.mrp_price|default:"" }}
+    </span>
+    
+    <span id="displayMrpPrice" class="mrp-text" style="font-size: 16px; color: #888; text-decoration: line-through; {% if not display_mrp_price %}display: none;{% endif %}">
+        {{ product.currency }}{{ display_mrp_price|default:"" }}
+    </span>
+
+    <span id="displayDiscountBadge" class="discount-badge" style="font-size: 14px; font-weight: 800; color: #007600; background: #e7f4e8; padding: 3px 8px; border-radius: 4px; {% if not calculated_discount %}display: none;{% endif %}">
+        {{ calculated_discount|default:"" }}% off
+    </span>
+</div>
