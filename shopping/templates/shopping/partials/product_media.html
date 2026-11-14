@@ -56,13 +56,13 @@
     </div>
     
     <div class="col-md-10">
-        <!-- Media Switcher Tabs -->
-        <div class="d-flex justify-content-center mb-2" id="mediaSwitcherTab" style="gap: 10px; display: none !important;">
-            <button type="button" class="btn btn-sm btn-dark active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
-                <i class="bi bi-image"></i> Photo
+        <!-- Attractive Media Switcher Tabs (Conditionally Shown via JS) -->
+        <div class="justify-content-center mb-3" id="mediaSwitcherTab" style="gap: 12px; display: none !important;">
+            <button type="button" class="btn active" id="showImgBtn" onclick="switchMedia('image')" style="border-radius: 30px; font-weight: 700; font-size: 14px; padding: 8px 22px; background: #212529; color: #fff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                <i class="bi bi-image me-1"></i> Photo
             </button>
-            <button type="button" class="btn btn-sm btn-outline-dark" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
-                <i class="bi bi-play-btn"></i> Video
+            <button type="button" class="btn" id="showVideoBtn" onclick="switchMedia('video')" style="border-radius: 30px; font-weight: 700; font-size: 14px; padding: 8px 22px; background: #f8f9fa; color: #333; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                <i class="bi bi-play-circle-fill me-1 text-danger"></i> Watch Video
             </button>
         </div>
 

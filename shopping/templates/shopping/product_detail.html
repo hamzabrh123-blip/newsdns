@@ -52,11 +52,20 @@ const fallbackSellingPrice = parseFloat("{{ display_selling_price|default:produc
 const fallbackMrpPrice = parseFloat("{{ display_mrp_price|default:product.mrp_price|default:'0' }}");
 const productFallbackUrl = "{{ product.earn_karo_url|default:'#' }}";
 
+// Page Load hote hi pehle active/first thumbnail par video check chalane ke liye
+document.addEventListener("DOMContentLoaded", function() {
+    const firstThumb = document.querySelector('.thumb-img');
+    if (firstThumb) {
+        syncVariant(firstThumb);
+    }
+});
+
 function syncVariant(el) {
     try {
         const mainImg = document.getElementById('mainProductImg');
         const code = el.getAttribute('data-code');
         const rawUrl = el.getAttribute('data-raw-url');
+        const videoUrl = el.getAttribute('data-video-url');
         const storeName = el.getAttribute('data-store-name');
         const size = el.getAttribute('data-size');
         const colour = el.getAttribute('data-colour');
@@ -68,6 +77,24 @@ function syncVariant(el) {
         if (mainImg) mainImg.src = rawUrl;
         document.getElementById('displayVariantCode').innerText = code;
         
+        // --- VIDEO SHOW / HIDE & TOGGLE LOGIC ---
+        const mediaSwitcher = document.getElementById('mediaSwitcherTab');
+        const mainVideo = document.getElementById('mainProductVideo');
+
+        if (videoUrl && videoUrl.trim() !== "" && videoUrl !== "None" && videoUrl !== "null") {
+            if (mainVideo) mainVideo.src = videoUrl;
+            if (mediaSwitcher) {
+                mediaSwitcher.style.setProperty('display', 'flex', 'important');
+            }
+        } else {
+            if (mainVideo) mainVideo.src = "";
+            if (mediaSwitcher) {
+                mediaSwitcher.style.setProperty('display', 'none', 'important');
+            }
+            switchMedia('image'); // Agar video nahi hai toh default image view par rakho
+        }
+        // ----------------------------------------
+
         document.getElementById('storeDealsContainer').innerHTML = `
             <tr>
                 <td><strong>${storeName || '-'}</strong></td>
@@ -124,6 +151,46 @@ function syncVariant(el) {
         document.querySelectorAll(".thumb-img").forEach(t => t.classList.remove("thumb-active"));
         el.classList.add("thumb-active");
     } catch (err) { console.error("Sync Error:", err); }
+}
+
+// Media Switcher Toggle Function
+function switchMedia(type) {
+    const imgViewport = document.getElementById('viewport');
+    const videoViewport = document.getElementById('videoViewport');
+    const imgBtn = document.getElementById('showImgBtn');
+    const videoBtn = document.getElementById('showVideoBtn');
+    const mainVideo = document.getElementById('mainProductVideo');
+
+    if (type === 'image') {
+        if(imgViewport) imgViewport.style.display = 'block';
+        if(videoViewport) videoViewport.style.display = 'none';
+        if(mainVideo) mainVideo.pause();
+        
+        if(imgBtn) { 
+            imgBtn.style.background = "#212529"; 
+            imgBtn.style.color = "#fff"; 
+            imgBtn.style.border = "none";
+        }
+        if(videoBtn) { 
+            videoBtn.style.background = "#f8f9fa"; 
+            videoBtn.style.color = "#333"; 
+            videoBtn.style.border = "1px solid #ddd";
+        }
+    } else {
+        if(imgViewport) imgViewport.style.display = 'none';
+        if(videoViewport) videoViewport.style.display = 'block';
+        
+        if(videoBtn) { 
+            videoBtn.style.background = "linear-gradient(135deg, #ff416c, #ff4b2b)"; 
+            videoBtn.style.color = "#fff"; 
+            videoBtn.style.border = "none";
+        }
+        if(imgBtn) { 
+            imgBtn.style.background = "#f8f9fa"; 
+            imgBtn.style.color = "#333"; 
+            imgBtn.style.border = "1px solid #ddd";
+        }
+    }
 }
 </script>
 {% endblock %}

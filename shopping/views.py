@@ -716,10 +716,9 @@ def track_visitor_or_shop_event(request):
     except Exception:
         data = {}
 
-    event_type = data.get("event_type", "HOME_VISIT")
-    product_id = data.get("product_id")
-    variant_id = data.get("variant_id")
-    traffic_source = data.get("traffic_source", "Direct Visit / Browser")
+    raw_event_type = data.get("event_type", "")
+    details = data.get("details", "").strip()
+    raw_source = data.get("traffic_source", "").strip().lower()
     device_type = data.get("device_type", "Desktop")
 
     ip_address = _get_client_ip(request)
@@ -728,24 +727,28 @@ def track_visitor_or_shop_event(request):
     country_code, city, state = _lookup_geo_ip(ip_address)
     effective_country = cf_country or country_code
 
-    # Sirf Indian traffic ko hi log karein (foreign bots ignore)
+    # Sirf Indian traffic ko hi log karein
     if effective_country and effective_country != "IN":
         return JsonResponse({"status": "ignored", "reason": "non-india"})
 
-    product_name = "Homepage / Site"
-    if product_id:
-        prod = Product.objects.filter(id=product_id).first()
-        if prod:
-            product_name = prod.title
-            if variant_id:
-                var = ProductVariant.objects.filter(id=variant_id).first()
-                if var and var.variant_code:
-                    product_name = f"{prod.title} ({var.variant_code})"
+    # --- FOOLPROOF BACKEND TRAFFIC SOURCE CLEANING ---
+    if "google.com" in raw_source:
+        traffic_source = "Google"
+    elif "pinterest.com" in raw_source:
+        traffic_source = "Pinterest"
+    elif "facebook.com" in raw_source or "fb.me" in raw_source:
+        traffic_source = "Facebook"
+    elif "instagram.com" in raw_source:
+        traffic_source = "Instagram"
+    else:
+        traffic_source = "Direct"
+
+    product_name = details if details else "Site Visit"
 
     try:
         VisitorClickLog.objects.create(
-            event_type=event_type,
-            traffic_source=traffic_source,
+            event_type=raw_event_type,
+            traffic_source=traffic_source, # Ab yahan hamesha clean naam hi jayega!
             city=city,
             state=state,
             device_type=device_type,

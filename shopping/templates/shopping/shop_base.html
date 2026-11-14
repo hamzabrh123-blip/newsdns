@@ -7,35 +7,39 @@
 <body>
 
     <nav class="shop-navbar">
-            <div class="d-flex align-items-center">
-                <button class="btn p-2 me-2 d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
-                    <i class="fas fa-bars"></i>
-                </button>
+        <div class="d-flex align-items-center">
+            
+            <!-- Mobile Menu Toggle Button (Sirf non-home pages par dikhega) -->
+            {% if request.resolver_match.url_name != 'shop_home' %}
+            <button class="btn p-2 me-2 d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+            {% endif %}
+            
+            <a href="{% url 'shop_home' %}" class="me-3">
+                <img src="{% static 'images/logo.png' %}" alt="UW" class="brand-logo-img">
+            </a>
+
+            <form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1 d-flex">
+                <input type="text" name="q" class="form-control search-input" value="{{ request.GET.q }}" placeholder="Search products, stores or price...">
                 
-                <a href="{% url 'shop_home' %}" class="me-3">
-                    <img src="{% static 'images/logo.png' %}" alt="UW" class="brand-logo-img">
-                </a>
-<form action="{% url 'product_search' %}" method="GET" class="search-form flex-grow-1 d-flex">
-    <input type="text" name="q" class="form-control search-input" value="{{ request.GET.q }}" placeholder="Search products, stores or price...">
-    
-    <div class="dropdown mx-2">
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-filter"></i>
-        </button>
-        <div class="dropdown-menu p-3 shadow" style="width: 250px;">
-            <label class="mb-2 fw-bold">Max Price (₹)</label>
-            <input type="number" name="max_price" class="form-control mb-3" placeholder="Enter max amount" value="{{ request.GET.max_price }}">
-            <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
-        </div>
-    </div>
-    
-    <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
-</form>
-
-
-            </div>
+                <div class="dropdown mx-2">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                    <div class="dropdown-menu p-3 shadow" style="width: 250px;">
+                        <label class="mb-2 fw-bold">Max Price (₹)</label>
+                        <input type="number" name="max_price" class="form-control mb-3" placeholder="Enter max amount" value="{{ request.GET.max_price }}">
+                        <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
+                    </div>
+                </div>
+                
+                <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
+            </form>
         </div>
         
+        <!-- Mobile Collapse Menu (Rendered only on Category/Product Pages) -->
+        {% if request.resolver_match.url_name != 'shop_home' %}
         <div class="collapse d-lg-none bg-white" id="mobileMenu">
             <div class="container py-3 border-top mt-2">
                 {% for menu in nav_menus %}
@@ -54,7 +58,10 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
 
+        <!-- Desktop Dynamic Nav Strip (Rendered only on Category/Product Pages) -->
+        {% if request.resolver_match.url_name != 'shop_home' %}
         <div class="dynamic-nav-strip d-none d-lg-block mt-3">
             <div class="container d-flex justify-content-center">
                 {% for menu in nav_menus %}
@@ -69,44 +76,16 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </nav>
     
-        <center>
-<a href="{% static 'Uttarworld/UttarWorldEliteLifestyleStore.apk' %}" class="btn btn-dark btn-sm text-nowrap ms-2 px-3 py-2" download>
-    <i class="fas fa-download me-1"></i> Download App
-</a></center> <br>
-<style>
-        .auto-slider-container {
-    position: relative;
-    width: 100%;
-    height: 180px; /* Ya jo bhi height tumne rakhi hai */
-    background: #f8f9fa;
-    overflow: hidden;
-    border-radius: 8px; /* Taaki corners round rahein */
-}
-
-.product-auto-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Image ko box mein fit karega, stretch nahi hone dega */
-    object-position: center;
-}
-</style>
-    {% if sliders %}
-    <div id="heroSlider" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            {% for slider in sliders %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <a href="{{ slider.link|default:'#' }}"><img src="{{ slider.image_url }}" alt="Slide" class="d-block w-100"></a>
-            </div>
-            {% endfor %}
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+    <div class="text-center my-3">
+        <a href="{% static 'Uttarworld/UttarWorldEliteLifestyleStore.apk' %}" class="btn btn-dark btn-sm text-nowrap px-3 py-2" download>
+            <i class="fas fa-download me-1"></i> Download App
+        </a>
     </div>
-    {% endif %}
 
-    <div class="container mt-4 mb-5" style="min-height: 70vh;">
+    <div class="container mt-2 mb-5" style="min-height: 70vh;">
         <div class="row">
             <div class="col-12">
                 {% block content %}{% endblock %}
@@ -118,61 +97,94 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Page load hone par visit log bhejo
-    const payload = {
-        event_type: 'HOME_VISIT',
-        traffic_source: document.referrer ? document.referrer : 'Direct Visit / Browser',
-        device_type: window.innerWidth < 768 ? 'Mobile' : 'Desktop'
-    };
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentPath = window.location.pathname;
+        let eventType = 'Home Visit';
+        let eventDetails = 'Homepage / Site';
+        let rawReferrer = document.referrer ? document.referrer.toLowerCase() : '';
+        let trafficSource = 'Direct';
 
-    // Agar product page hai toh product_id bhi nikal lo agar available ho
-    const buyBtn = document.querySelector('.shop-now-btn, [data-product-id]');
-    if (buyBtn && buyBtn.dataset.productId) {
-        payload.product_id = buyBtn.dataset.productId;
-        payload.event_type = 'PRODUCT_VIEW';
-    }
+        // 1. Clean Traffic Source Recognition
+        if (rawReferrer.includes('google.com')) {
+            trafficSource = 'Google';
+        } else if (rawReferrer.includes('pinterest.com')) {
+            trafficSource = 'Pinterest';
+        } else if (rawReferrer.includes('facebook.com') || rawReferrer.includes('fb.me')) {
+            trafficSource = 'Facebook';
+        } else if (rawReferrer.includes('instagram.com')) {
+            trafficSource = 'Instagram';
+        } else if (rawReferrer === '' || rawReferrer.includes('uttarworld.com')) {
+            trafficSource = 'Direct';
+        } else {
+            trafficSource = 'Other Referral';
+        }
 
-    // Backend API ko request bhejo
-    fetch('/api/log-event/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Tracking logged:', data);
-    })
-    .catch(err => {
-        // Silent catch taaki user ko error na dikhe
+        // 2. Dynamic Event Type & Accurate Name Extraction
+        let headingElem = document.querySelector('h2, .category-title, .product-title');
+        let pageHeading = headingElem ? headingElem.innerText.trim() : '';
+
+        if (currentPath.includes('/category/')) {
+            eventType = 'Category View';
+            eventDetails = pageHeading !== '' ? pageHeading : currentPath.split('/category/')[1].replace(/\//g, '').replace(/-/g, ' ');
+        } else if (currentPath.includes('/product/')) {
+            eventType = 'Product View';
+            eventDetails = pageHeading !== '' ? pageHeading : 'Product Page';
+        } else if (currentPath.includes('/search')) {
+            eventType = 'Search';
+            let urlParams = new URLSearchParams(window.location.search);
+            let searchQuery = urlParams.get('q');
+            eventDetails = searchQuery ? `Search: ${searchQuery}` : 'Site Search';
+        } else if (currentPath === '/' || currentPath === '/shop/') {
+            eventType = 'Home Visit';
+            eventDetails = 'Homepage / Site';
+        }
+
+        const payload = {
+            event_type: eventType,
+            traffic_source: trafficSource,
+            device_type: window.innerWidth < 768 ? 'Mobile' : 'Desktop',
+            page_url: window.location.href,
+            details: eventDetails
+        };
+
+        // 3. Backend API ko data bhejo
+        fetch('/api/log-event/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Tracking logged:', data);
+        })
+        .catch(err => {
+            console.error('Tracking error:', err);
+        });
     });
-});
-</script>
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.querySelector('.search-form');
+
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+
+                const q = searchForm.querySelector('input[name="q"]').value;
+                const maxPrice = searchForm.querySelector('input[name="max_price"]').value;
+
+                let url = "/search/"; 
+                let params = new URLSearchParams();
+                
+                if (q && q.trim() !== "") params.append('q', q);
+                if (maxPrice && maxPrice.trim() !== "") params.append('max_price', maxPrice);
+
+                window.location.href = url + '?' + params.toString();
+            });
+        }
+    });
+    </script>
 </body>
 </html>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.querySelector('.search-form');
-
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault(); 
-
-            const q = searchForm.querySelector('input[name="q"]').value;
-            const maxPrice = searchForm.querySelector('input[name="max_price"]').value;
-
-            // Template tag ki jagah seedha path use karo
-            let url = "/search/"; 
-            let params = new URLSearchParams();
-            
-            if (q && q.trim() !== "") params.append('q', q);
-            if (maxPrice && maxPrice.trim() !== "") params.append('max_price', maxPrice);
-
-            // Final Redirect
-            window.location.href = url + '?' + params.toString();
-        });
-    }
-});
-</script>

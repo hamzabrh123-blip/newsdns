@@ -37,7 +37,6 @@
 }
 #masterShopNowBtn:hover { transform: translateY(-2px); }
 </style>
-
 <a href="{% if variants.0.earn_karo_url and variants.0.earn_karo_url != 'None' %}{% if 'amazon' in variants.0.earn_karo_url %}{{ variants.0.earn_karo_url|clean_amazon }}{% else %}{{ variants.0.earn_karo_url }}{% endif %}{% else %}{% if 'amazon' in product.earn_karo_url %}{{ product.earn_karo_url|clean_amazon }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}{% endif %}" 
     id="masterShopNowBtn" 
     data-product-id="{{ product.id }}"
@@ -45,7 +44,7 @@
     data-store-name="{{ variants.0.store_name|default:product.store_name|default:'' }}"
     target="_blank" 
     rel="nofollow noopener"
-    style="background: linear-gradient(135deg, #ffd814 0%, #ff9900 100%); color: #111;">
+    style="background: {% with store=variants.0.store_name|default:product.store_name|lower %}{% if 'ajio' in store %}#111111{% elif 'myntra' in store %}#ff3f6c{% elif 'meesho' in store %}#8f37bc{% elif 'hamara' in store %}#059669{% elif 'flipkart' in store %}#2874f0{% elif 'kerala' in store or 'ayurveda' in store %}#065f46{% elif 'libas' in store %}#be185d{% else %}linear-gradient(135deg, #ffd814 0%, #ff9900 100%){% endif %}{% endwith %}; color: {% if 'amazon' in variants.0.store_name|default:product.store_name|lower %}#111{% else %}#fff{% endif %};">
     <span id="btnTextLabel" style="font-size: 19px; font-weight: 900; letter-spacing: 0.5px; pointer-events: none;">SHOP NOW AT</span>
     <img id="btnStoreLogo" src="/static/store_logo/{{ variants.0.store_name|default:product.store_name|default:'amazon'|lower|slugify }}.png" 
          onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
@@ -54,66 +53,45 @@
 </a>
 
 <script>
-function getTrafficSource() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const referrer = document.referrer.toLowerCase();
-    const urlParams = new URLSearchParams(window.location.search);
+function updateStoreButtonColor(storeName) {
+    const btn = document.getElementById('masterShopNowBtn');
+    if (!btn) return;
     
-    if (userAgent.includes("wv") || userAgent.includes("uttarworldapp") || window.cefQuery || window.AndroidBridge) {
-        return 'Android App (WebView)';
-    }
-    if (urlParams.has('utm_source')) {
-        return 'App/Campaign (' + urlParams.get('utm_source') + ')';
-    }
-    if (!referrer || referrer === "") {
-        return 'Direct Visit / Browser';
-    } else if (referrer.includes('google.com')) {
-        return 'Google Search';
-    } else if (referrer.includes('instagram.com')) {
-        return 'Instagram';
-    } else if (referrer.includes('facebook.com') || referrer.includes('fb.me')) {
-        return 'Facebook';
-    } else if (referrer.includes('pinterest.com')) {
-        return 'Pinterest';
-    } else if (referrer.includes('youtube.com')) {
-        return 'YouTube';
-    } else if (referrer.includes('whatsapp.com') || referrer.includes('wa.me')) {
-        return 'WhatsApp';
+    const s = (storeName || "").toLowerCase().trim();
+    let textColor = "#fff";
+    let bgStyle = "";
+
+    if (s.includes('ajio')) {
+        bgStyle = "#111111"; // Jet Black
+    } else if (s.includes('myntra')) {
+        bgStyle = "#ff3f6c"; // Hot Pink / Red
+    } else if (s.includes('meesho')) {
+        bgStyle = "#3ac1dc"; // Royal Purple
+    } else if (s.includes('hamara') || s.includes('hamaramall')) {
+        bgStyle = "#e84ff6"; // Rich Emerald Green (Unique & Fresh)
+    } else if (s.includes('flipkart')) {
+        bgStyle = "#2874f0"; // Electric Blue
+    } else if (s.includes('kerala') || s.includes('ayurveda')) {
+        bgStyle = "#065f46"; // Deep Forest Teal
+    } else if (s.includes('libas')) {
+        bgStyle = "#be185d"; // Vibrant Magenta
     } else {
-        return 'Other Site (' + new URL(referrer).hostname + ')';
+        // Amazon / Default
+        bgStyle = "linear-gradient(135deg, #de2915 0%, #e8e877 100%)";
+        textColor = "#111";
     }
+
+    btn.style.background = bgStyle;
+    btn.style.color = textColor;
 }
 
-function getDeviceType() {
-    return (navigator.userAgent.match(/Mobi/i)) ? 'Mobile' : 'Desktop';
-}
-
+// Page load par initial store name ke hisab se color set karo
 window.addEventListener('load', function() {
+    const initialStore = "{{ variants.0.store_name|default:product.store_name|default:'amazon' }}";
+    updateStoreButtonColor(initialStore);
     sendTrackingData('HOME_VISIT', '', '');
 });
 
-document.getElementById("masterShopNowBtn")?.addEventListener("click", function () {
-    const btn = this;
-    sendTrackingData('SHOP_CLICK', btn.dataset.productId || "", btn.dataset.variantId || "");
-});
-
-function sendTrackingData(eventType, productId, variantId) {
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value || '';
-    fetch('/api/log-event/', {
-        method: 'POST',
-        credentials: 'same-origin',
-        keepalive: true,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({
-            event_type: eventType,
-            product_id: productId,
-            variant_id: variantId,
-            traffic_source: getTrafficSource(),
-            device_type: getDeviceType()
-        })
-    }).catch(err => console.log('Tracking error:', err));
-}
+// Jab variant change ho toh syncVariant ya is function ko store name pass kar dena
+// Ya hum syncVariant ke andar se bhi isko call kar sakte hain.
 </script>

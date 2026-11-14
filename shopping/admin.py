@@ -222,12 +222,18 @@ class HomeSliderAdmin(admin.ModelAdmin):
     list_display = ("title", "link", "is_active")
     list_filter = ("is_active",)
 
+    def has_module_permission(self, request):
+        return False
+
 
 @admin.register(DropdownMenu)
 class DropdownMenuAdmin(admin.ModelAdmin):
     list_display = ("menu_name", "order", "is_active")
     list_filter = ("is_active",)
     filter_horizontal = ("categories",)
+
+    def has_module_permission(self, request):
+        return False
 
 
 @admin.register(HomeSection)
@@ -272,26 +278,25 @@ class ShopNowClickAdmin(admin.ModelAdmin):
     ordering = ("-clicked_at",)
     readonly_fields = ("clicked_at",)
 
+    def has_module_permission(self, request):
+        return False
+
 
 @admin.register(VisitorClickLog)
 class VisitorClickLogAdmin(admin.ModelAdmin):
     list_display = (
         "timestamp",
-        "event_type",
         "traffic_source",
+        "product_name",
         "state",
         "city",
-        "device_type",
-        "product_name",
-        "ip_address",
     )
-    list_filter = ("event_type", "traffic_source", "state", "device_type", "timestamp")
+    list_filter = ("traffic_source", "state", "timestamp")
     search_fields = (
         "city",
         "state",
-        "product_name",
-        "ip_address",
         "traffic_source",
+        "product_name",
     )
     ordering = ("-timestamp",)
     readonly_fields = ("timestamp",)
