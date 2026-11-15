@@ -3,18 +3,7 @@
 {% block content %}
 
 <style>
-    .full-bleed-wrapper {
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        padding-left: 2px;
-        padding-right: 2px;
-        overflow-x: hidden;
-    }
-
+    /* PC (Desktop) view original aur stable rahega */
     .product-card-link {
         text-decoration: none !important;
         color: inherit !important;
@@ -72,20 +61,17 @@
         padding: 1px 5px;
         border-radius: 4px;
     }
+    
+    /* Desktop Default Image Container Height */
     .product-img-container {
         position: relative;
         width: 100%;
-        height: 280px;
+        height: 300px;
         background: #f8f9fa;
         overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-    @media (min-width: 768px) {
-        .product-img-container {
-            height: 300px;
-        }
     }
     .product-single-img {
         width: 100% !important;
@@ -94,7 +80,38 @@
         object-position: center;
     }
 
-    /* Exact Product Detail Button Styles Adapted for Grid Cards */
+    /* ==========================================
+       SIRF MOBILE VIEW KE LIYE FIX (PC untouched)
+       ========================================== */
+    @media (max-width: 767.98px) {
+        .full-bleed-wrapper {
+            width: 100vw !important;
+            position: relative !important;
+            left: 50% !important;
+            right: 50% !important;
+            margin-left: -50vw !important;
+            margin-right: -50vw !important;
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+            overflow-x: hidden !important;
+        }
+        .product-img-container {
+            height: auto !important;
+            min-height: 200px !important;
+            max-height: 280px !important;
+            background: #f8f9fa !important;
+        }
+        .product-single-img {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 280px !important;
+            object-fit: contain !important;
+            object-position: center !important;
+        
+        }
+    }
+
+    /* Exact Match Store Button Styles Adapted for Grid Cards */
     .cat-shop-btn {
         display: flex !important;
         align-items: center !important;
@@ -325,7 +342,7 @@
             </div>
         {% elif category.banner and category.banner.name %}
             <div class="category-banner-box shadow-sm">
-                <img src="{ category.banner.url }}" class="category-banner-img" alt="{{ category.name }}">
+                <img src="{{ category.banner.url }}" class="category-banner-img" alt="{{ category.name }}">
             </div>
         {% elif category.thumbnail and category.thumbnail.name %}
             <div class="category-banner-box shadow-sm">
