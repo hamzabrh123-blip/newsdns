@@ -264,19 +264,18 @@ class ShopNowClickAdmin(admin.ModelAdmin):
         "product",
         "variant",
         "store_name",
+        "traffic_source",
         "city",
         "country",
     )
-    list_filter = ("store_name", "country", "clicked_at")
+    list_filter = ("store_name", "traffic_source", "country", "clicked_at")
     search_fields = (
         "product__title",
         "store_name",
         "city",
         "country",
+        "traffic_source",
         "variant__variant_code",
     )
     ordering = ("-clicked_at",)
     readonly_fields = ("clicked_at",)
-
-    def has_module_permission(self, request):
-        return False
