@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
 from .indexing_utils import notify_google_indexing
-from .models import ping_bing_indexing_batch, ShopNowClick, VisitorClickLog
+from .models import ping_bing_indexing_batch, ShopNowClick
 from .models import (
     StoreLogoUpload,
     Category,
@@ -280,23 +280,3 @@ class ShopNowClickAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
-
-
-@admin.register(VisitorClickLog)
-class VisitorClickLogAdmin(admin.ModelAdmin):
-    list_display = (
-        "timestamp",
-        "traffic_source",
-        "product_name",
-        "state",
-        "city",
-    )
-    list_filter = ("traffic_source", "state", "timestamp")
-    search_fields = (
-        "city",
-        "state",
-        "traffic_source",
-        "product_name",
-    )
-    ordering = ("-timestamp",)
-    readonly_fields = ("timestamp",)

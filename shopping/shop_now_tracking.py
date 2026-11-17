@@ -1,104 +1,279 @@
-import ipaddress
-import requests
-import json
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib import admin
+from django.db import models
+from django.forms import Textarea, TextInput
+from django.utils.html import format_html
+from import_export.admin import ImportExportModelAdmin
 
-from .models import Product, ProductVariant, ShopNowClick, VisitorClickLog
+from .indexing_utils import notify_google_indexing
+from .models import ping_bing_indexing_batch, ShopNowClick
+from .models import (
+    StoreLogoUpload,
+    Category,
+    Product,
+    ProductVariant,
+    HomeSlider,
+    DropdownMenu,
+    HomeSection,
+    HomePageSEO,
+    StoreConfiguration,
+)
 
 
-@csrf_exempt
-@require_POST
-def track_visitor_or_shop_event(request):
-    """
-    Ye ek hi endpoint dono kaam karega:
-    1. Home/Site Visit log karega (Platform, State, City ke sath)
-    2. Shop Now Click log karega (Product, Variant, Platform, State, City ke sath)
-    """
-    try:
-        # Request body JSON ya POST form data dono handle kar lega
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+@admin.register(StoreLogoUpload)
+class StoreLogoUploadAdmin(admin.ModelAdmin):
+    list_display = ("id", "logo_path")
 
-        event_type = data.get("event_type", "HOME_VISIT") # HOME_VISIT ya SHOP_CLICK
-        product_id = data.get("product_id")
-        variant_id = data.get("variant_id")
-        traffic_source = data.get("traffic_source", "Direct / Browser")
-        device_type = data.get("device_type", "Mobile")
+    def has_module_permission(self, request):
+        return False
 
-        product = None
-        variant = None
-        store_name = ""
-        product_name = ""
 
-        if product_id:
+@admin.register(Category)
+class CategoryAdmin(ImportExportModelAdmin):
+    list_display = ("name", "slug", "meta_title")
+    search_fields = ("name", "meta_title")
+    prepopulated_fields = {"slug": ("name",)}
+    actions = ["trigger_google_category_submission", "trigger_bing_category_submission"]
+
+    @admin.action(description="Submit selected categories to Google")
+    def trigger_google_category_submission(self, request, queryset):
+        urls = [f"https://uttarworld.com{cat.get_absolute_url()}" for cat in queryset if cat.slug]
+        success, failed = 0, 0
+        for url in urls:
             try:
-                product = Product.objects.get(pk=product_id)
-                store_name = (product.store_name or "").strip()
-                product_name = product.title
-            except (Product.DoesNotExist, TypeError, ValueError):
-                pass
+                result = notify_google_indexing(url)
+                if isinstance(result, dict) and result.get("status") == "success":
+                    success += 1
+                else:
+                    failed += 1
+            except Exception:
+                failed += 1
+        self.message_user(request, f"Google category submission: {success} successful, {failed} failed.")
 
-        if variant_id and product:
-            variant = ProductVariant.objects.filter(
-                pk=variant_id,
-                product=product,
-            ).first()
+    @admin.action(description="Submit selected categories to Bing")
+    def trigger_bing_category_submission(self, request, queryset):
+        urls = [f"https://uttarworld.com{cat.get_absolute_url()}" for cat in queryset if cat.slug]
+        success = ping_bing_indexing_batch(urls)
+        if success:
+            self.message_user(request, f"Bing submission successful for {len(urls)} categories.")
+        else:
+            self.message_user(request, "Bing submission failed or was incomplete.", level="WARNING")
 
-        # Client ki Real IP nikalna (Cloudflare + Standard Fallback)
-        ip = (
-            request.META.get("HTTP_CF_CONNECTING_IP")
-            or request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-            or request.META.get("REMOTE_ADDR", "")
-        )
 
-        city = "Unknown"
-        state = "Unknown"
-        country = request.META.get("HTTP_CF_IPCOUNTRY", "IN")
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 1
+    fields = (
+        "variant_image_preview", 
+        "image_url", 
+        "video_url", 
+        "earn_karo_url", 
+        "selling_price", 
+        "size", 
+        "colour", 
+        "mrp_price"
+    )
+    readonly_fields = ("variant_image_preview",)
 
-        # IP Geolocation check (Sirf India ke traffic ko process karenge)
-        try:
-            ipaddress.ip_address(ip)
-            if ip and ip != "127.0.0.1" and ip != "localhost":
-                response = requests.get(f"https://ipwho.is/{ip}", timeout=2)
-                data_geo = response.json()
+    formfield_overrides = {
+        models.URLField: {"widget": TextInput(attrs={"size": 15, "style": "width: 120px;"})},
+        models.CharField: {"widget": TextInput(attrs={"size": 10, "style": "width: 85px;"})},
+        models.DecimalField: {"widget": TextInput(attrs={"size": 8, "style": "width: 75px;"})},
+    }
 
-                if data_geo.get("success"):
-                    country_name = data_geo.get("country", "")
-                    # India filter
-                    if "india" in country_name.lower() or country == "IN":
-                        city = data_geo.get("city") or "Unknown"
-                        state = data_geo.get("region") or "Unknown"
-                    else:
-                        return JsonResponse({"status": "ignored", "reason": "non-indian traffic"})
-        except Exception:
-            pass
+    class Media:
+        css = {
+            'all': (
+                'data:text/css;charset=utf-8,'
+                '.inline-group .tabular td { padding: 6px 3px !important; } '
+                '.inline-group .tabular input { max-width: 130px !important; box-sizing: border-box; }'
+            ),
+        }
 
-        # 1. New Advanced VisitorClickLog Model mein save karo
-        VisitorClickLog.objects.create(
-            event_type=event_type,
-            state=state,
-            city=city,
-            traffic_source=traffic_source,
-            device_type=device_type,
-            product_name=product_name if product_name else "Homepage / Site",
-            ip_address=ip if ip else None
-        )
-
-        # 2. Agar Shop Click hai, toh purana ShopNowClick legacy model bhi maintain rakho
-        if event_type == "SHOP_CLICK" and product:
-            ShopNowClick.objects.create(
-                product=product,
-                variant=variant,
-                store_name=store_name,
-                city=city,
-                country=country,
+    def variant_image_preview(self, obj):
+        if obj and obj.image_url:
+            return format_html(
+                '<img src="{}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;" />',
+                obj.image_url
             )
+        return "No Image"
+    variant_image_preview.short_description = "Preview"
 
-        return JsonResponse({"status": "success", "city": city, "state": state, "source": traffic_source})
 
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+@admin.register(Product)
+class ProductAdmin(ImportExportModelAdmin):
+    list_display = (
+        "title",
+        "display_store_name",
+        "display_selling_price",
+        "category",
+        "variant_thumbnail",
+        "created_at",
+    )
+    list_filter = ("category", "store_name", "currency")
+    search_fields = ("title", "slug", "store_name")
+    
+    exclude = ("slug",)
+    readonly_fields = ("product_image_preview",)
+    
+    fields = (
+        "title",
+        "category",
+        "store_name",
+        "mrp_price",
+        "selling_price",
+        "default_color",
+        "default_size",
+        "currency",
+        "product_image_preview",
+        "meta_description",
+        "is_available",
+        "is_featured",
+    )
+    
+    inlines = [ProductVariantInline]
+    actions = ["trigger_google_submission", "trigger_bing_submission"] 
+    formfield_overrides = {
+        models.TextField: {"widget": Textarea(attrs={"rows": 3})},
+    }
+
+    def display_store_name(self, obj):
+        return obj.store_name if obj.store_name else "-"
+    display_store_name.short_description = "Store Name"
+
+    def display_selling_price(self, obj):
+        if obj.selling_price and obj.selling_price > 0:
+            return f"{obj.currency} {obj.selling_price}"
+        if obj.mrp_price and obj.mrp_price > 0:
+            return f"{obj.currency} {obj.mrp_price} (MRP)"
+        return f"{obj.currency} - "
+    display_selling_price.short_description = "Selling Price"
+
+    def variant_thumbnail(self, obj):
+        first_variant = obj.variants.first()
+        if first_variant and first_variant.image_url:
+            return format_html(
+                '<img src="{}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />',
+                first_variant.image_url
+            )
+        return "No Image"
+    variant_thumbnail.short_description = "Variant Image"
+
+    def product_image_preview(self, obj):
+        if obj and obj.pk:
+            first_variant = obj.variants.first()
+            if first_variant and first_variant.image_url:
+                return format_html(
+                    '<img src="{}" style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 6px;" />',
+                    first_variant.image_url
+                )
+        return "Save product once or add variant image to preview here."
+    product_image_preview.short_description = "Product Main Image Preview"
+
+    @admin.action(description="Submit selected products to Google")
+    def trigger_google_submission(self, request, queryset):
+        urls = [
+            f"https://uttarworld.com/shopping/product/{p.slug}/"
+            for p in queryset.filter(is_available=True)
+            .exclude(slug__isnull=True)
+            .exclude(slug="")
+        ]
+
+        success = 0
+        failed = 0
+        errors = []
+
+        for url in urls:
+            try:
+                result = notify_google_indexing(url)
+                if isinstance(result, dict) and result.get("status") == "success":
+                    success += 1
+                else:
+                    failed += 1
+                    if len(errors) < 3:
+                        errors.append(f"{url}: {result!r}")
+            except Exception as e:
+                failed += 1
+                if len(errors) < 3:
+                    errors.append(f"{url}: {type(e).__name__}: {e}")
+
+        self.message_user(request, f"Google submission: {success} successful, {failed} failed.")
+        for error in errors:
+            self.message_user(request, error[:1000], level="WARNING")
+
+    @admin.action(description="Submit selected products to Bing")
+    def trigger_bing_submission(self, request, queryset):
+        urls = [
+            f"https://uttarworld.com/shopping/product/{p.slug}/"
+            for p in queryset.filter(is_available=True)
+            .exclude(slug__isnull=True)
+            .exclude(slug="")
+        ]
+
+        success = ping_bing_indexing_batch(urls)
+
+        if success:
+            self.message_user(request, f"Bing submission successful for {len(urls)} URLs.")
+        else:
+            self.message_user(request, "Bing submission failed or was incomplete. Check logs.", level="WARNING")
+
+
+@admin.register(HomeSlider)
+class HomeSliderAdmin(admin.ModelAdmin):
+    list_display = ("title", "link", "is_active")
+    list_filter = ("is_active",)
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(DropdownMenu)
+class DropdownMenuAdmin(admin.ModelAdmin):
+    list_display = ("menu_name", "order", "is_active")
+    list_filter = ("is_active",)
+    filter_horizontal = ("categories",)
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(HomeSection)
+class HomeSectionAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "order", "is_active")
+    list_filter = ("is_active", "category")
+    list_editable = ("order", "is_active")
+
+
+@admin.register(HomePageSEO)
+class HomePageSEOAdmin(admin.ModelAdmin):
+    list_display = ("title", "updated_at")
+
+
+@admin.register(StoreConfiguration)
+class StoreConfigurationAdmin(admin.ModelAdmin):
+    list_display = ("store_name", "default_coupon_code", "is_active")
+    list_filter = ("is_active",)
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(ShopNowClick)
+class ShopNowClickAdmin(admin.ModelAdmin):
+    list_display = (
+        "clicked_at",
+        "product",
+        "variant",
+        "store_name",
+        "city",
+        "country",
+    )
+    list_filter = ("store_name", "country", "clicked_at")
+    search_fields = (
+        "product__title",
+        "store_name",
+        "city",
+        "country",
+        "variant__variant_code",
+    )
+    ordering = ("-clicked_at",)
+    readonly_fields = ("clicked_at",)

@@ -44,7 +44,7 @@
     data-store-name="{{ variants.0.store_name|default:product.store_name|default:'' }}"
     target="_blank" 
     rel="nofollow noopener"
-    style="background: {% with store=variants.0.store_name|default:product.store_name|lower %}{% if 'ajio' in store %}#111111{% elif 'myntra' in store %}#ff3f6c{% elif 'meesho' in store %}#8f37bc{% elif 'hamara' in store %}#059669{% elif 'flipkart' in store %}#2874f0{% elif 'kerala' in store or 'ayurveda' in store %}#065f46{% elif 'libas' in store %}#be185d{% else %}linear-gradient(135deg, #ffd814 0%, #ff9900 100%){% endif %}{% endwith %}; color: {% if 'amazon' in variants.0.store_name|default:product.store_name|lower %}#111{% else %}#fff{% endif %};">
+    style="background: {% with store=variants.0.store_name|default:product.store_name|lower %}{% if 'ajio' in store %}#111111{% elif 'myntra' in store %}#ff3f6c{% elif 'meesho' in store %}#3ac1dc{% elif 'shopsy' in store %}#9333ea{% elif 'jiomart' in store %}#008ecc{% elif 'tatacliq' in store %}#8f37bc{% elif 'hamara' in store %}#059669{% elif 'flipkart' in store %}#2874f0{% elif 'kerala' in store or 'ayurveda' in store %}#065f46{% elif 'libas' in store %}#be185d{% else %}linear-gradient(135deg, #ffd814 0%, #ff9900 100%){% endif %}{% endwith %}; color: {% if 'amazon' in variants.0.store_name|default:product.store_name|lower %}#111{% else %}#fff{% endif %};">
     <span id="btnTextLabel" style="font-size: 19px; font-weight: 900; letter-spacing: 0.5px; pointer-events: none;">SHOP NOW AT</span>
     <img id="btnStoreLogo" src="/static/store_logo/{{ variants.0.store_name|default:product.store_name|default:'amazon'|lower|slugify }}.png" 
          onerror="this.style.display='none'; document.getElementById('fallbackStoreName').style.display='inline';" 
@@ -67,8 +67,14 @@ function updateStoreButtonColor(storeName) {
         bgStyle = "#ff3f6c"; // Hot Pink / Red
     } else if (s.includes('meesho')) {
         bgStyle = "#3ac1dc"; // Royal Purple
+    } else if (s.includes('shopsy')) {
+        bgStyle = "#9333ea"; // Purple (Shopsy Brand)
+    } else if (s.includes('jiomart')) {
+        bgStyle = "#008ecc"; // JioMart Blue
+    } else if (s.includes('tatacliq')) {
+        bgStyle = "#e11d48"; // Tata CLiQ Red / Rose
     } else if (s.includes('hamara') || s.includes('hamaramall')) {
-        bgStyle = "#e84ff6"; // Rich Emerald Green (Unique & Fresh)
+        bgStyle = "#e84ff6"; // Rich Emerald Green
     } else if (s.includes('flipkart')) {
         bgStyle = "#2874f0"; // Electric Blue
     } else if (s.includes('kerala') || s.includes('ayurveda')) {
@@ -76,7 +82,6 @@ function updateStoreButtonColor(storeName) {
     } else if (s.includes('libas')) {
         bgStyle = "#be185d"; // Vibrant Magenta
     } else {
-        // Amazon / Default
         bgStyle = "linear-gradient(135deg, #de2915 0%, #e8e877 100%)";
         textColor = "#111";
     }
@@ -89,9 +94,5 @@ function updateStoreButtonColor(storeName) {
 window.addEventListener('load', function() {
     const initialStore = "{{ variants.0.store_name|default:product.store_name|default:'amazon' }}";
     updateStoreButtonColor(initialStore);
-    sendTrackingData('HOME_VISIT', '', '');
 });
-
-// Jab variant change ho toh syncVariant ya is function ko store name pass kar dena
-// Ya hum syncVariant ke andar se bhi isko call kar sakte hain.
 </script>

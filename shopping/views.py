@@ -6,6 +6,8 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse, parse_qs, urlsplit
 from xml.sax.saxutils import escape
+from datetime import timedelta
+from django.utils import timezone
 
 from django.db.models import (
     Q,
@@ -32,8 +34,7 @@ from .models import (
     HomeSlider,
     DropdownMenu,
     HomeSection,
-    HomePageSEO,
-    VisitorClickLog
+    HomePageSEO
 )
 
 
@@ -671,9 +672,8 @@ def video_sitemap_xml(request):
         content_type="application/xml; charset=utf-8"
     )
 
-
 # ==========================================
-# VISITOR & OUTBOUND CLICK TRACKING API (INDIA ONLY)
+# SHOP NOW CLICK TRACKING API (INDIA ONLY)
 # ==========================================
 
 def _get_client_ip(request):
@@ -707,7 +707,7 @@ def _lookup_geo_ip(ip_address):
 
 
 @csrf_exempt
-def track_visitor_or_shop_event(request):
+def track_shop_now_click(request):
     if request.method != "POST":
         return JsonResponse({"status": "invalid method"}, status=405)
 
@@ -716,14 +716,28 @@ def track_visitor_or_shop_event(request):
     except Exception:
         data = {}
 
-    raw_event_type = data.get("event_type", "")
-    details = data.get("details", "").strip()
+    product_id = data.get("product_id")
+    variant_id = data.get("variant_id")
     raw_source = data.get("traffic_source", "").strip().lower()
-    device_type = data.get("device_type", "Desktop")
+
+    product = None
+    variant = None
+    store_name = ""
+
+    if product_id:
+        try:
+            product = Product.objects.get(pk=product_id)
+            store_name = (product.store_name or "").strip()
+        except (Product.DoesNotExist, TypeError, ValueError):
+            pass
+
+    if variant_id and product:
+        variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
+        if variant and getattr(variant, 'store_name', None):
+            store_name = variant.store_name.strip() or store_name
 
     ip_address = _get_client_ip(request)
     cf_country = (request.META.get("HTTP_CF_IPCOUNTRY") or "").upper()
-
     country_code, city, state = _lookup_geo_ip(ip_address)
     effective_country = cf_country or country_code
 
@@ -740,21 +754,25 @@ def track_visitor_or_shop_event(request):
         traffic_source = "Facebook"
     elif "instagram.com" in raw_source:
         traffic_source = "Instagram"
+    elif "whatsapp" in raw_source:
+        traffic_source = "WhatsApp"
     else:
         traffic_source = "Direct"
 
-    product_name = details if details else "Site Visit"
-
     try:
-        VisitorClickLog.objects.create(
-            event_type=raw_event_type,
-            traffic_source=traffic_source, # Ab yahan hamesha clean naam hi jayega!
+        ShopNowClick.objects.create(
+            product=product,
+            variant=variant,
+            store_name=store_name,
+            traffic_source=traffic_source,
             city=city,
-            state=state,
-            device_type=device_type,
-            product_name=product_name,
-            ip_address=ip_address,
+            country=effective_country or "IN",
         )
-        return JsonResponse({"status": "success"})
+
+        # 30-Day Auto Cleanup (1 mahine se purane saare clicks automatic delete ho jayenge)
+        one_month_ago = timezone.now() - timedelta(days=30)
+        ShopNowClick.objects.filter(clicked_at__lt=one_month_ago).delete()
+
+        return JsonResponse({"status": "success", "city": city})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=400)

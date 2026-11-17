@@ -216,12 +216,12 @@ urlpatterns = [
 
 
     # =====================================================
-    # 6. VISITOR & SHOP CLICK TRACKING ENDPOINT
+    # 6. SHOP NOW CLICK TRACKING ENDPOINT
     # =====================================================
     path(
-        "api/log-event/",
-        views.track_visitor_or_shop_event,  
-        name="log_visitor_event",
+        "api/track-shop-click/",
+        views.track_shop_now_click,  
+        name="track_shop_click",
     ),
     # =====================================================
     # 7. OLD URL REDIRECTS + 410

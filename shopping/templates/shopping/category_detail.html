@@ -242,13 +242,28 @@
                         </div>
                     </a>
 
-                    <!-- Exact Match Store Button with Original Colors & Logos -->
+                    <!-- Exact Match Store Button with Tracking Attributes -->
                     {% with store_name=variant.store_name|default:product.store_name %}
                     <a href="{% if variant.earn_karo_url and variant.earn_karo_url != 'None' %}{{ variant.earn_karo_url }}{% else %}{{ product.earn_karo_url|default:'#' }}{% endif %}" 
                        class="cat-shop-btn mt-auto"
+                       data-product-id="{{ product.id }}"
+                       data-variant-id="{{ variant.id|default:'' }}"
+                       data-store-name="{{ store_name|default:'' }}"
                        target="_blank" 
                        rel="nofollow noopener"
-                       style="background: {% with s=store_name|lower %}{% if 'ajio' in s %}#111111{% elif 'myntra' in s %}#ff3f6c{% elif 'meesho' in s %} #8f37bc{% elif 'hamara' in s %} #e84ff6{% elif 'flipkart' in s %}#2874f0{% elif 'kerala' in s or 'ayurveda' in s %}#065f46{% elif 'libas' in s %}#be185d{% else %}linear-gradient(135deg, #ffd814 0%, #ff9900 100%){% endif %}{% endwith %}; color: {% if 'amazon' in store_name|lower %}#111{% else %}#fff{% endif %};">
+
+                       /* color full Button code */
+                       style="background: {% with s=store_name|lower %}{% if 'ajio' in s %} #111111 
+                       {% elif 'myntra' in s %}#ff3f6c{% elif 'meesho' in s %} #3ac1dc
+                       {% elif 'shopsy' in store %} #9333ea
+                       {% elif 'jiomart' in store %} #008ecc
+                       {% elif 'tatacliq' in store %} #8f37bc
+                       {% elif 'hamara' in s %} #e84ff6
+                       {% elif 'flipkart' in s %} #2874f0
+                       {% elif 'kerala' in s or 'ayurveda' in s %} #065f46
+                       {% elif 'libas' in s %} #be185d
+                       {% else %}linear-gradient(135deg, #ffd814 0%, #ff9900 100%)
+                       {% endif %}{% endwith %}; color: {% if 'amazon' in store_name|lower %}#111{% else %}#fff{% endif %};">
                         
                         <span style="font-size: 13px; font-weight: 900; letter-spacing: 0.3px; pointer-events: none;">SHOP NOW</span>
                         

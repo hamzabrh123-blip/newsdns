@@ -96,15 +96,22 @@
     {% include "shopping/includes/footer.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global Click Tracking for Shop Now Buttons -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let currentPath = window.location.pathname;
-        let eventType = 'Home Visit';
-        let eventDetails = 'Homepage / Site';
+    document.addEventListener('click', function(e) {
+        let shopBtn = e.target.closest('#masterShopNowBtn, .cat-shop-btn');
+        if (!shopBtn) return;
+
+        let productId = shopBtn.getAttribute('data-product-id');
+        let variantId = shopBtn.getAttribute('data-variant-id');
+        let storeName = shopBtn.getAttribute('data-store-name');
+
+        if (!productId) return;
+
         let rawReferrer = document.referrer ? document.referrer.toLowerCase() : '';
         let trafficSource = 'Direct';
-
-        // 1. Clean Traffic Source Recognition
+        
         if (rawReferrer.includes('google.com')) {
             trafficSource = 'Google';
         } else if (rawReferrer.includes('pinterest.com')) {
@@ -113,57 +120,31 @@
             trafficSource = 'Facebook';
         } else if (rawReferrer.includes('instagram.com')) {
             trafficSource = 'Instagram';
-        } else if (rawReferrer === '' || rawReferrer.includes('uttarworld.com')) {
-            trafficSource = 'Direct';
-        } else {
-            trafficSource = 'Other Referral';
-        }
-
-        // 2. Dynamic Event Type & Accurate Name Extraction
-        let headingElem = document.querySelector('h2, .category-title, .product-title');
-        let pageHeading = headingElem ? headingElem.innerText.trim() : '';
-
-        if (currentPath.includes('/category/')) {
-            eventType = 'Category View';
-            eventDetails = pageHeading !== '' ? pageHeading : currentPath.split('/category/')[1].replace(/\//g, '').replace(/-/g, ' ');
-        } else if (currentPath.includes('/product/')) {
-            eventType = 'Product View';
-            eventDetails = pageHeading !== '' ? pageHeading : 'Product Page';
-        } else if (currentPath.includes('/search')) {
-            eventType = 'Search';
-            let urlParams = new URLSearchParams(window.location.search);
-            let searchQuery = urlParams.get('q');
-            eventDetails = searchQuery ? `Search: ${searchQuery}` : 'Site Search';
-        } else if (currentPath === '/' || currentPath === '/shop/') {
-            eventType = 'Home Visit';
-            eventDetails = 'Homepage / Site';
+        } else if (rawReferrer.includes('whatsapp')) {
+            trafficSource = 'WhatsApp';
         }
 
         const payload = {
-            event_type: eventType,
-            traffic_source: trafficSource,
-            device_type: window.innerWidth < 768 ? 'Mobile' : 'Desktop',
-            page_url: window.location.href,
-            details: eventDetails
+            product_id: productId,
+            variant_id: variantId || null,
+            store_name: storeName || '',
+            traffic_source: trafficSource
         };
 
-        // 3. Backend API ko data bhejo
-        fetch('/api/log-event/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Tracking logged:', data);
-        })
-        .catch(err => {
-            console.error('Tracking error:', err);
-        });
+        if (navigator.sendBeacon) {
+            let blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+            navigator.sendBeacon('/api/track-shop-click/', blob);
+        } else {
+            fetch('/api/track-shop-click/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true
+            }).catch(() => {});
+        }
     });
     </script>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const searchForm = document.querySelector('.search-form');

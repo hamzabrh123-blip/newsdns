@@ -412,7 +412,7 @@ class StoreConfiguration(models.Model):
 
 
 # ==========================================
-# SHOP NOW CLICK TRACKING (LEGACY)
+# SHOP NOW CLICK TRACKING
 # ==========================================
 class ShopNowClick(models.Model):
     product = models.ForeignKey(
@@ -424,41 +424,16 @@ class ShopNowClick(models.Model):
         null=True, blank=True, related_name="shop_now_clicks"
     )
     store_name = models.CharField(max_length=100, blank=True)
+    traffic_source = models.CharField(max_length=100, default='Direct', blank=True)
     city = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
     clicked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-clicked_at"]
-        verbose_name = "SHOP NOW Click"
-        verbose_name_plural = "SHOP NOW Clicks"
+        verbose_name = "Shop Now Click"
+        verbose_name_plural = "Shop Now Clicks"
 
     def __str__(self):
-        return f"{self.store_name or 'Unknown Store'} - {self.city or 'Unknown City'} - {self.clicked_at}"
-
-
-# ==========================================
-# ADVANCED VISITOR & SHOP CLICK LOGGING (NEW)
-# ==========================================
-class VisitorClickLog(models.Model):
-    EVENT_TYPES = (
-        ('HOME_VISIT', 'Home Visit'),
-        ('SHOP_CLICK', 'Shop Now Click'),
-    )
-    
-    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default='HOME_VISIT')
-    state = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
-    traffic_source = models.CharField(max_length=100, default='Direct') # Android App (WebView), Google Search, WhatsApp, Instagram, etc.
-    device_type = models.CharField(max_length=50, blank=True, null=True)
-    product_name = models.CharField(max_length=255, blank=True, null=True)
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-timestamp"]
-        verbose_name = "Visitor & Click Log"
-        verbose_name_plural = "Visitor & Click Logs"
-
-    def __str__(self):
-        return f"[{self.event_type}] {self.traffic_source} | {self.city}, {self.state} ({self.timestamp.strftime('%H:%M:%S')})"
+        p_title = self.product.title if self.product else "Unknown Product"
+        return f"{self.store_name or 'Store'} | {p_title} | {self.traffic_source} | {self.city} | {self.clicked_at.strftime('%d-%m-%Y %H:%M')}"
