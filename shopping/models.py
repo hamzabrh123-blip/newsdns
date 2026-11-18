@@ -285,6 +285,10 @@ class ProductVariant(models.Model):
     colour = models.CharField(max_length=50, blank=True, null=True, help_text="Colour")
     mrp_price = models.CharField(max_length=100, blank=True, null=True, help_text="MRP Price")
 
+    # --- NAYE FIELDS STOCK TRACKING KE LIYE ---
+    is_out_of_stock = models.BooleanField(default=False, help_text="Auto-checked by stock script")
+    is_active = models.BooleanField(default=True, help_text="Auto-disabled if out of stock")
+
     def save(self, *args, **kwargs):
         if self.image_url:
             self.image_url = clean_image_url(self.image_url)

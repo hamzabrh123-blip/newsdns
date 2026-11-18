@@ -138,7 +138,7 @@ def category_detail(request, slug):
     
     product_variants_pairs = []
     for prod in products_list:
-        variants = list(prod.variants.all())
+        variants = list(prod.variants.filter(is_active=True))
         if variants:
             product_variants_pairs.append((prod, variants))
         else:
@@ -238,7 +238,7 @@ def product_detail(request, slug):
         slug=slug
     )
 
-    variants = list(product.variants.all())
+    variants = list(product.variants.filter(is_active=True))
 
     selected_variant_id = request.GET.get('v')
     selected_variant = None
@@ -453,7 +453,7 @@ def product_search(request):
     
     product_variants_pairs = []
     for prod in products_list:
-        variants = list(prod.variants.all())
+        variants = list(prod.variants.filter(is_active=True))
         filtered_variants = []
         
         for v in variants:
@@ -636,7 +636,7 @@ def video_sitemap_xml(request):
     for product in products:
         product_url = f"{site_url}/shopping/product/{product.slug}/"
 
-        for variant in product.variants.all():
+        for variant in product.variants.filter(is_active=True):
             video_url = (variant.video_url or "").strip()
             thumbnail = (variant.image_url or "").strip()
 
