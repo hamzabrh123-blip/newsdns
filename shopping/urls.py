@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from . import views
+from django.views.generic import RedirectView
 from .redirects import seo_urlpatterns
 # =========================================================
 # SEO & UTILITY FUNCTIONS
@@ -36,6 +37,7 @@ def robots_txt(request):
         "Disallow: /prayagraj/\n"
         "Disallow: /search/\n"
 
+        "Disallow: /api/\n"
         "Disallow: /static/store_logo/\n\n"
 
         "User-agent: Pinterestbot\n"
@@ -125,6 +127,12 @@ urlpatterns = [
     # =====================================================
     # 3. CURRENT SHOPPING STRUCTURE
     # =====================================================
+
+    path(
+        'shopping/',
+        RedirectView.as_view(url='/', permanent=True),
+        name='shopping_root'
+    ),
 
     path(
         'shopping/category/<slug:slug>/',
