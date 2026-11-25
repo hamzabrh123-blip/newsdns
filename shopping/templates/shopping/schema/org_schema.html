@@ -1,41 +1,34 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-
-  "name": "Uttar World Elite Lifestyle Store",
-
-  "url": "https://uttarworld.com/",
-
-  "logo": {
-    "@type": "ImageObject",
-    "url": "https://uttarworld.com/static/images/uttarworld-shopping-icon.png"
-  },
-
-  "description": "{{ home_seo.meta_description|default:''|striptags|escapejs }}",
-
-  "keywords": "{{ home_seo.meta_keywords|default:''|escapejs }}",
-
-  "email": "mailto:uttarwolrd.com@gmail.com",
-
-  "sameAs": [
-    "https://www.facebook.com/uttarworld"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://uttarworld.com/#organization",
+      "name": "Uttar World Elite Lifestyle Store",
+      "url": "https://uttarworld.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://uttarworld.com/static/images/uttarworld-shopping-icon.png"
+      },
+      "description": "{{ home_seo.meta_description|default:''|striptags|escapejs }}",
+      "keywords": "{{ home_seo.meta_keywords|default:''|striptags|escapejs }}",
+      "email": "mailto:uttarworld.com@gmail.com",
+      "sameAs": [
+        "https://www.facebook.com/uttarworld"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://uttarworld.com/#website",
+      "url": "https://uttarworld.com/",
+      "name": "Uttar World Elite Lifestyle Store",
+      "description": "{{ home_seo.meta_description|default:''|striptags|escapejs }}",
+      "keywords": "{{ home_seo.meta_keywords|default:''|striptags|escapejs }}",
+      "publisher": {
+        "@id": "https://uttarworld.com/#organization"
+      }
+    }
   ]
-}
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-
-  "@type": "WebSite",
-
-  "name": "Uttar World Elite Lifestyle Store",
-
-  "url": "https://uttarworld.com/",
-
-  "description": "{{ home_seo.meta_description|default:''|striptags|escapejs }}",
-
-  "keywords": "{{ home_seo.meta_keywords|default:''|escapejs }}"
 }
 </script>

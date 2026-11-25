@@ -20,9 +20,9 @@
     },
     {
       "@type": "ProductGroup",
-      "@id": "{{ main_url }}#product-group",
+      "@id": "{{ main_url|escapejs }}#product-group",
       "name": "{{ product.title|escapejs }}",
-      "url": "{{ main_url }}",
+      "url": "{{ main_url|escapejs }}",
       "productGroupID": "{{ product.id }}",
       "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
       "brand": {
@@ -37,13 +37,13 @@
       },
       {% endif %}
       "hasVariant": [
-        {% for variant in product.variants.all %}
+        {% for variant in variants %}
         {
           "@type": "Product",
-          "@id": "{{ main_url }}?v={{ variant.id }}#product",
+          "@id": "{{ main_url|escapejs }}?v={{ variant.id }}#product",
           "name": "{{ product.title|escapejs }}{% if variant.variant_code %} - {{ variant.variant_code|escapejs }}{% else %} - Variant {{ variant.id }}{% endif %}",
           "sku": "{{ variant.variant_code|default:variant.id|escapejs }}",
-          "url": "{{ main_url }}?v={{ variant.id }}",
+          "url": "{{ main_url|escapejs }}?v={{ variant.id }}",
           {% if variant.image_url %}
           "image": "{{ variant.image_url|escapejs }}",
           {% elif product.image_url %}
@@ -52,9 +52,10 @@
           {% if variant.selling_price or product.selling_price or product.mrp_price %}
           "offers": {
             "@type": "Offer",
-            "url": "{{ main_url }}?v={{ variant.id }}",
-            "price": "{% if variant.selling_price %}{{ variant.selling_price|floatformat:2 }}{% elif product.selling_price %}{{ product.selling_price|floatformat:2 }}{% else %}{{ product.mrp_price|floatformat:2 }}{% endif %}",            "priceCurrency": "{% if product.currency == '₹' %}INR{% elif product.currency == '$' %}USD{% elif product.currency == '€' %}EUR{% elif product.currency == 'INR' %}INR{% elif product.currency == 'USD' %}USD{% elif product.currency == 'EUR' %}EUR{% endif %}",
-            "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "url": "{{ main_url|escapejs }}?v={{ variant.id }}",
+            "price": "{% if variant.selling_price %}{{ variant.selling_price|floatformat:2 }}{% elif product.selling_price %}{{ product.selling_price|floatformat:2 }}{% else %}{{ product.mrp_price|floatformat:2 }}{% endif %}",
+            "priceCurrency": "{% if product.currency == '₹' or product.currency == 'INR' %}INR{% elif product.currency == '$' or product.currency == 'USD' %}USD{% elif product.currency == '€' or product.currency == 'EUR' %}EUR{% elif product.currency %}{{ product.currency|escapejs }}{% else %}INR{% endif %}",
+            "availability": "{% if product.is_available and not variant.is_out_of_stock %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
             "itemCondition": "https://schema.org/NewCondition"
           }
           {% endif %}
@@ -66,14 +67,14 @@
     ,
     {
       "@type": "VideoObject",
-      "@id": "{{ main_url }}#product-video",
+      "@id": "{{ main_url|escapejs }}#product-video",
       "name": "{{ product.title|escapejs }} - Product Video",
       "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
       "about": {
-        "@id": "{{ main_url }}#product-group"
+        "@id": "{{ main_url|escapejs }}#product-group"
       },
-      {% with first_variant=product.variants.first %}
-      "thumbnailUrl": "{% if product.video_thumbnail_url %}{{ product.video_thumbnail_url|escapejs }}{% elif first_variant.image_url %}{{ first_variant.image_url|escapejs }}{% else %}{{ product.image_url|escapejs }}{% endif %}",
+      {% with first_variant=variants|first %}
+      "thumbnailUrl": "{% if product.video_thumbnail_url %}{{ product.video_thumbnail_url|escapejs }}{% elif first_variant and first_variant.image_url %}{{ first_variant.image_url|escapejs }}{% elif product.image_url %}{{ product.image_url|escapejs }}{% else %}https://uttarworld.com/static/default-thumb.jpg{% endif %}",
       {% endwith %}
       "uploadDate": "{{ product.video_upload_date|date:'c' }}",
       "publisher": {
@@ -91,25 +92,3 @@
 }
 </script>
 {% endwith %}
-
-
-{% if product.video_url %}
-{% with first_variant=product.variants.first %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": "{{ product.title|escapejs }} - Product Video",
-  "description": "{{ product.meta_description|default:product.title|striptags|truncatechars:300|escapejs }}",
-  "thumbnailUrl": [
-    "{% if first_variant and first_variant.image_url %}{{ first_variant.image_url|escapejs }}{% elif product.image_url %}{{ product.image_url|escapejs }}{% endif %}"
-  ],
-  "contentUrl": "{{ product.video_url|escapejs }}",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://uttarworld.com{{ request.path }}"
-  }
-}
-</script>
-{% endwith %}
-{% endif %}

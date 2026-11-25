@@ -5,36 +5,36 @@
   "name": "{{ category.name|escapejs }}",
   "description": "{{ category.meta_description|default:category.description|striptags|truncatechars:300|escapejs }}",
   {% if category.image_url %}
-  "image": "{{ category.image_url }}",
+  "image": "{{ category.image_url|escapejs }}",
   {% endif %}
   {% if category.keywords %}
   "keywords": "{{ category.keywords|escapejs }}",
   {% endif %}
-  "url": "https://www.uttarworld.com{{ request.path }}",
+  "url": "https://uttarworld.com{{ request.path }}",
   "mainEntity": {
     "@type": "ItemList",
     "itemListElement": [
-      {% for product in products|slice:":20" %}
-        {% with first_variant=product.variants.first %}
-          {% if product.title and first_variant %}
+      {% for item in products|slice:":20" %}
+        {% with prod=item.product var=item.variant %}
+          {% if prod and prod.title and var %}
       {
         "@type": "ListItem",
         "position": {{ forloop.counter }},
         "item": {
           "@type": "Product",
-          "name": "{{ product.title|escapejs }}",
-          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
-          {% if first_variant.image_url %}
-          ,
-          "image": "{{ first_variant.image_url }}"
+          "name": "{{ prod.title|escapejs }}",
+          "url": "https://uttarworld.com{% url 'product_detail' prod.slug %}",
+          {% if var.image_url %}
+          "image": "{{ var.image_url|escapejs }}",
+          {% elif prod.image_url %}
+          "image": "{{ prod.image_url|escapejs }}",
           {% endif %}
-          ,
           "offers": {
             "@type": "Offer",
-            "priceCurrency": "{{ product.currency|default:'INR' }}",
-            "price": "{% if first_variant.coupons.first.selling_price %}{{ first_variant.coupons.first.selling_price }}{% else %}{{ first_variant.price|default:'0.00' }}{% endif %}",
+            "priceCurrency": "{% if prod.currency == '₹' or prod.currency == 'INR' %}INR{% elif prod.currency == '$' or prod.currency == 'USD' %}USD{% elif prod.currency == '€' or prod.currency == 'EUR' %}EUR{% else %}{{ prod.currency|default:'INR'|escapejs }}{% endif %}",
+            "price": "{{ item.selling_price|default:'0' }}",
             "availability": "https://schema.org/InStock",
-            "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'product_detail' product.slug %}"
+            "url": "https://uttarworld.com{% url 'product_detail' prod.slug %}"
           }
         }
       }{% if not forloop.last %},{% endif %}

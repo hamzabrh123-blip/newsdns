@@ -11,14 +11,12 @@ from .redirects import seo_urlpatterns
 def robots_txt(request):
     content = (
         "User-agent: Googlebot\n"
-        "Allow: /\n\n"
+        "Allow: /\n"
         "Allow: /shopping/\n"
-        "Allow: /shopping/category/\n\n"  # Shopping category allow rahegi
-
-
-        # 2. DISALLOW UNWANTED OLD PATHS & CITIES TO STOP CRAWLING
-        "Disallow: /category/\n"           # Purani root /category/ block ho jayegi
-        "Disallow: /sports/\n"             # Sports wale saare URLs block
+        "Allow: /shopping/category/\n"
+        "Allow: /shopping/product/\n"
+        "Disallow: /category/\n"
+        "Disallow: /sports/\n"
         "Disallow: /news/\n"
         "Disallow: /international/\n"
         "Disallow: /national/\n"
@@ -35,33 +33,24 @@ def robots_txt(request):
         "Disallow: /agra/\n"
         "Disallow: /meerut/\n"
         "Disallow: /prayagraj/\n"
+        "Disallow: /sultanpur/\n"
+        "Disallow: /gonda/\n"
         "Disallow: /search/\n"
-
         "Disallow: /api/\n"
         "Disallow: /static/store_logo/\n\n"
-
         "User-agent: Pinterestbot\n"
         "Allow: /\n\n"
-
         "User-agent: Mediapartners-Google\n"
         "Allow: /\n\n"
-
         "User-agent: *\n"
         "Disallow: /search/\n"
         "Disallow: /control-panel/\n"
         "Disallow: /cart/\n"
         "Disallow: /checkout/\n\n"
-
         "Sitemap: https://uttarworld.com/sitemap.xml\n"
-
         "Sitemap: https://uttarworld.com/video-sitemap.xml\n"
-
     )
-
-    return HttpResponse(
-        content,
-        content_type="text/plain"
-    )
+    return HttpResponse(content, content_type="text/plain; charset=utf-8")
 
 
 def ads_txt(request):
@@ -132,6 +121,18 @@ urlpatterns = [
         'shopping/',
         RedirectView.as_view(url='/', permanent=True),
         name='shopping_root'
+    ),
+
+    path(
+        'shopping/category/',
+        RedirectView.as_view(url='/', permanent=True),
+        name='category_root'
+    ),
+
+    path(
+        'shopping/product/',
+        RedirectView.as_view(url='/', permanent=True),
+        name='product_root'
     ),
 
     path(

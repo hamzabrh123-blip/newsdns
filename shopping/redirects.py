@@ -1,4 +1,3 @@
-
 # shopping/redirects.py
 
 from django.urls import re_path
@@ -8,26 +7,30 @@ from .views import gone_view
 from .models import Product, Category
 
 
+def _find_product_by_slug(slug):
+    if not slug:
+        return None
+    return Product.objects.filter(slug__iexact=slug).first()
+
+
+def _find_category_by_slug(slug):
+    if not slug:
+        return None
+    return Category.objects.filter(slug__iexact=slug).first()
+
+
 # =========================================================
 # 1. OLD PRODUCT URL
 # /product/<slug>/ -> /shopping/product/<slug>/
 # =========================================================
 
 def old_product_redirect(request, path):
-    slug = path.strip("/")
-
-    # Sirf existing product ko redirect karo
-    product = Product.objects.filter(
-        slug__iexact=slug
-    ).first()
+    slug = (path or "").strip("/")
+    product = _find_product_by_slug(slug)
 
     if product:
-        return redirect(
-            f"/shopping/product/{product.slug}/",
-            permanent=True
-        )
+        return redirect(f"/shopping/product/{product.slug}/", permanent=True)
 
-    # Product nahi mila to 410 Gone
     return gone_view(request)
 
 
@@ -37,88 +40,52 @@ def old_product_redirect(request, path):
 # =========================================================
 
 def old_category_redirect(request, path):
-    slug = path.strip("/")
-
-    category = Category.objects.filter(
-        slug__iexact=slug
-    ).first()
+    slug = (path or "").strip("/")
+    category = _find_category_by_slug(slug)
 
     if category:
-        return redirect(
-            f"/shopping/category/{category.slug}/",
-            permanent=True
-        )
+        return redirect(f"/shopping/category/{category.slug}/", permanent=True)
 
-    # Category nahi mili to 410 Gone
     return gone_view(request)
 
 
 # =========================================================
 # 3. OLD SHOPPING SLUG
-# /shopping/<old-slug>/
-# Product ya Category ko identify karke redirect karo
+# /shopping/<old-slug>/ -> product ya category ya 410
 # =========================================================
 
-def old_shopping_category_redirect(request, path):
-    slug = path.strip("/")
+def old_shopping_slug_redirect(request, path):
+    slug = (path or "").strip("/")
 
-    product = Product.objects.filter(
-        slug__iexact=slug
-    ).first()
-
+    product = _find_product_by_slug(slug)
     if product:
-        return redirect(
-            f"/shopping/product/{product.slug}/",
-            permanent=True
-        )
+        return redirect(f"/shopping/product/{product.slug}/", permanent=True)
 
-    category = Category.objects.filter(
-        slug__iexact=slug
-    ).first()
-
+    category = _find_category_by_slug(slug)
     if category:
-        return redirect(
-            f"/shopping/category/{category.slug}/",
-            permanent=True
-        )
+        return redirect(f"/shopping/category/{category.slug}/", permanent=True)
 
     return gone_view(request)
 
 
 # =========================================================
 # OLD URL PATTERNS
-# IMPORTANT: shopping/urls.py mein inhe last mein rakho
+# IMPORTANT: shopping/urls.py mein active routes ke baad rakho
 # =========================================================
 
 seo_urlpatterns = [
-
-    # -----------------------------------------------------
-    # 1. OLD PRODUCT URL
-    # -----------------------------------------------------
     re_path(
-        r"^product/(?P<path>[^/]+)/$",
-        old_product_redirect
+        r"^product/(?P<path>[^/]+)/?$",
+        old_product_redirect,
     ),
-
-    # -----------------------------------------------------
-    # 2. OLD CATEGORY URL
-    # -----------------------------------------------------
     re_path(
-        r"^category/(?P<path>[^/]+)/$",
-        old_category_redirect
+        r"^category/(?P<path>[^/]+)/?$",
+        old_category_redirect,
     ),
-
-    # -----------------------------------------------------
-    # 3. OLD SHOPPING SLUG
-    # -----------------------------------------------------
     re_path(
-        r"^shopping/(?!product/|category/)(?P<path>[^/]+)/$",
-        old_shopping_category_redirect
+        r"^shopping/(?!product(?:/|$)|category(?:/|$))(?P<path>[^/]+)/?$",
+        old_shopping_slug_redirect,
     ),
-
-    # -----------------------------------------------------
-    # 4. EVERYTHING ELSE OLD/UNWANTED -> 410 GONE
-    # -----------------------------------------------------
     re_path(
         r"^(?!"
         r"shopping(?:/|$)|"
@@ -129,10 +96,15 @@ seo_urlpatterns = [
         r"terms(?:/|$)|"
         r"privacy-policy(?:/|$)|"
         r"contact(?:/|$)|"
-        r"static/store_logo(?:/|$)|"
+        r"static(?:/|$)|"
+        r"control-panel(?:/|$)|"
+        r"ckeditor(?:/|$)|"
+        r"feedback(?:/|$)|"
+        r"favicon\.ico$|"
+        r"google21a82f00fad0f9b3\.html$|"
         r"product(?:/|$)|"
         r"category(?:/|$)"
         r").*$",
-        gone_view
+        gone_view,
     ),
 ]

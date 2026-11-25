@@ -75,10 +75,8 @@ def shop_home(request):
 
     sliders = HomeSlider.objects.filter(is_active=True).order_by('?')
     
-    # Active sections fetch karo order ke mutabiq
     home_sections = HomeSection.objects.filter(is_active=True).select_related('category').order_by('order')
 
-    # Same heading wale sections ko ek jagah group karne ka logic
     grouped_sections = []
     seen_headings = []
 
@@ -114,7 +112,7 @@ def shop_home(request):
 
 
 # ==========================================
-# CATEGORY DETAIL (Fixed Interleaved Variants & Paginator)
+# CATEGORY DETAIL (Strict Out-of-Stock & Active Filters)
 # ==========================================
 
 def category_detail(request, slug):
@@ -138,11 +136,10 @@ def category_detail(request, slug):
     
     product_variants_pairs = []
     for prod in products_list:
-        variants = list(prod.variants.filter(is_active=True))
+        # STRICT: Sirf wahi variants lo jo active aur in-stock dono hon
+        variants = list(prod.variants.filter(is_active=True, is_out_of_stock=False))
         if variants:
             product_variants_pairs.append((prod, variants))
-        else:
-            product_variants_pairs.append((prod, [None]))
 
     max_variants = max([len(v) for p, v in product_variants_pairs], default=0)
     
@@ -157,7 +154,7 @@ def category_detail(request, slug):
                 if variant:
                     try:
                         if variant.selling_price not in [None, '', 'None', 'null']:
-                            v_selling = float(variant.selling_price)
+                            v_selling = float(str(variant.selling_price).split('~')[0].strip())
                     except (ValueError, TypeError):
                         v_selling = None
 
@@ -165,7 +162,7 @@ def category_detail(request, slug):
                     final_selling = v_selling
                 else:
                     try:
-                        final_selling = float(prod.selling_price) if prod.selling_price not in [None, '', 'None', 'null'] else 0.0
+                        final_selling = float(str(prod.selling_price).split('~')[0].strip()) if prod.selling_price not in [None, '', 'None', 'null'] else 0.0
                     except (ValueError, TypeError):
                         final_selling = 0.0
 
@@ -174,7 +171,7 @@ def category_detail(request, slug):
                     try:
                         raw_vmrp = getattr(variant, 'mrp', None) or getattr(variant, 'mrp_price', None)
                         if raw_vmrp not in [None, '', 'None', 'null']:
-                            v_mrp = float(raw_vmrp)
+                            v_mrp = float(str(raw_vmrp).split('~')[0].strip())
                     except (ValueError, TypeError):
                         v_mrp = None
 
@@ -183,7 +180,7 @@ def category_detail(request, slug):
                 else:
                     try:
                         raw_pmrp = getattr(prod, 'mrp', None) or getattr(prod, 'mrp_price', None)
-                        final_mrp = float(raw_pmrp) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
+                        final_mrp = float(str(raw_pmrp).split('~')[0].strip()) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
                     except (ValueError, TypeError):
                         final_mrp = 0.0
 
@@ -197,7 +194,7 @@ def category_detail(request, slug):
 
                 display_grid.append({
                     'product': prod,
-                    'variant': variant if variant else None,
+                    'variant': variant,
                     'selling_price': selling_val if selling_val > 0 else None,
                     'mrp_price': mrp_val if (mrp_val > selling_val) else None,
                     'calculated_discount': disc_pct
@@ -224,7 +221,7 @@ def category_detail(request, slug):
 
 
 # ==========================================
-# PRODUCT DETAIL (With Prioritized Selected Variant & Clean Pricing)
+# PRODUCT DETAIL (Strict Active & In-Stock Variants Only)
 # ==========================================
 
 def product_detail(request, slug):
@@ -238,7 +235,7 @@ def product_detail(request, slug):
         slug=slug
     )
 
-    variants = list(product.variants.filter(is_active=True))
+    variants = list(product.variants.filter(is_active=True, is_out_of_stock=False))
 
     selected_variant_id = request.GET.get('v')
     selected_variant = None
@@ -259,14 +256,14 @@ def product_detail(request, slug):
     if selected_variant:
         try:
             if selected_variant.selling_price not in [None, '', 'None', 'null']:
-                v_selling = float(selected_variant.selling_price)
+                v_selling = float(str(selected_variant.selling_price).split('~')[0].strip())
         except (ValueError, TypeError):
             v_selling = None
 
         try:
             raw_vmrp = getattr(selected_variant, 'mrp', None) or getattr(selected_variant, 'mrp_price', None)
             if raw_vmrp not in [None, '', 'None', 'null']:
-                v_mrp = float(raw_vmrp)
+                v_mrp = float(str(raw_vmrp).split('~')[0].strip())
         except (ValueError, TypeError):
             v_mrp = None
 
@@ -274,7 +271,7 @@ def product_detail(request, slug):
         final_selling = v_selling
     else:
         try:
-            final_selling = float(product.selling_price) if product.selling_price not in [None, '', 'None', 'null'] else 0.0
+            final_selling = float(str(product.selling_price).split('~')[0].strip()) if product.selling_price not in [None, '', 'None', 'null'] else 0.0
         except (ValueError, TypeError):
             final_selling = 0.0
 
@@ -283,7 +280,7 @@ def product_detail(request, slug):
     else:
         try:
             raw_pmrp = getattr(product, 'mrp', None) or getattr(product, 'mrp_price', None)
-            final_mrp = float(raw_pmrp) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
+            final_mrp = float(str(raw_pmrp).split('~')[0].strip()) if raw_pmrp not in [None, '', 'None', 'null'] else 0.0
         except (ValueError, TypeError):
             final_mrp = 0.0
 
@@ -306,10 +303,12 @@ def product_detail(request, slug):
     context['calculated_discount'] = disc_pct
 
     context['related_products'] = Product.objects.filter(
-        category=product.category
+        category=product.category,
+        variants__is_active=True,
+        variants__is_out_of_stock=False
     ).exclude(
         id=product.id
-    ).order_by('?')[:12]
+    ).distinct().order_by('?')[:12]
 
     return render(
         request,
@@ -332,12 +331,14 @@ def load_more_products(request):
         'cat_slug'
     )
 
-    products = Product.objects.all().prefetch_related(
+    products = Product.objects.filter(
+        variants__is_active=True,
+        variants__is_out_of_stock=False
+    ).distinct().prefetch_related(
         'variants'
     ).order_by('?')
 
     if cat_slug:
-
         products = products.filter(
             category__slug=cat_slug
         )
@@ -367,7 +368,7 @@ def load_more_products(request):
 
 
 # ==========================================
-# PRODUCT SEARCH (Exact Match & Single Nearest Fallback Price)
+# PRODUCT SEARCH
 # ==========================================
 
 def product_search(request):
@@ -388,8 +389,10 @@ def product_search(request):
     ).strip()
 
     products = Product.objects.filter(
-        is_available=True
-    ).prefetch_related(
+        is_available=True,
+        variants__is_active=True,
+        variants__is_out_of_stock=False
+    ).distinct().prefetch_related(
         'variants'
     )
 
@@ -403,7 +406,6 @@ def product_search(request):
         )
 
     if store:
-
         store = store.lower().replace(
             '.com',
             ''
@@ -417,13 +419,15 @@ def product_search(request):
 
         target_price = int(max_price)
 
-        exact_exists = products.filter(variants__selling_price=target_price).exists()
+        exact_exists = products.filter(variants__is_active=True, variants__is_out_of_stock=False, variants__selling_price=target_price).exists()
 
         if exact_exists:
             filter_price = float(target_price)
-            products = products.filter(variants__selling_price=target_price).distinct()
+            products = products.filter(variants__is_active=True, variants__is_out_of_stock=False, variants__selling_price=target_price).distinct()
         else:
             lower_prices = products.filter(
+                variants__is_active=True,
+                variants__is_out_of_stock=False,
                 variants__selling_price__lt=target_price
             ).values_list('variants__selling_price', flat=True).distinct()
 
@@ -441,7 +445,7 @@ def product_search(request):
             if valid_lower_prices:
                 valid_lower_prices.sort(reverse=True)
                 filter_price = valid_lower_prices[0]
-                products = products.filter(variants__selling_price=filter_price).distinct()
+                products = products.filter(variants__is_active=True, variants__is_out_of_stock=False, variants__selling_price=filter_price).distinct()
             else:
                 products = products.none()
 
@@ -453,7 +457,7 @@ def product_search(request):
     
     product_variants_pairs = []
     for prod in products_list:
-        variants = list(prod.variants.filter(is_active=True))
+        variants = list(prod.variants.filter(is_active=True, is_out_of_stock=False))
         filtered_variants = []
         
         for v in variants:
@@ -473,8 +477,6 @@ def product_search(request):
 
         if filtered_variants:
             product_variants_pairs.append((prod, filtered_variants))
-        elif not max_price:
-            product_variants_pairs.append((prod, [None]))
 
     max_variants = max([len(v) for p, v in product_variants_pairs], default=0)
     
@@ -562,17 +564,29 @@ def contact_us(request): return render(request, 'shopping/contact.html', get_bas
 
 
 # ==========================================
-# SITEMAP
+# SITEMAP (sitemap.xml & video-sitemap.xml)
 # ==========================================
 def sitemap_shop_xml(request):
 
-    products = Product.objects.filter(
-        is_available=True
-    ).order_by("-created_at")
+    products = (
+        Product.objects.filter(
+            is_available=True,
+            variants__is_active=True,
+            variants__is_out_of_stock=False,
+        )
+        .distinct()
+        .order_by("-created_at")
+    )
 
-    categories = Category.objects.filter(
-        products__is_available=True
-    ).distinct().order_by("name")
+    categories = (
+        Category.objects.filter(
+            products__is_available=True,
+            products__variants__is_active=True,
+            products__variants__is_out_of_stock=False,
+        )
+        .distinct()
+        .order_by("name")
+    )
 
     site_url = "https://uttarworld.com"
 
@@ -597,10 +611,15 @@ def sitemap_shop_xml(request):
         """
 
     for p in products:
+        lastmod_str = (
+            p.created_at.strftime("%Y-%m-%d")
+            if getattr(p, "created_at", None)
+            else timezone.now().strftime("%Y-%m-%d")
+        )
         xml += f"""
         <url>
             <loc>{site_url}/shopping/product/{p.slug}/</loc>
-            <lastmod>{p.created_at.strftime("%Y-%m-%d")}</lastmod>
+            <lastmod>{lastmod_str}</lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.8</priority>
         </url>
@@ -610,9 +629,8 @@ def sitemap_shop_xml(request):
 
     return HttpResponse(
         xml,
-        content_type="application/xml"
+        content_type="application/xml; charset=utf-8"
     )
-
 
 def video_sitemap_xml(request):
     site_url = "https://uttarworld.com"
@@ -620,9 +638,12 @@ def video_sitemap_xml(request):
     products = (
         Product.objects.filter(
             is_available=True,
+            variants__is_active=True,
+            variants__is_out_of_stock=False,
             variants__video_url__isnull=False,
         )
         .exclude(variants__video_url="")
+        .prefetch_related("variants")
         .distinct()
         .order_by("-created_at")
     )
@@ -636,16 +657,27 @@ def video_sitemap_xml(request):
     for product in products:
         product_url = f"{site_url}/shopping/product/{product.slug}/"
 
-        for variant in product.variants.filter(is_active=True):
-            video_url = (variant.video_url or "").strip()
-            thumbnail = (variant.image_url or "").strip()
+        active_variants = [
+            v for v in product.variants.all()
+            if v.is_active and not v.is_out_of_stock
+        ]
+
+        for variant in active_variants:
+            video_url = (getattr(variant, "video_url", "") or "").strip()
+            thumbnail = (
+                (getattr(variant, "image_url", "") or "").strip()
+                or (getattr(product, "image_url", "") or "").strip()
+            )
 
             if not video_url or not thumbnail:
                 continue
 
             parsed = urlsplit(video_url)
+            thumb_parsed = urlsplit(thumbnail)
 
             if parsed.scheme not in ("http", "https") or not parsed.netloc:
+                continue
+            if thumb_parsed.scheme not in ("http", "https") or not thumb_parsed.netloc:
                 continue
 
             title = escape(f"{product.title} - Product Video")
@@ -671,7 +703,6 @@ def video_sitemap_xml(request):
         xml,
         content_type="application/xml; charset=utf-8"
     )
-
 # ==========================================
 # SHOP NOW CLICK TRACKING API (INDIA ONLY)
 # ==========================================
@@ -741,11 +772,9 @@ def track_shop_now_click(request):
     country_code, city, state = _lookup_geo_ip(ip_address)
     effective_country = cf_country or country_code
 
-    # Sirf Indian traffic ko hi log karein
     if effective_country and effective_country != "IN":
         return JsonResponse({"status": "ignored", "reason": "non-india"})
 
-    # --- FOOLPROOF BACKEND TRAFFIC SOURCE CLEANING ---
     if "google.com" in raw_source:
         traffic_source = "Google"
     elif "pinterest.com" in raw_source:
@@ -769,7 +798,6 @@ def track_shop_now_click(request):
             country=effective_country or "IN",
         )
 
-        # 30-Day Auto Cleanup (1 mahine se purane saare clicks automatic delete ho jayenge)
         one_month_ago = timezone.now() - timedelta(days=30)
         ShopNowClick.objects.filter(clicked_at__lt=one_month_ago).delete()
 
